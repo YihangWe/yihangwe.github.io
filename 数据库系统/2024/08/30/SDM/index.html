@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yihangwe.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="SDMData Models: Conceptual -&gt; Logical -&gt; Physical. SDM is a conceptual data modeling tool, at the intersection of conceptual and logical. It facilitates an understaning of the meaning of the dat">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SDM">
+<meta property="og:url" content="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/08/30/SDM/index.html">
+<meta property="og:site_name" content="EthanWeee">
+<meta property="og:description" content="SDMData Models: Conceptual -&gt; Logical -&gt; Physical. SDM is a conceptual data modeling tool, at the intersection of conceptual and logical. It facilitates an understaning of the meaning of the dat">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-08-30T07:00:00.000Z">
+<meta property="article:modified_time" content="2025-05-30T02:45:39.796Z">
+<meta property="article:author" content="Yihang Wei">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/08/30/SDM/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>SDM | EthanWeee</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">EthanWeee</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/08/30/SDM/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          SDM
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-08-30 00:00:00" itemprop="dateCreated datePublished" datetime="2024-08-30T00:00:00-07:00">2024-08-30</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-05-29 19:45:39" itemprop="dateModified" datetime="2025-05-29T19:45:39-07:00">2025-05-29</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">数据库系统</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="SDM"><a href="#SDM" class="headerlink" title="SDM"></a>SDM</h1><p>Data Models: Conceptual -&gt; Logical -&gt; Physical.</p>
+<p>SDM is a conceptual data modeling tool, at the intersection of conceptual and logical. It facilitates <strong>an understaning of the meaning of the data</strong>.</p>
+<ul>
+<li>Identify and classify principal intensional (semantic) structures of an application.</li>
+</ul>
+<p>A set of constructs that express the essential meaning and structure of different problem domains.</p>
+<p><strong>Basic Structure:</strong></p>
+<ul>
+<li>Classes: a collection of entities. Each class has:</li>
+<li><ul>
+<li>A name.</li>
+<li>A collection of members: Its entities. 3 member types:</li>
+<li><ul>
+<li>Objects:</li>
+<li><ul>
+<li>Concrete.</li>
+<li>Abstraction: a generalization of another entity.</li>
+<li>Aggregate: a collection of another type of entity.</li>
+</ul>
+</li>
+<li>Events: Action or activities in the application. Point and duration events.</li>
+<li>Names are deginators for objects or events.</li>
+</ul>
+</li>
+<li>Attributes.</li>
+<li>A description: nature, purpose, and uses of the class.</li>
+<li>Identified as either base or nonbase.</li>
+</ul>
+</li>
+<li>Schema: a collection of classes.</li>
+</ul>
+<p>Class Attributes:</p>
+<ol>
+<li><strong>Member attributes</strong> link the member to one or more related entities in the same or another class.</li>
+<li><strong>Class determined attribute</strong> is associated with the whole class and has the same value for all members of that class.</li>
+<li><strong>Class attribute</strong> describes a property of a class taken as a whole.</li>
+</ol>
+<p>An attribute value is either a primitive (user defined) or derived (a value calculated from other information in the database).</p>
+<p><strong>Base class</strong></p>
+<p>It is independent of other classes. In SDM, it may be a concrete object class, a point event class, a duration event, a name class.</p>
+<p>It is specified as either containing duplicates or not containing duplicates. The latter models a multiset&#x2F;bag of entities.</p>
+<p>It has an associated list of groups of member attributes. One or more may serve as the unique identifier of a member.</p>
+<p><strong>Nonbase class</strong></p>
+<p>Subclass of a parent class. Members of the subclass inherit all attributes of the parent class. Subclass may add new member attributes. 2 types:</p>
+<ol>
+<li>Restrict: a predicate identifies which members of the parent belong to a subclass.</li>
+<li>Subset: A human user decides entities in the subclass as long as the subclass is a subset of its parent.</li>
+</ol>
+<p>Attribute value: either an entity or a class of entities. It can be UNKNOWN.</p>
+<p>Semantic types:</p>
+<ol>
+<li>A componenet models a physical part of an object.</li>
+<li>A participant of the event entity models an entity that plays a role in an event.</li>
+<li>A property of an attribute is an attribute that provides further information on the relationship between the entity and the value of one of its attributes.</li>
+</ol>
+<p>Questions:</p>
+<p><strong>Why is it important for a relational schema to satisfy the 5 normal forms?</strong></p>
+<p>To ensure the data integrity and consistency, and minimize the loss and redundancy of information.</p>
+<p>1NF: all occurences of a record type must contain the same number of fields.</p>
+<p>2 and 3NF: a non-key attribute is a fact about only the whole key.</p>
+<p>4NF: a record should not contain two or more independent multi-valued fact about an entity.</p>
+<p>5NF: decompose a table into smaller ones to eliminate multi-valued dependencies, while ensuring that the original data can be losslessly reconstructed through join operation.</p>
+<p><strong>With SDM, what is the unique identifier of a class containing duplicates?</strong></p>
+<p>There is no unique identifier of a class containing duplicates since some of the members of this class are indistinguishable.</p>
+<p><strong>Is SDM a competitor to the relational data model?</strong> </p>
+<p>Yes. But SDM is not intended to be a direct competitor to the relational data model. The goal of SDM is to provide a more semantic way to model complex application environments, expressing the structure and meaning of data more effectively than tradtional relational models. It is designed to enhance the relational data model.</p>
+<p><strong>A database represents a snapshot of the state of an application and the changes to the database over time. What is the change in a 3D display that illuminates animations using FLSs? Does an FLS display represent a database using drones?</strong> </p>
+<p>A 3D FLS display illuminates animations by computing the flight paths of the FLS drones based on the dynamic attributes of objects, such as geometry, color, and movement over time. Changes in the display represent transitions in the object’s states or visual properties.</p>
+<p>Yes, the FLS display act as a dynamic visualization tool that represents a database where each drone corresponds to data points or entities, displaying multimedia content in a 3D space.</p>
+<p><strong>Section 1 of the SDM paper states: “SDM is not dependent on the successful implementation of a new database management system that directly supports the SDM. The latter approach would be impractical for a variety of reasons.” Why is it impractical to implement a new database management system that supports the SDM? Do you know of a system?</strong></p>
+<p>SDM emphasizes the <strong>meaning</strong> and <strong>relationship</strong> of data, requiring sophisticated handling of semantics, which adds complexity. Integrating SDM into existing systems will cause incompatibility with current DBMS architectures.</p>
+<p>While there is not a widely adopted DBMS that fully supports SDM, some graph databases or knowledge graph systems such as <strong>Neo4j</strong>, <strong>RDF stores</strong> partially align with SDM principles.</p>
+<p>Reference: <a target="_blank" rel="noopener" href="https://dl.acm.org/doi/pdf/10.1145/509252.509264">https://dl.acm.org/doi/pdf/10.1145/509252.509264</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/06/Gamma/" rel="next" title="Gamma">
+      Gamma <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#SDM"><span class="nav-number">1.</span> <span class="nav-text">SDM</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Yihang Wei</p>
+  <div class="site-description" itemprop="description">聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">2</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yihang Wei</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

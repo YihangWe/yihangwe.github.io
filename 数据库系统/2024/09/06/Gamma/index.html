@@ -20,30 +20,34 @@
     var CONFIG = {"hostname":"yihangwe.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
-<meta property="og:type" content="website">
-<meta property="og:title" content="EthanWeee">
-<meta property="og:url" content="https://yihangwe.github.io/index.html">
+  <meta name="description" content="Gamma主要特点：  并行处理： Gamma 利用了分布式架构，通过将数据和计算任务分散到多个节点上并行处理，极大提高了查询性能和吞吐量。不同的节点可以同时处理不同的任务，从而加速整个系统的响应时间。  并行查询处理： Gamma 支持并行执行查询计划中的操作（如选择、投影、连接等）。系统采用流水线并行（pipelined parallelism）和分块并行（partitioned parall">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Gamma">
+<meta property="og:url" content="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/06/Gamma/index.html">
 <meta property="og:site_name" content="EthanWeee">
-<meta property="og:description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+<meta property="og:description" content="Gamma主要特点：  并行处理： Gamma 利用了分布式架构，通过将数据和计算任务分散到多个节点上并行处理，极大提高了查询性能和吞吐量。不同的节点可以同时处理不同的任务，从而加速整个系统的响应时间。  并行查询处理： Gamma 支持并行执行查询计划中的操作（如选择、投影、连接等）。系统采用流水线并行（pipelined parallelism）和分块并行（partitioned parall">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yihangwe.github.io/images/Gamma_Arch.png">
+<meta property="article:published_time" content="2024-09-06T07:00:00.000Z">
+<meta property="article:modified_time" content="2025-05-30T02:45:44.462Z">
 <meta property="article:author" content="Yihang Wei">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yihangwe.github.io/images/Gamma_Arch.png">
 
-<link rel="canonical" href="https://yihangwe.github.io/">
+<link rel="canonical" href="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/06/Gamma/">
 
 
 <script id="page-configurations">
   // https://hexo.io/docs/variables.html
   CONFIG.page = {
     sidebar: "",
-    isHome : true,
-    isPost : false,
+    isHome : false,
+    isPost : true,
     lang   : 'zh-CN'
   };
 </script>
 
-  <title>EthanWeee</title>
+  <title>Gamma | EthanWeee</title>
   
 
 
@@ -141,9 +145,10 @@
         <div class="content-wrap">
           
 
-          <div class="content index posts-expand">
+          <div class="content post posts-expand">
             
-      
+
+    
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
@@ -159,10 +164,9 @@
       <meta itemprop="name" content="EthanWeee">
     </span>
       <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/06/Gamma/" class="post-title-link" itemprop="url">Gamma</a>
-        </h2>
+        <h1 class="post-title" itemprop="name headline">
+          Gamma
+        </h1>
 
         <div class="post-meta">
             <span class="post-meta-item">
@@ -201,7 +205,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="Gamma"><a href="#Gamma" class="headerlink" title="Gamma"></a>Gamma</h1><p>主要特点：</p>
+        <h1 id="Gamma"><a href="#Gamma" class="headerlink" title="Gamma"></a>Gamma</h1><p>主要特点：</p>
 <ol>
 <li><strong>并行处理</strong>： Gamma 利用了分布式架构，通过将数据和计算任务分散到多个节点上并行处理，极大提高了查询性能和吞吐量。不同的节点可以同时处理不同的任务，从而加速整个系统的响应时间。</li>
 <li><ul>
@@ -481,167 +485,30 @@
 <p>Yes. FLOW enables more fine-grained control over the data flow and process interactions, which could simplify the addition of new operators and functionalities. It would also make the system easier to maintain and extend, as each component could be developed and optimized independently.</p>
 <p>Reference: <a target="_blank" rel="noopener" href="https://pages.cs.wisc.edu/~dewitt/includes/paralleldb/ieee90.pdf">https://pages.cs.wisc.edu/~dewitt/includes/paralleldb/ieee90.pdf</a></p>
 
-      
     </div>
 
     
     
     
+
       <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/08/30/SDM/">
+        
 
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Yihang Wei">
-      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
-    </span>
 
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="EthanWeee">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/08/30/SDM/" class="post-title-link" itemprop="url">SDM</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-08-30 00:00:00" itemprop="dateCreated datePublished" datetime="2024-08-30T00:00:00-07:00">2024-08-30</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-05-29 19:45:39" itemprop="dateModified" datetime="2025-05-29T19:45:39-07:00">2025-05-29</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">数据库系统</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="SDM"><a href="#SDM" class="headerlink" title="SDM"></a>SDM</h1><p>Data Models: Conceptual -&gt; Logical -&gt; Physical.</p>
-<p>SDM is a conceptual data modeling tool, at the intersection of conceptual and logical. It facilitates <strong>an understaning of the meaning of the data</strong>.</p>
-<ul>
-<li>Identify and classify principal intensional (semantic) structures of an application.</li>
-</ul>
-<p>A set of constructs that express the essential meaning and structure of different problem domains.</p>
-<p><strong>Basic Structure:</strong></p>
-<ul>
-<li>Classes: a collection of entities. Each class has:</li>
-<li><ul>
-<li>A name.</li>
-<li>A collection of members: Its entities. 3 member types:</li>
-<li><ul>
-<li>Objects:</li>
-<li><ul>
-<li>Concrete.</li>
-<li>Abstraction: a generalization of another entity.</li>
-<li>Aggregate: a collection of another type of entity.</li>
-</ul>
-</li>
-<li>Events: Action or activities in the application. Point and duration events.</li>
-<li>Names are deginators for objects or events.</li>
-</ul>
-</li>
-<li>Attributes.</li>
-<li>A description: nature, purpose, and uses of the class.</li>
-<li>Identified as either base or nonbase.</li>
-</ul>
-</li>
-<li>Schema: a collection of classes.</li>
-</ul>
-<p>Class Attributes:</p>
-<ol>
-<li><strong>Member attributes</strong> link the member to one or more related entities in the same or another class.</li>
-<li><strong>Class determined attribute</strong> is associated with the whole class and has the same value for all members of that class.</li>
-<li><strong>Class attribute</strong> describes a property of a class taken as a whole.</li>
-</ol>
-<p>An attribute value is either a primitive (user defined) or derived (a value calculated from other information in the database).</p>
-<p><strong>Base class</strong></p>
-<p>It is independent of other classes. In SDM, it may be a concrete object class, a point event class, a duration event, a name class.</p>
-<p>It is specified as either containing duplicates or not containing duplicates. The latter models a multiset&#x2F;bag of entities.</p>
-<p>It has an associated list of groups of member attributes. One or more may serve as the unique identifier of a member.</p>
-<p><strong>Nonbase class</strong></p>
-<p>Subclass of a parent class. Members of the subclass inherit all attributes of the parent class. Subclass may add new member attributes. 2 types:</p>
-<ol>
-<li>Restrict: a predicate identifies which members of the parent belong to a subclass.</li>
-<li>Subset: A human user decides entities in the subclass as long as the subclass is a subset of its parent.</li>
-</ol>
-<p>Attribute value: either an entity or a class of entities. It can be UNKNOWN.</p>
-<p>Semantic types:</p>
-<ol>
-<li>A componenet models a physical part of an object.</li>
-<li>A participant of the event entity models an entity that plays a role in an event.</li>
-<li>A property of an attribute is an attribute that provides further information on the relationship between the entity and the value of one of its attributes.</li>
-</ol>
-<p>Questions:</p>
-<p><strong>Why is it important for a relational schema to satisfy the 5 normal forms?</strong></p>
-<p>To ensure the data integrity and consistency, and minimize the loss and redundancy of information.</p>
-<p>1NF: all occurences of a record type must contain the same number of fields.</p>
-<p>2 and 3NF: a non-key attribute is a fact about only the whole key.</p>
-<p>4NF: a record should not contain two or more independent multi-valued fact about an entity.</p>
-<p>5NF: decompose a table into smaller ones to eliminate multi-valued dependencies, while ensuring that the original data can be losslessly reconstructed through join operation.</p>
-<p><strong>With SDM, what is the unique identifier of a class containing duplicates?</strong></p>
-<p>There is no unique identifier of a class containing duplicates since some of the members of this class are indistinguishable.</p>
-<p><strong>Is SDM a competitor to the relational data model?</strong> </p>
-<p>Yes. But SDM is not intended to be a direct competitor to the relational data model. The goal of SDM is to provide a more semantic way to model complex application environments, expressing the structure and meaning of data more effectively than tradtional relational models. It is designed to enhance the relational data model.</p>
-<p><strong>A database represents a snapshot of the state of an application and the changes to the database over time. What is the change in a 3D display that illuminates animations using FLSs? Does an FLS display represent a database using drones?</strong> </p>
-<p>A 3D FLS display illuminates animations by computing the flight paths of the FLS drones based on the dynamic attributes of objects, such as geometry, color, and movement over time. Changes in the display represent transitions in the object’s states or visual properties.</p>
-<p>Yes, the FLS display act as a dynamic visualization tool that represents a database where each drone corresponds to data points or entities, displaying multimedia content in a 3D space.</p>
-<p><strong>Section 1 of the SDM paper states: “SDM is not dependent on the successful implementation of a new database management system that directly supports the SDM. The latter approach would be impractical for a variety of reasons.” Why is it impractical to implement a new database management system that supports the SDM? Do you know of a system?</strong></p>
-<p>SDM emphasizes the <strong>meaning</strong> and <strong>relationship</strong> of data, requiring sophisticated handling of semantics, which adds complexity. Integrating SDM into existing systems will cause incompatibility with current DBMS architectures.</p>
-<p>While there is not a widely adopted DBMS that fully supports SDM, some graph databases or knowledge graph systems such as <strong>Neo4j</strong>, <strong>RDF stores</strong> partially align with SDM principles.</p>
-<p>Reference: <a target="_blank" rel="noopener" href="https://dl.acm.org/doi/pdf/10.1145/509252.509264">https://dl.acm.org/doi/pdf/10.1145/509252.509264</a></p>
-
-      
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/08/30/SDM/" rel="prev" title="SDM">
+      <i class="fa fa-chevron-left"></i> SDM
+    </a></div>
+      <div class="post-nav-item"></div>
     </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
       </footer>
+    
   </article>
   
   
-  
-
-
   
 
 
@@ -694,6 +561,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Gamma"><span class="nav-number">1.</span> <span class="nav-text">Gamma</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
