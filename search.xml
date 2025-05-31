@@ -1,431 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>BG Benchmark</title>
-    <url>/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/10/25/BG%20Benchmark/</url>
-    <content><![CDATA[<h1 id="Data-Model-and-Performance-Metrics"><a href="#Data-Model-and-Performance-Metrics" class="headerlink" title="Data Model and Performance Metrics"></a>Data Model and Performance Metrics</h1><ol>
-<li>ER Diagram and Database Design</li>
-</ol>
-<ul>
-<li>ER Diagram (Figure 1.a):Represents entities and relationships in the BG system.<ul>
-<li>Member Entity:<ul>
-<li>Represents users with a registered profile, including a unique ID and a set of adjustable-length string attributes to create records of varying sizes.</li>
-<li>Each user can have up to two images:<ul>
-<li>Thumbnail Image: Small (in KBs), used for displaying in friend lists.</li>
-<li>High-Resolution Image: Larger (hundreds of KBs or MBs), displayed when visiting a user profile.</li>
-<li>Using thumbnails significantly reduces system load compared to larger images.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>Friend Relationship:<ul>
-<li>Captures relationships or friend requests between users. An attribute differentiates between invitations and confirmed friendships.</li>
-</ul>
-</li>
-<li>Resource Entity:<ul>
-<li>Represents user-owned items like images, questions, or documents. Resources must belong to a user and can be posted on their profile or another user’s profile.</li>
-</ul>
-</li>
-<li>Manipulation Relationship:<ul>
-<li>Manages comments and restrictions (e.g., only friends can comment on a resource).</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<ol start="2">
-<li>BG Workload and SLA (Service-Level Agreement)</li>
-</ol>
-<ul>
-<li><p>Workload: BG supports defining workloads at the granularity of:</p>
-<ul>
-<li>Actions: Single operations like “view profile” or “list friends.”</li>
-<li>Sessions: A sequence of related actions (e.g., browsing a profile, sending a friend request).</li>
-<li>Mixed Workloads: A combination of actions and sessions.</li>
-</ul>
-</li>
-<li><p>Service-Level Agreement (SLA):</p>
-<ul>
-<li>Goal: Ensures the system provides reliable performance under specified conditions.</li>
-<li>Example SLA Requirements: SLA, e.g., 95% of requests to observe a response time equal to or faster than 100 msec with at most 0.1% of requests observing unpredictable data for 10 minutes.</li>
-</ul>
-</li>
-<li><p>Metrics:</p>
-<ul>
-<li><strong>SoAR (Social Action Rating): Measures the highest number of actions per second that meet the SLA.</strong></li>
-<li><strong>Socialites: Measures the maximum number of concurrent threads that meet the SLA, reflecting the system’s multithreading capabilities.</strong></li>
-</ul>
-</li>
-</ul>
-<ol start="3">
-<li>Performance Evaluation Example</li>
-</ol>
-<ul>
-<li>SQL-X System Performance:SQL-X is a relational database with strict ACID compliance.<ul>
-<li>Initially, throughput increases with more threads.</li>
-<li>Beyond a certain threshold (e.g., 4 threads), request queuing causes response times to increase, reducing SLA compliance.</li>
-<li>With 32 threads, 99.94% of requests exceed the 100-millisecond SLA limit, indicating significant performance degradation.</li>
-</ul>
-</li>
-</ul>
-<ol start="4">
-<li>Concurrency and Optimization in BG</li>
-</ol>
-<ul>
-<li><p><strong>Concurrency Management:</strong></p>
-<ul>
-<li><strong>BG prevents two threads from emulating the same user simultaneously to realistically simulate user behavior.</strong></li>
-</ul>
-</li>
-<li><p><strong>Unpredictable Data Handling:</strong></p>
-<ul>
-<li><strong>Definition: Data that is stale, inconsistent, or invalid due to system limitations or race conditions.</strong></li>
-<li><strong>Validation:</strong><ul>
-<li><strong>BG uses offline validation to analyze read and write logs.</strong></li>
-<li><strong>It determines acceptable value ranges for data and flags any reads that fall outside these ranges as unpredictable.</strong></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<blockquote>
-<p>If SoAR is zero, the data store fails to meet SLA requirements, even with a single-threaded BGClient issuing requests.</p>
-</blockquote>
-<h1 id="Actions"><a href="#Actions" class="headerlink" title="Actions"></a>Actions</h1><h2 id="Performance-Analysis-of-View-Profile"><a href="#Performance-Analysis-of-View-Profile" class="headerlink" title="Performance Analysis of View Profile"></a><strong>Performance Analysis of View Profile</strong></h2><p>Performance of VP is influenced by whether profile images are included and their sizes.</p>
-<p><strong>Experiment Setup</strong>:</p>
-<ul>
-<li>Profile data tested with:</li>
-<li><ul>
-<li><strong>No images</strong>.</li>
-<li><strong>2 KB thumbnails</strong> combined with profile images of <strong>2 KB, 12 KB, and 500 KB</strong> sizes.</li>
-</ul>
-</li>
-<li>Metrics: SoAR (Social Action Rating) measures the number of VP actions per second that meet the SLA (response time ≤ 100 ms).</li>
-</ul>
-<p><strong>Results</strong>:</p>
-<p><img src="/../images/experiment1.png" alt="img"></p>
-<ol>
-<li><p><strong>No Images</strong>:</p>
-<ul>
-<li>MongoDB performed the best, outperforming SQL-X and CASQL by almost 2x.</li>
-</ul>
-</li>
-<li><p><strong>12 KB Images</strong>:</p>
-<ul>
-<li>SQL-X’s SoAR dropped significantly, from thousands of actions per second to only hundreds.</li>
-</ul>
-</li>
-<li><p><strong>500 KB Images</strong>:</p>
-<ul>
-<li><p><strong>SQL-X failed to meet the SLA (SoAR &#x3D; 0) because transmitting large images caused significant delays.</strong></p>
-</li>
-<li><p>MongoDB and CASQL also experienced a decrease in SoAR but performed better than SQL-X.</p>
-</li>
-</ul>
-</li>
-</ol>
-<h4 id="Role-of-CASQL"><a href="#Role-of-CASQL" class="headerlink" title="Role of CASQL:"></a><strong>Role of CASQL</strong>:</h4><ul>
-<li><p><strong>CASQL outperformed SQL-X due to its caching layer (memcached):</strong></p>
-<ul>
-<li><p>During a warm-up phase, 500,000 requests populate the cache with key-value pairs for member profiles.</p>
-</li>
-<li><p>Most requests are serviced by memcached instead of SQL-X, significantly improving performance with larger images (12 KB and 500 KB).</p>
-</li>
-</ul>
-</li>
-</ul>
-<h2 id="Performance-Analysis-of-List-Friends"><a href="#Performance-Analysis-of-List-Friends" class="headerlink" title="Performance Analysis of List Friends"></a>Performance Analysis of List Friends</h2><p><img src="/../images/experiment2.png" alt="img"></p>
-<h4 id="1-SQL-X"><a href="#1-SQL-X" class="headerlink" title="1. SQL-X"></a><strong>1. SQL-X</strong></h4><ul>
-<li><strong>Process</strong>:<ul>
-<li>Joins the <code>Friends</code> table with the <code>Members</code> table to fetch the friend list.</li>
-<li>Friendship between two members is represented as a single record in the <code>Friends</code> table.</li>
-</ul>
-</li>
-<li><strong>Performance</strong>:<ul>
-<li><strong>When ϕ (number of friends) is 1000, SQL-X struggles due to the overhead of joining large tables and fails to meet SLA requirements.</strong></li>
-</ul>
-</li>
-</ul>
-<h4 id="2-CASQL"><a href="#2-CASQL" class="headerlink" title="2. CASQL"></a><strong>2. CASQL</strong></h4><ul>
-<li><strong>Process</strong>:<ul>
-<li>Uses a memcached caching layer to store and retrieve results of the LF action.</li>
-<li>Results are cached as key-value pairs.</li>
-</ul>
-</li>
-<li><strong>Performance</strong>:<ul>
-<li>Outperforms SQL-X when ϕ is 50 or 100 by a small margin (&lt;10% improvement).</li>
-<li><strong>At ϕ&#x3D;1000, memcached’s key-value size limit (1 MB) causes failures, as the data exceeds this limit.</strong></li>
-<li>Adjusting memcached to support larger key-value pairs (e.g., 2 MB for 1000 friends with 2 KB thumbnails) could improve performance.</li>
-</ul>
-</li>
-</ul>
-<h4 id="3-MongoDB"><a href="#3-MongoDB" class="headerlink" title="3. MongoDB"></a><strong>3. MongoDB</strong></h4><ul>
-<li><strong>Process</strong>:<ul>
-<li>Retrieves the <code>confirmedFriends</code> array from the referenced member’s document.</li>
-<li>Can fetch friends’ profile documents one by one or as a batch.</li>
-</ul>
-</li>
-<li><strong>Performance</strong>:<ul>
-<li>Performs no joins, but its SLA compliance is poor for larger friend counts.</li>
-<li>SoAR is zero for ϕ&#x3D;50,100,1000, as it fails to meet the 100 ms response time requirement.</li>
-<li>For smaller friend lists (ϕ&#x3D;10), MongoDB achieves a SoAR of 6 actions per second.</li>
-</ul>
-</li>
-</ul>
-<h2 id="Mix-of-Read-and-Write-Actions"><a href="#Mix-of-Read-and-Write-Actions" class="headerlink" title="Mix of Read and Write Actions"></a>Mix of Read and Write Actions</h2><ul>
-<li><strong>Purpose</strong>: Evaluates the performance of data stores under different ratios of read and write operations.</li>
-<li><strong>Categories</strong>:<ul>
-<li><strong>Read actions</strong>: Include operations like View Profile (VP), List Friends (LF), and View Friend Requests (VFR).</li>
-<li><strong>Write actions</strong>: Modify friendship relationships and invalidate cached key-value pairs (e.g., Invite Friend, Accept Friend Request).</li>
-</ul>
-</li>
-<li><strong>Mix Variations</strong>:<ul>
-<li><strong>Very low writes (0.1%)</strong>: Dominantly read-heavy workloads.</li>
-<li><strong>Low writes (1%)</strong>: Slightly higher frequency of write actions.</li>
-<li><strong>High writes (10%)</strong>: Write-intensive workloads.</li>
-</ul>
-</li>
-</ul>
-<p><strong>Performance Analysis (Mix of Read and Write Actions)</strong></p>
-<p><img src="/../images/experiment3.png" alt="img"></p>
-<ul>
-<li><strong>SoAR Comparison</strong>:<ul>
-<li><strong>CASQL</strong> consistently achieves the highest SoAR for all write mixes due to its caching mechanism.</li>
-<li><strong>MongoDB</strong> outperforms <strong>SQL-X</strong> by a factor of 3 across all workloads.</li>
-</ul>
-</li>
-</ul>
-<h4 id="Observations-by-Write-Percentage"><a href="#Observations-by-Write-Percentage" class="headerlink" title="Observations by Write Percentage:"></a><strong>Observations by Write Percentage</strong>:</h4><ol>
-<li><p><strong>0.1% Writes (Read-Dominant)</strong>:</p>
-<ul>
-<li><p>CASQL significantly outperforms MongoDB due to efficient use of cached key-value pairs.</p>
-</li>
-<li><p>SQL-X lags due to the overhead of processing read actions directly from the RDBMS.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>1% Writes</strong>:</p>
-<ul>
-<li><p>CASQL remains the best performer but shows sensitivity to increasing writes as it invalidates cached data, redirecting more queries to the RDBMS.</p>
-</li>
-<li><p>MongoDB maintains a consistent performance advantage over SQL-X.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>10% Writes (Write-Heavy)</strong>:</p>
-<ul>
-<li><p><strong>CASQL slightly outperforms MongoDB, but the gap narrows due to the higher frequency of cache invalidations.</strong></p>
-</li>
-<li><p>SQL-X continues to struggle with write-heavy workloads due to its lack of caching.</p>
-</li>
-</ul>
-</li>
-</ol>
-<h1 id="Session"><a href="#Session" class="headerlink" title="Session"></a>Session</h1><blockquote>
-<p>Definition: A session is a sequence of actions performed by a socialite (user) in the social network.</p>
-<p>Key Concepts:</p>
-<ol>
-<li>Think Time: Delay between consecutive actions within a session.</li>
-<li>Inter-Arrival Time: Delay between sessions initiated by different socialites.</li>
-</ol>
-</blockquote>
-<p><strong>Key Considerations</strong></p>
-<ol>
-<li><p><strong>Dependencies</strong>:</p>
-<ul>
-<li><p>Some sessions rely on specific database states (e.g., friends or pending requests).</p>
-</li>
-<li><p>For example, if m_i has no friends or pending requests, certain sessions terminate early.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Concurrency Handling</strong>:</p>
-<ul>
-<li><p>BG uses in-memory data structures to simulate database states and prevent conflicts (e.g., multiple threads deleting the same comment).</p>
-</li>
-<li><p>Ensures integrity by managing semaphores and detecting unpredictable data.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Extensibility</strong>:</p>
-<ul>
-<li>BG allows developers to define new sessions by combining different mixes of actions.</li>
-</ul>
-</li>
-</ol>
-<h1 id="Parallelism"><a href="#Parallelism" class="headerlink" title="Parallelism"></a>Parallelism</h1><h2 id="BG’s-Scalable-Benchmarking-Framework"><a href="#BG’s-Scalable-Benchmarking-Framework" class="headerlink" title="BG’s Scalable Benchmarking Framework"></a>BG’s Scalable Benchmarking Framework</h2><p>To address these limitations, BG employs <strong>a shared-nothing architecture</strong> with the following components:</p>
-<h4 id="1-BGCoord-Coordinator"><a href="#1-BGCoord-Coordinator" class="headerlink" title="1. BGCoord (Coordinator)"></a><strong>1. BGCoord (Coordinator)</strong></h4><ul>
-<li><strong>Role</strong>: Oversees and coordinates the benchmarking process.</li>
-<li><strong>Responsibilities</strong>:<ul>
-<li><strong>Computes SoAR and Socialites ratings.</strong></li>
-<li><strong>Assigns workloads to BGClients and monitors their progress.</strong></li>
-<li><strong>Aggregates results (e.g., response times, throughput) for visualization.</strong></li>
-</ul>
-</li>
-<li><strong>Process</strong>:<ul>
-<li><strong>Splits the workload among N BGClients.</strong></li>
-<li><strong>Ensures each BGClient works independently to prevent resource contention.</strong></li>
-</ul>
-</li>
-</ul>
-<h4 id="2-BGClient"><a href="#2-BGClient" class="headerlink" title="2. BGClient"></a><strong>2. BGClient</strong></h4><ul>
-<li><strong>Role</strong>: Executes tasks assigned by BGCoord.</li>
-<li><strong>Responsibilities</strong>:<ul>
-<li><strong>Creates a database based on BG specifications.</strong></li>
-<li><strong>Simulates workload actions and computes metrics like unpredictable data volume.</strong></li>
-<li><strong>Periodically reports metrics to BGCoord for aggregation.</strong></li>
-</ul>
-</li>
-</ul>
-<h4 id="3-Visualization-Deck"><a href="#3-Visualization-Deck" class="headerlink" title="3. Visualization Deck"></a><strong>3. Visualization Deck</strong></h4><ul>
-<li><strong>Role</strong>: Provides a user interface for monitoring and controlling the benchmarking process.</li>
-<li><strong>Features</strong>:<ul>
-<li>Allows users to configure parameters (e.g., SLA, workloads).</li>
-<li>Visualizes the ratings (SoAR, Socialites) and progress of the benchmarking.</li>
-</ul>
-</li>
-</ul>
-<p><strong>Scaling with BGClients</strong></p>
-<ul>
-<li><strong>Fragmentation</strong>:<ul>
-<li><strong>The database is split into N logical fragments, each assigned to a BGClient.</strong></li>
-<li><strong>Each fragment includes unique members, friendships, and resources, ensuring no overlap between BGClients.</strong></li>
-</ul>
-</li>
-<li><strong>Decentralized D-Zipfian Distribution</strong>:<ul>
-<li><strong>Used to balance workloads across nodes with different processing speeds.</strong></li>
-<li><strong>Faster nodes handle larger fragments, ensuring equal workload completion times.</strong></li>
-</ul>
-</li>
-</ul>
-<h1 id="Unpredictable-Data"><a href="#Unpredictable-Data" class="headerlink" title="Unpredictable Data"></a>Unpredictable Data</h1><p><strong>Definition</strong>: <strong>Data that is stale, inconsistent, or invalid, produced due to race conditions, dirty reads, or eventual consistency.</strong></p>
-<h2 id="BG’s-Validation-Process"><a href="#BG’s-Validation-Process" class="headerlink" title="BG’s Validation Process"></a>BG’s Validation Process</h2><p><img src="/../images/chart1.png" alt="img"></p>
-<h2 id="Validation-Implementation"><a href="#Validation-Implementation" class="headerlink" title="Validation Implementation"></a>Validation Implementation</h2><ol>
-<li><strong>Log Generation</strong>:<ul>
-<li><strong>BG generates read log records (observed values) and write log records (new or delta values).</strong></li>
-</ul>
-</li>
-<li><strong>Offline Validation</strong>:<ul>
-<li><strong>For each read log entry:</strong><ul>
-<li><strong>BG computes a range of valid values using overlapping write logs.</strong></li>
-<li><strong>If the observed value is outside this range, it is flagged as unpredictable.</strong></li>
-</ul>
-</li>
-</ul>
-</li>
-</ol>
-<h2 id="Impact-of-Time-to-Live-TTL-on-Unpredictable-Data"><a href="#Impact-of-Time-to-Live-TTL-on-Unpredictable-Data" class="headerlink" title="Impact of Time-to-Live (TTL) on Unpredictable Data"></a>Impact of Time-to-Live (TTL) on Unpredictable Data</h2><p><img src="/../images/chart2.png" alt="img"></p>
-<p><strong>Results</strong>:</p>
-<ol>
-<li><p><strong>Higher TTL Increases Stale Data</strong>:</p>
-<ul>
-<li><p>A higher TTL (e.g., 120 seconds) results in more stale key-value pairs, increasing the percentage of unpredictable data.</p>
-</li>
-<li><p>For T&#x3D;100T &#x3D; 100T&#x3D;100, unpredictable data is:</p>
-<ul>
-<li>~79.8% with TTL &#x3D; 30 seconds.</li>
-<li>~98.15% with TTL &#x3D; 120 seconds.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p><strong>Performance Trade-off</strong>:</p>
-<ul>
-<li><p><strong>A higher TTL improves performance (fewer cache invalidations) but increases stale data.</strong></p>
-</li>
-<li><p><strong>Lower TTL reduces stale data but impacts cache performance.</strong></p>
-</li>
-</ul>
-</li>
-</ol>
-<h1 id="Heuristic-Search-for-Rating"><a href="#Heuristic-Search-for-Rating" class="headerlink" title="Heuristic Search for Rating"></a>Heuristic Search for Rating</h1><p><strong>Why Use Heuristic Search?</strong></p>
-<ul>
-<li>Exhaustive search starting from T&#x3D;1 to the maximum T is time-consuming.</li>
-<li>MongoDB with T&#x3D;1000 and Δ&#x3D;10 minutes would take 7 days for exhaustive testing.</li>
-</ul>
-<p><strong>Steps in Heuristic Search</strong>:</p>
-<ol>
-<li><p><strong>Doubling Strategy</strong>:</p>
-<ul>
-<li><p><strong>Start with T&#x3D;1, double T after each successful experiment.</strong></p>
-</li>
-<li><p><strong>Stop when SLA fails, narrowing down T to an interval.</strong></p>
-</li>
-</ul>
-</li>
-<li><p><strong>Binary Search</strong>:</p>
-<ul>
-<li><p><strong>Identify the T corresponding to max throughput within the interval.</strong></p>
-</li>
-<li><p><strong>Used for both SoAR (peak throughput) and Socialites (maximum concurrent threads).</strong></p>
-</li>
-</ul>
-</li>
-</ol>
-<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>What system metrics does BG quantify?</strong></p>
-<p><strong>SoAR (Social Action Rating):</strong></p>
-<ul>
-<li>The highest throughput (actions per second) that satisfies a given SLA, ensuring at least α% of requests meet the response time β, with at most τ% of requests observing unpredictable data.</li>
-</ul>
-<p><strong>Socialites Rating:</strong></p>
-<ul>
-<li>The maximum number of simultaneous threads (or users) that a data store can support while still meeting the SLA requirements.</li>
-</ul>
-<p><strong>Throughput</strong>:</p>
-<ul>
-<li>Total number of completed actions per unit of time.</li>
-</ul>
-<p><strong>Response Time:</strong></p>
-<ul>
-<li>Average or percentile-based latency for each action.</li>
-</ul>
-<p><strong>Unpredictable Data:</strong></p>
-<ul>
-<li>The percentage of actions that observe stale, inconsistent, or invalid data during execution.</li>
-</ul>
-<p><strong>How does BG scale to generate a large number of requests?</strong></p>
-<p>BG employs <strong>a shared-nothing architecture</strong> with the following mechanisms to scale effectively:</p>
-<ol>
-<li><p><strong>Partitioning Members and Resources:</strong></p>
-<ul>
-<li><p>BGCoord <strong>partitions</strong> the database into <strong>logical fragments</strong>, each containing <strong>a unique subset</strong> of members, their resources, and relationships.</p>
-</li>
-<li><p>These fragments are assigned to individual BGClients.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Multiple BGClients:</strong></p>
-<ul>
-<li><p>Each BGClient operates <strong>independently</strong>, generating workloads for its assigned logical fragment.</p>
-</li>
-<li><p>By running <strong>multiple</strong> BGClients <strong>in parallel</strong> across different nodes, BG can scale horizontally to handle millions of requests.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>D-Zipfian Distribution:</strong></p>
-<ul>
-<li><p>To ensure realistic and scalable workloads, BG uses a decentralized Zipfian distribution (D-Zipfian) that <strong>dynamically assigns</strong> requests to BGClients based on node performance.</p>
-</li>
-<li><p>Faster nodes receive a larger share of the logical fragments, ensuring even workload distribution.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Concurrency Control:</strong></p>
-<ul>
-<li>BG <strong>prevents simultaneous threads from issuing actions for the same user</strong>, maintaining the integrity of modeled user interactions and avoiding resource contention.</li>
-</ul>
-</li>
-</ol>
-<p><strong>If two modeled users, A and B, are already friends, does BG generate a friend request from A to B?</strong></p>
-<p>No, BG does not generate a friend request from A to B if they are already friends.</p>
-<p>Before generating a friend request, BG <strong>validates</strong> whether the relationship between A and B is pending or already confirmed. For example, in the <code>InviteFrdSession</code>, BG only selects users who have no existing “friend” or “pending” relationship with the requester to receive a new friend request.</p>
-<p>Reference: <a href="https://www.cidrdb.org/cidr2013/Papers/CIDR13_Paper93.pdf">https://www.cidrdb.org/cidr2013/Papers/CIDR13_Paper93.pdf</a></p>
-]]></content>
-      <categories>
-        <category>数据库系统</category>
-      </categories>
-  </entry>
-  <entry>
     <title>CAMP</title>
     <url>/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/01/CAMP/</url>
     <content><![CDATA[<h1 id="Greedy-Dual-Size-GDS-algorithm"><a href="#Greedy-Dual-Size-GDS-algorithm" class="headerlink" title="Greedy Dual Size (GDS) algorithm"></a>Greedy Dual Size (GDS) algorithm</h1><p>Key Concepts:</p>
@@ -576,7 +151,8 @@
 </li>
 </ol>
 <h1 id="Evaluation"><a href="#Evaluation" class="headerlink" title="Evaluation"></a>Evaluation</h1><p><img src="/../images/chart5.png" alt="img"></p>
-<h4 id="a-Cost-Miss-Ratio-vs-Precision"><a href="#a-Cost-Miss-Ratio-vs-Precision" class="headerlink" title="(a) Cost-Miss Ratio vs Precision"></a><strong>(a) Cost-Miss Ratio vs Precision</strong></h4><ul>
+<p><strong>(a) Cost-Miss Ratio vs Precision</strong></p>
+<ul>
 <li><strong>横轴</strong>：精度（Precision），从低到高。</li>
 <li><strong>纵轴</strong>：成本未命中比（Cost-Miss Ratio）。</li>
 <li><strong>结果</strong>：<ul>
@@ -586,7 +162,8 @@
 </ul>
 </li>
 </ul>
-<h4 id="b-LRU-Queues-vs-Precision"><a href="#b-LRU-Queues-vs-Precision" class="headerlink" title="(b) LRU Queues vs Precision"></a><strong>(b) LRU Queues vs Precision</strong></h4><ul>
+<p><strong>(b) LRU Queues vs Precision</strong></p>
+<ul>
 <li><strong>横轴</strong>：精度（Precision）。</li>
 <li><strong>纵轴</strong>：CAMP 维护的非空 LRU 队列数量。</li>
 <li><strong>结果</strong>：<ul>
@@ -599,7 +176,8 @@
 </ul>
 </li>
 </ul>
-<h4 id="c-Cost-Miss-Ratio-vs-Cache-Size-Ratio"><a href="#c-Cost-Miss-Ratio-vs-Cache-Size-Ratio" class="headerlink" title="(c) Cost-Miss Ratio vs Cache Size Ratio"></a><strong>(c) Cost-Miss Ratio vs Cache Size Ratio</strong></h4><ul>
+<p><strong>(c) Cost-Miss Ratio vs Cache Size Ratio</strong></p>
+<ul>
 <li><strong>横轴</strong>：缓存大小比（Cache Size Ratio），即缓存大小与 trace 文件中唯一键值对总大小的比值。</li>
 <li><strong>纵轴</strong>：成本未命中比（Cost-Miss Ratio）。</li>
 <li><strong>结果</strong>：<ul>
@@ -623,7 +201,8 @@
 </ul>
 </li>
 </ul>
-<h4 id="d-Miss-Rate-vs-Cache-Size-Ratio"><a href="#d-Miss-Rate-vs-Cache-Size-Ratio" class="headerlink" title="(d) Miss Rate vs Cache Size Ratio"></a><strong>(d) Miss Rate vs Cache Size Ratio</strong></h4><ul>
+<p><strong>(d) Miss Rate vs Cache Size Ratio</strong></p>
+<ul>
 <li><strong>横轴</strong>：缓存大小比（Cache Size Ratio）。</li>
 <li><strong>纵轴</strong>：未命中率（Miss Rate）。</li>
 <li><strong>结果</strong>：<ul>
@@ -826,6 +405,439 @@
 <p>SoAR (Social Action Rating): Represents the <strong>maximum throughput</strong> (actions per second) a data store can achieve while meeting a given SLA.</p>
 <p>Socialites Rating: Represents the <strong>maximum number of concurrent threads</strong> <strong>(users)</strong> a data store can support while meeting the SLA.</p>
 <p>Reference: <a href="https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=d6f9678772a09ca29101f5efce583960ecf53745">https://citeseerx.ist.psu.edu/document?repid=rep1&amp;type=pdf&amp;doi=d6f9678772a09ca29101f5efce583960ecf53745</a></p>
+]]></content>
+      <categories>
+        <category>数据库系统</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>BG Benchmark</title>
+    <url>/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/10/25/BG%20Benchmark/</url>
+    <content><![CDATA[<h1 id="Data-Model-and-Performance-Metrics"><a href="#Data-Model-and-Performance-Metrics" class="headerlink" title="Data Model and Performance Metrics"></a>Data Model and Performance Metrics</h1><ol>
+<li>ER Diagram and Database Design</li>
+</ol>
+<ul>
+<li>ER Diagram (Figure 1.a):Represents entities and relationships in the BG system.<ul>
+<li>Member Entity:<ul>
+<li>Represents users with a registered profile, including a unique ID and a set of adjustable-length string attributes to create records of varying sizes.</li>
+<li>Each user can have up to two images:<ul>
+<li>Thumbnail Image: Small (in KBs), used for displaying in friend lists.</li>
+<li>High-Resolution Image: Larger (hundreds of KBs or MBs), displayed when visiting a user profile.</li>
+<li>Using thumbnails significantly reduces system load compared to larger images.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Friend Relationship:<ul>
+<li>Captures relationships or friend requests between users. An attribute differentiates between invitations and confirmed friendships.</li>
+</ul>
+</li>
+<li>Resource Entity:<ul>
+<li>Represents user-owned items like images, questions, or documents. Resources must belong to a user and can be posted on their profile or another user’s profile.</li>
+</ul>
+</li>
+<li>Manipulation Relationship:<ul>
+<li>Manages comments and restrictions (e.g., only friends can comment on a resource).</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ol start="2">
+<li>BG Workload and SLA (Service-Level Agreement)</li>
+</ol>
+<ul>
+<li><p>Workload: BG supports defining workloads at the granularity of:</p>
+<ul>
+<li>Actions: Single operations like “view profile” or “list friends.”</li>
+<li>Sessions: A sequence of related actions (e.g., browsing a profile, sending a friend request).</li>
+<li>Mixed Workloads: A combination of actions and sessions.</li>
+</ul>
+</li>
+<li><p>Service-Level Agreement (SLA):</p>
+<ul>
+<li>Goal: Ensures the system provides reliable performance under specified conditions.</li>
+<li>Example SLA Requirements: SLA, e.g., 95% of requests to observe a response time equal to or faster than 100 msec with at most 0.1% of requests observing unpredictable data for 10 minutes.</li>
+</ul>
+</li>
+<li><p>Metrics:</p>
+<ul>
+<li><strong>SoAR (Social Action Rating): Measures the highest number of actions per second that meet the SLA.</strong></li>
+<li><strong>Socialites: Measures the maximum number of concurrent threads that meet the SLA, reflecting the system’s multithreading capabilities.</strong></li>
+</ul>
+</li>
+</ul>
+<ol start="3">
+<li>Performance Evaluation Example</li>
+</ol>
+<ul>
+<li>SQL-X System Performance:SQL-X is a relational database with strict ACID compliance.<ul>
+<li>Initially, throughput increases with more threads.</li>
+<li>Beyond a certain threshold (e.g., 4 threads), request queuing causes response times to increase, reducing SLA compliance.</li>
+<li>With 32 threads, 99.94% of requests exceed the 100-millisecond SLA limit, indicating significant performance degradation.</li>
+</ul>
+</li>
+</ul>
+<ol start="4">
+<li>Concurrency and Optimization in BG</li>
+</ol>
+<ul>
+<li><p><strong>Concurrency Management:</strong></p>
+<ul>
+<li><strong>BG prevents two threads from emulating the same user simultaneously to realistically simulate user behavior.</strong></li>
+</ul>
+</li>
+<li><p><strong>Unpredictable Data Handling:</strong></p>
+<ul>
+<li><strong>Definition: Data that is stale, inconsistent, or invalid due to system limitations or race conditions.</strong></li>
+<li><strong>Validation:</strong><ul>
+<li><strong>BG uses offline validation to analyze read and write logs.</strong></li>
+<li><strong>It determines acceptable value ranges for data and flags any reads that fall outside these ranges as unpredictable.</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>If SoAR is zero, the data store fails to meet SLA requirements, even with a single-threaded BGClient issuing requests.</p>
+</blockquote>
+<h1 id="Actions"><a href="#Actions" class="headerlink" title="Actions"></a>Actions</h1><h2 id="Performance-Analysis-of-View-Profile"><a href="#Performance-Analysis-of-View-Profile" class="headerlink" title="Performance Analysis of View Profile"></a>Performance Analysis of View Profile</h2><p>Performance of VP is influenced by whether profile images are included and their sizes.</p>
+<p><strong>Experiment Setup</strong>:</p>
+<ul>
+<li>Profile data tested with:</li>
+<li><ul>
+<li><strong>No images</strong>.</li>
+<li><strong>2 KB thumbnails</strong> combined with profile images of <strong>2 KB, 12 KB, and 500 KB</strong> sizes.</li>
+</ul>
+</li>
+<li>Metrics: SoAR (Social Action Rating) measures the number of VP actions per second that meet the SLA (response time ≤ 100 ms).</li>
+</ul>
+<p><strong>Results</strong>:</p>
+<p><img src="/../images/experiment1.png" alt="img"></p>
+<ol>
+<li><p><strong>No Images</strong>:</p>
+<ul>
+<li>MongoDB performed the best, outperforming SQL-X and CASQL by almost 2x.</li>
+</ul>
+</li>
+<li><p><strong>12 KB Images</strong>:</p>
+<ul>
+<li>SQL-X’s SoAR dropped significantly, from thousands of actions per second to only hundreds.</li>
+</ul>
+</li>
+<li><p><strong>500 KB Images</strong>:</p>
+<ul>
+<li><p><strong>SQL-X failed to meet the SLA (SoAR &#x3D; 0) because transmitting large images caused significant delays.</strong></p>
+</li>
+<li><p>MongoDB and CASQL also experienced a decrease in SoAR but performed better than SQL-X.</p>
+</li>
+</ul>
+</li>
+</ol>
+<p><strong>Role of CASQL</strong>:</p>
+<ul>
+<li><p><strong>CASQL outperformed SQL-X due to its caching layer (memcached):</strong></p>
+<ul>
+<li><p>During a warm-up phase, 500,000 requests populate the cache with key-value pairs for member profiles.</p>
+</li>
+<li><p>Most requests are serviced by memcached instead of SQL-X, significantly improving performance with larger images (12 KB and 500 KB).</p>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="Performance-Analysis-of-List-Friends"><a href="#Performance-Analysis-of-List-Friends" class="headerlink" title="Performance Analysis of List Friends"></a><strong>Performance Analysis of List Friends</strong></h2><p><img src="/../images/experiment2.png" alt="img"></p>
+<p><strong>1. SQL-X</strong></p>
+<ul>
+<li><strong>Process</strong>:<ul>
+<li>Joins the <code>Friends</code> table with the <code>Members</code> table to fetch the friend list.</li>
+<li>Friendship between two members is represented as a single record in the <code>Friends</code> table.</li>
+</ul>
+</li>
+<li><strong>Performance</strong>:<ul>
+<li><strong>When ϕ (number of friends) is 1000, SQL-X struggles due to the overhead of joining large tables and fails to meet SLA requirements.</strong></li>
+</ul>
+</li>
+</ul>
+<p><strong>2. CASQL</strong></p>
+<ul>
+<li><strong>Process</strong>:<ul>
+<li>Uses a memcached caching layer to store and retrieve results of the LF action.</li>
+<li>Results are cached as key-value pairs.</li>
+</ul>
+</li>
+<li><strong>Performance</strong>:<ul>
+<li>Outperforms SQL-X when ϕ is 50 or 100 by a small margin (&lt;10% improvement).</li>
+<li><strong>At ϕ&#x3D;1000, memcached’s key-value size limit (1 MB) causes failures, as the data exceeds this limit.</strong></li>
+<li>Adjusting memcached to support larger key-value pairs (e.g., 2 MB for 1000 friends with 2 KB thumbnails) could improve performance.</li>
+</ul>
+</li>
+</ul>
+<p><strong>3. MongoDB</strong></p>
+<ul>
+<li><strong>Process</strong>:<ul>
+<li>Retrieves the <code>confirmedFriends</code> array from the referenced member’s document.</li>
+<li>Can fetch friends’ profile documents one by one or as a batch.</li>
+</ul>
+</li>
+<li><strong>Performance</strong>:<ul>
+<li>Performs no joins, but its SLA compliance is poor for larger friend counts.</li>
+<li>SoAR is zero for ϕ&#x3D;50,100,1000, as it fails to meet the 100 ms response time requirement.</li>
+<li>For smaller friend lists (ϕ&#x3D;10), MongoDB achieves a SoAR of 6 actions per second.</li>
+</ul>
+</li>
+</ul>
+<h2 id="Mix-of-Read-and-Write-Actions"><a href="#Mix-of-Read-and-Write-Actions" class="headerlink" title="Mix of Read and Write Actions"></a><strong>Mix of Read and Write Actions</strong></h2><ul>
+<li><strong>Purpose</strong>: Evaluates the performance of data stores under different ratios of read and write operations.</li>
+<li><strong>Categories</strong>:<ul>
+<li><strong>Read actions</strong>: Include operations like View Profile (VP), List Friends (LF), and View Friend Requests (VFR).</li>
+<li><strong>Write actions</strong>: Modify friendship relationships and invalidate cached key-value pairs (e.g., Invite Friend, Accept Friend Request).</li>
+</ul>
+</li>
+<li><strong>Mix Variations</strong>:<ul>
+<li><strong>Very low writes (0.1%)</strong>: Dominantly read-heavy workloads.</li>
+<li><strong>Low writes (1%)</strong>: Slightly higher frequency of write actions.</li>
+<li><strong>High writes (10%)</strong>: Write-intensive workloads.</li>
+</ul>
+</li>
+</ul>
+<p><strong>Performance Analysis (Mix of Read and Write Actions)</strong></p>
+<p><img src="/../images/experiment3.png" alt="img"></p>
+<ul>
+<li><strong>SoAR Comparison</strong>:<ul>
+<li><strong>CASQL</strong> consistently achieves the highest SoAR for all write mixes due to its caching mechanism.</li>
+<li><strong>MongoDB</strong> outperforms <strong>SQL-X</strong> by a factor of 3 across all workloads.</li>
+</ul>
+</li>
+</ul>
+<p><strong>Observations by Write Percentage:</strong></p>
+<ol>
+<li><p><strong>0.1% Writes (Read-Dominant)</strong>:</p>
+<ul>
+<li><p>CASQL significantly outperforms MongoDB due to efficient use of cached key-value pairs.</p>
+</li>
+<li><p>SQL-X lags due to the overhead of processing read actions directly from the RDBMS.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>1% Writes</strong>:</p>
+<ul>
+<li><p>CASQL remains the best performer but shows sensitivity to increasing writes as it invalidates cached data, redirecting more queries to the RDBMS.</p>
+</li>
+<li><p>MongoDB maintains a consistent performance advantage over SQL-X.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>10% Writes (Write-Heavy)</strong>:</p>
+<ul>
+<li><p><strong>CASQL slightly outperforms MongoDB, but the gap narrows due to the higher frequency of cache invalidations.</strong></p>
+</li>
+<li><p>SQL-X continues to struggle with write-heavy workloads due to its lack of caching.</p>
+</li>
+</ul>
+</li>
+</ol>
+<h1 id="Session"><a href="#Session" class="headerlink" title="Session"></a>Session</h1><blockquote>
+<p>Definition: A session is a sequence of actions performed by a socialite (user) in the social network.</p>
+<p>Key Concepts:</p>
+<ol>
+<li>Think Time: Delay between consecutive actions within a session.</li>
+<li>Inter-Arrival Time: Delay between sessions initiated by different socialites.</li>
+</ol>
+</blockquote>
+<p><strong>Key Considerations</strong></p>
+<ol>
+<li><p><strong>Dependencies</strong>:</p>
+<ul>
+<li><p>Some sessions rely on specific database states (e.g., friends or pending requests).</p>
+</li>
+<li><p>For example, if m_i has no friends or pending requests, certain sessions terminate early.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Concurrency Handling</strong>:</p>
+<ul>
+<li><p>BG uses in-memory data structures to simulate database states and prevent conflicts (e.g., multiple threads deleting the same comment).</p>
+</li>
+<li><p>Ensures integrity by managing semaphores and detecting unpredictable data.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Extensibility</strong>:</p>
+<ul>
+<li>BG allows developers to define new sessions by combining different mixes of actions.</li>
+</ul>
+</li>
+</ol>
+<h1 id="Parallelism"><a href="#Parallelism" class="headerlink" title="Parallelism"></a>Parallelism</h1><h2 id="BG’s-Scalable-Benchmarking-Framework"><a href="#BG’s-Scalable-Benchmarking-Framework" class="headerlink" title="BG’s Scalable Benchmarking Framework"></a>BG’s Scalable Benchmarking Framework</h2><p>To address these limitations, BG employs <strong>a shared-nothing architecture</strong> with the following components:</p>
+<p><strong>1. BGCoord (Coordinator)</strong></p>
+<ul>
+<li><strong>Role</strong>: Oversees and coordinates the benchmarking process.</li>
+<li><strong>Responsibilities</strong>:<ul>
+<li><strong>Computes SoAR and Socialites ratings.</strong></li>
+<li><strong>Assigns workloads to BGClients and monitors their progress.</strong></li>
+<li><strong>Aggregates results (e.g., response times, throughput) for visualization.</strong></li>
+</ul>
+</li>
+<li><strong>Process</strong>:<ul>
+<li><strong>Splits the workload among N BGClients.</strong></li>
+<li><strong>Ensures each BGClient works independently to prevent resource contention.</strong></li>
+</ul>
+</li>
+</ul>
+<p><strong>2. BGClient</strong></p>
+<ul>
+<li><strong>Role</strong>: Executes tasks assigned by BGCoord.</li>
+<li><strong>Responsibilities</strong>:<ul>
+<li><strong>Creates a database based on BG specifications.</strong></li>
+<li><strong>Simulates workload actions and computes metrics like unpredictable data volume.</strong></li>
+<li><strong>Periodically reports metrics to BGCoord for aggregation.</strong></li>
+</ul>
+</li>
+</ul>
+<p><strong>3. Visualization Deck</strong></p>
+<ul>
+<li><strong>Role</strong>: Provides a user interface for monitoring and controlling the benchmarking process.</li>
+<li><strong>Features</strong>:<ul>
+<li>Allows users to configure parameters (e.g., SLA, workloads).</li>
+<li>Visualizes the ratings (SoAR, Socialites) and progress of the benchmarking.</li>
+</ul>
+</li>
+</ul>
+<p><strong>Scaling with BGClients</strong></p>
+<ul>
+<li><strong>Fragmentation</strong>:<ul>
+<li><strong>The database is split into N logical fragments, each assigned to a BGClient.</strong></li>
+<li><strong>Each fragment includes unique members, friendships, and resources, ensuring no overlap between BGClients.</strong></li>
+</ul>
+</li>
+<li><strong>Decentralized D-Zipfian Distribution</strong>:<ul>
+<li><strong>Used to balance workloads across nodes with different processing speeds.</strong></li>
+<li><strong>Faster nodes handle larger fragments, ensuring equal workload completion times.</strong></li>
+</ul>
+</li>
+</ul>
+<h1 id="Unpredictable-Data"><a href="#Unpredictable-Data" class="headerlink" title="Unpredictable Data"></a>Unpredictable Data</h1><p><strong>Definition</strong>: <strong>Data that is stale, inconsistent, or invalid, produced due to race conditions, dirty reads, or eventual consistency.</strong></p>
+<h2 id="BG’s-Validation-Process"><a href="#BG’s-Validation-Process" class="headerlink" title="BG’s Validation Process"></a>BG’s Validation Process</h2><p><img src="/../images/chart1.png" alt="img"></p>
+<h2 id="Validation-Implementation"><a href="#Validation-Implementation" class="headerlink" title="Validation Implementation"></a>Validation Implementation</h2><ol>
+<li><strong>Log Generation</strong>:<ul>
+<li><strong>BG generates read log records (observed values) and write log records (new or delta values).</strong></li>
+</ul>
+</li>
+<li><strong>Offline Validation</strong>:<ul>
+<li><strong>For each read log entry:</strong><ul>
+<li><strong>BG computes a range of valid values using overlapping write logs.</strong></li>
+<li><strong>If the observed value is outside this range, it is flagged as unpredictable.</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="Impact-of-Time-to-Live-TTL-on-Unpredictable-Data"><a href="#Impact-of-Time-to-Live-TTL-on-Unpredictable-Data" class="headerlink" title="Impact of Time-to-Live (TTL) on Unpredictable Data"></a>Impact of Time-to-Live (TTL) on Unpredictable Data</h2><p><img src="/../images/chart2.png" alt="img"></p>
+<p><strong>Results</strong>:</p>
+<ol>
+<li><p><strong>Higher TTL Increases Stale Data</strong>:</p>
+<ul>
+<li><p>A higher TTL (e.g., 120 seconds) results in more stale key-value pairs, increasing the percentage of unpredictable data.</p>
+</li>
+<li><p>For T&#x3D;100T &#x3D; 100T&#x3D;100, unpredictable data is:</p>
+<ul>
+<li>~79.8% with TTL &#x3D; 30 seconds.</li>
+<li>~98.15% with TTL &#x3D; 120 seconds.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>Performance Trade-off</strong>:</p>
+<ul>
+<li><p><strong>A higher TTL improves performance (fewer cache invalidations) but increases stale data.</strong></p>
+</li>
+<li><p><strong>Lower TTL reduces stale data but impacts cache performance.</strong></p>
+</li>
+</ul>
+</li>
+</ol>
+<h1 id="Heuristic-Search-for-Rating"><a href="#Heuristic-Search-for-Rating" class="headerlink" title="Heuristic Search for Rating"></a>Heuristic Search for Rating</h1><p><strong>Why Use Heuristic Search?</strong></p>
+<ul>
+<li>Exhaustive search starting from T&#x3D;1 to the maximum T is time-consuming.</li>
+<li>MongoDB with T&#x3D;1000 and Δ&#x3D;10 minutes would take 7 days for exhaustive testing.</li>
+</ul>
+<p><strong>Steps in Heuristic Search</strong>:</p>
+<ol>
+<li><p><strong>Doubling Strategy</strong>:</p>
+<ul>
+<li><p><strong>Start with T&#x3D;1, double T after each successful experiment.</strong></p>
+</li>
+<li><p><strong>Stop when SLA fails, narrowing down T to an interval.</strong></p>
+</li>
+</ul>
+</li>
+<li><p><strong>Binary Search</strong>:</p>
+<ul>
+<li><p><strong>Identify the T corresponding to max throughput within the interval.</strong></p>
+</li>
+<li><p><strong>Used for both SoAR (peak throughput) and Socialites (maximum concurrent threads).</strong></p>
+</li>
+</ul>
+</li>
+</ol>
+<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>What system metrics does BG quantify?</strong></p>
+<p><strong>SoAR (Social Action Rating):</strong></p>
+<ul>
+<li>The highest throughput (actions per second) that satisfies a given SLA, ensuring at least α% of requests meet the response time β, with at most τ% of requests observing unpredictable data.</li>
+</ul>
+<p><strong>Socialites Rating:</strong></p>
+<ul>
+<li>The maximum number of simultaneous threads (or users) that a data store can support while still meeting the SLA requirements.</li>
+</ul>
+<p><strong>Throughput</strong>:</p>
+<ul>
+<li>Total number of completed actions per unit of time.</li>
+</ul>
+<p><strong>Response Time:</strong></p>
+<ul>
+<li>Average or percentile-based latency for each action.</li>
+</ul>
+<p><strong>Unpredictable Data:</strong></p>
+<ul>
+<li>The percentage of actions that observe stale, inconsistent, or invalid data during execution.</li>
+</ul>
+<p><strong>How does BG scale to generate a large number of requests?</strong></p>
+<p>BG employs <strong>a shared-nothing architecture</strong> with the following mechanisms to scale effectively:</p>
+<ol>
+<li><p><strong>Partitioning Members and Resources:</strong></p>
+<ul>
+<li><p>BGCoord <strong>partitions</strong> the database into <strong>logical fragments</strong>, each containing <strong>a unique subset</strong> of members, their resources, and relationships.</p>
+</li>
+<li><p>These fragments are assigned to individual BGClients.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Multiple BGClients:</strong></p>
+<ul>
+<li><p>Each BGClient operates <strong>independently</strong>, generating workloads for its assigned logical fragment.</p>
+</li>
+<li><p>By running <strong>multiple</strong> BGClients <strong>in parallel</strong> across different nodes, BG can scale horizontally to handle millions of requests.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>D-Zipfian Distribution:</strong></p>
+<ul>
+<li><p>To ensure realistic and scalable workloads, BG uses a decentralized Zipfian distribution (D-Zipfian) that <strong>dynamically assigns</strong> requests to BGClients based on node performance.</p>
+</li>
+<li><p>Faster nodes receive a larger share of the logical fragments, ensuring even workload distribution.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Concurrency Control:</strong></p>
+<ul>
+<li>BG <strong>prevents simultaneous threads from issuing actions for the same user</strong>, maintaining the integrity of modeled user interactions and avoiding resource contention.</li>
+</ul>
+</li>
+</ol>
+<p><strong>If two modeled users, A and B, are already friends, does BG generate a friend request from A to B?</strong></p>
+<p>No, BG does not generate a friend request from A to B if they are already friends.</p>
+<p>Before generating a friend request, BG <strong>validates</strong> whether the relationship between A and B is pending or already confirmed. For example, in the <code>InviteFrdSession</code>, BG only selects users who have no existing “friend” or “pending” relationship with the requester to receive a new friend request.</p>
+<p>Reference: <a href="https://www.cidrdb.org/cidr2013/Papers/CIDR13_Paper93.pdf">https://www.cidrdb.org/cidr2013/Papers/CIDR13_Paper93.pdf</a></p>
 ]]></content>
       <categories>
         <category>数据库系统</category>
@@ -1199,6 +1211,979 @@
 <p>Completion Signals: Each parallel operator sends a “done” signal once it finishes processing its data partition. The system monitors these signals to determine when all operators have finished.</p>
 <p>Coordinator: A central coordinator tracks the progress of parallel tasks. When all tasks report completion, the system declares the query execution as complete.</p>
 <p>Reference: <a href="https://sigmodrecord.org/publications/sigmodRecord/2203/pdfs/08_fdb-zhou.pdf">https://sigmodrecord.org/publications/sigmodRecord/2203/pdfs/08_fdb-zhou.pdf</a></p>
+]]></content>
+      <categories>
+        <category>数据库系统</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>HRPS Background</title>
+    <url>/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/13/HRPS%20Background/</url>
+    <content><![CDATA[<p><img src="/../images/index_and_page.png" alt="img"></p>
+<p>Each page consits of the header, the record space and a pointer array. Each slot in this array points to a record within the page.</p>
+<p>A record is located by providing its page address and the slot number. The combination is called RID.</p>
+<p>Life Cycle of a record:</p>
+<p>Insert: Find an empty space to put it and set a slot at the very end of the page to point to it.</p>
+<p>Delete: Remove the record and reclaim this space, set its slot number to null. When there are too many garbage slots, the system will drop the index structure, do reorganization on this disk page by removing all null slots, and reconstruct the index structure from scratch.</p>
+<p>Non-clustered Index: the data of the disk page is independent of the bucket or leaf node of index.</p>
+<p>Clustered Index: the data of the disk page resides within the bucket or leaf node of index.</p>
+<p>Hash Index: the item in buckets is not ordered by the attribute value of index.</p>
+<p>B+Tree Index: the item in leaf nodes is ordered by the attribute value of index.</p>
+<ul>
+<li>Primary Index: the data in the disk page is ordered.</li>
+<li>Secondary Index: the data in the disk page is not ordered.</li>
+</ul>
+<p>Reference: <a href="https://www.vldb.org/conf/1990/P481.PDF">https://www.vldb.org/conf/1990/P481.PDF</a></p>
+]]></content>
+      <categories>
+        <category>数据库系统</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Gamma</title>
+    <url>/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/06/Gamma/</url>
+    <content><![CDATA[<h1 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h1><p>主要特点：</p>
+<ol>
+<li><strong>并行处理</strong>： Gamma 利用了分布式架构，通过将数据和计算任务分散到多个节点上并行处理，极大提高了查询性能和吞吐量。不同的节点可以同时处理不同的任务，从而加速整个系统的响应时间。</li>
+<li><ul>
+<li><strong>并行查询处理</strong>： Gamma 支持并行执行查询计划中的操作（如选择、投影、连接等）。系统采用流水线并行（pipelined parallelism）和分块并行（partitioned parallelism）技术来最大化资源利用率。</li>
+<li><strong>流式处理（Pipelining）</strong>： Gamma 支持流式处理，即在一个操作产生部分结果时，直接将这些结果传递给下一个操作，而不是等待整个操作完成。这样可以减少内存占用，并加快查询处理速度。</li>
+</ul>
+</li>
+<li><strong>数据分片（Declustering）</strong>： Gamma 系统通过数据分片将数据表水平拆分成多个片段，并将这些片段分布到不同的处理节点上。这种方式不仅均衡了负载，还支持并行的查询处理，避免单点瓶颈。</li>
+<li><strong>动态负载均衡</strong>： Gamma 能够根据查询的工作负载，动态分配任务到不同的节点，确保整个系统的负载均衡，避免某些节点过载导致性能下降。通过监控每个节点的工作情况，Gamma 能够优化数据和任务分布。</li>
+<li><strong>故障容错（Fault Tolerance）</strong>： Gamma 具有一定的故障容错能力，当某个节点出现故障时，系统可以通过冗余机制和数据复制，重新分配任务或从其他节点获取数据，避免系统中断。</li>
+<li><strong>扩展性（Scalability）</strong>： Gamma 系统的设计能够随着节点的增加而线性扩展。通过增加处理节点，Gamma 可以处理更大规模的数据和更多的并发查询，保持高性能。</li>
+</ol>
+<p>Gamma is based on the concept of a shared-nothing architecture in which processors do not share disk drives or random access memory and can only communicate with one another by sending messages through an interconnection network. Mass storage in such an architecture is generally distributed among the processors by connecting one or more disk drives to each processor.</p>
+<p><img src="/../images/Gamma_Arch.png" alt="Gamma 架构"></p>
+<p>Reasons why the shared-nothing approach has become the architecture of choice.</p>
+<ul>
+<li>There is nothing to prevent the architecture from <strong>scaling</strong> to 1000s of processors unlike shared-memory machines for which scaling beyond 30-40 processors may be impossible.</li>
+<li>By associating a small number of disks with each processor and distributing the tuples of each relation across the disk drives, it is possible to achieve very high aggregate I&#x2F;O bandwidths without using custom disk controllers</li>
+</ul>
+<p>When Gamma’s system is figuring out the best way to run a query, it uses information about how the data is divided up (partitioned). This partitioning information helps the system decide how many processors (computers) need to be involved in running the query.</p>
+<ul>
+<li><strong>For hash partitioning</strong>: If a table (say, “X”) is divided based on a hash function applied to a certain column (like “y”), and the query asks for records where “X.y &#x3D; some value,” <strong>the system can directly go to the specific processor that holds the data matching that value</strong>.</li>
+<li><strong>For range partitioning</strong>: If the table is divided based on ranges of values for a column, <strong>the system can limit the query to only the processors that have data within the relevant range</strong>. For example, if “X” is partitioned such that one processor handles values from 1 to 100, and another handles values from 101 to 200, then a query asking for “X.y between 50 and 150” will involve only the processors that have data in those ranges.</li>
+</ul>
+<p>Different processes in the Gamma system work together. Here’s a simplified explanation of the main types of processes and their roles:</p>
+<ol>
+<li><p><strong>Catalog Manager</strong>: Acts like a “database encyclopedia,” <strong>storing all the information about data tables and structures</strong>. It ensures that data remains consistent when multiple users access the database.</p>
+</li>
+<li><p><strong>Query Manager</strong>: Each user gets a query manager that handles query requests. It is responsible for <strong>parsing the query, optimizing it, and generating the execution plan</strong>.</p>
+</li>
+<li><p><strong>Scheduler Processes</strong>: When a query is executed, the scheduler <strong>coordinates the execution steps</strong>. It activates the necessary operator processes (such as scan, selection, etc.) and ensures that all steps are performed in the correct order.</p>
+</li>
+<li><p><strong>Operator Processes</strong>: These processes <strong>carry out specific database operations</strong>, like filtering data or joining tables. To reduce the startup delay during query execution, some operator processes are pre-initialized when the system starts.</p>
+</li>
+<li><p><strong>Other Processes</strong>:</p>
+<ul>
+<li><p><strong>Deadlock Detection Process</strong>: Detects situations where two or more processes are stuck waiting for each other to release resources.</p>
+</li>
+<li><p><strong>Recovery Process</strong>: Manages data recovery after a system failure.</p>
+</li>
+</ul>
+</li>
+</ol>
+<p>How the Gamma system executes database queries?</p>
+<ol>
+<li><strong>Query Parsing and Optimization</strong>: When a user submits a query, Gamma first parses it to understand what the query is asking for. Then, the system optimizes the query to find the most efficient way to execute it.</li>
+<li><strong>Query Compilation</strong>: After optimization, the query is compiled into an “<strong>operator tree</strong>“ made up of different operations (such as scan, selection, join, etc.). This tree outlines the steps and the order in which the query will be executed.</li>
+<li><strong>Single-Site vs. Multi-Site Queries</strong>: If the query only involves data on a single node (e.g., querying a small table), the system executes it directly on that node. However, if the query involves data distributed across multiple nodes (e.g., joining large tables), the system uses a “scheduler process” to coordinate the execution.</li>
+<li><strong>Scheduler Coordination</strong>: The scheduler process is responsible for activating various operator processes across the nodes, such as instructing one node to scan data while another filters it. The scheduler also manages the flow of data between these operations, ensuring they happen in the correct order.</li>
+<li><strong>Returning the Results</strong>: Once all operations are completed, the query results are collected and returned to the user. For queries embedded in a program, the results are passed back to the program that initiated the query.</li>
+</ol>
+<p>Different operations (like scanning data, filtering, joining tables, etc.) are carried out in a parallel manner. Here’s a simplified explanation:</p>
+<ol>
+<li><strong>Operator Processes</strong>: In Gamma, each operation in a query is handled by something called an “operator process.” For example, if the query needs to scan data from a table, filter some rows, and then join with another table, there would be separate operator processes for scanning, filtering, and joining.</li>
+<li><strong>Data Flow</strong>: The data flows from one operator process to the next. For instance, the scan operator reads data from the disk and sends it to the filter operator, which then passes the filtered results to the join operator. This creates a kind of “data pipeline.”</li>
+<li><strong>Split Table</strong>: Gamma uses a “split table” to decide where the data should go next. Think of it like a routing table that directs the flow of data. For example, if the data needs to be sent to multiple nodes for parallel processing, the split table helps determine which node each piece of data should go to.</li>
+<li><strong>End of Processing</strong>: Once an operator finishes processing all its data, it closes its output streams and sends a signal to the scheduler process (which coordinates the whole query) to let it know that this part of the work is done.</li>
+</ol>
+<p>In simple terms, the operator and process structure in Gamma is like an assembly line where data moves from one step (operator) to the next, with each operator performing a specific task, and the split table guiding the data flow. This setup allows the system to process data in parallel across multiple nodes, making it much faster.</p>
+<h1 id="Operators"><a href="#Operators" class="headerlink" title="Operators"></a>Operators</h1><h2 id="Selection-Operator"><a href="#Selection-Operator" class="headerlink" title="Selection Operator"></a>Selection Operator</h2><p>Data Spread Across Multiple Disks: In Gamma, data tables are split up and stored across multiple disks (this is called “declustering”). Because of this, when you want to search (select) for specific data, the system can perform the search in parallel across multiple disks.</p>
+<p>Parallel Selection Process:</p>
+<ul>
+<li>If the search condition (predicate) matches the way the data is divided (partitioned), the system can narrow down the search to just the relevant nodes (computers with disks) that have the data. For example:</li>
+<li><ul>
+<li>If the data is divided using a <strong>hash or range</strong> partitioning method based on a certain attribute (like “employee ID”), and the search is also based on that attribute (e.g., “employee ID &#x3D; 123”), then the search can be directed only to the node that holds data matching that condition.</li>
+<li>If the data is divided using a <strong>round-robin</strong> method (spreading data evenly across all disks) or if the search condition <strong>doesn’t match the partitioning attribute</strong>, then the system has to search on all nodes.</li>
+</ul>
+</li>
+</ul>
+<p>Performance Optimization:</p>
+<ul>
+<li>To make the search faster, Gamma uses a “<strong>read-ahead</strong>“ technique. This means that when it reads one page of data, it starts loading the next page at the same time, so that the processing of data can keep going without waiting for the next page to load.</li>
+</ul>
+<h2 id="Join-Operator"><a href="#Join-Operator" class="headerlink" title="Join Operator"></a>Join Operator</h2><p>Using Hash Partitioning: The join algorithms in Gamma are based on a concept called “buckets.” This means splitting the two tables to be joined into separate groups (buckets) that don’t overlap. The groups are created by applying a hash function to the join attribute (e.g., Employee ID), so that data with the same hash value ends up in the same bucket.</p>
+<p>By partitioning the data into different buckets, each bucket contains unique data subsets, allowing parallel processing of these buckets, which speeds up the join operation. Additionally, <strong>all data with the same join attribute value is in the same bucket</strong>, making it easier to perform the join.</p>
+<p>Gamma implements four different parallel join algorithms:</p>
+<ul>
+<li><strong>Sort-Merge Join</strong>: Joins data by sorting and merging.</li>
+<li><strong>Grace Join</strong>: A distributed hash-based join algorithm.</li>
+<li><strong>Simple Hash Join</strong>: A straightforward hash-based partitioning join.</li>
+<li><strong>Hybrid Hash Join</strong>: A combination of different join techniques.</li>
+</ul>
+<p><strong>Default to Hybrid Hash Join:</strong> Research showed that the Hybrid Hash Join almost always performs the best, so Gamma uses this algorithm by default.</p>
+<p>Limitations: These hash-based join algorithms can <strong>only handle equi-joins</strong> (joins with equality conditions, like “Employee ID &#x3D; Department ID”). They currently don’t support non-equi-joins (conditions like “Salary &gt; Department Budget * 2”). To address this, Gamma is working on designing a new parallel non-equi-join algorithm.</p>
+<h3 id="Hybrid-Hash-Join"><a href="#Hybrid-Hash-Join" class="headerlink" title="Hybrid Hash-Join"></a>Hybrid Hash-Join</h3><ul>
+<li>In the first phase, the algorithm uses a hash function to partition the inner (smaller) relation, R, into N buckets. The tuples of the first bucket are used to build an in-memory hash table while the remaining N-1 buckets are stored in temporary files. A good hash function produces just enough buckets to ensure that each bucket of tuples will be small enough to fit entirely in main memory.</li>
+<li>During the second phase, relation S is partitioned using the hash function from step 1. Again, the last N-1 buckets are stored in temporary files while the tuples in the first bucket are used to immediately probe the in-memory hash table built during the first phase.</li>
+<li>During the third phase, the algorithm joins the remaining N-1 buckets from relation R with their respective buckets from relation S.</li>
+</ul>
+<p>The join is thus broken up into a series of smaller joins; each of which hopefully can be computed without experiencing join overflow. The size of the smaller relation determines the number of buckets; this calculation is independent of the size of the larger relation.</p>
+<h3 id="Parallel-version-of-Hybrid-Hash-Join"><a href="#Parallel-version-of-Hybrid-Hash-Join" class="headerlink" title="Parallel version of Hybrid Hash-Join"></a>Parallel version of Hybrid Hash-Join</h3><p>Partitioning into Buckets: The data from the two tables being joined is first divided into N buckets (small groups). The number of buckets is chosen so that each bucket can fit in the combined memory of the processors that are handling the join.</p>
+<p>Storage of Buckets: Out of the N buckets, N-1 buckets are stored temporarily on disk across different disk sites, while one bucket is kept in memory for immediate processing.</p>
+<p>Parallel Processing: A joining split table is used to decide which processor should handle each bucket, helping to divide the work across multiple processors. This means that <strong>different processors can work on different parts of the join at the same time</strong>, speeding up the process.</p>
+<p>Overlapping Phases for Efficiency:</p>
+<ul>
+<li>When partitioning the <strong>first table (R)</strong> into buckets, Gamma simultaneously builds a hash table for the first bucket in memory at each processor.</li>
+<li>When partitioning the <strong>second table (S)</strong>, Gamma simultaneously performs the join for the first bucket from S with the first bucket from R. This way, partitioning and joining overlap, making the process more efficient.</li>
+</ul>
+<p>Adjusting the Split Table for Parallel Joining: The joining split table is updated to make sure that the data from the first bucket of both tables is sent to the right processors that will perform the join. When the remaining N-1 buckets are processed, only the routing for joining is needed.</p>
+<h2 id="Aggregate-Operator"><a href="#Aggregate-Operator" class="headerlink" title="Aggregate Operator"></a>Aggregate Operator</h2><p>Parallel Calculation of Partial Results: Each processor in the Gamma system calculates the aggregate result for its own portion of the data simultaneously. For example, if the goal is to calculate a sum, each processor will first compute the sum for the data it is responsible for.</p>
+<p>Combining Partial Results: After calculating their partial results, the processors send these results to a central process. This central process is responsible for combining all the partial results to produce the final answer.</p>
+<p>Two-Step Computation:</p>
+<ul>
+<li><strong>Step 1</strong>: Each processor calculates the aggregate value (e.g., sum, count) for its data partition, resulting in partial results.</li>
+<li><strong>Step 2</strong>: The processors then redistribute these partial results based on the “group by” attribute. This means that the partial results for each group are collected at a single processor, where the final aggregation for that group is completed.</li>
+</ul>
+<h2 id="Update-Operator"><a href="#Update-Operator" class="headerlink" title="Update Operator"></a>Update Operator</h2><p>For the most part, the update operators (replace, delete, and append) are implemented using standard techniques. The only exception occurs when a replace operator modifies the partitioning attribute of a tuple. In this case, rather than writing the modified tuple back into the local fragment of the relation, the modified tuple is passed through a split table to determine which site should contain the tuple.</p>
+<h1 id="Concurrency-Control"><a href="#Concurrency-Control" class="headerlink" title="Concurrency Control"></a><strong>Concurrency Control</strong></h1><p>Gamma uses a two-phase locking strategy to manage concurrency. This means that before accessing data, a process must first acquire locks (first phase), and then release the locks after completing its operations (second phase). This ensures that multiple operations do not modify the same data at the same time, preventing conflicts.</p>
+<p>Gamma supports two levels of lock granularity: file-level and page-level (smaller scope). There are also five lock modes:</p>
+<ul>
+<li><strong>S (Shared) Lock</strong>: Allows multiple operations to read the data simultaneously.</li>
+<li><strong>X (Exclusive) Lock</strong>: Only one operation can modify the data, while others must wait.</li>
+<li><strong>IS, IX, and SIX Locks</strong>: Used to manage locking at larger scopes, such as entire files, allowing different combinations of read and write permissions.</li>
+</ul>
+<p>Each node in Gamma has its own lock manager and deadlock detector to handle local data locking. The lock manager maintains a lock table and a transaction wait-for-graph, which tracks which operations are waiting for which locks.</p>
+<p>The cost of setting a lock depends on whether there is a conflict:</p>
+<ul>
+<li><strong>No Conflict</strong>: Takes about 100 instructions.</li>
+<li><strong>With Conflict</strong>: Takes about 250 instructions because the system needs to check the wait-for-graph for deadlocks and suspend the requesting transaction using a semaphore mechanism.</li>
+</ul>
+<p>Gamma uses a centralized deadlock detection algorithm to handle deadlocks across nodes:</p>
+<ul>
+<li>Periodically (initially every second), the centralized deadlock detector requests each node’s local wait-for-graph.</li>
+<li>If no deadlock is found, the detection interval is doubled (up to 60 seconds). If a deadlock is found, the interval is halved (down to 1 second).</li>
+<li>The collected graphs are combined into a global wait-for-graph. If a cycle is detected in this global graph, it indicates a deadlock.</li>
+</ul>
+<p>When a deadlock is detected, the system will abort the transaction holding the fewest locks to free up resources quickly and allow other operations to proceed.</p>
+<h1 id="Recovery-and-Log"><a href="#Recovery-and-Log" class="headerlink" title="Recovery and Log"></a>Recovery and Log</h1><p>Logging Changes:</p>
+<p>When a record in the database is updated, Gamma creates a log record that notes the change. Each log record has a unique identifier called a Log Sequence Number (LSN), which includes a node number (determined when the system is set up) and a local sequence number (which keeps increasing). These log records are used for recovery if something goes wrong.</p>
+<p>Log Management:</p>
+<ul>
+<li>The system sends log records from query processors to <strong>Log Managers</strong>, which are separate processors that organize the logs into a single stream.</li>
+<li>If there are multiple Log Managers (M of them), a query processor sends its logs to one of them based on a simple formula: <strong>processor number mod M</strong>. This way, each query processor always sends its logs to the same Log Manager, making it easy to find logs later for recovery.</li>
+</ul>
+<p>Writing Logs to Disk:</p>
+<ul>
+<li>Once a “page” of log records is filled, it is saved to disk.</li>
+<li>The Log Manager keeps a <strong>Flushed Log Table</strong>, which tracks the last log record written to disk for each node. This helps know which logs are safely stored.</li>
+</ul>
+<p>Writing Data to Disk (WAL Protocol):</p>
+<ul>
+<li>Before writing any changed data (a <strong>dirty page</strong>) to disk, the system checks if the corresponding log records have already been saved.</li>
+<li>If the logs are saved, the data can be safely written to disk. If not, the system must first ensure the logs are written to disk before proceeding.</li>
+<li>To avoid waiting too long for log confirmations, the system always tries to keep a certain number of <strong>clean buffer pages</strong> (unused pages) available.</li>
+</ul>
+<p>Commit and Abort Handling:</p>
+<ul>
+<li><strong>Commit</strong>: If a transaction completes successfully, the system sends a commit message to all the relevant Log Managers.</li>
+<li><strong>Abort</strong>: If a transaction fails, an <strong>abort message</strong> is sent to all processors involved, and each processor retrieves its log records to undo the changes using the <strong>ARIES algorithm</strong>, which rolls back changes in the reverse order they occurred.</li>
+</ul>
+<p>Recovery Process:</p>
+<ul>
+<li>The system uses the <strong>ARIES algorithms</strong> for undoing changes, checkpointing, and restarting after a crash.</li>
+<li><strong>Checkpointing</strong> helps the system know the most recent stable state, reducing the amount of work needed during recovery.</li>
+</ul>
+<h1 id="Dataflow-scheduling-technologies"><a href="#Dataflow-scheduling-technologies" class="headerlink" title="Dataflow scheduling technologies"></a>Dataflow scheduling technologies</h1><ol>
+<li><strong>Data-Driven Execution Instead of Operator Control</strong>: Gamma’s dataflow scheduling lets data automatically move between operators, forming a pipeline. Each operator acts like a step on an assembly line: when data reaches the operator, it processes the data and then passes the processed results to the next operator.</li>
+<li><strong>Reducing Coordination Overhead</strong>: Because of this dataflow design, the system does not need to frequently coordinate or synchronize the execution of each operator. This approach reduces the complexity and overhead of scheduling, especially when multiple operators are running in parallel, and avoids performance bottlenecks caused by waiting or synchronization.</li>
+<li><strong>Inherent Support for Parallelism</strong>: Dataflow scheduling is well-suited for parallel processing because data can flow between multiple operators at the same time. For example, a query can simultaneously perform scanning, joining, and aggregation across different processors. Each operator can independently process the data it receives without waiting for other operators to finish, allowing the system to efficiently utilize the computational power of multiple processors.</li>
+<li><strong>Adaptability to Dynamic Environments</strong>: During query execution, dataflow scheduling can be adjusted based on the actual system load and data characteristics. This flexibility allows the system to dynamically optimize the performance of query execution, especially for large and complex queries, by better adapting to changing query demands and system conditions.</li>
+</ol>
+<p>Gamma’s unique dataflow scheduling techniques allow data to flow naturally between operators, reducing the need for direct control over operations. This significantly lowers coordination overhead in multi-processor environments, enhances the system’s parallel processing capabilities, and improves the efficiency of executing complex queries.</p>
+<p>In Gamma’s dataflow scheduling techniques, parallelism is extensively used to improve query execution efficiency. Here’s where and how parallelism is applied:</p>
+<ol>
+<li><p><strong>Parallel Execution of Operators</strong>: Queries often involve multiple operators (e.g., scan, filter, join, aggregation). With dataflow scheduling, these operators can run in parallel:</p>
+<ul>
+<li><p><strong>Scan and Filter in Parallel</strong>: While one processor scans a data block, another processor can be filtering the data from previous blocks.</p>
+</li>
+<li><p><strong>Parallel Joins</strong>: If a join operation involves large datasets distributed across different nodes, Gamma can perform the join operation on these different parts of the data simultaneously. The result of the join is computed in parallel across multiple processors.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Data Partitioning for Parallelism</strong>: The relations (data tables) are often partitioned across multiple processors in Gamma. This means that different processors can work on different partitions of the data at the same time. For example:</p>
+<ul>
+<li><p><strong>Partitioned Hash Joins</strong>: Data can be split into “buckets” based on a hash function, and different processors can handle the join for different buckets simultaneously.</p>
+</li>
+<li><p><strong>Parallel Aggregation</strong>: When computing aggregate functions (e.g., sum or average), each processor calculates a partial result for its own partition of the data, and these partial results are later combined.</p>
+</li>
+</ul>
+</li>
+</ol>
+<p>In summary, parallelism in Gamma is achieved through:</p>
+<ul>
+<li>Distributing query operators across multiple processors.</li>
+<li>Partitioning data so different processors work on different sections simultaneously.</li>
+<li>Enabling multiple stages of query execution (e.g., scanning, filtering, joining) to happen concurrently.</li>
+</ul>
+<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>What is a fragment or a shard in Gamma?</strong> </p>
+<p>A fragment or shard refers to a portion of a database relation that is horizontally partitioned across multiple disk drives.</p>
+<p><strong>How does a Gamma operator know where to send its stream of records?</strong> </p>
+<p>There is a structure called split table to determine where each tuple should be sent, based on the values of tuples.</p>
+<p><strong>With interleaved declusttering, why not use a cluster size that includes all nodes in the system?</strong></p>
+<p>If an interleaved declustteing system includes all nodes, it will become more vulnerable to failures. The failure of any two nodes could make the data inaccessible. A smaller cluster will limits the risk of complete data unavailability and balance the load.</p>
+<p><strong>Hash-join is appropriate for processing equi-join predicates (Emp.dno &#x3D; Dept.dno). How can Gamma process nonequi-join predicates (Emp.Sal &gt; Dept.dno*1000) in a pipelined manner?</strong></p>
+<p><strong>Range partitioning</strong>: Pre-partition the data based on ranges of values to reduce the search space.</p>
+<p><strong>Broadcast join</strong>: When the smaller relation is broadcasted to all nodes, and then each node evaluates the nonequi-join predicate in parallel.</p>
+<p><strong>Nested-loop join</strong>: Use a nested-loop join strategy where each tuple from one relation is compared against all tuples from the other relation.</p>
+<p><strong>What is the difference between Gamma, Google MapReduce, Microsoft Dryad and Apache Flink?</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>Aspect</strong></th>
+<th>Gamma</th>
+<th>MapReduce</th>
+<th>Dryad</th>
+<th>Flink</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Primary Use</strong></td>
+<td>Parallel database queries</td>
+<td>Batch processing</td>
+<td>Graph-based parallel computation</td>
+<td>Stream and batch processing</td>
+</tr>
+<tr>
+<td><strong>Architecture</strong></td>
+<td>Shared-nothing, partitioned data</td>
+<td>Cluster-based, distributed</td>
+<td>DAG of tasks</td>
+<td>Distributed, supports DAG</td>
+</tr>
+<tr>
+<td><strong>Data Model</strong></td>
+<td>Relational operations (SQL-like)</td>
+<td>Key-value pairs</td>
+<td>Data flow in DAG</td>
+<td>Stream processing with state</td>
+</tr>
+<tr>
+<td><strong>Partitioning</strong></td>
+<td>Horizontal partitioning</td>
+<td>Data split into chunks</td>
+<td>Data partitioned across graph</td>
+<td>Data partitioned into streams</td>
+</tr>
+<tr>
+<td><strong>Fault Tolerance</strong></td>
+<td>Limited</td>
+<td>Checkpointing</td>
+<td>Task-level recovery</td>
+<td>State snapshots, exactly-once</td>
+</tr>
+<tr>
+<td><strong>Programming</strong></td>
+<td>Relational (SQL-style)</td>
+<td>Functional (Map&#x2F;Reduce)</td>
+<td>Sequential tasks in DAG</td>
+<td>Functional, stream APIs</td>
+</tr>
+<tr>
+<td><strong>Scalability</strong></td>
+<td>Hundreds of processors</td>
+<td>Horizontally across many nodes</td>
+<td>Scales with more nodes</td>
+<td>Highly scalable, stream and batch</td>
+</tr>
+<tr>
+<td><strong>Use Case</strong></td>
+<td>Database query processing</td>
+<td>Log processing, data aggregation</td>
+<td>Scientific computing</td>
+<td>Real-time analytics, event processing</td>
+</tr>
+</tbody></table>
+<p><strong>Will a version of Gamma using FLOW be more modular than its current design?</strong></p>
+<p>Yes. FLOW enables more fine-grained control over the data flow and process interactions, which could simplify the addition of new operators and functionalities. It would also make the system easier to maintain and extend, as each component could be developed and optimized independently.</p>
+<p>Reference: <a href="https://pages.cs.wisc.edu/~dewitt/includes/paralleldb/ieee90.pdf">https://pages.cs.wisc.edu/~dewitt/includes/paralleldb/ieee90.pdf</a></p>
+]]></content>
+      <categories>
+        <category>数据库系统</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>HRPS</title>
+    <url>/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/13/HRPS/</url>
+    <content><![CDATA[<h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><p>The HRPS declusters a relation into fragment based on the following criteria:</p>
+<ul>
+<li>Each fragment contains approximately FC tuples.</li>
+<li>Each fragment contains a unique range of values of the partitioning attribute.</li>
+</ul>
+<p>The variable FC is determined based on the processing capability of the system and the resource requirements of the queries that access the relation (rather than the number of processors in the configuration).</p>
+<p>A major underlying assumption of this partitioning strategy is that the selection operators which access the database retrieve and process the selected tuples using either a range predicate or an equality predicate.</p>
+<p>For each query Qi, the workload defines the CPU processing time (CPUi), the Disk Processing Time (Diski), and the Network Processing time (Neti) of that query. Observe that these times are determined based on the resource requirements of each individual query and the processing capability of the system. Each query retrieves and processes (TuplesPerQi) tuples from the database. Furthermore, we assume that the workload defines the frequency of occurrence of each query (FreqQi).</p>
+<p>Rather than describing the HRPS with respect to each query in the workload, we deline an average query (Qavg) that is representative of all the queries in the workload. The CPU, disk and network processing quanta for this query are:</p>
+<p><img src="/../images/CPU_Disk_Net_TPQ.png" alt="截屏2025-05-30 18.28.03"></p>
+<p>Assume that a single processor cannot overlap the use of two resources for an individual query. Thus, the execution time of Qavg on a single processor in a single user environment is:</p>
+<p><img src="/../images/exe_time.png" alt="截屏2025-05-30 18.28.21"></p>
+<p>As more processors are used for query execution, the response time decreases. However, this also incurs additional overhead, represented by the variable CP, which refers to the cost of coordinating the query execution across multiple processors (e.g., messaging overhead). The response time of the query on M processors can be described by the following formula:</p>
+<p><img src="/../images/RT_M.png" alt="RT_M"></p>
+<p>In a single-user environment, both HRPS and range partitioning perform similarly because they both efficiently execute the query on the required processor. However, in a multi-user environment, the range partitioning strategy is likely to perform better because it can distribute the workload across multiple processors, improving system throughput. In contrast, HRPS might not utilize all available processors as effectively, potentially leading to lower throughput.</p>
+<p>Instead of M representing the number of processors over which a relation should be declustered, M is used instead to represent the number of processors that should participate in the execution of Qavg. Since Qavg processes TuplesPerQavg tuples, each fragment of the relation should contain FC &#x3D; TuplesPerQavg &#x2F; M tuples.</p>
+<p>The process of fragmenting and distributing data in HRPS:</p>
+<ol>
+<li><strong>Sorting the relation</strong>: The relation is first sorted based on the partitioning attribute to ensure each fragment contains a distinct range of values.</li>
+<li><strong>Fragmentation</strong>: The relation is then split into fragments, each containing approximately <strong>FC</strong> tuples.</li>
+<li><strong>Round-robin distribution</strong>: These fragments are distributed to processors in a <strong>round-robin fashion</strong>, ensuring that adjacent fragments are assigned to different processors (unless the number of processors <strong>N</strong> is less than the required processors <strong>M</strong>).</li>
+<li><strong>Storing fragments</strong>: All the fragments for a relation on a given processor are stored in the same physical file.</li>
+<li><strong>Range table</strong>: The mapping of fragments to processors is maintained in a <strong>one-dimensional directory</strong> called the range table.</li>
+</ol>
+<p>This method ensures that at least M processors and at most M + 1 processors participate in the execution of a query.</p>
+<p><strong>M &#x3D; N</strong>：系统和查询需求匹配，HRPS 调度所有处理器，达到最大并行度和最优性能。</p>
+<p><strong>M &lt; N</strong>：HRPS 只调度一部分处理器执行查询，减少通信开销，但部分处理器资源可能闲置。</p>
+<p><strong>M &gt; N</strong>：HRPS 将多个片段分配给处理器，尽量利用所有处理器，但每个处理器负担加重，查询执行速度可能受到影响。</p>
+<p>HRPS in this paper supports only homogeneous nodes.</p>
+<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>How does HRPS decide the ideal degree of parallelism for a query?</strong></p>
+<p>HRPS (Hybrid-Range Partitioning Strategy) decides the ideal degree of parallelism by analyzing the resource requirements of the query, such as CPU, disk I&#x2F;O, and communication costs. It calculates the optimal number of processors (denoted as M) based on these factors. The strategy strikes a balance between minimizing query response time and avoiding excessive overhead from using too many processors.</p>
+<p><strong>Why is it not appropriate to direct a query that fetches one record using an index structure to all the nodes of a system based on the shared-nothing architecture?</strong> </p>
+<p>Fetching one record should only involve the node that contains the relevant data, as querying all nodes wastes resources and increases response time.</p>
+<p><strong>How to extend HRPS to support heterogeneous nodes?</strong></p>
+<ol>
+<li>More powerful nodes would receive more fragments, while weaker nodes would handle fewer fragments.</li>
+<li>The system could monitor node performance and dynamically adjust the degree of parallelism and fragment allocation based on current load and node availability.</li>
+<li>Heavier tasks may be directed to more powerful nodes, while smaller or simpler queries could be executed on less powerful nodes.</li>
+</ol>
+<p>Reference: <a href="https://www.vldb.org/conf/1990/P481.PDF">https://www.vldb.org/conf/1990/P481.PDF</a></p>
+]]></content>
+      <categories>
+        <category>数据库系统</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>MapReduce</title>
+    <url>/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/22/MapReduce/</url>
+    <content><![CDATA[<h1 id="Programming-Model"><a href="#Programming-Model" class="headerlink" title="Programming Model"></a>Programming Model</h1><p>Input and Output:</p>
+<ul>
+<li>Takes a <strong>set of input key&#x2F;value pairs</strong>.</li>
+<li>Produces a <strong>set of output key&#x2F;value pairs</strong>.</li>
+</ul>
+<p>User-Defined Functions:</p>
+<ul>
+<li><strong>Map Function</strong>:<ul>
+<li>Written by the user.</li>
+<li>Processes each input key&#x2F;value pair.</li>
+<li>Generates a set of <strong>intermediate key&#x2F;value pairs</strong>.</li>
+</ul>
+</li>
+<li><strong>Reduce Function</strong>:<ul>
+<li>Also written by the user.</li>
+<li>Takes an intermediate key <code>I</code> and a <strong>set of values</strong> associated with it.</li>
+<li>Merges these values to produce a <strong>smaller set</strong> of output values, often zero or one value.</li>
+</ul>
+</li>
+</ul>
+<p>Intermediate Data Handling:</p>
+<ul>
+<li>The <strong>MapReduce library</strong> groups intermediate values by their key (<code>I</code>) and sends them to the Reduce function.</li>
+<li>Intermediate values are supplied to the Reduce function using an <strong>iterator</strong>, enabling efficient handling of data sets that are too large to fit into memory.</li>
+</ul>
+<p>Fault Tolerance and Scalability:</p>
+<ul>
+<li>By breaking tasks into smaller, independent computations, MapReduce ensures scalability and fault tolerance, even in large distributed environments.</li>
+</ul>
+<h1 id="Implementation"><a href="#Implementation" class="headerlink" title="Implementation"></a>Implementation</h1><p><img src="/../images/mapred_exe_overview.png" alt="img"></p>
+<p>数据分割与任务分配：</p>
+<ul>
+<li>输入数据划分：MapReduce 库将输入文件自动分割成 M 个片段（通常每个片段16MB到64MB，可由用户控制）。</li>
+<li>启动程序实例：在集群中启动多个程序副本。</li>
+<li>角色分配：其中一个程序实例被指定为主节点（master），其余的作为工作节点（workers）。</li>
+</ul>
+<p>任务调度：</p>
+<ul>
+<li>主节点的职责：主节点负责管理 M 个 map 任务和 R 个 reduce 任务。</li>
+<li>任务分配：主节点将空闲的工作节点分配给 map 任务或 reduce 任务。</li>
+</ul>
+<p>Map 阶段：</p>
+<ul>
+<li>读取数据：被分配 map 任务的工作节点读取对应的输入片段。</li>
+<li>处理数据：解析出键&#x2F;值对，并将其传递给用户定义的 Map 函数。</li>
+<li>生成中间结果：<strong>Map 函数产生的中间键&#x2F;值对会存储在本地磁盘中。</strong></li>
+</ul>
+<p>中间数据处理：</p>
+<ul>
+<li>写入本地磁盘：**缓存的中间结果会定期写入本地磁盘，**<strong>并根据分区函数划分为 R 个区域。</strong></li>
+<li>通知主节点：工作节点将这些中间数据的位置告知主节点，主节点负责将这些信息传递给 reduce 工作节点。</li>
+</ul>
+<p>Reduce 阶段准备：</p>
+<ul>
+<li>读取中间数据：reduce 工作节点收到主节点的通知后，通过远程过程调用（RPC）从 map 工作节点的本地磁盘读取中间数据。</li>
+<li>排序数据：reduce 工作节点将所有中间数据按键排序，以确保相同的键聚集在一起。如果数据量过大，无法全部加载到内存，会采用外部排序。</li>
+</ul>
+<p>Reduce 阶段：</p>
+<ul>
+<li>执行 Reduce 函数：reduce 工作节点遍历排序后的中间数据，对于每个唯一的中间键，将键和对应的值列表传递给用户定义的 Reduce 函数。</li>
+<li>生成最终输出：Reduce 函数的输出被追加到该 reduce 分区的最终输出文件中。</li>
+</ul>
+<p>任务完成与结果返回：</p>
+<ul>
+<li>任务监控：当所有的 map 和 reduce 任务都完成后，主节点会唤醒用户程序。</li>
+<li>返回结果：此时，用户程序中的 MapReduce 调用返回，用户可以获取 R 个输出文件，每个 reduce 任务对应一个输出文件。</li>
+</ul>
+<p>额外说明：</p>
+<ul>
+<li>数据处理链：通常用户不需要将这 R 个输出文件合并成一个文件，因为这些文件可以直接作为下一个 MapReduce 调用的输入，或者被能够处理多文件输入的分布式应用程序使用。</li>
+<li>流程图参考：上图👆用于展示 MapReduce 操作的整体流程，对应上面的步骤1到7。</li>
+</ul>
+<h2 id="Master-Data-Structure"><a href="#Master-Data-Structure" class="headerlink" title="Master Data Structure"></a>Master Data Structure</h2><p>Task State Tracking:</p>
+<ul>
+<li>For each <strong>map</strong> and <strong>reduce task</strong>, the master stores:<ul>
+<li><strong>State</strong>:<ul>
+<li><code>idle</code>: Task is yet to be assigned.</li>
+<li><code>in-progress</code>: Task is currently being executed.</li>
+<li><code>completed</code>: Task has finished execution.</li>
+</ul>
+</li>
+<li><strong>Worker Identity</strong>: The worker machine handling the task (for non-idle tasks).</li>
+</ul>
+</li>
+</ul>
+<p>Intermediate Data Management:</p>
+<ul>
+<li>The master acts as the <strong>conduit</strong> for transferring intermediate data from map tasks to reduce tasks.</li>
+<li>For each completed map task:<ul>
+<li>It records the <strong>locations</strong> and <strong>sizes</strong> of the <code>R</code> intermediate file regions generated.</li>
+<li>This data is crucial for reduce tasks to fetch intermediate results from the corresponding map workers.</li>
+</ul>
+</li>
+</ul>
+<p>Dynamic Updates:</p>
+<ul>
+<li>As map tasks finish, the master continuously updates its records of intermediate file locations and sizes.</li>
+<li>These updates are incrementally pushed to reduce workers that are currently in-progress.</li>
+</ul>
+<h2 id="Fault-Tolerance"><a href="#Fault-Tolerance" class="headerlink" title="Fault Tolerance"></a>Fault Tolerance</h2><p>Worker Failure</p>
+<ul>
+<li><strong>Failure Detection</strong>:<ul>
+<li>The <strong>master node</strong> periodically <strong>pings every worker</strong>.</li>
+<li>If a worker does not respond within a certain timeframe, the master marks the worker as <strong>failed</strong>.</li>
+</ul>
+</li>
+<li><strong>Task Rescheduling</strong>:<ul>
+<li><strong>Map Tasks</strong>:<ul>
+<li><strong>Completed Map Tasks</strong>:<ul>
+<li>If the failed worker had completed a map task, its output becomes inaccessible (stored on the failed machine’s local disk).</li>
+<li>These tasks are reset to their <strong>idle state</strong> and re-executed on other workers.</li>
+</ul>
+</li>
+<li><strong>In-Progress Map Tasks</strong>:<ul>
+<li>Similarly, in-progress tasks are marked as idle and reassigned to available workers.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>Reduce Tasks</strong>:<ul>
+<li><strong>Completed Reduce Tasks</strong>:<ul>
+<li>These do not require re-execution, as their output is stored in a <strong>global file system</strong>, which remains accessible despite the failure.</li>
+</ul>
+</li>
+<li><strong>In-Progress Reduce Tasks</strong>:<ul>
+<li>如果某些 reduce 节点尚未读取中间数据，它们会从新的执行结果中读取数据。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>Data Coordination</strong>:<ul>
+<li>When a map task is re-executed on a new worker:<ul>
+<li><strong>Notification</strong>: All reduce workers are informed of the re-execution.</li>
+<li><strong>Data Redirection</strong>: Reduce workers that have not yet fetched the intermediate data from the failed worker will instead fetch it from the new worker.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>Master Failure</p>
+<p>It is easy to make the master write periodic checkpoints of the master data structures described above. If the master task dies, a new copy can be started from the last checkpointed state. However, given that there is only a single master, its failure is unlikely; <strong>therefore our current implementation aborts the MapReduce computation if the master fails.</strong> Clients can check for this condition and retry the MapReduce operation if they desire.</p>
+<h2 id="Locality-数据本地化优化"><a href="#Locality-数据本地化优化" class="headerlink" title="Locality 数据本地化优化"></a>Locality 数据本地化优化</h2><p>存储设计： 数据存储在 Google 文件系统 (GFS) 中。 GFS 将每个文件分割为 64 MB 的块，并在不同的机器上保存多个副本（通常是 3 个）。</p>
+<p>任务调度优先级：</p>
+<ul>
+<li>优先本地化调度：The master node prioritizes assigning map tasks to workers that are on the same machine containing the replica of the data block.</li>
+<li>次优调度：If local scheduling is not possible (e.g., the worker with the data block is busy), the master assigns the task to a machine near the replica, such as within the same rack or data center.</li>
+</ul>
+<p>实际效果： 在运行大型 MapReduce 操作时，大部分输入数据会从本地磁盘读取。 因为数据本地化，减少了跨网络传输的数据量，从而节省网络带宽。</p>
+<h2 id="Task-Granularity"><a href="#Task-Granularity" class="headerlink" title="Task Granularity"></a>Task Granularity</h2><ol>
+<li>Map 和 Reduce 阶段的划分<ol>
+<li>任务数量 (M 和 R)： Map 阶段被划分为 M 个任务。 Reduce 阶段被划分为 R 个任务。</li>
+<li>划分原则：理想情况下，M 和 R 的数量应该远大于工作节点的数量（即机器的数量）。</li>
+</ol>
+</li>
+<li>多任务划分的好处<ol>
+<li>动态负载均衡： 每个工作节点可执行多个任务，这样可以动态调整任务分配，避免某些节点过载或闲置。</li>
+<li>故障恢复加速： 如果某个工作节点失败，已完成的多个任务可以分散到其他节点重新执行，恢复速度更快。</li>
+</ol>
+</li>
+<li>任务划分的实际限制<ol>
+<li>调度开销： 主节点需要进行 O(M + R) 次调度决策，且需要存储 O(M × R) 的状态信息。 虽然每对 map&#x2F;reduce 任务对仅占用约 1 字节内存，但过多任务会增加内存需求和调度复杂性。</li>
+<li>输出文件限制： R 的大小往往受到用户需求限制，因为每个 reduce 任务会生成一个独立的输出文件。 输出文件过多会导致文件管理复杂。</li>
+</ol>
+</li>
+<li>实际任务大小选择</li>
+<li><ol>
+<li>Map 阶段： 每个 map 任务通常处理 16 MB 到 64 MB 的输入数据。 这样的任务大小可以充分利用数据本地化优化（即尽量从本地磁盘读取数据）。</li>
+<li>Reduce 阶段： R 通常是工作节点数量的几倍，以充分利用并行能力。 在一个典型的大规模 MapReduce 计算中： M &#x3D; 200,000（Map 阶段任务数）。 R &#x3D; 5,000（Reduce 阶段任务数）。 工作节点 &#x3D; 2,000（机器数量）。</li>
+</ol>
+</li>
+</ol>
+<h2 id="Backup-Tasks"><a href="#Backup-Tasks" class="headerlink" title="Backup Tasks"></a>Backup Tasks</h2><ol>
+<li><p>什么是拖后腿的任务（Straggler Tasks）？</p>
+<ul>
+<li>定义：A straggler task refers to a task (map or reduce) in a MapReduce job that runs much slower than other tasks, delaying the overall completion of the job.</li>
+</ul>
+</li>
+<li><p>解决方法：</p>
+<ul>
+<li><p>备份任务机制：当 MapReduce 计算接近完成时，主节点会为未完成的任务安排备份执行（Backup Executions）。同一任务的多个副本在不同的工作节点上同时运行。只要其中一个副本完成，任务即被标记为完成。</p>
+</li>
+<li><p>资源开销：调整后的机制只增加少量（通常是几个百分点）的计算资源使用。通过备份执行，能够显著缩短总执行时间。</p>
+</li>
+</ul>
+</li>
+</ol>
+<h1 id="Refinement"><a href="#Refinement" class="headerlink" title="Refinement"></a>Refinement</h1><p><strong>Partitioning Function</strong></p>
+<ol>
+<li>Reduce 任务与分区<ol>
+<li>用户通过设置 R 来指定需要的 reduce 任务数或输出文件数。</li>
+<li>数据在这些 reduce 任务之间分区，分区方式取决于分区函数（partitioning function）。</li>
+</ol>
+</li>
+<li>默认分区方式<ol>
+<li>默认使用 哈希函数（hash function）：</li>
+<li>分区规则：hash(key) mod R。</li>
+<li>优势：通常能实现较为均衡的分区（即数据均匀分布到不同 reduce 任务中）。</li>
+</ol>
+</li>
+<li>自定义分区方式<ol>
+<li>有时默认的哈希分区不满足实际需求，需要根据特定逻辑对数据进行分区。例如：数据的键是 URL，用户希望所有来自同一主机（host）的条目存储在同一个输出文件中。</li>
+<li>解决方案：用户可以定义自己的分区函数，例如：hash(Hostname(urlkey)) mod R：根据 URL 的主机名分区。这样，来自同一主机的所有条目会被分配到相同的 reduce 任务中。</li>
+</ol>
+</li>
+</ol>
+<p><strong>Ordering Guarantees</strong></p>
+<ol>
+<li>排序保证<ol>
+<li>在 MapReduce 的 每个分区内，中间的键&#x2F;值对（key&#x2F;value pairs）会按照键的递增顺序进行处理。</li>
+<li>目标：确保每个分区的输出文件是有序的。</li>
+</ol>
+</li>
+<li>排序的作用<ol>
+<li>生成有序输出文件：每个 reduce 任务生成的输出文件是按键排序的，直接支持有序数据的存储。</li>
+<li>支持高效随机访问：有序数据便于快速查找，比如通过键值实现高效的随机访问。</li>
+<li>用户便利：用户使用这些输出文件时，不需要额外排序，使用起来更方便。</li>
+</ol>
+</li>
+</ol>
+<p><strong>Combiner Function</strong></p>
+<ol>
+<li>问题背景<ol>
+<li>在某些情况下，中间键重复率较高，每个 map 任务可能会生成大量重复的中间键记录。示例：在单词计数任务中（例如 〈the, 1〉），常见单词（如 “the”）会频繁出现。</li>
+<li>结果：这些重复记录需要通过网络传输到同一个 reduce 任务，增加了网络负载。</li>
+</ol>
+</li>
+<li>Combiner 函数的解决方案<ol>
+<li>定义：Combiner 是一个可选的、局部的聚合函数，<strong>用于在 map 任务所在机器上对中间数据进行部分合并。</strong></li>
+<li>工作原理：</li>
+<li><ol>
+<li>执行位置：Combiner 在 map 任务的机器上运行。</li>
+<li>功能：对重复键的中间结果进行局部汇总，减少需要传输的数据量。</li>
+<li>例如：将 〈the, 1〉、〈the, 1〉、〈the, 1〉 合并为 〈the, 3〉。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>Combiner 和 Reduce 的区别<ol>
+<li>相同点：通常，Combiner 的代码与 Reduce 函数的代码相同。都用于对数据进行聚合处理。</li>
+<li>不同点：<ol>
+<li>Combiner：输出的是中间结果，数据会继续传递给 Reduce 任务。</li>
+<li>Reduce：输出的是最终结果，数据写入最终的输出文件。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>优化效果<ol>
+<li>减少网络传输量：通过提前合并数据，Combiner 减少了从 map 任务到 reduce 任务的数据量。例如，不传输 1000 条 〈the, 1〉，而是只传输 1 条 〈the, 1000〉。</li>
+<li>提升性能：对于重复率高的任务，Combiner 能显著加快 MapReduce 操作的速度。</li>
+</ol>
+</li>
+</ol>
+<p><strong>Input and Output Types</strong></p>
+<ol>
+<li>输入数据格式的支持<ol>
+<li>预定义格式：<ol>
+<li>文本模式（text mode）： 每行数据被视为一个键&#x2F;值对。<ol>
+<li>键：文件中该行的偏移量（offset）。</li>
+<li>值：该行的内容。 排序键&#x2F;值对模式： 存储的键&#x2F;值对按键排序，便于按范围处理。</li>
+</ol>
+</li>
+<li>自动分割范围： 每种输入格式都有分割机制，可将输入数据划分为适合 map 任务处理的范围。 例如，文本模式会确保分割发生在行边界，而不是行中间，保证数据的完整性。</li>
+</ol>
+</li>
+<li>用户自定义格式： 用户可以通过实现简单的读取接口（reader interface），支持新的输入类型。<ol>
+<li>非文件输入：数据可以来自其他来源，如数据库或内存中的数据结构，而不一定是文件。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>输出数据格式的支持<ol>
+<li>类似输入格式，MapReduce 也支持多种输出格式：<ol>
+<li>预定义格式：提供了一些常用的输出格式。</li>
+<li>自定义格式：用户可以通过实现新的接口定义输出数据格式。</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<p><strong>Skipping Bad Records</strong></p>
+<ol>
+<li>问题背景<ol>
+<li>用户代码缺陷：Map 或 Reduce 函数中可能存在错误（如某些记录引发崩溃）。</li>
+<li>确定性崩溃：对特定记录，每次处理都会发生崩溃。</li>
+<li>问题影响：这类错误可能阻止整个 MapReduce 操作完成。</li>
+<li>无法修复的情况：错误可能在第三方库中，用户无法访问源代码。</li>
+</ol>
+</li>
+<li>MapReduce 提供的解决方案<ol>
+<li>跳过问题记录：MapReduce 允许系统检测引发崩溃的记录，并跳过这些记录以继续操作。</li>
+<li>实现机制：<ol>
+<li>信号处理：每个工作节点安装信号处理器（signal handler），捕获段错误（segmentation violations）和总线错误（bus errors）。</li>
+<li>记录错误序号：在调用用户的 Map 或 Reduce 函数之前，系统将参数的序列号存储在全局变量中。</li>
+<li>发送错误报告：如果用户代码触发错误，信号处理器会发送一个“最后的喘息”UDP 数据包，包含引发错误的记录序号，通知主节点。</li>
+<li>主节点决策：If a record causes failures many times, the master node instructs the record to be skipped the next time the task is retried.</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<p><strong>Local Execution</strong></p>
+<ol>
+<li>分布式调试的挑战<ol>
+<li>复杂性：Map 和 Reduce 函数的实际计算是在分布式系统上完成，涉及数千台机器。主节点动态分配任务，调试难以直接定位问题。</li>
+<li>常见问题：分布式环境下的日志、任务状态和数据流使得问题排查更加困难。</li>
+</ol>
+</li>
+<li>本地执行模式的设计<ol>
+<li>功能：MapReduce 提供了一种 本地执行的替代实现，在单台机器上顺序执行整个 MapReduce 操作。</li>
+<li>特点：所有任务按顺序运行，无需分布式调度。用户可以限制计算范围，仅调试特定的 map 任务。</li>
+</ol>
+</li>
+</ol>
+<p><strong>Counter</strong></p>
+<ul>
+<li>Counters are used to track occurrences of specific events during a MapReduce operation, such as:<ul>
+<li><strong>Custom events</strong> defined by the user (e.g., counting words, detecting specific patterns).</li>
+<li><strong>System-defined metrics</strong>, like the number of input&#x2F;output key-value pairs processed.</li>
+</ul>
+</li>
+</ul>
+<p><strong>How Counters Work</strong></p>
+<ul>
+<li><strong>Propagation to the Master</strong>:<ul>
+<li>Counter values from individual workers are sent to the <strong>master node</strong> via <strong>ping responses</strong>.</li>
+</ul>
+</li>
+<li><strong>Aggregation</strong>:<ul>
+<li>The master aggregates counter values from all completed tasks.</li>
+<li>It ensures <strong>no double counting</strong> by ignoring duplicate task executions (e.g., due to re-executions or backup tasks).</li>
+</ul>
+</li>
+</ul>
+<p><strong>Monitoring and Reporting</strong></p>
+<ul>
+<li><strong>Real-Time Monitoring</strong>:<ul>
+<li>The current counter values are displayed on the <strong>master status page</strong>, allowing users to observe the progress of the computation.</li>
+</ul>
+</li>
+<li><strong>Final Reporting</strong>:<ul>
+<li>When the MapReduce job finishes, the aggregated counter values are returned to the user program.</li>
+</ul>
+</li>
+</ul>
+<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>Assuming M&#x3D;10 and R&#x3D;20, What is the total number of files produced by the mappers?</strong></p>
+<p>Total Files &#x3D; M×R &#x3D; 10×20 &#x3D; 200</p>
+<p><strong>Why does MapReduce store the output of Reduce in the Google File System?</strong> </p>
+<ul>
+<li><p><strong>High Availability</strong>: GFS provides fault tolerance by replicating data across multiple machines. This ensures the output is not lost if a machine fails.</p>
+</li>
+<li><p><strong>Scalability</strong>: GFS is designed to handle large-scale data storage, making it suitable for the massive outputs of MapReduce jobs.</p>
+</li>
+</ul>
+<p><strong>What is the purpose of a straggler?</strong> </p>
+<ul>
+<li><strong>“Straggler” refers to</strong> <strong>slow-running</strong> <strong>tasks</strong>, often map or reduce tasks, that significantly delay the completion of a MapReduce job.</li>
+<li>Solution:</li>
+<li><ul>
+<li><strong>Backup Execution</strong>: The master node schedules backup executions of straggler tasks on other available workers.</li>
+</ul>
+</li>
+</ul>
+<p><strong>True or False: One may use SQL++ with a CSV data file and no schema.</strong></p>
+<p>True: SQL++ can operate on semi-structured data, including CSV files, without requiring a predefined schema.</p>
+<p><strong>With SQL++, what is the difference between pivot and unpivot?</strong></p>
+<p>Pivot:</p>
+<ul>
+<li><p><strong>Purpose</strong>: Transforms rows into attributes (columns).</p>
+</li>
+<li><p><strong>Example</strong>:</p>
+<ul>
+<li><p>Input: <code>[ &#123; &quot;symbol&quot;: &quot;amzn&quot;, &quot;price&quot;: 1900 &#125;, &#123; &quot;symbol&quot;: &quot;goog&quot;, &quot;price&quot;: 1120 &#125;, &#123; &quot;symbol&quot;: &quot;fb&quot;, &quot;price&quot;: 180 &#125; ]</code></p>
+</li>
+<li><p>Query: <code>PIVOT sp.price AT sp.symbol FROM today_stock_prices sp;</code></p>
+</li>
+<li><p>Output: <code>&#123; &quot;amzn&quot;: 1900, &quot;goog&quot;: 1120, &quot;fb&quot;: 180 &#125;</code></p>
+</li>
+</ul>
+</li>
+</ul>
+<p>Unpivot:</p>
+<ul>
+<li><p><strong>Purpose</strong>: Transforms attributes (columns) into rows.</p>
+</li>
+<li><p><strong>Example</strong>:</p>
+<ul>
+<li><p>Input: <code>&#123; &quot;date&quot;: &quot;4/1/2019&quot;, &quot;amzn&quot;: 1900, &quot;goog&quot;: 1120, &quot;fb&quot;: 180 &#125;</code></p>
+</li>
+<li><p>Query: <code>UNPIVOT c AS price AT sym FROM closing_prices c WHERE sym != &#39;date&#39;;</code></p>
+</li>
+<li><p>Output: <code>[ &#123; &quot;date&quot;: &quot;4/1/2019&quot;, &quot;symbol&quot;: &quot;amzn&quot;, &quot;price&quot;: 1900 &#125;, &#123; &quot;date&quot;: &quot;4/1/2019&quot;, &quot;symbol&quot;: &quot;goog&quot;, &quot;price&quot;: 1120 &#125;, &#123; &quot;date&quot;: &quot;4/1/2019&quot;, &quot;symbol&quot;: &quot;fb&quot;, &quot;price&quot;: 180 &#125; ]</code></p>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>Using BG, one may summarize the performance of a data store using its SoAR. What is the input to BG to compute the SoAR of a data store?</strong></p>
+<h3 id="1-SLA-Specifications"><a href="#1-SLA-Specifications" class="headerlink" title="1. SLA Specifications"></a><strong>1.</strong> <strong>SLA Specifications</strong></h3><p>The Service Level Agreement (SLA) defines the conditions under which SoAR is computed. The SLA includes:</p>
+<ul>
+<li><strong>α:</strong> Percentage of requests that must observe a response time less than or equal to β (e.g., 95%).</li>
+<li><strong>β:</strong> Maximum acceptable response time (e.g., 100 ms).</li>
+<li><strong>τ:</strong> Maximum allowable percentage of requests that observe unpredictable (stale or inconsistent) data (e.g., 0.01%).</li>
+<li><strong>Δ:</strong> Duration for which the SLA must be satisfied (e.g., 10 minutes).</li>
+</ul>
+<h3 id="2-Database-Configuration"><a href="#2-Database-Configuration" class="headerlink" title="2. Database Configuration"></a><strong>2. Database Configuration</strong></h3><p>Details about the data store being tested:</p>
+<ul>
+<li><strong>Logical Schema:</strong> The data model used by the data store (e.g., relational schema, JSON-like schema for NoSQL).</li>
+<li><strong>Physical Setup:</strong> Hardware configuration, including:<ul>
+<li>Number of nodes.</li>
+<li>Storage and memory resources.</li>
+<li>Networking capabilities.</li>
+</ul>
+</li>
+<li><strong>Population Size:</strong><ul>
+<li><strong>M:</strong> Number of members in the database.</li>
+<li><strong>ϕ:</strong> Number of friends per member.</li>
+<li><strong>ρ:</strong> Number of resources per member.</li>
+</ul>
+</li>
+</ul>
+<h3 id="3-Workload-Parameters"><a href="#3-Workload-Parameters" class="headerlink" title="3. Workload Parameters"></a><strong>3. Workload Parameters</strong></h3><p>The workload specifies the nature and intensity of the actions BG will simulate:</p>
+<ul>
+<li><strong>Mix of</strong> <strong>Actions</strong><strong>:</strong><ul>
+<li>Types of social networking actions (e.g., View Profile, List Friends, View Friend Requests).</li>
+<li>Percentage of each action type (read-heavy, write-heavy, or mixed workloads).</li>
+</ul>
+</li>
+<li><strong>Think Time (ϵ):</strong><ul>
+<li>The delay between consecutive actions performed by a single thread.</li>
+</ul>
+</li>
+<li><strong>Inter-Arrival Time (ψ):</strong><ul>
+<li>The delay between new user sessions.</li>
+</ul>
+</li>
+</ul>
+<h3 id="4-Environmental-Parameters"><a href="#4-Environmental-Parameters" class="headerlink" title="4. Environmental Parameters"></a><strong>4. Environmental Parameters</strong></h3><p>Details about how BG generates and manages workloads:</p>
+<ul>
+<li><strong>Number of BGClients (N):</strong> Instances responsible for generating requests.</li>
+<li><strong>Number of Threads (T):</strong> Concurrency level (threads per BGClient).</li>
+<li><strong>D-Zipfian Distribution Parameters (θ):</strong><ul>
+<li>Defines the access pattern (e.g., frequency of popular vs. less popular data).</li>
+</ul>
+</li>
+</ul>
+<p><strong>Consider the following binary representation of the priority of a key-value pair, 00101001. What is its CAMP rounding with precision 4?</strong></p>
+<p>00101000</p>
+<p><img src="/../images/bg_bm_rounding.png" alt="img"></p>
+<p><strong>What is a thundering herd and how does the IQ framework prevent it from causing the persistent data store to become the bottleneck?</strong></p>
+<p>Thundering Herd Problem:</p>
+<ul>
+<li>When a key-value pair is not found in the KVS (a <strong>KVS miss</strong>), multiple read sessions might simultaneously query the RDBMS to fetch the value.</li>
+<li>This can overload the RDBMS and degrade performance under high concurrency.</li>
+</ul>
+<p>Solution:</p>
+<ul>
+<li>When the first read session encounters a KVS miss, it requests an I lease for the key.</li>
+<li>Once the I lease is granted, the KVS prevents other read sessions from querying the RDBMS for the same key.</li>
+<li>All other read sessions must “back off” and wait for the value to be updated in the KVS by the session holding the I lease.</li>
+</ul>
+<blockquote>
+<p>A thundering herd happens when a specific key undergoes heavy read and write activity.</p>
+<ul>
+<li>Writes invalidate the cache repeatedly  </li>
+<li>All reads are forced to query the database</li>
+</ul>
+<p>I lease solves this problem</p>
+<ul>
+<li>The first read for the specific key is granted the I lease  </li>
+<li>All other reads observe a miss and back-off  </li>
+<li>The read with the I lease queries the RDBMS, computes the missing value, and populates the cache  </li>
+<li>All other reads observe a cache hit</li>
+</ul>
+</blockquote>
+<p>Reference: <a href="https://static.googleusercontent.com/media/research.google.com/zh-CN//archive/mapreduce-osdi04.pdf">https://static.googleusercontent.com/media/research.google.com/zh-CN//archive/mapreduce-osdi04.pdf</a></p>
+]]></content>
+      <categories>
+        <category>数据库系统</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Nova-LSM</title>
+    <url>/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/20/Nova-LSM/</url>
+    <content><![CDATA[<h1 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h1><p>LSM-Tree（Log-Structured Merge Tree）的核心思想是将大量的随机写入转换为更高效的顺序写入。简单来说，它通过以下方式来实现：</p>
+<ol>
+<li><strong>写入内存</strong>：当有新的数据写入时，LSM-Tree首先将这些数据存储在内存中的缓冲区（称为MemTable）。这是一个有序的结构，数据按键排序。</li>
+<li><strong>批量写入磁盘</strong>：当内存中的数据积累到一定程度时，整个MemTable会被一次性地写入磁盘，这个过程是<strong>顺序写入</strong>，非常高效。写入磁盘后，这个数据成为一个不可修改的文件，称为SSTable（Sorted String Table）。</li>
+<li><strong>合并和压缩</strong>：随着时间的推移，磁盘上会产生多个SSTable。为了优化读取性能，系统会周期性地将这些SSTable进行合并和压缩，使得数据保持有序并减少冗余。</li>
+</ol>
+<p>这样，LSM-Tree通过将频繁的随机写操作缓存在内存中，最后批量顺序写入磁盘，大大提高了写入性能。这种方式适合写入密集型的工作负载，同时还能保证数据查询的效率。</p>
+<p><strong>LSM-Tree的基础结构</strong>，特别是数据如何从内存（memtable）移动到磁盘，并经过多级的归并排序（compaction）过程来进行存储。</p>
+<p><img src="/../images/nova_lsm_basic_structure.png" alt="img"></p>
+<ol>
+<li><p>MemTable（内存表）</p>
+<ul>
+<li><p>数据的写入首先进入到内存中的memtable，通常是一个有序的数据结构（比如跳表或B+树），这使得数据在内存中是有序的，便于快速写入和查询。</p>
+</li>
+<li><p>当memtable满了或者系统需要将数据持久化时，memtable中的数据会被flush（刷新）到磁盘，形成第一层的SSTable。</p>
+</li>
+</ul>
+</li>
+<li><p>Level-0（磁盘上的第一层）</p>
+<ul>
+<li><p>数据从内存写入磁盘后，存储在Level-0层的SSTable中。此时，SSTable的数据顺序与memtable一致，但可能存在多个SSTable，且它们之间的键值范围可能重叠。</p>
+</li>
+<li><p>Level-0的SSTable是逐渐积累的，并不会自动排序或整理，直到执行compaction（归并操作）。</p>
+</li>
+</ul>
+</li>
+<li><p>Compaction（归并操作）</p>
+<ul>
+<li><p>当Level-0层的数据达到一定量时，系统会执行归并操作，将Level-0层的多个SSTable合并，并将合并后的有序数据移到Level-1层。</p>
+</li>
+<li><p>Level-1开始，所有的SSTable都是有序且互不重叠的。也就是说，每个SSTable都有自己独立的键值范围，不会与其他SSTable的键值范围重叠，这使得查询时能够快速定位到目标SSTable。</p>
+</li>
+</ul>
+</li>
+<li><p>逐级沉降</p>
+<ul>
+<li><p>数据会随着系统运行，从Level-0层逐步沉降到更深的层级（如Level-1、Level-2等）。在每一层，数据都通过归并操作变得更加有序且结构紧凑。</p>
+</li>
+<li><p>每次合并后，数据被重新整理，分配到新的不重叠的SSTable中，从而保持物理上的键值有序性。</p>
+</li>
+</ul>
+</li>
+</ol>
+<p><strong>LSM-Tree查询</strong></p>
+<p>基于LSM-Tree的查询可分为点查与范围查询两大类，对应的执行方式如下：</p>
+<ul>
+<li>点查（point lookup）：从上往下进行查询，先查memtable，再到L0层、L1层。因为上层的数据永远比下层版本新，所以在第一次发生匹配后就会停止查询。</li>
+<li>范围查询（range lookup）：每一层都会找到一个匹配数据项的范围，再将该范围进行<strong>多路归并</strong>，归并过程中同一key只会保留最新版本。</li>
+</ul>
+<p><strong>LSM-Tree性能的衡量</strong>主要考虑三个因素：空间放大、读放大和写放大。</p>
+<p>一是空间放大（space amplification）。LSM-Tree的所有写操作都是顺序追加写，对数据的更新并不会立即反映到数据既有的值里，而是通过分配新的空间来存储新的值，即out-place update。因此冗余的数据或数据的多版本，仍会在LSM-Tree系统里存在一定时间。这种实际的占用空间大于数据本身的现象我们称之为空间放大。因为空间有限，为了减少空间放大，LSM-Tree会从L1往L2、L3、L4不断做compaction，以此来清理过期的数据以及不同数据的旧版本，从而将空间释放出来。</p>
+<p>二是读放大（read amplification）。假设数据本身的大小为1k，由于存储结构的设计，它所读到的值会触发多次IO操作，一次IO意味着一条读请求，这时它所读取到的则是在后端所需要做大的磁盘读的实际量，已经远大于目标数据本身的大小，从而影响到了读性能。这种现象我们称之为读放大。为了减轻读放大，LSM-Tree采用布隆过滤器来避免读取不包括查询键值的SST文件。</p>
+<p>三是写放大（write amplification）。在每层进行compaction时，我们会对多个SST文件进行反复读取再进行归并排序，在删掉数据的旧版本后，再写入新的SST文件。从效果上看，每条key在存储系统里可能会被多次写入，相当于一条key在每层都会写入一次，由此带来的IO性能损失即写放大。</p>
+<p>LSM-Tree最初的理念是用空间放大和读放大来换取写放大的降低，从而实现较好的写性能，但也需要做好三者的平衡。以下是两种假设的极端情况。</p>
+<p>第一种极端情况是：如果完全不做compaction，LSM-Tree基本等同于log文件，当memtable不断刷下来时，由于不做compaction，只做L0层的文件，这时如果要读一条key，读性能会非常差。因为如果在memtable里找不到该条key，就要去扫描所有的SST文件，但与此同时写放大现象也将不存在。</p>
+<p>第二种极端情况是：如果compaction操作做到极致，实现所有数据全局有序，此时读性能最优。因为只需要读一个文件且该文件处于有序状态，在读取时可以很快找到对应的key。但要达到这种效果，需要做非常多的compaction操作，要不断地把需要删的SST文件读取合并再来写入，这会导致非常严重的写放大。</p>
+<h1 id="Nova-LSM架构设计"><a href="#Nova-LSM架构设计" class="headerlink" title="Nova-LSM架构设计"></a>Nova-LSM架构设计</h1><p><img src="/../images/nova_lsm_arch.png" alt="img"></p>
+<p>第一部分是写日志的组件，将WAL写成功后再往LSM-Tree的memtable中查询新的数据。</p>
+<p>第二部分是本身处理LSM-Tree写入的线程，其缩写为LTC(LSM-Tree Component)，代表着将该线程单独组件化。</p>
+<p>第三部分则是底层的存储，负责把接收到的上层LTC组件下发下来，并提供标准的文件接口。</p>
+<p><strong>Nova-LSM所解决的核心问题</strong></p>
+<p>第一个核心问题是：基于LSM-Tree结构的存储系统，例如LevelDB、RocksDB等，都会不可避免地遇到缓写或者停写的问题。比如内存里的memtable，在配置时最多可以写8个，因为写入多，需要全部flush到磁盘上。与此同时，当前L0层的SST文件非常多，L0层即将开始做compaction。但compaction会涉及到磁盘IO，在还没做完时，就会阻塞内存中的memtable对L0层SST进行flush的过程。当flush无法进行时，就会发生缓写，随着阈值的推进，在实在写不进时甚至会停写，这种现象体现在客户端就是请求掉零。</p>
+<p>为了解决LSM-Tree结构存储系统中的缓写、停写问题，该文章提出了两个解决办法：</p>
+<ul>
+<li>第一种方法是设计了<strong>存算分离</strong>的架构体系，具体如上图所示。该架构的重要作用之一，是把处理写入和处理磁盘IO的两大主力模块拆分，计算存储分离，<strong>哪个部分慢就为哪个部分增加节点</strong>以此来提高该部分的能力，这是比较亮眼的突破。</li>
+<li>第二种方法是引入了<strong>动态分区</strong>，即Drange机制。该机制的目的是为了让业务的写入压力，在LTC即计算层的memtable上进行区间划分，每个range都有自己的memtable，通过区间划分，从而<strong>实现多个range之间进行并行compaction</strong>。以L0层为例，我们可以把L0层变成没有互相重叠的状态，这时我们就可以对L0层进行并行的compaction，可以加快L0层的文件的消化，从而减轻对memtable flush到磁盘上的过程的影响。</li>
+</ul>
+<p>第二个核心问题是：在这种方式下需要划分很多不同的Drange，每个range都会增加一定的memtable数量，memtable数量的增加会影响scan和get的性能。假设有一个主请求，在原来所有数据都写在一个memtable里的情况下，在读取时，索引只需要面向这个memtable，再根据跳表进行get，如果get到则可以马上返回。现在划分成不同的Drange，memtable数量增加，因此需要查找的memtable以及L0层的SST也会变多。解决办法是：实现了一个索引，可以查询到一个key在memtable或L0 SST中的最新值（若存在）。</p>
+<h1 id="Nova-LSM-中的重要设计"><a href="#Nova-LSM-中的重要设计" class="headerlink" title="Nova-LSM 中的重要设计"></a>Nova-LSM 中的重要设计</h1><h2 id="LTC和StoCs之间的写数据流程"><a href="#LTC和StoCs之间的写数据流程" class="headerlink" title="LTC和StoCs之间的写数据流程"></a>LTC和StoCs之间的写数据流程</h2><p>第一个比较重要的设计是LTC和StoCs之间的写数据流程。该流程展示的是：当在客户端发起写请求时，计算节点和存储节点是以怎样的方式将数据写进去的过程。</p>
+<p>首先是计算节点的客户端发起一个新的写请求操作。存储节点在接收到该请求后，基于RDMA交互，它会在buffer区域分配一个内存区域，并且为这块内存和偏移量（当前哪块内存可以写）分配一个id，告知客户端。客户端接到响应后就会开始写数据，完成后会通知存储节点。存储节点接收到信号后，将数据持久化并且再告知客户端。</p>
+<p>上述流程是写一个数据文件即SSTable。写完后，我们要以同样的流程将元数据文件更新。因为底层是分布式架构，需要知道哪些文件写在哪里以及每个SST的范围、版本号。</p>
+<p><img src="/../images/nova_lsm_key_design.png" alt="img"></p>
+<h2 id="动态区间划分"><a href="#动态区间划分" class="headerlink" title="动态区间划分"></a>动态区间划分</h2><p>第二个比较重要的设计是动态区间划分。假设业务的请求范围为0-1万，当前有10个计算节点，将这10个计算节点的区间划分为10等份，比如第一个key的空间范围为0-1000。在负责0-1000的计算节点里，它会再进行划分，这一层划分业务无感知。这就叫动态区间划分，简称Drange。其作用主要有以下几点：</p>
+<p>首先，每个range都是一棵LSM-Tree，按照数据区间，不同的Drange都有自己的memtables。比如0-1000区间又可以划分为10个Drange，10个Drange之间的memtable相互独立。这样做的好处是这些Drange之间的key互不重叠，例如0-100、100-200、200-300。</p>
+<p>其次，在Dranges下还有一层Tranges。如果发现Drange里的部分range比如890-895存在热点现象，而旁边的range并非热点，则可以用Tranges进行细粒度的复杂重均衡，实现动态均衡负载。</p>
+<p>最后，在此基础上，因为Drange的key范围互不相交，当memtable变成immutable，不可再写后，它们需要独立地flush到磁盘上。这时，在L0层的SSTable来自不同的Drange，它们之间的key完全不相交，我们就可以进行并行的compaction。</p>
+<p><img src="/../images/nova_lsm_key_design_2.png" alt="img"></p>
+<p>文章还将没有Drange划分和有Drange划分两种情况进行了对比：</p>
+<ul>
+<li>在没有Drange划分的情况下，L0的compaction无法很好并行。在这种情况下，如果遇到最坏的情况，L0层的某一个SST有可能覆盖了整个key空间，假设key范围为0-600，L0层的SST文件的范围是0-1000，当发生compaction时，它必须要跟其他4个SST做归并，这时不但要把L0层的其他SST全部读取比较一遍，还要把L1层所有的SST都读一遍再做归并排序。这时写放大会较为严重，意味着L0层到L1层的compaction会变慢，flush也会变慢，甚至flush不了时，前端就会出现缓写、停写现象。</li>
+<li>有Drange划分后，相当于compaction可以分开区间，如下方的示意图所示。在0-100区间，L0到L1可以独立去compaction，100-200区间也可以独立去compaction，可以较好地实现并行compaction。而在原生的RocksDB里，只有从L1开始compaction，才能进行并行compaction操作。</li>
+</ul>
+<h2 id="索引查找以及Scan操作"><a href="#索引查找以及Scan操作" class="headerlink" title="索引查找以及Scan操作"></a>索引查找以及Scan操作</h2><p>因为划分了很多不同的动态区间，memtable的数量也会增加，意味着查询操作的耗时也会增加。所以要如何在原来的基础上维护好读性能？这篇文章提出了以下解决思路：</p>
+<p>每个LTC维护了一个lookup index。如果这些数据存在于memtable和L0层的SST上，通过lookup index我们就可以快速查找到想要的数据。当某一个L0层SST被compaction到L1层时，索引上就会移除掉对应的key。</p>
+<p>LTC同时还维护了一个范围索引即range index。因为知道每个Drange的范围，所以当一个scan请求所涉及到的key都可以在memtable和L0层SST中找到时，该范围索引就能快速响应scan操作。</p>
+<p><img src="/../images/nova_lsm_key_design_3.png" alt="img"></p>
+<h2 id="SSTable的分布"><a href="#SSTable的分布" class="headerlink" title="SSTable的分布"></a>SSTable的分布</h2><p>最后一个比较重要的设计涉及到存储层。当某个SST文件要写到存储节点时，分布式系统首先要保证负载均衡，要保证数据避免单点故障不可恢复的场景。</p>
+<p>该文章提出根据一定策略，将数据文件即SST打散写入到多个存储节点里。考虑到存储成本，每个SSTable采用纠删码（Erasure Coding）的方式进行编码然后分布式存放。默认情况下对每个 SSTable 采用 “3+1”的 EC 配置，将一个SSTable切分为3个数据块，根据一定算法，在这3个数据块里去计算出一个校验块，变成了“3+1”的形式。这种方式比传统的多副本可以<strong>节省更多空间</strong>。假设一个SSTable是3M，这种“3+1”的方式最终所占空间为4M，并且<strong>能容忍一个节点的丢失</strong>，与占用6M空间的双副本方案拥有同样的故障容忍等级。而元数据文件因为体积比较小，所以直接采用多副本存储的方式，比如1个元数据文件可以写3个副本。</p>
+<h1 id="Challenges-and-Solutions"><a href="#Challenges-and-Solutions" class="headerlink" title="Challenges and Solutions"></a>Challenges and Solutions</h1><ol>
+<li><p>Write Stalls, the solutions are:</p>
+<ol>
+<li><p>Vertical scaling: use large memory.</p>
+</li>
+<li><p>Horizontal scaling: use the bandwidth of many StoCs.</p>
+</li>
+</ol>
+</li>
+<li><p>Scans are slowed down, the solutions are:</p>
+<ol>
+<li><p>Construct Dranges at runtime based on workload. Drange faciliates parallel compaction.</p>
+</li>
+<li><p>Construct range index dynamically.</p>
+</li>
+</ol>
+</li>
+<li><p>Gets are slowed down, the solution is: Use lookup index.</p>
+</li>
+<li><p>Temporary Bottlenecks, the solution is:</p>
+<ol>
+<li><p>Scatter blocks of a SSTable across multiple StoCs.</p>
+</li>
+<li><p>Power-of-d: power-of-d is applied in Nova-LSM to help with load balancing during SSTable placement. When writing data to storage components (StoCs), Nova-LSM doesn’t randomly select just one StoC. Instead, it chooses d StoCs at random and writes to the one with the shortest queue. This method helps avoid bottlenecks and improves throughput, ensuring that data is distributed evenly across storage nodes without overwhelming any individual node.</p>
+</li>
+</ol>
+</li>
+<li><p>Logging, the solution is: Replicating Log records in the memory of StoCs to provide high availability.</p>
+</li>
+<li><p>Skewed Access Pattern, the solution is: Dranges enable LTC to write 65% less data to StoCs with skewed data access.</p>
+</li>
+</ol>
+<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>Why do modern database systems disaggregate compute from storage?</strong></p>
+<p>Modern database systems disaggregate compute from storage to improve scalability, resource utilization, and fault isolation. By separating compute (processing) and storage, the system can independently scale each based on demand. Compute nodes handle processing, while storage nodes handle data access, optimizing resources and ensuring that failures in one component don’t impact the other. This separation also benefits cloud environments, where elastic scaling of resources is crucial.</p>
+<p><strong>How does Nova-LSM provide superior performance than monolithic data stores?</strong> </p>
+<p>Nova-LSM improves performance by using a component-based architecture that disaggregates processing (LTC) and storage (StoC). It allows components to scale independently and uses RDMA for fast communication. Nova-LSM also introduces dynamic range partitioning (Dranges), allowing parallel compaction and reducing write stalls, which significantly enhances throughput. This architecture minimizes bottlenecks seen in monolithic stores like LevelDB and RocksDB, especially under skewed workloads.</p>
+<p><strong>Why does the standard cost-based optimizer produce sub-optimal query plans? How does Kepler improve both the query planning time and query execution time?</strong></p>
+<p>The standard cost-based optimizer can produce sub-optimal plans because it relies on simplified and static cost models that don’t always capture real execution costs, especially in dynamic environments. It also may lack up-to-date statistics, leading to inaccurate decisions. Kepler, on the other hand, uses machine learning to learn from past executions and adapts to current data distributions, improving query plan selection. By pruning the search space efficiently and using real-time data, it reduces both planning time and execution time while optimizing performance.</p>
+<p>References: </p>
+<ul>
+<li><p><a href="https://cloud.tencent.com/developer/article/2002523?areaSource=102001.3&traceId=XIO8WvF-vqiMAsiAKu2Lv">https://cloud.tencent.com/developer/article/2002523?areaSource=102001.3&amp;traceId=XIO8WvF-vqiMAsiAKu2Lv</a></p>
+</li>
+<li><p><a href="https://dl.acm.org/doi/pdf/10.1145/3448016.3457297">https://dl.acm.org/doi/pdf/10.1145/3448016.3457297</a></p>
+</li>
+</ul>
 ]]></content>
       <categories>
         <category>数据库系统</category>
@@ -1720,7 +2705,8 @@
 <li>In the original scenario, <strong>write sessions (e.g., S1)</strong> immediately delete key-value pairs in the KVS as soon as they acquire a Q lease (e.g., Step 1.3 in Figure 3).</li>
 <li>This can cause <strong>read sessions (e.g., S2)</strong> to encounter KVS misses, triggering redundant operations like querying the RDBMS, recalculating values, and reinserting them into the KVS.</li>
 </ul>
-<h2 id="The-Proposed-Optimization"><a href="#The-Proposed-Optimization" class="headerlink" title="The Proposed Optimization"></a>The Proposed Optimization</h2><h4 id="Deferring-Key-Deletion-Until-Write-Commit"><a href="#Deferring-Key-Deletion-Until-Write-Commit" class="headerlink" title="Deferring Key Deletion Until Write Commit"></a>Deferring Key Deletion Until Write Commit</h4><ol>
+<h2 id="The-Proposed-Optimization"><a href="#The-Proposed-Optimization" class="headerlink" title="The Proposed Optimization"></a>The Proposed Optimization</h2><p><strong>Deferring Key Deletion Until Write Commit</strong></p>
+<ol>
 <li><p><strong>Key Changes</strong>:</p>
 <ul>
 <li><p>Instead of deleting the key immediately in Step 1.3, the write session (S1) holds the Q lease and <strong>defers the deletion</strong> until the write session commits (Step 1.5).</p>
@@ -1825,7 +2811,8 @@
 </ul>
 </li>
 </ul>
-<h2 id="Solution-1"><a href="#Solution-1" class="headerlink" title="Solution"></a>Solution</h2><h4 id="Key-Concepts-in-the-Solution"><a href="#Key-Concepts-in-the-Solution" class="headerlink" title="Key Concepts in the Solution"></a>Key Concepts in the Solution</h4><p><img src="/../images/refresh_tbl.png" alt="img"></p>
+<h2 id="Solution-1"><a href="#Solution-1" class="headerlink" title="Solution"></a>Solution</h2><p><strong>Key Concepts in the Solution</strong></p>
+<p><img src="/../images/refresh_tbl.png" alt="img"></p>
 <ol>
 <li><p><strong>Q Leases for Write Sessions</strong>:</p>
 <ul>
@@ -2017,979 +3004,6 @@
 <p><strong>Name one reason why a system may produce unpredictable data?</strong></p>
 <p>Eventual consistency. Or multiple threads are updating the same data item.</p>
 <p>Reference: <a href="https://dl.acm.org/doi/abs/10.1145/2663165.2663318">https://dl.acm.org/doi/abs/10.1145/2663165.2663318</a></p>
-]]></content>
-      <categories>
-        <category>数据库系统</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>MapReduce</title>
-    <url>/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/22/MapReduce/</url>
-    <content><![CDATA[<h1 id="Programming-Model"><a href="#Programming-Model" class="headerlink" title="Programming Model"></a>Programming Model</h1><p>Input and Output:</p>
-<ul>
-<li>Takes a <strong>set of input key&#x2F;value pairs</strong>.</li>
-<li>Produces a <strong>set of output key&#x2F;value pairs</strong>.</li>
-</ul>
-<p>User-Defined Functions:</p>
-<ul>
-<li><strong>Map Function</strong>:<ul>
-<li>Written by the user.</li>
-<li>Processes each input key&#x2F;value pair.</li>
-<li>Generates a set of <strong>intermediate key&#x2F;value pairs</strong>.</li>
-</ul>
-</li>
-<li><strong>Reduce Function</strong>:<ul>
-<li>Also written by the user.</li>
-<li>Takes an intermediate key <code>I</code> and a <strong>set of values</strong> associated with it.</li>
-<li>Merges these values to produce a <strong>smaller set</strong> of output values, often zero or one value.</li>
-</ul>
-</li>
-</ul>
-<p>Intermediate Data Handling:</p>
-<ul>
-<li>The <strong>MapReduce library</strong> groups intermediate values by their key (<code>I</code>) and sends them to the Reduce function.</li>
-<li>Intermediate values are supplied to the Reduce function using an <strong>iterator</strong>, enabling efficient handling of data sets that are too large to fit into memory.</li>
-</ul>
-<p>Fault Tolerance and Scalability:</p>
-<ul>
-<li>By breaking tasks into smaller, independent computations, MapReduce ensures scalability and fault tolerance, even in large distributed environments.</li>
-</ul>
-<h1 id="Implementation"><a href="#Implementation" class="headerlink" title="Implementation"></a>Implementation</h1><p><img src="/../images/mapred_exe_overview.png" alt="img"></p>
-<p>数据分割与任务分配：</p>
-<ul>
-<li>输入数据划分：MapReduce 库将输入文件自动分割成 M 个片段（通常每个片段16MB到64MB，可由用户控制）。</li>
-<li>启动程序实例：在集群中启动多个程序副本。</li>
-<li>角色分配：其中一个程序实例被指定为主节点（master），其余的作为工作节点（workers）。</li>
-</ul>
-<p>任务调度：</p>
-<ul>
-<li>主节点的职责：主节点负责管理 M 个 map 任务和 R 个 reduce 任务。</li>
-<li>任务分配：主节点将空闲的工作节点分配给 map 任务或 reduce 任务。</li>
-</ul>
-<p>Map 阶段：</p>
-<ul>
-<li>读取数据：被分配 map 任务的工作节点读取对应的输入片段。</li>
-<li>处理数据：解析出键&#x2F;值对，并将其传递给用户定义的 Map 函数。</li>
-<li>生成中间结果：<strong>Map 函数产生的中间键&#x2F;值对会存储在本地磁盘中。</strong></li>
-</ul>
-<p>中间数据处理：</p>
-<ul>
-<li>写入本地磁盘：**缓存的中间结果会定期写入本地磁盘，**<strong>并根据分区函数划分为 R 个区域。</strong></li>
-<li>通知主节点：工作节点将这些中间数据的位置告知主节点，主节点负责将这些信息传递给 reduce 工作节点。</li>
-</ul>
-<p>Reduce 阶段准备：</p>
-<ul>
-<li>读取中间数据：reduce 工作节点收到主节点的通知后，通过远程过程调用（RPC）从 map 工作节点的本地磁盘读取中间数据。</li>
-<li>排序数据：reduce 工作节点将所有中间数据按键排序，以确保相同的键聚集在一起。如果数据量过大，无法全部加载到内存，会采用外部排序。</li>
-</ul>
-<p>Reduce 阶段：</p>
-<ul>
-<li>执行 Reduce 函数：reduce 工作节点遍历排序后的中间数据，对于每个唯一的中间键，将键和对应的值列表传递给用户定义的 Reduce 函数。</li>
-<li>生成最终输出：Reduce 函数的输出被追加到该 reduce 分区的最终输出文件中。</li>
-</ul>
-<p>任务完成与结果返回：</p>
-<ul>
-<li>任务监控：当所有的 map 和 reduce 任务都完成后，主节点会唤醒用户程序。</li>
-<li>返回结果：此时，用户程序中的 MapReduce 调用返回，用户可以获取 R 个输出文件，每个 reduce 任务对应一个输出文件。</li>
-</ul>
-<p>额外说明：</p>
-<ul>
-<li>数据处理链：通常用户不需要将这 R 个输出文件合并成一个文件，因为这些文件可以直接作为下一个 MapReduce 调用的输入，或者被能够处理多文件输入的分布式应用程序使用。</li>
-<li>流程图参考：上图👆用于展示 MapReduce 操作的整体流程，对应上面的步骤1到7。</li>
-</ul>
-<h2 id="Master-Data-Structure"><a href="#Master-Data-Structure" class="headerlink" title="Master Data Structure"></a>Master Data Structure</h2><p>Task State Tracking:</p>
-<ul>
-<li>For each <strong>map</strong> and <strong>reduce task</strong>, the master stores:<ul>
-<li><strong>State</strong>:<ul>
-<li><code>idle</code>: Task is yet to be assigned.</li>
-<li><code>in-progress</code>: Task is currently being executed.</li>
-<li><code>completed</code>: Task has finished execution.</li>
-</ul>
-</li>
-<li><strong>Worker Identity</strong>: The worker machine handling the task (for non-idle tasks).</li>
-</ul>
-</li>
-</ul>
-<p>Intermediate Data Management:</p>
-<ul>
-<li>The master acts as the <strong>conduit</strong> for transferring intermediate data from map tasks to reduce tasks.</li>
-<li>For each completed map task:<ul>
-<li>It records the <strong>locations</strong> and <strong>sizes</strong> of the <code>R</code> intermediate file regions generated.</li>
-<li>This data is crucial for reduce tasks to fetch intermediate results from the corresponding map workers.</li>
-</ul>
-</li>
-</ul>
-<p>Dynamic Updates:</p>
-<ul>
-<li>As map tasks finish, the master continuously updates its records of intermediate file locations and sizes.</li>
-<li>These updates are incrementally pushed to reduce workers that are currently in-progress.</li>
-</ul>
-<h2 id="Fault-Tolerance"><a href="#Fault-Tolerance" class="headerlink" title="Fault Tolerance"></a>Fault Tolerance</h2><p>Worker Failure</p>
-<ul>
-<li><strong>Failure Detection</strong>:<ul>
-<li>The <strong>master node</strong> periodically <strong>pings every worker</strong>.</li>
-<li>If a worker does not respond within a certain timeframe, the master marks the worker as <strong>failed</strong>.</li>
-</ul>
-</li>
-<li><strong>Task Rescheduling</strong>:<ul>
-<li><strong>Map Tasks</strong>:<ul>
-<li><strong>Completed Map Tasks</strong>:<ul>
-<li>If the failed worker had completed a map task, its output becomes inaccessible (stored on the failed machine’s local disk).</li>
-<li>These tasks are reset to their <strong>idle state</strong> and re-executed on other workers.</li>
-</ul>
-</li>
-<li><strong>In-Progress Map Tasks</strong>:<ul>
-<li>Similarly, in-progress tasks are marked as idle and reassigned to available workers.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><strong>Reduce Tasks</strong>:<ul>
-<li><strong>Completed Reduce Tasks</strong>:<ul>
-<li>These do not require re-execution, as their output is stored in a <strong>global file system</strong>, which remains accessible despite the failure.</li>
-</ul>
-</li>
-<li><strong>In-Progress Reduce Tasks</strong>:<ul>
-<li>如果某些 reduce 节点尚未读取中间数据，它们会从新的执行结果中读取数据。</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><strong>Data Coordination</strong>:<ul>
-<li>When a map task is re-executed on a new worker:<ul>
-<li><strong>Notification</strong>: All reduce workers are informed of the re-execution.</li>
-<li><strong>Data Redirection</strong>: Reduce workers that have not yet fetched the intermediate data from the failed worker will instead fetch it from the new worker.</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<p>Master Failure</p>
-<p>It is easy to make the master write periodic checkpoints of the master data structures described above. If the master task dies, a new copy can be started from the last checkpointed state. However, given that there is only a single master, its failure is unlikely; <strong>therefore our current implementation aborts the MapReduce computation if the master fails.</strong> Clients can check for this condition and retry the MapReduce operation if they desire.</p>
-<h2 id="Locality-数据本地化优化"><a href="#Locality-数据本地化优化" class="headerlink" title="Locality 数据本地化优化"></a>Locality 数据本地化优化</h2><p>存储设计： 数据存储在 Google 文件系统 (GFS) 中。 GFS 将每个文件分割为 64 MB 的块，并在不同的机器上保存多个副本（通常是 3 个）。</p>
-<p>任务调度优先级：</p>
-<ul>
-<li>优先本地化调度：The master node prioritizes assigning map tasks to workers that are on the same machine containing the replica of the data block.</li>
-<li>次优调度：If local scheduling is not possible (e.g., the worker with the data block is busy), the master assigns the task to a machine near the replica, such as within the same rack or data center.</li>
-</ul>
-<p>实际效果： 在运行大型 MapReduce 操作时，大部分输入数据会从本地磁盘读取。 因为数据本地化，减少了跨网络传输的数据量，从而节省网络带宽。</p>
-<h2 id="Task-Granularity"><a href="#Task-Granularity" class="headerlink" title="Task Granularity"></a>Task Granularity</h2><ol>
-<li>Map 和 Reduce 阶段的划分<ol>
-<li>任务数量 (M 和 R)： Map 阶段被划分为 M 个任务。 Reduce 阶段被划分为 R 个任务。</li>
-<li>划分原则：理想情况下，M 和 R 的数量应该远大于工作节点的数量（即机器的数量）。</li>
-</ol>
-</li>
-<li>多任务划分的好处<ol>
-<li>动态负载均衡： 每个工作节点可执行多个任务，这样可以动态调整任务分配，避免某些节点过载或闲置。</li>
-<li>故障恢复加速： 如果某个工作节点失败，已完成的多个任务可以分散到其他节点重新执行，恢复速度更快。</li>
-</ol>
-</li>
-<li>任务划分的实际限制<ol>
-<li>调度开销： 主节点需要进行 O(M + R) 次调度决策，且需要存储 O(M × R) 的状态信息。 虽然每对 map&#x2F;reduce 任务对仅占用约 1 字节内存，但过多任务会增加内存需求和调度复杂性。</li>
-<li>输出文件限制： R 的大小往往受到用户需求限制，因为每个 reduce 任务会生成一个独立的输出文件。 输出文件过多会导致文件管理复杂。</li>
-</ol>
-</li>
-<li>实际任务大小选择</li>
-<li><ol>
-<li>Map 阶段： 每个 map 任务通常处理 16 MB 到 64 MB 的输入数据。 这样的任务大小可以充分利用数据本地化优化（即尽量从本地磁盘读取数据）。</li>
-<li>Reduce 阶段： R 通常是工作节点数量的几倍，以充分利用并行能力。 在一个典型的大规模 MapReduce 计算中： M &#x3D; 200,000（Map 阶段任务数）。 R &#x3D; 5,000（Reduce 阶段任务数）。 工作节点 &#x3D; 2,000（机器数量）。</li>
-</ol>
-</li>
-</ol>
-<h2 id="Backup-Tasks"><a href="#Backup-Tasks" class="headerlink" title="Backup Tasks"></a>Backup Tasks</h2><ol>
-<li><p>什么是拖后腿的任务（Straggler Tasks）？</p>
-<ul>
-<li>定义：A straggler task refers to a task (map or reduce) in a MapReduce job that runs much slower than other tasks, delaying the overall completion of the job.</li>
-</ul>
-</li>
-<li><p>解决方法：</p>
-<ul>
-<li><p>备份任务机制：当 MapReduce 计算接近完成时，主节点会为未完成的任务安排备份执行（Backup Executions）。同一任务的多个副本在不同的工作节点上同时运行。只要其中一个副本完成，任务即被标记为完成。</p>
-</li>
-<li><p>资源开销：调整后的机制只增加少量（通常是几个百分点）的计算资源使用。通过备份执行，能够显著缩短总执行时间。</p>
-</li>
-</ul>
-</li>
-</ol>
-<h1 id="Refinement"><a href="#Refinement" class="headerlink" title="Refinement"></a>Refinement</h1><p><strong>Partitioning Function</strong></p>
-<ol>
-<li>Reduce 任务与分区<ol>
-<li>用户通过设置 R 来指定需要的 reduce 任务数或输出文件数。</li>
-<li>数据在这些 reduce 任务之间分区，分区方式取决于分区函数（partitioning function）。</li>
-</ol>
-</li>
-<li>默认分区方式<ol>
-<li>默认使用 哈希函数（hash function）：</li>
-<li>分区规则：hash(key) mod R。</li>
-<li>优势：通常能实现较为均衡的分区（即数据均匀分布到不同 reduce 任务中）。</li>
-</ol>
-</li>
-<li>自定义分区方式<ol>
-<li>有时默认的哈希分区不满足实际需求，需要根据特定逻辑对数据进行分区。例如：数据的键是 URL，用户希望所有来自同一主机（host）的条目存储在同一个输出文件中。</li>
-<li>解决方案：用户可以定义自己的分区函数，例如：hash(Hostname(urlkey)) mod R：根据 URL 的主机名分区。这样，来自同一主机的所有条目会被分配到相同的 reduce 任务中。</li>
-</ol>
-</li>
-</ol>
-<p><strong>Ordering Guarantees</strong></p>
-<ol>
-<li>排序保证<ol>
-<li>在 MapReduce 的 每个分区内，中间的键&#x2F;值对（key&#x2F;value pairs）会按照键的递增顺序进行处理。</li>
-<li>目标：确保每个分区的输出文件是有序的。</li>
-</ol>
-</li>
-<li>排序的作用<ol>
-<li>生成有序输出文件：每个 reduce 任务生成的输出文件是按键排序的，直接支持有序数据的存储。</li>
-<li>支持高效随机访问：有序数据便于快速查找，比如通过键值实现高效的随机访问。</li>
-<li>用户便利：用户使用这些输出文件时，不需要额外排序，使用起来更方便。</li>
-</ol>
-</li>
-</ol>
-<p><strong>Combiner Function</strong></p>
-<ol>
-<li>问题背景<ol>
-<li>在某些情况下，中间键重复率较高，每个 map 任务可能会生成大量重复的中间键记录。示例：在单词计数任务中（例如 〈the, 1〉），常见单词（如 “the”）会频繁出现。</li>
-<li>结果：这些重复记录需要通过网络传输到同一个 reduce 任务，增加了网络负载。</li>
-</ol>
-</li>
-<li>Combiner 函数的解决方案<ol>
-<li>定义：Combiner 是一个可选的、局部的聚合函数，<strong>用于在 map 任务所在机器上对中间数据进行部分合并。</strong></li>
-<li>工作原理：</li>
-<li><ol>
-<li>执行位置：Combiner 在 map 任务的机器上运行。</li>
-<li>功能：对重复键的中间结果进行局部汇总，减少需要传输的数据量。</li>
-<li>例如：将 〈the, 1〉、〈the, 1〉、〈the, 1〉 合并为 〈the, 3〉。</li>
-</ol>
-</li>
-</ol>
-</li>
-<li>Combiner 和 Reduce 的区别<ol>
-<li>相同点：通常，Combiner 的代码与 Reduce 函数的代码相同。都用于对数据进行聚合处理。</li>
-<li>不同点：<ol>
-<li>Combiner：输出的是中间结果，数据会继续传递给 Reduce 任务。</li>
-<li>Reduce：输出的是最终结果，数据写入最终的输出文件。</li>
-</ol>
-</li>
-</ol>
-</li>
-<li>优化效果<ol>
-<li>减少网络传输量：通过提前合并数据，Combiner 减少了从 map 任务到 reduce 任务的数据量。例如，不传输 1000 条 〈the, 1〉，而是只传输 1 条 〈the, 1000〉。</li>
-<li>提升性能：对于重复率高的任务，Combiner 能显著加快 MapReduce 操作的速度。</li>
-</ol>
-</li>
-</ol>
-<p><strong>Input and Output Types</strong></p>
-<ol>
-<li>输入数据格式的支持<ol>
-<li>预定义格式：<ol>
-<li>文本模式（text mode）： 每行数据被视为一个键&#x2F;值对。<ol>
-<li>键：文件中该行的偏移量（offset）。</li>
-<li>值：该行的内容。 排序键&#x2F;值对模式： 存储的键&#x2F;值对按键排序，便于按范围处理。</li>
-</ol>
-</li>
-<li>自动分割范围： 每种输入格式都有分割机制，可将输入数据划分为适合 map 任务处理的范围。 例如，文本模式会确保分割发生在行边界，而不是行中间，保证数据的完整性。</li>
-</ol>
-</li>
-<li>用户自定义格式： 用户可以通过实现简单的读取接口（reader interface），支持新的输入类型。<ol>
-<li>非文件输入：数据可以来自其他来源，如数据库或内存中的数据结构，而不一定是文件。</li>
-</ol>
-</li>
-</ol>
-</li>
-<li>输出数据格式的支持<ol>
-<li>类似输入格式，MapReduce 也支持多种输出格式：<ol>
-<li>预定义格式：提供了一些常用的输出格式。</li>
-<li>自定义格式：用户可以通过实现新的接口定义输出数据格式。</li>
-</ol>
-</li>
-</ol>
-</li>
-</ol>
-<p><strong>Skipping Bad Records</strong></p>
-<ol>
-<li>问题背景<ol>
-<li>用户代码缺陷：Map 或 Reduce 函数中可能存在错误（如某些记录引发崩溃）。</li>
-<li>确定性崩溃：对特定记录，每次处理都会发生崩溃。</li>
-<li>问题影响：这类错误可能阻止整个 MapReduce 操作完成。</li>
-<li>无法修复的情况：错误可能在第三方库中，用户无法访问源代码。</li>
-</ol>
-</li>
-<li>MapReduce 提供的解决方案<ol>
-<li>跳过问题记录：MapReduce 允许系统检测引发崩溃的记录，并跳过这些记录以继续操作。</li>
-<li>实现机制：<ol>
-<li>信号处理：每个工作节点安装信号处理器（signal handler），捕获段错误（segmentation violations）和总线错误（bus errors）。</li>
-<li>记录错误序号：在调用用户的 Map 或 Reduce 函数之前，系统将参数的序列号存储在全局变量中。</li>
-<li>发送错误报告：如果用户代码触发错误，信号处理器会发送一个“最后的喘息”UDP 数据包，包含引发错误的记录序号，通知主节点。</li>
-<li>主节点决策：If a record causes failures many times, the master node instructs the record to be skipped the next time the task is retried.</li>
-</ol>
-</li>
-</ol>
-</li>
-</ol>
-<p><strong>Local Execution</strong></p>
-<ol>
-<li>分布式调试的挑战<ol>
-<li>复杂性：Map 和 Reduce 函数的实际计算是在分布式系统上完成，涉及数千台机器。主节点动态分配任务，调试难以直接定位问题。</li>
-<li>常见问题：分布式环境下的日志、任务状态和数据流使得问题排查更加困难。</li>
-</ol>
-</li>
-<li>本地执行模式的设计<ol>
-<li>功能：MapReduce 提供了一种 本地执行的替代实现，在单台机器上顺序执行整个 MapReduce 操作。</li>
-<li>特点：所有任务按顺序运行，无需分布式调度。用户可以限制计算范围，仅调试特定的 map 任务。</li>
-</ol>
-</li>
-</ol>
-<p><strong>Counter</strong></p>
-<ul>
-<li>Counters are used to track occurrences of specific events during a MapReduce operation, such as:<ul>
-<li><strong>Custom events</strong> defined by the user (e.g., counting words, detecting specific patterns).</li>
-<li><strong>System-defined metrics</strong>, like the number of input&#x2F;output key-value pairs processed.</li>
-</ul>
-</li>
-</ul>
-<p><strong>How Counters Work</strong></p>
-<ul>
-<li><strong>Propagation to the Master</strong>:<ul>
-<li>Counter values from individual workers are sent to the <strong>master node</strong> via <strong>ping responses</strong>.</li>
-</ul>
-</li>
-<li><strong>Aggregation</strong>:<ul>
-<li>The master aggregates counter values from all completed tasks.</li>
-<li>It ensures <strong>no double counting</strong> by ignoring duplicate task executions (e.g., due to re-executions or backup tasks).</li>
-</ul>
-</li>
-</ul>
-<p><strong>Monitoring and Reporting</strong></p>
-<ul>
-<li><strong>Real-Time Monitoring</strong>:<ul>
-<li>The current counter values are displayed on the <strong>master status page</strong>, allowing users to observe the progress of the computation.</li>
-</ul>
-</li>
-<li><strong>Final Reporting</strong>:<ul>
-<li>When the MapReduce job finishes, the aggregated counter values are returned to the user program.</li>
-</ul>
-</li>
-</ul>
-<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>Assuming M&#x3D;10 and R&#x3D;20, What is the total number of files produced by the mappers?</strong></p>
-<p>Total Files &#x3D; M×R &#x3D; 10×20 &#x3D; 200</p>
-<p><strong>Why does MapReduce store the output of Reduce in the Google File System?</strong> </p>
-<ul>
-<li><p><strong>High Availability</strong>: GFS provides fault tolerance by replicating data across multiple machines. This ensures the output is not lost if a machine fails.</p>
-</li>
-<li><p><strong>Scalability</strong>: GFS is designed to handle large-scale data storage, making it suitable for the massive outputs of MapReduce jobs.</p>
-</li>
-</ul>
-<p><strong>What is the purpose of a straggler?</strong> </p>
-<ul>
-<li><strong>“Straggler” refers to</strong> <strong>slow-running</strong> <strong>tasks</strong>, often map or reduce tasks, that significantly delay the completion of a MapReduce job.</li>
-<li>Solution:</li>
-<li><ul>
-<li><strong>Backup Execution</strong>: The master node schedules backup executions of straggler tasks on other available workers.</li>
-</ul>
-</li>
-</ul>
-<p><strong>True or False: One may use SQL++ with a CSV data file and no schema.</strong></p>
-<p>True: SQL++ can operate on semi-structured data, including CSV files, without requiring a predefined schema.</p>
-<p><strong>With SQL++, what is the difference between pivot and unpivot?</strong></p>
-<p>Pivot:</p>
-<ul>
-<li><p><strong>Purpose</strong>: Transforms rows into attributes (columns).</p>
-</li>
-<li><p><strong>Example</strong>:</p>
-<ul>
-<li><p>Input: <code>[ &#123; &quot;symbol&quot;: &quot;amzn&quot;, &quot;price&quot;: 1900 &#125;, &#123; &quot;symbol&quot;: &quot;goog&quot;, &quot;price&quot;: 1120 &#125;, &#123; &quot;symbol&quot;: &quot;fb&quot;, &quot;price&quot;: 180 &#125; ]</code></p>
-</li>
-<li><p>Query: <code>PIVOT sp.price AT sp.symbol FROM today_stock_prices sp;</code></p>
-</li>
-<li><p>Output: <code>&#123; &quot;amzn&quot;: 1900, &quot;goog&quot;: 1120, &quot;fb&quot;: 180 &#125;</code></p>
-</li>
-</ul>
-</li>
-</ul>
-<p>Unpivot:</p>
-<ul>
-<li><p><strong>Purpose</strong>: Transforms attributes (columns) into rows.</p>
-</li>
-<li><p><strong>Example</strong>:</p>
-<ul>
-<li><p>Input: <code>&#123; &quot;date&quot;: &quot;4/1/2019&quot;, &quot;amzn&quot;: 1900, &quot;goog&quot;: 1120, &quot;fb&quot;: 180 &#125;</code></p>
-</li>
-<li><p>Query: <code>UNPIVOT c AS price AT sym FROM closing_prices c WHERE sym != &#39;date&#39;;</code></p>
-</li>
-<li><p>Output: <code>[ &#123; &quot;date&quot;: &quot;4/1/2019&quot;, &quot;symbol&quot;: &quot;amzn&quot;, &quot;price&quot;: 1900 &#125;, &#123; &quot;date&quot;: &quot;4/1/2019&quot;, &quot;symbol&quot;: &quot;goog&quot;, &quot;price&quot;: 1120 &#125;, &#123; &quot;date&quot;: &quot;4/1/2019&quot;, &quot;symbol&quot;: &quot;fb&quot;, &quot;price&quot;: 180 &#125; ]</code></p>
-</li>
-</ul>
-</li>
-</ul>
-<p><strong>Using BG, one may summarize the performance of a data store using its SoAR. What is the input to BG to compute the SoAR of a data store?</strong></p>
-<h3 id="1-SLA-Specifications"><a href="#1-SLA-Specifications" class="headerlink" title="1. SLA Specifications"></a><strong>1.</strong> <strong>SLA Specifications</strong></h3><p>The Service Level Agreement (SLA) defines the conditions under which SoAR is computed. The SLA includes:</p>
-<ul>
-<li><strong>α:</strong> Percentage of requests that must observe a response time less than or equal to β (e.g., 95%).</li>
-<li><strong>β:</strong> Maximum acceptable response time (e.g., 100 ms).</li>
-<li><strong>τ:</strong> Maximum allowable percentage of requests that observe unpredictable (stale or inconsistent) data (e.g., 0.01%).</li>
-<li><strong>Δ:</strong> Duration for which the SLA must be satisfied (e.g., 10 minutes).</li>
-</ul>
-<h3 id="2-Database-Configuration"><a href="#2-Database-Configuration" class="headerlink" title="2. Database Configuration"></a><strong>2. Database Configuration</strong></h3><p>Details about the data store being tested:</p>
-<ul>
-<li><strong>Logical Schema:</strong> The data model used by the data store (e.g., relational schema, JSON-like schema for NoSQL).</li>
-<li><strong>Physical Setup:</strong> Hardware configuration, including:<ul>
-<li>Number of nodes.</li>
-<li>Storage and memory resources.</li>
-<li>Networking capabilities.</li>
-</ul>
-</li>
-<li><strong>Population Size:</strong><ul>
-<li><strong>M:</strong> Number of members in the database.</li>
-<li><strong>ϕ:</strong> Number of friends per member.</li>
-<li><strong>ρ:</strong> Number of resources per member.</li>
-</ul>
-</li>
-</ul>
-<h3 id="3-Workload-Parameters"><a href="#3-Workload-Parameters" class="headerlink" title="3. Workload Parameters"></a><strong>3. Workload Parameters</strong></h3><p>The workload specifies the nature and intensity of the actions BG will simulate:</p>
-<ul>
-<li><strong>Mix of</strong> <strong>Actions</strong><strong>:</strong><ul>
-<li>Types of social networking actions (e.g., View Profile, List Friends, View Friend Requests).</li>
-<li>Percentage of each action type (read-heavy, write-heavy, or mixed workloads).</li>
-</ul>
-</li>
-<li><strong>Think Time (ϵ):</strong><ul>
-<li>The delay between consecutive actions performed by a single thread.</li>
-</ul>
-</li>
-<li><strong>Inter-Arrival Time (ψ):</strong><ul>
-<li>The delay between new user sessions.</li>
-</ul>
-</li>
-</ul>
-<h3 id="4-Environmental-Parameters"><a href="#4-Environmental-Parameters" class="headerlink" title="4. Environmental Parameters"></a><strong>4. Environmental Parameters</strong></h3><p>Details about how BG generates and manages workloads:</p>
-<ul>
-<li><strong>Number of BGClients (N):</strong> Instances responsible for generating requests.</li>
-<li><strong>Number of Threads (T):</strong> Concurrency level (threads per BGClient).</li>
-<li><strong>D-Zipfian Distribution Parameters (θ):</strong><ul>
-<li>Defines the access pattern (e.g., frequency of popular vs. less popular data).</li>
-</ul>
-</li>
-</ul>
-<p><strong>Consider the following binary representation of the priority of a key-value pair, 00101001. What is its CAMP rounding with precision 4?</strong></p>
-<p>00101000</p>
-<p><img src="/../images/bg_bm_rounding.png" alt="img"></p>
-<p><strong>What is a thundering herd and how does the IQ framework prevent it from causing the persistent data store to become the bottleneck?</strong></p>
-<p>Thundering Herd Problem:</p>
-<ul>
-<li>When a key-value pair is not found in the KVS (a <strong>KVS miss</strong>), multiple read sessions might simultaneously query the RDBMS to fetch the value.</li>
-<li>This can overload the RDBMS and degrade performance under high concurrency.</li>
-</ul>
-<p>Solution:</p>
-<ul>
-<li>When the first read session encounters a KVS miss, it requests an I lease for the key.</li>
-<li>Once the I lease is granted, the KVS prevents other read sessions from querying the RDBMS for the same key.</li>
-<li>All other read sessions must “back off” and wait for the value to be updated in the KVS by the session holding the I lease.</li>
-</ul>
-<blockquote>
-<p>A thundering herd happens when a specific key undergoes heavy read and write activity.</p>
-<ul>
-<li>Writes invalidate the cache repeatedly  </li>
-<li>All reads are forced to query the database</li>
-</ul>
-<p>I lease solves this problem</p>
-<ul>
-<li>The first read for the specific key is granted the I lease  </li>
-<li>All other reads observe a miss and back-off  </li>
-<li>The read with the I lease queries the RDBMS, computes the missing value, and populates the cache  </li>
-<li>All other reads observe a cache hit</li>
-</ul>
-</blockquote>
-<p>Reference: <a href="https://static.googleusercontent.com/media/research.google.com/zh-CN//archive/mapreduce-osdi04.pdf">https://static.googleusercontent.com/media/research.google.com/zh-CN//archive/mapreduce-osdi04.pdf</a></p>
-]]></content>
-      <categories>
-        <category>数据库系统</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>Gamma</title>
-    <url>/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/06/Gamma/</url>
-    <content><![CDATA[<h1 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h1><p>主要特点：</p>
-<ol>
-<li><strong>并行处理</strong>： Gamma 利用了分布式架构，通过将数据和计算任务分散到多个节点上并行处理，极大提高了查询性能和吞吐量。不同的节点可以同时处理不同的任务，从而加速整个系统的响应时间。</li>
-<li><ul>
-<li><strong>并行查询处理</strong>： Gamma 支持并行执行查询计划中的操作（如选择、投影、连接等）。系统采用流水线并行（pipelined parallelism）和分块并行（partitioned parallelism）技术来最大化资源利用率。</li>
-<li><strong>流式处理（Pipelining）</strong>： Gamma 支持流式处理，即在一个操作产生部分结果时，直接将这些结果传递给下一个操作，而不是等待整个操作完成。这样可以减少内存占用，并加快查询处理速度。</li>
-</ul>
-</li>
-<li><strong>数据分片（Declustering）</strong>： Gamma 系统通过数据分片将数据表水平拆分成多个片段，并将这些片段分布到不同的处理节点上。这种方式不仅均衡了负载，还支持并行的查询处理，避免单点瓶颈。</li>
-<li><strong>动态负载均衡</strong>： Gamma 能够根据查询的工作负载，动态分配任务到不同的节点，确保整个系统的负载均衡，避免某些节点过载导致性能下降。通过监控每个节点的工作情况，Gamma 能够优化数据和任务分布。</li>
-<li><strong>故障容错（Fault Tolerance）</strong>： Gamma 具有一定的故障容错能力，当某个节点出现故障时，系统可以通过冗余机制和数据复制，重新分配任务或从其他节点获取数据，避免系统中断。</li>
-<li><strong>扩展性（Scalability）</strong>： Gamma 系统的设计能够随着节点的增加而线性扩展。通过增加处理节点，Gamma 可以处理更大规模的数据和更多的并发查询，保持高性能。</li>
-</ol>
-<p>Gamma is based on the concept of a shared-nothing architecture in which processors do not share disk drives or random access memory and can only communicate with one another by sending messages through an interconnection network. Mass storage in such an architecture is generally distributed among the processors by connecting one or more disk drives to each processor.</p>
-<p><img src="/../images/Gamma_Arch.png" alt="Gamma 架构"></p>
-<p>Reasons why the shared-nothing approach has become the architecture of choice.</p>
-<ul>
-<li>There is nothing to prevent the architecture from <strong>scaling</strong> to 1000s of processors unlike shared-memory machines for which scaling beyond 30-40 processors may be impossible.</li>
-<li>By associating a small number of disks with each processor and distributing the tuples of each relation across the disk drives, it is possible to achieve very high aggregate I&#x2F;O bandwidths without using custom disk controllers</li>
-</ul>
-<p>When Gamma’s system is figuring out the best way to run a query, it uses information about how the data is divided up (partitioned). This partitioning information helps the system decide how many processors (computers) need to be involved in running the query.</p>
-<ul>
-<li><strong>For hash partitioning</strong>: If a table (say, “X”) is divided based on a hash function applied to a certain column (like “y”), and the query asks for records where “X.y &#x3D; some value,” <strong>the system can directly go to the specific processor that holds the data matching that value</strong>.</li>
-<li><strong>For range partitioning</strong>: If the table is divided based on ranges of values for a column, <strong>the system can limit the query to only the processors that have data within the relevant range</strong>. For example, if “X” is partitioned such that one processor handles values from 1 to 100, and another handles values from 101 to 200, then a query asking for “X.y between 50 and 150” will involve only the processors that have data in those ranges.</li>
-</ul>
-<p>Different processes in the Gamma system work together. Here’s a simplified explanation of the main types of processes and their roles:</p>
-<ol>
-<li><p><strong>Catalog Manager</strong>: Acts like a “database encyclopedia,” <strong>storing all the information about data tables and structures</strong>. It ensures that data remains consistent when multiple users access the database.</p>
-</li>
-<li><p><strong>Query Manager</strong>: Each user gets a query manager that handles query requests. It is responsible for <strong>parsing the query, optimizing it, and generating the execution plan</strong>.</p>
-</li>
-<li><p><strong>Scheduler Processes</strong>: When a query is executed, the scheduler <strong>coordinates the execution steps</strong>. It activates the necessary operator processes (such as scan, selection, etc.) and ensures that all steps are performed in the correct order.</p>
-</li>
-<li><p><strong>Operator Processes</strong>: These processes <strong>carry out specific database operations</strong>, like filtering data or joining tables. To reduce the startup delay during query execution, some operator processes are pre-initialized when the system starts.</p>
-</li>
-<li><p><strong>Other Processes</strong>:</p>
-<ul>
-<li><p><strong>Deadlock Detection Process</strong>: Detects situations where two or more processes are stuck waiting for each other to release resources.</p>
-</li>
-<li><p><strong>Recovery Process</strong>: Manages data recovery after a system failure.</p>
-</li>
-</ul>
-</li>
-</ol>
-<p>How the Gamma system executes database queries?</p>
-<ol>
-<li><strong>Query Parsing and Optimization</strong>: When a user submits a query, Gamma first parses it to understand what the query is asking for. Then, the system optimizes the query to find the most efficient way to execute it.</li>
-<li><strong>Query Compilation</strong>: After optimization, the query is compiled into an “<strong>operator tree</strong>“ made up of different operations (such as scan, selection, join, etc.). This tree outlines the steps and the order in which the query will be executed.</li>
-<li><strong>Single-Site vs. Multi-Site Queries</strong>: If the query only involves data on a single node (e.g., querying a small table), the system executes it directly on that node. However, if the query involves data distributed across multiple nodes (e.g., joining large tables), the system uses a “scheduler process” to coordinate the execution.</li>
-<li><strong>Scheduler Coordination</strong>: The scheduler process is responsible for activating various operator processes across the nodes, such as instructing one node to scan data while another filters it. The scheduler also manages the flow of data between these operations, ensuring they happen in the correct order.</li>
-<li><strong>Returning the Results</strong>: Once all operations are completed, the query results are collected and returned to the user. For queries embedded in a program, the results are passed back to the program that initiated the query.</li>
-</ol>
-<p>Different operations (like scanning data, filtering, joining tables, etc.) are carried out in a parallel manner. Here’s a simplified explanation:</p>
-<ol>
-<li><strong>Operator Processes</strong>: In Gamma, each operation in a query is handled by something called an “operator process.” For example, if the query needs to scan data from a table, filter some rows, and then join with another table, there would be separate operator processes for scanning, filtering, and joining.</li>
-<li><strong>Data Flow</strong>: The data flows from one operator process to the next. For instance, the scan operator reads data from the disk and sends it to the filter operator, which then passes the filtered results to the join operator. This creates a kind of “data pipeline.”</li>
-<li><strong>Split Table</strong>: Gamma uses a “split table” to decide where the data should go next. Think of it like a routing table that directs the flow of data. For example, if the data needs to be sent to multiple nodes for parallel processing, the split table helps determine which node each piece of data should go to.</li>
-<li><strong>End of Processing</strong>: Once an operator finishes processing all its data, it closes its output streams and sends a signal to the scheduler process (which coordinates the whole query) to let it know that this part of the work is done.</li>
-</ol>
-<p>In simple terms, the operator and process structure in Gamma is like an assembly line where data moves from one step (operator) to the next, with each operator performing a specific task, and the split table guiding the data flow. This setup allows the system to process data in parallel across multiple nodes, making it much faster.</p>
-<h1 id="Operators"><a href="#Operators" class="headerlink" title="Operators"></a>Operators</h1><h2 id="Selection-Operator"><a href="#Selection-Operator" class="headerlink" title="Selection Operator"></a>Selection Operator</h2><p>Data Spread Across Multiple Disks: In Gamma, data tables are split up and stored across multiple disks (this is called “declustering”). Because of this, when you want to search (select) for specific data, the system can perform the search in parallel across multiple disks.</p>
-<p>Parallel Selection Process:</p>
-<ul>
-<li>If the search condition (predicate) matches the way the data is divided (partitioned), the system can narrow down the search to just the relevant nodes (computers with disks) that have the data. For example:</li>
-<li><ul>
-<li>If the data is divided using a <strong>hash or range</strong> partitioning method based on a certain attribute (like “employee ID”), and the search is also based on that attribute (e.g., “employee ID &#x3D; 123”), then the search can be directed only to the node that holds data matching that condition.</li>
-<li>If the data is divided using a <strong>round-robin</strong> method (spreading data evenly across all disks) or if the search condition <strong>doesn’t match the partitioning attribute</strong>, then the system has to search on all nodes.</li>
-</ul>
-</li>
-</ul>
-<p>Performance Optimization:</p>
-<ul>
-<li>To make the search faster, Gamma uses a “<strong>read-ahead</strong>“ technique. This means that when it reads one page of data, it starts loading the next page at the same time, so that the processing of data can keep going without waiting for the next page to load.</li>
-</ul>
-<h2 id="Join-Operator"><a href="#Join-Operator" class="headerlink" title="Join Operator"></a>Join Operator</h2><p>Using Hash Partitioning: The join algorithms in Gamma are based on a concept called “buckets.” This means splitting the two tables to be joined into separate groups (buckets) that don’t overlap. The groups are created by applying a hash function to the join attribute (e.g., Employee ID), so that data with the same hash value ends up in the same bucket.</p>
-<p>By partitioning the data into different buckets, each bucket contains unique data subsets, allowing parallel processing of these buckets, which speeds up the join operation. Additionally, <strong>all data with the same join attribute value is in the same bucket</strong>, making it easier to perform the join.</p>
-<p>Gamma implements four different parallel join algorithms:</p>
-<ul>
-<li><strong>Sort-Merge Join</strong>: Joins data by sorting and merging.</li>
-<li><strong>Grace Join</strong>: A distributed hash-based join algorithm.</li>
-<li><strong>Simple Hash Join</strong>: A straightforward hash-based partitioning join.</li>
-<li><strong>Hybrid Hash Join</strong>: A combination of different join techniques.</li>
-</ul>
-<p><strong>Default to Hybrid Hash Join:</strong> Research showed that the Hybrid Hash Join almost always performs the best, so Gamma uses this algorithm by default.</p>
-<p>Limitations: These hash-based join algorithms can <strong>only handle equi-joins</strong> (joins with equality conditions, like “Employee ID &#x3D; Department ID”). They currently don’t support non-equi-joins (conditions like “Salary &gt; Department Budget * 2”). To address this, Gamma is working on designing a new parallel non-equi-join algorithm.</p>
-<h3 id="Hybrid-Hash-Join"><a href="#Hybrid-Hash-Join" class="headerlink" title="Hybrid Hash-Join"></a>Hybrid Hash-Join</h3><ul>
-<li>In the first phase, the algorithm uses a hash function to partition the inner (smaller) relation, R, into N buckets. The tuples of the first bucket are used to build an in-memory hash table while the remaining N-1 buckets are stored in temporary files. A good hash function produces just enough buckets to ensure that each bucket of tuples will be small enough to fit entirely in main memory.</li>
-<li>During the second phase, relation S is partitioned using the hash function from step 1. Again, the last N-1 buckets are stored in temporary files while the tuples in the first bucket are used to immediately probe the in-memory hash table built during the first phase.</li>
-<li>During the third phase, the algorithm joins the remaining N-1 buckets from relation R with their respective buckets from relation S.</li>
-</ul>
-<p>The join is thus broken up into a series of smaller joins; each of which hopefully can be computed without experiencing join overflow. The size of the smaller relation determines the number of buckets; this calculation is independent of the size of the larger relation.</p>
-<h3 id="Parallel-version-of-Hybrid-Hash-Join"><a href="#Parallel-version-of-Hybrid-Hash-Join" class="headerlink" title="Parallel version of Hybrid Hash-Join"></a>Parallel version of Hybrid Hash-Join</h3><p>Partitioning into Buckets: The data from the two tables being joined is first divided into N buckets (small groups). The number of buckets is chosen so that each bucket can fit in the combined memory of the processors that are handling the join.</p>
-<p>Storage of Buckets: Out of the N buckets, N-1 buckets are stored temporarily on disk across different disk sites, while one bucket is kept in memory for immediate processing.</p>
-<p>Parallel Processing: A joining split table is used to decide which processor should handle each bucket, helping to divide the work across multiple processors. This means that <strong>different processors can work on different parts of the join at the same time</strong>, speeding up the process.</p>
-<p>Overlapping Phases for Efficiency:</p>
-<ul>
-<li>When partitioning the <strong>first table (R)</strong> into buckets, Gamma simultaneously builds a hash table for the first bucket in memory at each processor.</li>
-<li>When partitioning the <strong>second table (S)</strong>, Gamma simultaneously performs the join for the first bucket from S with the first bucket from R. This way, partitioning and joining overlap, making the process more efficient.</li>
-</ul>
-<p>Adjusting the Split Table for Parallel Joining: The joining split table is updated to make sure that the data from the first bucket of both tables is sent to the right processors that will perform the join. When the remaining N-1 buckets are processed, only the routing for joining is needed.</p>
-<h2 id="Aggregate-Operator"><a href="#Aggregate-Operator" class="headerlink" title="Aggregate Operator"></a>Aggregate Operator</h2><p>Parallel Calculation of Partial Results: Each processor in the Gamma system calculates the aggregate result for its own portion of the data simultaneously. For example, if the goal is to calculate a sum, each processor will first compute the sum for the data it is responsible for.</p>
-<p>Combining Partial Results: After calculating their partial results, the processors send these results to a central process. This central process is responsible for combining all the partial results to produce the final answer.</p>
-<p>Two-Step Computation:</p>
-<ul>
-<li><strong>Step 1</strong>: Each processor calculates the aggregate value (e.g., sum, count) for its data partition, resulting in partial results.</li>
-<li><strong>Step 2</strong>: The processors then redistribute these partial results based on the “group by” attribute. This means that the partial results for each group are collected at a single processor, where the final aggregation for that group is completed.</li>
-</ul>
-<h2 id="Update-Operator"><a href="#Update-Operator" class="headerlink" title="Update Operator"></a>Update Operator</h2><p>For the most part, the update operators (replace, delete, and append) are implemented using standard techniques. The only exception occurs when a replace operator modifies the partitioning attribute of a tuple. In this case, rather than writing the modified tuple back into the local fragment of the relation, the modified tuple is passed through a split table to determine which site should contain the tuple.</p>
-<h1 id="Concurrency-Control"><a href="#Concurrency-Control" class="headerlink" title="Concurrency Control"></a><strong>Concurrency Control</strong></h1><p>Gamma uses a two-phase locking strategy to manage concurrency. This means that before accessing data, a process must first acquire locks (first phase), and then release the locks after completing its operations (second phase). This ensures that multiple operations do not modify the same data at the same time, preventing conflicts.</p>
-<p>Gamma supports two levels of lock granularity: file-level and page-level (smaller scope). There are also five lock modes:</p>
-<ul>
-<li><strong>S (Shared) Lock</strong>: Allows multiple operations to read the data simultaneously.</li>
-<li><strong>X (Exclusive) Lock</strong>: Only one operation can modify the data, while others must wait.</li>
-<li><strong>IS, IX, and SIX Locks</strong>: Used to manage locking at larger scopes, such as entire files, allowing different combinations of read and write permissions.</li>
-</ul>
-<p>Each node in Gamma has its own lock manager and deadlock detector to handle local data locking. The lock manager maintains a lock table and a transaction wait-for-graph, which tracks which operations are waiting for which locks.</p>
-<p>The cost of setting a lock depends on whether there is a conflict:</p>
-<ul>
-<li><strong>No Conflict</strong>: Takes about 100 instructions.</li>
-<li><strong>With Conflict</strong>: Takes about 250 instructions because the system needs to check the wait-for-graph for deadlocks and suspend the requesting transaction using a semaphore mechanism.</li>
-</ul>
-<p>Gamma uses a centralized deadlock detection algorithm to handle deadlocks across nodes:</p>
-<ul>
-<li>Periodically (initially every second), the centralized deadlock detector requests each node’s local wait-for-graph.</li>
-<li>If no deadlock is found, the detection interval is doubled (up to 60 seconds). If a deadlock is found, the interval is halved (down to 1 second).</li>
-<li>The collected graphs are combined into a global wait-for-graph. If a cycle is detected in this global graph, it indicates a deadlock.</li>
-</ul>
-<p>When a deadlock is detected, the system will abort the transaction holding the fewest locks to free up resources quickly and allow other operations to proceed.</p>
-<h1 id="Recovery-and-Log"><a href="#Recovery-and-Log" class="headerlink" title="Recovery and Log"></a>Recovery and Log</h1><p>Logging Changes:</p>
-<p>When a record in the database is updated, Gamma creates a log record that notes the change. Each log record has a unique identifier called a Log Sequence Number (LSN), which includes a node number (determined when the system is set up) and a local sequence number (which keeps increasing). These log records are used for recovery if something goes wrong.</p>
-<p>Log Management:</p>
-<ul>
-<li>The system sends log records from query processors to <strong>Log Managers</strong>, which are separate processors that organize the logs into a single stream.</li>
-<li>If there are multiple Log Managers (M of them), a query processor sends its logs to one of them based on a simple formula: <strong>processor number mod M</strong>. This way, each query processor always sends its logs to the same Log Manager, making it easy to find logs later for recovery.</li>
-</ul>
-<p>Writing Logs to Disk:</p>
-<ul>
-<li>Once a “page” of log records is filled, it is saved to disk.</li>
-<li>The Log Manager keeps a <strong>Flushed Log Table</strong>, which tracks the last log record written to disk for each node. This helps know which logs are safely stored.</li>
-</ul>
-<p>Writing Data to Disk (WAL Protocol):</p>
-<ul>
-<li>Before writing any changed data (a <strong>dirty page</strong>) to disk, the system checks if the corresponding log records have already been saved.</li>
-<li>If the logs are saved, the data can be safely written to disk. If not, the system must first ensure the logs are written to disk before proceeding.</li>
-<li>To avoid waiting too long for log confirmations, the system always tries to keep a certain number of <strong>clean buffer pages</strong> (unused pages) available.</li>
-</ul>
-<p>Commit and Abort Handling:</p>
-<ul>
-<li><strong>Commit</strong>: If a transaction completes successfully, the system sends a commit message to all the relevant Log Managers.</li>
-<li><strong>Abort</strong>: If a transaction fails, an <strong>abort message</strong> is sent to all processors involved, and each processor retrieves its log records to undo the changes using the <strong>ARIES algorithm</strong>, which rolls back changes in the reverse order they occurred.</li>
-</ul>
-<p>Recovery Process:</p>
-<ul>
-<li>The system uses the <strong>ARIES algorithms</strong> for undoing changes, checkpointing, and restarting after a crash.</li>
-<li><strong>Checkpointing</strong> helps the system know the most recent stable state, reducing the amount of work needed during recovery.</li>
-</ul>
-<h1 id="Dataflow-scheduling-technologies"><a href="#Dataflow-scheduling-technologies" class="headerlink" title="Dataflow scheduling technologies"></a>Dataflow scheduling technologies</h1><ol>
-<li><strong>Data-Driven Execution Instead of Operator Control</strong>: Gamma’s dataflow scheduling lets data automatically move between operators, forming a pipeline. Each operator acts like a step on an assembly line: when data reaches the operator, it processes the data and then passes the processed results to the next operator.</li>
-<li><strong>Reducing Coordination Overhead</strong>: Because of this dataflow design, the system does not need to frequently coordinate or synchronize the execution of each operator. This approach reduces the complexity and overhead of scheduling, especially when multiple operators are running in parallel, and avoids performance bottlenecks caused by waiting or synchronization.</li>
-<li><strong>Inherent Support for Parallelism</strong>: Dataflow scheduling is well-suited for parallel processing because data can flow between multiple operators at the same time. For example, a query can simultaneously perform scanning, joining, and aggregation across different processors. Each operator can independently process the data it receives without waiting for other operators to finish, allowing the system to efficiently utilize the computational power of multiple processors.</li>
-<li><strong>Adaptability to Dynamic Environments</strong>: During query execution, dataflow scheduling can be adjusted based on the actual system load and data characteristics. This flexibility allows the system to dynamically optimize the performance of query execution, especially for large and complex queries, by better adapting to changing query demands and system conditions.</li>
-</ol>
-<p>Gamma’s unique dataflow scheduling techniques allow data to flow naturally between operators, reducing the need for direct control over operations. This significantly lowers coordination overhead in multi-processor environments, enhances the system’s parallel processing capabilities, and improves the efficiency of executing complex queries.</p>
-<p>In Gamma’s dataflow scheduling techniques, parallelism is extensively used to improve query execution efficiency. Here’s where and how parallelism is applied:</p>
-<ol>
-<li><p><strong>Parallel Execution of Operators</strong>: Queries often involve multiple operators (e.g., scan, filter, join, aggregation). With dataflow scheduling, these operators can run in parallel:</p>
-<ul>
-<li><p><strong>Scan and Filter in Parallel</strong>: While one processor scans a data block, another processor can be filtering the data from previous blocks.</p>
-</li>
-<li><p><strong>Parallel Joins</strong>: If a join operation involves large datasets distributed across different nodes, Gamma can perform the join operation on these different parts of the data simultaneously. The result of the join is computed in parallel across multiple processors.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Data Partitioning for Parallelism</strong>: The relations (data tables) are often partitioned across multiple processors in Gamma. This means that different processors can work on different partitions of the data at the same time. For example:</p>
-<ul>
-<li><p><strong>Partitioned Hash Joins</strong>: Data can be split into “buckets” based on a hash function, and different processors can handle the join for different buckets simultaneously.</p>
-</li>
-<li><p><strong>Parallel Aggregation</strong>: When computing aggregate functions (e.g., sum or average), each processor calculates a partial result for its own partition of the data, and these partial results are later combined.</p>
-</li>
-</ul>
-</li>
-</ol>
-<p>In summary, parallelism in Gamma is achieved through:</p>
-<ul>
-<li>Distributing query operators across multiple processors.</li>
-<li>Partitioning data so different processors work on different sections simultaneously.</li>
-<li>Enabling multiple stages of query execution (e.g., scanning, filtering, joining) to happen concurrently.</li>
-</ul>
-<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>What is a fragment or a shard in Gamma?</strong> </p>
-<p>A fragment or shard refers to a portion of a database relation that is horizontally partitioned across multiple disk drives.</p>
-<p><strong>How does a Gamma operator know where to send its stream of records?</strong> </p>
-<p>There is a structure called split table to determine where each tuple should be sent, based on the values of tuples.</p>
-<p><strong>With interleaved declusttering, why not use a cluster size that includes all nodes in the system?</strong></p>
-<p>If an interleaved declustteing system includes all nodes, it will become more vulnerable to failures. The failure of any two nodes could make the data inaccessible. A smaller cluster will limits the risk of complete data unavailability and balance the load.</p>
-<p><strong>Hash-join is appropriate for processing equi-join predicates (Emp.dno &#x3D; Dept.dno). How can Gamma process nonequi-join predicates (Emp.Sal &gt; Dept.dno*1000) in a pipelined manner?</strong></p>
-<p><strong>Range partitioning</strong>: Pre-partition the data based on ranges of values to reduce the search space.</p>
-<p><strong>Broadcast join</strong>: When the smaller relation is broadcasted to all nodes, and then each node evaluates the nonequi-join predicate in parallel.</p>
-<p><strong>Nested-loop join</strong>: Use a nested-loop join strategy where each tuple from one relation is compared against all tuples from the other relation.</p>
-<p><strong>What is the difference between Gamma, Google MapReduce, Microsoft Dryad and Apache Flink?</strong></p>
-<table>
-<thead>
-<tr>
-<th><strong>Aspect</strong></th>
-<th>Gamma</th>
-<th>MapReduce</th>
-<th>Dryad</th>
-<th>Flink</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><strong>Primary Use</strong></td>
-<td>Parallel database queries</td>
-<td>Batch processing</td>
-<td>Graph-based parallel computation</td>
-<td>Stream and batch processing</td>
-</tr>
-<tr>
-<td><strong>Architecture</strong></td>
-<td>Shared-nothing, partitioned data</td>
-<td>Cluster-based, distributed</td>
-<td>DAG of tasks</td>
-<td>Distributed, supports DAG</td>
-</tr>
-<tr>
-<td><strong>Data Model</strong></td>
-<td>Relational operations (SQL-like)</td>
-<td>Key-value pairs</td>
-<td>Data flow in DAG</td>
-<td>Stream processing with state</td>
-</tr>
-<tr>
-<td><strong>Partitioning</strong></td>
-<td>Horizontal partitioning</td>
-<td>Data split into chunks</td>
-<td>Data partitioned across graph</td>
-<td>Data partitioned into streams</td>
-</tr>
-<tr>
-<td><strong>Fault Tolerance</strong></td>
-<td>Limited</td>
-<td>Checkpointing</td>
-<td>Task-level recovery</td>
-<td>State snapshots, exactly-once</td>
-</tr>
-<tr>
-<td><strong>Programming</strong></td>
-<td>Relational (SQL-style)</td>
-<td>Functional (Map&#x2F;Reduce)</td>
-<td>Sequential tasks in DAG</td>
-<td>Functional, stream APIs</td>
-</tr>
-<tr>
-<td><strong>Scalability</strong></td>
-<td>Hundreds of processors</td>
-<td>Horizontally across many nodes</td>
-<td>Scales with more nodes</td>
-<td>Highly scalable, stream and batch</td>
-</tr>
-<tr>
-<td><strong>Use Case</strong></td>
-<td>Database query processing</td>
-<td>Log processing, data aggregation</td>
-<td>Scientific computing</td>
-<td>Real-time analytics, event processing</td>
-</tr>
-</tbody></table>
-<p><strong>Will a version of Gamma using FLOW be more modular than its current design?</strong></p>
-<p>Yes. FLOW enables more fine-grained control over the data flow and process interactions, which could simplify the addition of new operators and functionalities. It would also make the system easier to maintain and extend, as each component could be developed and optimized independently.</p>
-<p>Reference: <a href="https://pages.cs.wisc.edu/~dewitt/includes/paralleldb/ieee90.pdf">https://pages.cs.wisc.edu/~dewitt/includes/paralleldb/ieee90.pdf</a></p>
-]]></content>
-      <categories>
-        <category>数据库系统</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>HRPS Background</title>
-    <url>/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/13/HRPS%20Background/</url>
-    <content><![CDATA[<p><img src="/../images/index_and_page.png" alt="img"></p>
-<p>Each page consits of the header, the record space and a pointer array. Each slot in this array points to a record within the page.</p>
-<p>A record is located by providing its page address and the slot number. The combination is called RID.</p>
-<p>Life Cycle of a record:</p>
-<p>Insert: Find an empty space to put it and set a slot at the very end of the page to point to it.</p>
-<p>Delete: Remove the record and reclaim this space, set its slot number to null. When there are too many garbage slots, the system will drop the index structure, do reorganization on this disk page by removing all null slots, and reconstruct the index structure from scratch.</p>
-<p>Non-clustered Index: the data of the disk page is independent of the bucket or leaf node of index.</p>
-<p>Clustered Index: the data of the disk page resides within the bucket or leaf node of index.</p>
-<p>Hash Index: the item in buckets is not ordered by the attribute value of index.</p>
-<p>B+Tree Index: the item in leaf nodes is ordered by the attribute value of index.</p>
-<ul>
-<li>Primary Index: the data in the disk page is ordered.</li>
-<li>Secondary Index: the data in the disk page is not ordered.</li>
-</ul>
-<p>Reference: <a href="https://www.vldb.org/conf/1990/P481.PDF">https://www.vldb.org/conf/1990/P481.PDF</a></p>
-]]></content>
-      <categories>
-        <category>数据库系统</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>Nova-LSM</title>
-    <url>/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/20/Nova-LSM/</url>
-    <content><![CDATA[<h1 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h1><p>LSM-Tree（Log-Structured Merge Tree）的核心思想是将大量的随机写入转换为更高效的顺序写入。简单来说，它通过以下方式来实现：</p>
-<ol>
-<li><strong>写入内存</strong>：当有新的数据写入时，LSM-Tree首先将这些数据存储在内存中的缓冲区（称为MemTable）。这是一个有序的结构，数据按键排序。</li>
-<li><strong>批量写入磁盘</strong>：当内存中的数据积累到一定程度时，整个MemTable会被一次性地写入磁盘，这个过程是<strong>顺序写入</strong>，非常高效。写入磁盘后，这个数据成为一个不可修改的文件，称为SSTable（Sorted String Table）。</li>
-<li><strong>合并和压缩</strong>：随着时间的推移，磁盘上会产生多个SSTable。为了优化读取性能，系统会周期性地将这些SSTable进行合并和压缩，使得数据保持有序并减少冗余。</li>
-</ol>
-<p>这样，LSM-Tree通过将频繁的随机写操作缓存在内存中，最后批量顺序写入磁盘，大大提高了写入性能。这种方式适合写入密集型的工作负载，同时还能保证数据查询的效率。</p>
-<p><strong>LSM-Tree的基础结构</strong>，特别是数据如何从内存（memtable）移动到磁盘，并经过多级的归并排序（compaction）过程来进行存储。</p>
-<p><img src="/../images/nova_lsm_basic_structure.png" alt="img"></p>
-<ol>
-<li><p>MemTable（内存表）</p>
-<ul>
-<li><p>数据的写入首先进入到内存中的memtable，通常是一个有序的数据结构（比如跳表或B+树），这使得数据在内存中是有序的，便于快速写入和查询。</p>
-</li>
-<li><p>当memtable满了或者系统需要将数据持久化时，memtable中的数据会被flush（刷新）到磁盘，形成第一层的SSTable。</p>
-</li>
-</ul>
-</li>
-<li><p>Level-0（磁盘上的第一层）</p>
-<ul>
-<li><p>数据从内存写入磁盘后，存储在Level-0层的SSTable中。此时，SSTable的数据顺序与memtable一致，但可能存在多个SSTable，且它们之间的键值范围可能重叠。</p>
-</li>
-<li><p>Level-0的SSTable是逐渐积累的，并不会自动排序或整理，直到执行compaction（归并操作）。</p>
-</li>
-</ul>
-</li>
-<li><p>Compaction（归并操作）</p>
-<ul>
-<li><p>当Level-0层的数据达到一定量时，系统会执行归并操作，将Level-0层的多个SSTable合并，并将合并后的有序数据移到Level-1层。</p>
-</li>
-<li><p>Level-1开始，所有的SSTable都是有序且互不重叠的。也就是说，每个SSTable都有自己独立的键值范围，不会与其他SSTable的键值范围重叠，这使得查询时能够快速定位到目标SSTable。</p>
-</li>
-</ul>
-</li>
-<li><p>逐级沉降</p>
-<ul>
-<li><p>数据会随着系统运行，从Level-0层逐步沉降到更深的层级（如Level-1、Level-2等）。在每一层，数据都通过归并操作变得更加有序且结构紧凑。</p>
-</li>
-<li><p>每次合并后，数据被重新整理，分配到新的不重叠的SSTable中，从而保持物理上的键值有序性。</p>
-</li>
-</ul>
-</li>
-</ol>
-<p><strong>LSM-Tree查询</strong></p>
-<p>基于LSM-Tree的查询可分为点查与范围查询两大类，对应的执行方式如下：</p>
-<ul>
-<li>点查（point lookup）：从上往下进行查询，先查memtable，再到L0层、L1层。因为上层的数据永远比下层版本新，所以在第一次发生匹配后就会停止查询。</li>
-<li>范围查询（range lookup）：每一层都会找到一个匹配数据项的范围，再将该范围进行<strong>多路归并</strong>，归并过程中同一key只会保留最新版本。</li>
-</ul>
-<p><strong>LSM-Tree性能的衡量</strong>主要考虑三个因素：空间放大、读放大和写放大。</p>
-<p>一是空间放大（space amplification）。LSM-Tree的所有写操作都是顺序追加写，对数据的更新并不会立即反映到数据既有的值里，而是通过分配新的空间来存储新的值，即out-place update。因此冗余的数据或数据的多版本，仍会在LSM-Tree系统里存在一定时间。这种实际的占用空间大于数据本身的现象我们称之为空间放大。因为空间有限，为了减少空间放大，LSM-Tree会从L1往L2、L3、L4不断做compaction，以此来清理过期的数据以及不同数据的旧版本，从而将空间释放出来。</p>
-<p>二是读放大（read amplification）。假设数据本身的大小为1k，由于存储结构的设计，它所读到的值会触发多次IO操作，一次IO意味着一条读请求，这时它所读取到的则是在后端所需要做大的磁盘读的实际量，已经远大于目标数据本身的大小，从而影响到了读性能。这种现象我们称之为读放大。为了减轻读放大，LSM-Tree采用布隆过滤器来避免读取不包括查询键值的SST文件。</p>
-<p>三是写放大（write amplification）。在每层进行compaction时，我们会对多个SST文件进行反复读取再进行归并排序，在删掉数据的旧版本后，再写入新的SST文件。从效果上看，每条key在存储系统里可能会被多次写入，相当于一条key在每层都会写入一次，由此带来的IO性能损失即写放大。</p>
-<p>LSM-Tree最初的理念是用空间放大和读放大来换取写放大的降低，从而实现较好的写性能，但也需要做好三者的平衡。以下是两种假设的极端情况。</p>
-<p>第一种极端情况是：如果完全不做compaction，LSM-Tree基本等同于log文件，当memtable不断刷下来时，由于不做compaction，只做L0层的文件，这时如果要读一条key，读性能会非常差。因为如果在memtable里找不到该条key，就要去扫描所有的SST文件，但与此同时写放大现象也将不存在。</p>
-<p>第二种极端情况是：如果compaction操作做到极致，实现所有数据全局有序，此时读性能最优。因为只需要读一个文件且该文件处于有序状态，在读取时可以很快找到对应的key。但要达到这种效果，需要做非常多的compaction操作，要不断地把需要删的SST文件读取合并再来写入，这会导致非常严重的写放大。</p>
-<h1 id="Nova-LSM架构设计"><a href="#Nova-LSM架构设计" class="headerlink" title="Nova-LSM架构设计"></a>Nova-LSM架构设计</h1><p><img src="/../images/nova_lsm_arch.png" alt="img"></p>
-<p>第一部分是写日志的组件，将WAL写成功后再往LSM-Tree的memtable中查询新的数据。</p>
-<p>第二部分是本身处理LSM-Tree写入的线程，其缩写为LTC(LSM-Tree Component)，代表着将该线程单独组件化。</p>
-<p>第三部分则是底层的存储，负责把接收到的上层LTC组件下发下来，并提供标准的文件接口。</p>
-<p><strong>Nova-LSM所解决的核心问题</strong></p>
-<p>第一个核心问题是：基于LSM-Tree结构的存储系统，例如LevelDB、RocksDB等，都会不可避免地遇到缓写或者停写的问题。比如内存里的memtable，在配置时最多可以写8个，因为写入多，需要全部flush到磁盘上。与此同时，当前L0层的SST文件非常多，L0层即将开始做compaction。但compaction会涉及到磁盘IO，在还没做完时，就会阻塞内存中的memtable对L0层SST进行flush的过程。当flush无法进行时，就会发生缓写，随着阈值的推进，在实在写不进时甚至会停写，这种现象体现在客户端就是请求掉零。</p>
-<p>为了解决LSM-Tree结构存储系统中的缓写、停写问题，该文章提出了两个解决办法：</p>
-<ul>
-<li>第一种方法是设计了<strong>存算分离</strong>的架构体系，具体如上图所示。该架构的重要作用之一，是把处理写入和处理磁盘IO的两大主力模块拆分，计算存储分离，<strong>哪个部分慢就为哪个部分增加节点</strong>以此来提高该部分的能力，这是比较亮眼的突破。</li>
-<li>第二种方法是引入了<strong>动态分区</strong>，即Drange机制。该机制的目的是为了让业务的写入压力，在LTC即计算层的memtable上进行区间划分，每个range都有自己的memtable，通过区间划分，从而<strong>实现多个range之间进行并行compaction</strong>。以L0层为例，我们可以把L0层变成没有互相重叠的状态，这时我们就可以对L0层进行并行的compaction，可以加快L0层的文件的消化，从而减轻对memtable flush到磁盘上的过程的影响。</li>
-</ul>
-<p>第二个核心问题是：在这种方式下需要划分很多不同的Drange，每个range都会增加一定的memtable数量，memtable数量的增加会影响scan和get的性能。假设有一个主请求，在原来所有数据都写在一个memtable里的情况下，在读取时，索引只需要面向这个memtable，再根据跳表进行get，如果get到则可以马上返回。现在划分成不同的Drange，memtable数量增加，因此需要查找的memtable以及L0层的SST也会变多。解决办法是：实现了一个索引，可以查询到一个key在memtable或L0 SST中的最新值（若存在）。</p>
-<h1 id="Nova-LSM-中的重要设计"><a href="#Nova-LSM-中的重要设计" class="headerlink" title="Nova-LSM 中的重要设计"></a>Nova-LSM 中的重要设计</h1><h2 id="LTC和StoCs之间的写数据流程"><a href="#LTC和StoCs之间的写数据流程" class="headerlink" title="LTC和StoCs之间的写数据流程"></a>LTC和StoCs之间的写数据流程</h2><p>第一个比较重要的设计是LTC和StoCs之间的写数据流程。该流程展示的是：当在客户端发起写请求时，计算节点和存储节点是以怎样的方式将数据写进去的过程。</p>
-<p>首先是计算节点的客户端发起一个新的写请求操作。存储节点在接收到该请求后，基于RDMA交互，它会在buffer区域分配一个内存区域，并且为这块内存和偏移量（当前哪块内存可以写）分配一个id，告知客户端。客户端接到响应后就会开始写数据，完成后会通知存储节点。存储节点接收到信号后，将数据持久化并且再告知客户端。</p>
-<p>上述流程是写一个数据文件即SSTable。写完后，我们要以同样的流程将元数据文件更新。因为底层是分布式架构，需要知道哪些文件写在哪里以及每个SST的范围、版本号。</p>
-<p><img src="/../images/nova_lsm_key_design.png" alt="img"></p>
-<h2 id="动态区间划分"><a href="#动态区间划分" class="headerlink" title="动态区间划分"></a>动态区间划分</h2><p>第二个比较重要的设计是动态区间划分。假设业务的请求范围为0-1万，当前有10个计算节点，将这10个计算节点的区间划分为10等份，比如第一个key的空间范围为0-1000。在负责0-1000的计算节点里，它会再进行划分，这一层划分业务无感知。这就叫动态区间划分，简称Drange。其作用主要有以下几点：</p>
-<p>首先，每个range都是一棵LSM-Tree，按照数据区间，不同的Drange都有自己的memtables。比如0-1000区间又可以划分为10个Drange，10个Drange之间的memtable相互独立。这样做的好处是这些Drange之间的key互不重叠，例如0-100、100-200、200-300。</p>
-<p>其次，在Dranges下还有一层Tranges。如果发现Drange里的部分range比如890-895存在热点现象，而旁边的range并非热点，则可以用Tranges进行细粒度的复杂重均衡，实现动态均衡负载。</p>
-<p>最后，在此基础上，因为Drange的key范围互不相交，当memtable变成immutable，不可再写后，它们需要独立地flush到磁盘上。这时，在L0层的SSTable来自不同的Drange，它们之间的key完全不相交，我们就可以进行并行的compaction。</p>
-<p><img src="/../images/nova_lsm_key_design_2.png" alt="img"></p>
-<p>文章还将没有Drange划分和有Drange划分两种情况进行了对比：</p>
-<ul>
-<li>在没有Drange划分的情况下，L0的compaction无法很好并行。在这种情况下，如果遇到最坏的情况，L0层的某一个SST有可能覆盖了整个key空间，假设key范围为0-600，L0层的SST文件的范围是0-1000，当发生compaction时，它必须要跟其他4个SST做归并，这时不但要把L0层的其他SST全部读取比较一遍，还要把L1层所有的SST都读一遍再做归并排序。这时写放大会较为严重，意味着L0层到L1层的compaction会变慢，flush也会变慢，甚至flush不了时，前端就会出现缓写、停写现象。</li>
-<li>有Drange划分后，相当于compaction可以分开区间，如下方的示意图所示。在0-100区间，L0到L1可以独立去compaction，100-200区间也可以独立去compaction，可以较好地实现并行compaction。而在原生的RocksDB里，只有从L1开始compaction，才能进行并行compaction操作。</li>
-</ul>
-<h2 id="索引查找以及Scan操作"><a href="#索引查找以及Scan操作" class="headerlink" title="索引查找以及Scan操作"></a>索引查找以及Scan操作</h2><p>因为划分了很多不同的动态区间，memtable的数量也会增加，意味着查询操作的耗时也会增加。所以要如何在原来的基础上维护好读性能？这篇文章提出了以下解决思路：</p>
-<p>每个LTC维护了一个lookup index。如果这些数据存在于memtable和L0层的SST上，通过lookup index我们就可以快速查找到想要的数据。当某一个L0层SST被compaction到L1层时，索引上就会移除掉对应的key。</p>
-<p>LTC同时还维护了一个范围索引即range index。因为知道每个Drange的范围，所以当一个scan请求所涉及到的key都可以在memtable和L0层SST中找到时，该范围索引就能快速响应scan操作。</p>
-<p><img src="/../images/nova_lsm_key_design_3.png" alt="img"></p>
-<h2 id="SSTable的分布"><a href="#SSTable的分布" class="headerlink" title="SSTable的分布"></a>SSTable的分布</h2><p>最后一个比较重要的设计涉及到存储层。当某个SST文件要写到存储节点时，分布式系统首先要保证负载均衡，要保证数据避免单点故障不可恢复的场景。</p>
-<p>该文章提出根据一定策略，将数据文件即SST打散写入到多个存储节点里。考虑到存储成本，每个SSTable采用纠删码（Erasure Coding）的方式进行编码然后分布式存放。默认情况下对每个 SSTable 采用 “3+1”的 EC 配置，将一个SSTable切分为3个数据块，根据一定算法，在这3个数据块里去计算出一个校验块，变成了“3+1”的形式。这种方式比传统的多副本可以<strong>节省更多空间</strong>。假设一个SSTable是3M，这种“3+1”的方式最终所占空间为4M，并且<strong>能容忍一个节点的丢失</strong>，与占用6M空间的双副本方案拥有同样的故障容忍等级。而元数据文件因为体积比较小，所以直接采用多副本存储的方式，比如1个元数据文件可以写3个副本。</p>
-<h1 id="Challenges-and-Solutions"><a href="#Challenges-and-Solutions" class="headerlink" title="Challenges and Solutions"></a>Challenges and Solutions</h1><ol>
-<li><p>Write Stalls, the solutions are:</p>
-<ol>
-<li><p>Vertical scaling: use large memory.</p>
-</li>
-<li><p>Horizontal scaling: use the bandwidth of many StoCs.</p>
-</li>
-</ol>
-</li>
-<li><p>Scans are slowed down, the solutions are:</p>
-<ol>
-<li><p>Construct Dranges at runtime based on workload. Drange faciliates parallel compaction.</p>
-</li>
-<li><p>Construct range index dynamically.</p>
-</li>
-</ol>
-</li>
-<li><p>Gets are slowed down, the solution is: Use lookup index.</p>
-</li>
-<li><p>Temporary Bottlenecks, the solution is:</p>
-<ol>
-<li><p>Scatter blocks of a SSTable across multiple StoCs.</p>
-</li>
-<li><p>Power-of-d: power-of-d is applied in Nova-LSM to help with load balancing during SSTable placement. When writing data to storage components (StoCs), Nova-LSM doesn’t randomly select just one StoC. Instead, it chooses d StoCs at random and writes to the one with the shortest queue. This method helps avoid bottlenecks and improves throughput, ensuring that data is distributed evenly across storage nodes without overwhelming any individual node.</p>
-</li>
-</ol>
-</li>
-<li><p>Logging, the solution is: Replicating Log records in the memory of StoCs to provide high availability.</p>
-</li>
-<li><p>Skewed Access Pattern, the solution is: Dranges enable LTC to write 65% less data to StoCs with skewed data access.</p>
-</li>
-</ol>
-<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>Why do modern database systems disaggregate compute from storage?</strong></p>
-<p>Modern database systems disaggregate compute from storage to improve scalability, resource utilization, and fault isolation. By separating compute (processing) and storage, the system can independently scale each based on demand. Compute nodes handle processing, while storage nodes handle data access, optimizing resources and ensuring that failures in one component don’t impact the other. This separation also benefits cloud environments, where elastic scaling of resources is crucial.</p>
-<p><strong>How does Nova-LSM provide superior performance than monolithic data stores?</strong> </p>
-<p>Nova-LSM improves performance by using a component-based architecture that disaggregates processing (LTC) and storage (StoC). It allows components to scale independently and uses RDMA for fast communication. Nova-LSM also introduces dynamic range partitioning (Dranges), allowing parallel compaction and reducing write stalls, which significantly enhances throughput. This architecture minimizes bottlenecks seen in monolithic stores like LevelDB and RocksDB, especially under skewed workloads.</p>
-<p><strong>Why does the standard cost-based optimizer produce sub-optimal query plans? How does Kepler improve both the query planning time and query execution time?</strong></p>
-<p>The standard cost-based optimizer can produce sub-optimal plans because it relies on simplified and static cost models that don’t always capture real execution costs, especially in dynamic environments. It also may lack up-to-date statistics, leading to inaccurate decisions. Kepler, on the other hand, uses machine learning to learn from past executions and adapts to current data distributions, improving query plan selection. By pruning the search space efficiently and using real-time data, it reduces both planning time and execution time while optimizing performance.</p>
-<p>References: </p>
-<ul>
-<li><p><a href="https://cloud.tencent.com/developer/article/2002523?areaSource=102001.3&traceId=XIO8WvF-vqiMAsiAKu2Lv">https://cloud.tencent.com/developer/article/2002523?areaSource=102001.3&amp;traceId=XIO8WvF-vqiMAsiAKu2Lv</a></p>
-</li>
-<li><p><a href="https://dl.acm.org/doi/pdf/10.1145/3448016.3457297">https://dl.acm.org/doi/pdf/10.1145/3448016.3457297</a></p>
-</li>
-</ul>
-]]></content>
-      <categories>
-        <category>数据库系统</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>HRPS</title>
-    <url>/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/13/HRPS/</url>
-    <content><![CDATA[<h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><p>The HRPS declusters a relation into fragment based on the following criteria:</p>
-<ul>
-<li>Each fragment contains approximately FC tuples.</li>
-<li>Each fragment contains a unique range of values of the partitioning attribute.</li>
-</ul>
-<p>The variable FC is determined based on the processing capability of the system and the resource requirements of the queries that access the relation (rather than the number of processors in the configuration).</p>
-<p>A major underlying assumption of this partitioning strategy is that the selection operators which access the database retrieve and process the selected tuples using either a range predicate or an equality predicate.</p>
-<p>For each query Qi, the workload defines the CPU processing time (CPUi), the Disk Processing Time (Diski), and the Network Processing time (Neti) of that query. Observe that these times are determined based on the resource requirements of each individual query and the processing capability of the system. Each query retrieves and processes (TuplesPerQi) tuples from the database. Furthermore, we assume that the workload defines the frequency of occurrence of each query (FreqQi).</p>
-<p>Rather than describing the HRPS with respect to each query in the workload, we deline an average query (Qavg) that is representative of all the queries in the workload. The CPU, disk and network processing quanta for this query are:</p>
-<p><img src="/../images/CPU_Disk_Net_TPQ.png" alt="截屏2025-05-30 18.28.03"></p>
-<p>Assume that a single processor cannot overlap the use of two resources for an individual query. Thus, the execution time of Qavg on a single processor in a single user environment is:</p>
-<p><img src="/../images/exe_time.png" alt="截屏2025-05-30 18.28.21"></p>
-<p>As more processors are used for query execution, the response time decreases. However, this also incurs additional overhead, represented by the variable CP, which refers to the cost of coordinating the query execution across multiple processors (e.g., messaging overhead). The response time of the query on M processors can be described by the following formula:</p>
-<p><img src="/../images/RT_M.png" alt="RT_M"></p>
-<p>In a single-user environment, both HRPS and range partitioning perform similarly because they both efficiently execute the query on the required processor. However, in a multi-user environment, the range partitioning strategy is likely to perform better because it can distribute the workload across multiple processors, improving system throughput. In contrast, HRPS might not utilize all available processors as effectively, potentially leading to lower throughput.</p>
-<p>Instead of M representing the number of processors over which a relation should be declustered, M is used instead to represent the number of processors that should participate in the execution of Qavg. Since Qavg processes TuplesPerQavg tuples, each fragment of the relation should contain FC &#x3D; TuplesPerQavg &#x2F; M tuples.</p>
-<p>The process of fragmenting and distributing data in HRPS:</p>
-<ol>
-<li><strong>Sorting the relation</strong>: The relation is first sorted based on the partitioning attribute to ensure each fragment contains a distinct range of values.</li>
-<li><strong>Fragmentation</strong>: The relation is then split into fragments, each containing approximately <strong>FC</strong> tuples.</li>
-<li><strong>Round-robin distribution</strong>: These fragments are distributed to processors in a <strong>round-robin fashion</strong>, ensuring that adjacent fragments are assigned to different processors (unless the number of processors <strong>N</strong> is less than the required processors <strong>M</strong>).</li>
-<li><strong>Storing fragments</strong>: All the fragments for a relation on a given processor are stored in the same physical file.</li>
-<li><strong>Range table</strong>: The mapping of fragments to processors is maintained in a <strong>one-dimensional directory</strong> called the range table.</li>
-</ol>
-<p>This method ensures that at least M processors and at most M + 1 processors participate in the execution of a query.</p>
-<p><strong>M &#x3D; N</strong>：系统和查询需求匹配，HRPS 调度所有处理器，达到最大并行度和最优性能。</p>
-<p><strong>M &lt; N</strong>：HRPS 只调度一部分处理器执行查询，减少通信开销，但部分处理器资源可能闲置。</p>
-<p><strong>M &gt; N</strong>：HRPS 将多个片段分配给处理器，尽量利用所有处理器，但每个处理器负担加重，查询执行速度可能受到影响。</p>
-<p>HRPS in this paper supports only homogeneous nodes.</p>
-<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>How does HRPS decide the ideal degree of parallelism for a query?</strong></p>
-<p>HRPS (Hybrid-Range Partitioning Strategy) decides the ideal degree of parallelism by analyzing the resource requirements of the query, such as CPU, disk I&#x2F;O, and communication costs. It calculates the optimal number of processors (denoted as M) based on these factors. The strategy strikes a balance between minimizing query response time and avoiding excessive overhead from using too many processors.</p>
-<p><strong>Why is it not appropriate to direct a query that fetches one record using an index structure to all the nodes of a system based on the shared-nothing architecture?</strong> </p>
-<p>Fetching one record should only involve the node that contains the relevant data, as querying all nodes wastes resources and increases response time.</p>
-<p><strong>How to extend HRPS to support heterogeneous nodes?</strong></p>
-<ol>
-<li>More powerful nodes would receive more fragments, while weaker nodes would handle fewer fragments.</li>
-<li>The system could monitor node performance and dynamically adjust the degree of parallelism and fragment allocation based on current load and node availability.</li>
-<li>Heavier tasks may be directed to more powerful nodes, while smaller or simpler queries could be executed on less powerful nodes.</li>
-</ol>
-<p>Reference: <a href="https://www.vldb.org/conf/1990/P481.PDF">https://www.vldb.org/conf/1990/P481.PDF</a></p>
 ]]></content>
       <categories>
         <category>数据库系统</category>
