@@ -17,19 +17,19 @@
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"yihangwe.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+    var CONFIG = {"hostname":"yihangwe.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="FoundationDBFoundationDB的研究意义在于，它成功地将NoSQL的灵活性与ACID事务的强大功能结合在一起，提供了一种模块化的架构，使得各个子系统可以独立配置和扩展。这种设计不仅提高了系统的可扩展性和可用性，还增强了故障容忍能力。此外，FoundationDB采用了严格的模拟测试框架，确保了系统的稳定性和高效性，使得开发者能够快速引入和发布新特性。FoundationDB的快速">
+  <meta name="description" content="IntroFoundationDB的研究意义在于，它成功地将NoSQL的灵活性与ACID事务的强大功能结合在一起，提供了一种模块化的架构，使得各个子系统可以独立配置和扩展。这种设计不仅提高了系统的可扩展性和可用性，还增强了故障容忍能力。此外，FoundationDB采用了严格的模拟测试框架，确保了系统的稳定性和高效性，使得开发者能够快速引入和发布新特性。FoundationDB的快速恢复机制显著提">
 <meta property="og:type" content="article">
 <meta property="og:title" content="FoundationDB">
 <meta property="og:url" content="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/27/FoundationDB/index.html">
 <meta property="og:site_name" content="EthanWeee">
-<meta property="og:description" content="FoundationDBFoundationDB的研究意义在于，它成功地将NoSQL的灵活性与ACID事务的强大功能结合在一起，提供了一种模块化的架构，使得各个子系统可以独立配置和扩展。这种设计不仅提高了系统的可扩展性和可用性，还增强了故障容忍能力。此外，FoundationDB采用了严格的模拟测试框架，确保了系统的稳定性和高效性，使得开发者能够快速引入和发布新特性。FoundationDB的快速">
+<meta property="og:description" content="IntroFoundationDB的研究意义在于，它成功地将NoSQL的灵活性与ACID事务的强大功能结合在一起，提供了一种模块化的架构，使得各个子系统可以独立配置和扩展。这种设计不仅提高了系统的可扩展性和可用性，还增强了故障容忍能力。此外，FoundationDB采用了严格的模拟测试框架，确保了系统的稳定性和高效性，使得开发者能够快速引入和发布新特性。FoundationDB的快速恢复机制显著提">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://yihangwe.github.io/images/FDB_arch.png">
 <meta property="article:published_time" content="2024-09-27T07:00:00.000Z">
-<meta property="article:modified_time" content="2025-05-31T02:45:29.349Z">
+<meta property="article:modified_time" content="2025-05-31T04:57:33.402Z">
 <meta property="article:author" content="Yihang Wei">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://yihangwe.github.io/images/FDB_arch.png">
@@ -78,7 +78,7 @@
   </style>
 </noscript>
 
-</head>
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
 
 <body itemscope itemtype="http://schema.org/WebPage">
   <div class="container use-motion">
@@ -105,6 +105,7 @@
 
   <div class="site-nav-right">
     <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
     </div>
   </div>
 </div>
@@ -129,11 +130,38 @@
     <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
 
   </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
   </ul>
 </nav>
 
 
 
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
 
 </div>
     </header>
@@ -143,6 +171,7 @@
     <i class="fa fa-arrow-up"></i>
     <span>0%</span>
   </div>
+  <div class="reading-progress-bar"></div>
 
 
     <main class="main">
@@ -187,7 +216,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-05-30 19:45:29" itemprop="dateModified" datetime="2025-05-30T19:45:29-07:00">2025-05-30</time>
+                <time title="修改时间：2025-05-30 21:57:33" itemprop="dateModified" datetime="2025-05-30T21:57:33-07:00">2025-05-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -210,15 +239,14 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h1 id="FoundationDB"><a href="#FoundationDB" class="headerlink" title="FoundationDB"></a>FoundationDB</h1><p>FoundationDB的研究意义在于，它成功地将NoSQL的灵活性与ACID事务的强大功能结合在一起，提供了一种模块化的架构，使得各个子系统可以独立配置和扩展。这种设计不仅提高了系统的可扩展性和可用性，还增强了故障容忍能力。此外，FoundationDB采用了严格的模拟测试框架，确保了系统的稳定性和高效性，使得开发者能够快速引入和发布新特性。FoundationDB的快速恢复机制显著提高了系统的可用性，简化了软件升级和配置变更的过程，通常在几秒钟内完成。</p>
+        <h1 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h1><p>FoundationDB的研究意义在于，它成功地将NoSQL的灵活性与ACID事务的强大功能结合在一起，提供了一种模块化的架构，使得各个子系统可以独立配置和扩展。这种设计不仅提高了系统的可扩展性和可用性，还增强了故障容忍能力。此外，FoundationDB采用了严格的模拟测试框架，确保了系统的稳定性和高效性，使得开发者能够快速引入和发布新特性。FoundationDB的快速恢复机制显著提高了系统的可用性，简化了软件升级和配置变更的过程，通常在几秒钟内完成。</p>
 <p>The main design principles are:</p>
 <ol>
 <li>Divide-and-Conquer (or separation of concerns). FDB decouples the transaction management system (write path) from the distributed storage (read path) and scales them independently. Within the transaction management system, processes are assigned various roles representing different aspects of transaction management. Furthermore, cluster-wide orchestrating tasks, such as overload control and load balancing are also divided and serviced by additional heterogeneous roles.</li>
 <li>Make failure a common case. For distributed systems, failure is a norm rather than an exception. To cope with failures in the transaction management system of FDB, we handle all failures through the recovery path: the transaction system proactively shuts down when it detects a failure. Thus, all failure handling is reduced to a single recovery operation, which becomes a common and well-tested code path. To improve availability, FDB strives to minimize Mean-Time-To-Recovery (MTTR). In our production clusters, the total time is usually less than five seconds.</li>
 <li>Simulation testing. FDB relies on a randomized, deterministic simulation framework for testing the correctness of its distributed database. Simulation tests not only expose deep bugs, but also boost developer productivity and the code quality of FDB.</li>
 </ol>
-<p><strong>Architecture:</strong></p>
-<p><img src="/../images/FDB_arch.png" alt="img"></p>
+<h1 id="Architecture"><a href="#Architecture" class="headerlink" title="Architecture"></a>Architecture</h1><p><img src="/../images/FDB_arch.png" alt="img"></p>
 <ul>
 <li><p>The control plane is responsible for persisting critical system metadata, that is, the configuration of transaction systems, on Coordinators.</p>
 <ul>
@@ -252,18 +280,15 @@
 <p><strong>Clients read from sharded StorageServers, so reads scale linearly with the number of StorageServers.</strong></p>
 <p><strong>Writes are scaled by adding more Proxies, Resolvers, and LogServers.</strong></p>
 <p>The control plane’s singleton processes (e.g., ClusterController and Sequencer) and Coordinators are not performance bottlenecks; they only perform limited metadata operations. 因为元数据操作少且简单，且与两者无关的数据读写是并行扩展的（如上面两行加粗字体所述）。</p>
-<p><strong>Bootstrapping:</strong></p>
-<p>FDB has no dependency on external coordination services. All user data and most system metadata (keys that start with 0xFF prefix) are stored in StorageServers. The metadata about StorageServers is persisted in LogServers, and the LogServers configuration data is stored in all Coordinators.</p>
+<h1 id="Bootstrapping"><a href="#Bootstrapping" class="headerlink" title="Bootstrapping"></a>Bootstrapping</h1><p>FDB has no dependency on external coordination services. All user data and most system metadata (keys that start with 0xFF prefix) are stored in StorageServers. The metadata about StorageServers is persisted in LogServers, and the LogServers configuration data is stored in all Coordinators.</p>
 <ol>
 <li>The Coordinators are a disk Paxos group; servers attempt to become the ClusterController if one does not exist.</li>
 <li>A newly elected ClusterController reads the old LS configuration from the Coordinators and spawns a new TS and LS.</li>
 <li>Proxies recover system metadata from the old LS, including information about all StorageServers.</li>
 <li>The Sequencer waits until the new TS finishes recovery, then writes the new LS configuration to all Coordinators. The new transaction system is then ready to accept client transactions.</li>
 </ol>
-<p><strong>Reconfiguration:</strong></p>
-<p>The Sequencer process monitors the health of Proxies, Resolvers, and LogServers. Whenever there is a failure in the TS or LS, or the database configuration changes, the Sequencer terminates. The ClusterController detects the Sequencer failure, then recruits and bootstraps a new TS and LS. In this way, transaction processing is divided into epochs, where each epoch represents a generation of the transaction management system with its own Sequencer.</p>
-<p><strong>End-to-end transaction processing:</strong></p>
-<ol>
+<h1 id="Reconfiguration"><a href="#Reconfiguration" class="headerlink" title="Reconfiguration"></a>Reconfiguration</h1><p>The Sequencer process monitors the health of Proxies, Resolvers, and LogServers. Whenever there is a failure in the TS or LS, or the database configuration changes, the Sequencer terminates. The ClusterController detects the Sequencer failure, then recruits and bootstraps a new TS and LS. In this way, transaction processing is divided into epochs, where each epoch represents a generation of the transaction management system with its own Sequencer.</p>
+<h1 id="End-to-end-transaction-processing"><a href="#End-to-end-transaction-processing" class="headerlink" title="End-to-end transaction processing"></a>End-to-end transaction processing</h1><ol>
 <li><p><strong>Transaction Start and Read Operations:</strong></p>
 <ul>
 <li><p>A client starts a transaction by contacting a <strong>Proxy</strong> to obtain a read version (timestamp).</p>
@@ -313,32 +338,26 @@
 </li>
 </ol>
 <p><strong>FoundationDB (FDB) using Serializable Snapshot Isolation (SSI) by combining Optimistic Concurrency Control (OCC) with Multi-Version Concurrency Control (MVCC).</strong></p>
-<p>Transaction Versions:</p>
-<ul>
+<h2 id="Transaction-Versions"><a href="#Transaction-Versions" class="headerlink" title="Transaction Versions"></a>Transaction Versions</h2><ul>
 <li>Each transaction receives a <strong>read version</strong> and a <strong>commit version</strong> from the <strong>Sequencer</strong>.</li>
 <li>The read version ensures that the transaction observes the results of all previously committed transactions, and the commit version is greater than all current read or commit versions, establishing a serial order for transactions.</li>
 </ul>
-<p>Log Sequence Number (LSN):</p>
-<ul>
+<h2 id="Log-Sequence-Number-LSN"><a href="#Log-Sequence-Number-LSN" class="headerlink" title="Log Sequence Number (LSN)"></a>Log Sequence Number (LSN)</h2><ul>
 <li>The <strong>commit version</strong> serves as the <strong>LSN</strong>, defining a serial history of transactions.</li>
 <li>To ensure no gaps between LSNs, the Sequencer also returns the previous LSN with each commit. Both the LSN and previous LSN are sent to <strong>Resolvers</strong> and <strong>LogServers</strong> to enforce serial processing of transactions.</li>
 </ul>
-<p>Conflict Detection:</p>
-<ul>
+<h2 id="Conflict-Detection"><a href="#Conflict-Detection" class="headerlink" title="Conflict Detection"></a>Conflict Detection</h2><ul>
 <li>FDB uses a lock-free conflict detection algorithm similar to <strong>write-snapshot isolation</strong>, but the commit version is chosen before conflict detection, enabling efficient batch processing of version assignments and conflict detection.</li>
 <li>The key space is divided among multiple <strong>Resolvers</strong>, allowing conflict detection to be parallelized. A transaction can commit only if all Resolvers confirm no conflicts.</li>
 </ul>
-<p>Handling Aborted Transactions:</p>
-<ul>
+<h2 id="Handling-Aborted-Transactions"><a href="#Handling-Aborted-Transactions" class="headerlink" title="Handling Aborted Transactions"></a>Handling Aborted Transactions</h2><ul>
 <li>If a transaction is aborted, some Resolvers may have already updated their history, leading to possible “false positive” conflicts for other transactions. However, this is rare because most transactions’ key ranges fall within one Resolver, and the effects of false positives are limited to a short MVCC window (5 seconds).</li>
 </ul>
-<p>Efficiency of OCC:</p>
-<ul>
+<h2 id="Efficiency-of-OCC"><a href="#Efficiency-of-OCC" class="headerlink" title="Efficiency of OCC"></a>Efficiency of OCC</h2><ul>
 <li>The OCC design avoids the complexity of acquiring and releasing locks, simplifying interactions between the <strong>Transaction System (TS)</strong> and <strong>Storage Servers (SS)</strong>.</li>
 <li>While OCC may result in some wasted work due to aborted transactions, FDB’s conflict rate in production is low (less than 1%), and clients can simply restart aborted transactions.</li>
 </ul>
-<p><strong>Logging protocol:</strong></p>
-<p>Commit Logging:</p>
+<h1 id="Logging-protocol"><a href="#Logging-protocol" class="headerlink" title="Logging protocol"></a>Logging protocol</h1><p>Commit Logging:</p>
 <ul>
 <li>Once a <strong>Proxy</strong> decides to commit a transaction, it sends the transaction’s changes (mutations) to the <strong>LogServers</strong> responsible for the modified key ranges. Other LogServers receive an empty message.</li>
 <li>The log message includes the current and previous <strong>Log Sequence Number (LSN)</strong> from the <strong>Sequencer</strong> and the largest known committed version (KCV) of the Proxy.</li>
@@ -368,36 +387,28 @@
 <li>Without new transactions issued from the client, proxies still generate empty transactions to advance the known-committed-version</li>
 <li>Known-committed-version and LSN of each transaction are sent to all LogServers (limit scalability on writes)</li>
 </ul>
-<p><strong>Transaction system recovery:</strong></p>
-<p>Simplified Recovery:</p>
-<ul>
+<h1 id="Transaction-system-recovery"><a href="#Transaction-system-recovery" class="headerlink" title="Transaction system recovery"></a>Transaction system recovery</h1><h2 id="Simplified-Recovery"><a href="#Simplified-Recovery" class="headerlink" title="Simplified Recovery"></a>Simplified Recovery</h2><ul>
 <li>Unlike traditional databases that require <strong>undo log processing</strong>, FoundationDB avoids this step by making the <strong>redo log processing</strong> the same as the normal log forward path. StorageServers pull logs from LogServers and apply them in the background.</li>
 </ul>
-<p>Failure Detection and New Transaction System (TS):</p>
-<ul>
+<h2 id="Failure-Detection-and-New-Transaction-System-TS"><a href="#Failure-Detection-and-New-Transaction-System-TS" class="headerlink" title="Failure Detection and New Transaction System (TS)"></a>Failure Detection and New Transaction System (TS)</h2><ul>
 <li>Upon detecting a failure, a new TS is recruited. The new TS can start accepting transactions even before all old logs are fully processed. Recovery focuses on finding the end of the redo log, allowing StorageServers to asynchronously replay the logs from that point.</li>
 </ul>
-<p>Epoch-based Recovery:</p>
-<ul>
+<h2 id="Epoch-based-Recovery"><a href="#Epoch-based-Recovery" class="headerlink" title="Epoch-based Recovery"></a>Epoch-based Recovery</h2><ul>
 <li>The recovery process is handled per <strong>epoch</strong>. The <strong>ClusterController</strong> locks the old TS configuration, stops old LogServers from accepting new transactions, recruits a new set of transaction components (Sequencer, Proxies, Resolvers, and LogServers), and writes the new TS configuration to the <strong>Coordinators</strong>.</li>
 <li>Stateless components like Proxies and Resolvers don’t require special recovery, but LogServers, which store committed transaction logs, must ensure all data is durable and retrievable by StorageServers.</li>
 </ul>
-<p>Recovery Version (RV):</p>
-<ul>
+<h2 id="Recovery-Version-RV"><a href="#Recovery-Version-RV" class="headerlink" title="Recovery Version (RV)"></a>Recovery Version (RV)</h2><ul>
 <li>The recovery focuses on determining the <strong>Recovery Version (RV)</strong>, which is essentially the end of the redo log. The <strong>Sequencer</strong> collects data from the old LogServers, specifically the <strong>Durable Version (DV)</strong> (maximum LSN persisted) and <strong>KCV</strong> (maximum committed version) from each.</li>
 <li>Once enough LogServers have responded, the <strong>Previous Epoch Version (PEV)</strong> is established (the maximum of all KCVs). The start version of the new epoch is <code>PEV + 1</code>, and the minimum DV becomes the <strong>RV</strong>.</li>
 </ul>
-<p>Log Copying and Healing:</p>
-<ul>
+<h2 id="Log-Copying-and-Healing"><a href="#Log-Copying-and-Healing" class="headerlink" title="Log Copying and Healing"></a>Log Copying and Healing</h2><ul>
 <li>Logs between <code>PEV + 1</code> and RV are copied from old LogServers to the new ones to restore replication in case of LogServer failures. This copying process is lightweight since it only covers a few seconds of logs.</li>
 </ul>
-<p>Rollback and Transaction Processing:</p>
-<ul>
+<h2 id="Rollback-and-Transaction-Processing"><a href="#Rollback-and-Transaction-Processing" class="headerlink" title="Rollback and Transaction Processing"></a>Rollback and Transaction Processing</h2><ul>
 <li>The first transaction after recovery is a special <strong>recovery transaction</strong> that informs StorageServers of the RV, so they can discard in-memory multi-versioned data beyond the RV. StorageServers then pull data larger than the PEV from the new LogServers.</li>
 <li>The rollback process simply discards in-memory multi-versioned data, as persistent data is only written to disk once it leaves the MVCC window.</li>
 </ul>
-<p><strong>Replication:</strong></p>
-<ol>
+<h1 id="Replication"><a href="#Replication" class="headerlink" title="Replication"></a>Replication</h1><ol>
 <li><p><strong>Metadata Replication</strong>:</p>
 <ul>
 <li><strong>System metadata</strong> related to the control plane is stored on <strong>Coordinators</strong> using the <strong>Active Disk Paxos</strong> protocol. As long as a majority (quorum) of Coordinators are operational, the metadata can be recovered in case of failure.</li>
@@ -415,8 +426,7 @@
 </li>
 </ol>
 <p>To prevent data loss in case of simultaneous failures, FoundationDB ensures that no more than one process in a replica group is placed within the same fault domain (e.g., a host, rack, or availability zone). As long as one process in each team is operational, no data is lost, provided at least one fault domain remains available.</p>
-<p><strong>Simulation testing:</strong></p>
-<ol>
+<h1 id="Simulation-testing"><a href="#Simulation-testing" class="headerlink" title="Simulation testing"></a>Simulation testing</h1><ol>
 <li><p><strong>Deterministic Simulation</strong>:</p>
 <ul>
 <li><p>FoundationDB uses <strong>deterministic discrete-event simulation</strong> to test its distributed system. This simulation runs real database code along with <strong>randomized synthetic workloads</strong> and <strong>fault injection</strong> to uncover bugs.</p>
@@ -468,8 +478,7 @@
 </ul>
 </li>
 </ol>
-<p><strong>Lessons learned:</strong></p>
-<ol>
+<h1 id="Lessons-learned"><a href="#Lessons-learned" class="headerlink" title="Lessons learned"></a>Lessons learned</h1><ol>
 <li><p><strong>Architecture Design</strong></p>
 <ul>
 <li><p><strong>Divide-and-Conquer Principle</strong>: Separating the transaction system from the storage layer allows for independent scaling and deployment of resources, enhancing both flexibility and performance.</p>
@@ -509,8 +518,7 @@
 </ul>
 </li>
 </ol>
-<p>Questions:</p>
-<p><strong>With FDB, what operations does a transaction commit perform when the transaction only reads the value of data items?</strong></p>
+<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>With FDB, what operations does a transaction commit perform when the transaction only reads the value of data items?</strong></p>
 <ul>
 <li><strong>Read Version Retrieval</strong>: The client requests a read version from a <strong>Proxy</strong> via the <strong>Sequencer</strong>, which guarantees the read version is greater than or equal to any committed version.</li>
 <li><strong>Read Operation</strong>: The client reads the requested data at this specific read version from the <strong>StorageServers</strong>. The reads are served by the StorageServers, which are guaranteed to provide data consistent with the requested version.</li>
@@ -676,7 +684,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#FoundationDB"><span class="nav-number">1.</span> <span class="nav-text">FoundationDB</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Intro"><span class="nav-number">1.</span> <span class="nav-text">Intro</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Architecture"><span class="nav-number">2.</span> <span class="nav-text">Architecture</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Bootstrapping"><span class="nav-number">3.</span> <span class="nav-text">Bootstrapping</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Reconfiguration"><span class="nav-number">4.</span> <span class="nav-text">Reconfiguration</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#End-to-end-transaction-processing"><span class="nav-number">5.</span> <span class="nav-text">End-to-end transaction processing</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Transaction-Versions"><span class="nav-number">5.1.</span> <span class="nav-text">Transaction Versions</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Log-Sequence-Number-LSN"><span class="nav-number">5.2.</span> <span class="nav-text">Log Sequence Number (LSN)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Conflict-Detection"><span class="nav-number">5.3.</span> <span class="nav-text">Conflict Detection</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Handling-Aborted-Transactions"><span class="nav-number">5.4.</span> <span class="nav-text">Handling Aborted Transactions</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Efficiency-of-OCC"><span class="nav-number">5.5.</span> <span class="nav-text">Efficiency of OCC</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Logging-protocol"><span class="nav-number">6.</span> <span class="nav-text">Logging protocol</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Transaction-system-recovery"><span class="nav-number">7.</span> <span class="nav-text">Transaction system recovery</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Simplified-Recovery"><span class="nav-number">7.1.</span> <span class="nav-text">Simplified Recovery</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Failure-Detection-and-New-Transaction-System-TS"><span class="nav-number">7.2.</span> <span class="nav-text">Failure Detection and New Transaction System (TS)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Epoch-based-Recovery"><span class="nav-number">7.3.</span> <span class="nav-text">Epoch-based Recovery</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Recovery-Version-RV"><span class="nav-number">7.4.</span> <span class="nav-text">Recovery Version (RV)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Log-Copying-and-Healing"><span class="nav-number">7.5.</span> <span class="nav-text">Log Copying and Healing</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Rollback-and-Transaction-Processing"><span class="nav-number">7.6.</span> <span class="nav-text">Rollback and Transaction Processing</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Replication"><span class="nav-number">8.</span> <span class="nav-text">Replication</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Simulation-testing"><span class="nav-number">9.</span> <span class="nav-text">Simulation testing</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Lessons-learned"><span class="nav-number">10.</span> <span class="nav-text">Lessons learned</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Questions"><span class="nav-number">11.</span> <span class="nav-text">Questions</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -769,6 +777,10 @@
 
 
 
+  
+<script src="/js/local-search.js"></script>
+
+
 
 
 
@@ -783,6 +795,26 @@
   
 
   
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '50%',
+  right: '32px',
+  left: 'unset',
+  time: '0.5s',
+  mixColor: '#fff',
+  backgroundColor: '#fff',
+  buttonColorDark: '#100f2c',
+  buttonColorLight: '#fff',
+  saveInCookies: true,
+  label: '明暗',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
 
 </body>
 </html>

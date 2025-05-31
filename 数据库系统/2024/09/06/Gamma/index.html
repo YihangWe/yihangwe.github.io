@@ -17,19 +17,19 @@
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"yihangwe.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+    var CONFIG = {"hostname":"yihangwe.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="Gamma主要特点：  并行处理： Gamma 利用了分布式架构，通过将数据和计算任务分散到多个节点上并行处理，极大提高了查询性能和吞吐量。不同的节点可以同时处理不同的任务，从而加速整个系统的响应时间。  并行查询处理： Gamma 支持并行执行查询计划中的操作（如选择、投影、连接等）。系统采用流水线并行（pipelined parallelism）和分块并行（partitioned parall">
+  <meta name="description" content="Intro主要特点：  并行处理： Gamma 利用了分布式架构，通过将数据和计算任务分散到多个节点上并行处理，极大提高了查询性能和吞吐量。不同的节点可以同时处理不同的任务，从而加速整个系统的响应时间。  并行查询处理： Gamma 支持并行执行查询计划中的操作（如选择、投影、连接等）。系统采用流水线并行（pipelined parallelism）和分块并行（partitioned parall">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Gamma">
 <meta property="og:url" content="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/06/Gamma/index.html">
 <meta property="og:site_name" content="EthanWeee">
-<meta property="og:description" content="Gamma主要特点：  并行处理： Gamma 利用了分布式架构，通过将数据和计算任务分散到多个节点上并行处理，极大提高了查询性能和吞吐量。不同的节点可以同时处理不同的任务，从而加速整个系统的响应时间。  并行查询处理： Gamma 支持并行执行查询计划中的操作（如选择、投影、连接等）。系统采用流水线并行（pipelined parallelism）和分块并行（partitioned parall">
+<meta property="og:description" content="Intro主要特点：  并行处理： Gamma 利用了分布式架构，通过将数据和计算任务分散到多个节点上并行处理，极大提高了查询性能和吞吐量。不同的节点可以同时处理不同的任务，从而加速整个系统的响应时间。  并行查询处理： Gamma 支持并行执行查询计划中的操作（如选择、投影、连接等）。系统采用流水线并行（pipelined parallelism）和分块并行（partitioned parall">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://yihangwe.github.io/images/Gamma_Arch.png">
 <meta property="article:published_time" content="2024-09-06T07:00:00.000Z">
-<meta property="article:modified_time" content="2025-05-30T02:45:44.462Z">
+<meta property="article:modified_time" content="2025-05-31T04:49:23.947Z">
 <meta property="article:author" content="Yihang Wei">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://yihangwe.github.io/images/Gamma_Arch.png">
@@ -78,7 +78,7 @@
   </style>
 </noscript>
 
-</head>
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
 
 <body itemscope itemtype="http://schema.org/WebPage">
   <div class="container use-motion">
@@ -105,6 +105,7 @@
 
   <div class="site-nav-right">
     <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
     </div>
   </div>
 </div>
@@ -129,11 +130,38 @@
     <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
 
   </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
   </ul>
 </nav>
 
 
 
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
 
 </div>
     </header>
@@ -143,6 +171,7 @@
     <i class="fa fa-arrow-up"></i>
     <span>0%</span>
   </div>
+  <div class="reading-progress-bar"></div>
 
 
     <main class="main">
@@ -187,7 +216,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-05-29 19:45:44" itemprop="dateModified" datetime="2025-05-29T19:45:44-07:00">2025-05-29</time>
+                <time title="修改时间：2025-05-30 21:49:23" itemprop="dateModified" datetime="2025-05-30T21:49:23-07:00">2025-05-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -210,7 +239,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h1 id="Gamma"><a href="#Gamma" class="headerlink" title="Gamma"></a>Gamma</h1><p>主要特点：</p>
+        <h1 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h1><p>主要特点：</p>
 <ol>
 <li><strong>并行处理</strong>： Gamma 利用了分布式架构，通过将数据和计算任务分散到多个节点上并行处理，极大提高了查询性能和吞吐量。不同的节点可以同时处理不同的任务，从而加速整个系统的响应时间。</li>
 <li><ul>
@@ -270,8 +299,7 @@
 <li><strong>End of Processing</strong>: Once an operator finishes processing all its data, it closes its output streams and sends a signal to the scheduler process (which coordinates the whole query) to let it know that this part of the work is done.</li>
 </ol>
 <p>In simple terms, the operator and process structure in Gamma is like an assembly line where data moves from one step (operator) to the next, with each operator performing a specific task, and the split table guiding the data flow. This setup allows the system to process data in parallel across multiple nodes, making it much faster.</p>
-<p><strong>Selection Operator</strong></p>
-<p>Data Spread Across Multiple Disks: In Gamma, data tables are split up and stored across multiple disks (this is called “declustering”). Because of this, when you want to search (select) for specific data, the system can perform the search in parallel across multiple disks.</p>
+<h1 id="Operators"><a href="#Operators" class="headerlink" title="Operators"></a>Operators</h1><h2 id="Selection-Operator"><a href="#Selection-Operator" class="headerlink" title="Selection Operator"></a>Selection Operator</h2><p>Data Spread Across Multiple Disks: In Gamma, data tables are split up and stored across multiple disks (this is called “declustering”). Because of this, when you want to search (select) for specific data, the system can perform the search in parallel across multiple disks.</p>
 <p>Parallel Selection Process:</p>
 <ul>
 <li>If the search condition (predicate) matches the way the data is divided (partitioned), the system can narrow down the search to just the relevant nodes (computers with disks) that have the data. For example:</li>
@@ -285,8 +313,7 @@
 <ul>
 <li>To make the search faster, Gamma uses a “<strong>read-ahead</strong>“ technique. This means that when it reads one page of data, it starts loading the next page at the same time, so that the processing of data can keep going without waiting for the next page to load.</li>
 </ul>
-<p><strong>Join Operator</strong></p>
-<p>Using Hash Partitioning: The join algorithms in Gamma are based on a concept called “buckets.” This means splitting the two tables to be joined into separate groups (buckets) that don’t overlap. The groups are created by applying a hash function to the join attribute (e.g., Employee ID), so that data with the same hash value ends up in the same bucket.</p>
+<h2 id="Join-Operator"><a href="#Join-Operator" class="headerlink" title="Join Operator"></a>Join Operator</h2><p>Using Hash Partitioning: The join algorithms in Gamma are based on a concept called “buckets.” This means splitting the two tables to be joined into separate groups (buckets) that don’t overlap. The groups are created by applying a hash function to the join attribute (e.g., Employee ID), so that data with the same hash value ends up in the same bucket.</p>
 <p>By partitioning the data into different buckets, each bucket contains unique data subsets, allowing parallel processing of these buckets, which speeds up the join operation. Additionally, <strong>all data with the same join attribute value is in the same bucket</strong>, making it easier to perform the join.</p>
 <p>Gamma implements four different parallel join algorithms:</p>
 <ul>
@@ -297,15 +324,13 @@
 </ul>
 <p><strong>Default to Hybrid Hash Join:</strong> Research showed that the Hybrid Hash Join almost always performs the best, so Gamma uses this algorithm by default.</p>
 <p>Limitations: These hash-based join algorithms can <strong>only handle equi-joins</strong> (joins with equality conditions, like “Employee ID &#x3D; Department ID”). They currently don’t support non-equi-joins (conditions like “Salary &gt; Department Budget * 2”). To address this, Gamma is working on designing a new parallel non-equi-join algorithm.</p>
-<p><strong>Hybrid Hash-Join</strong></p>
-<ul>
+<h3 id="Hybrid-Hash-Join"><a href="#Hybrid-Hash-Join" class="headerlink" title="Hybrid Hash-Join"></a>Hybrid Hash-Join</h3><ul>
 <li>In the first phase, the algorithm uses a hash function to partition the inner (smaller) relation, R, into N buckets. The tuples of the first bucket are used to build an in-memory hash table while the remaining N-1 buckets are stored in temporary files. A good hash function produces just enough buckets to ensure that each bucket of tuples will be small enough to fit entirely in main memory.</li>
 <li>During the second phase, relation S is partitioned using the hash function from step 1. Again, the last N-1 buckets are stored in temporary files while the tuples in the first bucket are used to immediately probe the in-memory hash table built during the first phase.</li>
 <li>During the third phase, the algorithm joins the remaining N-1 buckets from relation R with their respective buckets from relation S.</li>
 </ul>
 <p>The join is thus broken up into a series of smaller joins; each of which hopefully can be computed without experiencing join overflow. The size of the smaller relation determines the number of buckets; this calculation is independent of the size of the larger relation.</p>
-<p><strong>Parallel version of Hybrid Hash-Join</strong></p>
-<p>Partitioning into Buckets: The data from the two tables being joined is first divided into N buckets (small groups). The number of buckets is chosen so that each bucket can fit in the combined memory of the processors that are handling the join.</p>
+<h3 id="Parallel-version-of-Hybrid-Hash-Join"><a href="#Parallel-version-of-Hybrid-Hash-Join" class="headerlink" title="Parallel version of Hybrid Hash-Join"></a>Parallel version of Hybrid Hash-Join</h3><p>Partitioning into Buckets: The data from the two tables being joined is first divided into N buckets (small groups). The number of buckets is chosen so that each bucket can fit in the combined memory of the processors that are handling the join.</p>
 <p>Storage of Buckets: Out of the N buckets, N-1 buckets are stored temporarily on disk across different disk sites, while one bucket is kept in memory for immediate processing.</p>
 <p>Parallel Processing: A joining split table is used to decide which processor should handle each bucket, helping to divide the work across multiple processors. This means that <strong>different processors can work on different parts of the join at the same time</strong>, speeding up the process.</p>
 <p>Overlapping Phases for Efficiency:</p>
@@ -314,18 +339,15 @@
 <li>When partitioning the <strong>second table (S)</strong>, Gamma simultaneously performs the join for the first bucket from S with the first bucket from R. This way, partitioning and joining overlap, making the process more efficient.</li>
 </ul>
 <p>Adjusting the Split Table for Parallel Joining: The joining split table is updated to make sure that the data from the first bucket of both tables is sent to the right processors that will perform the join. When the remaining N-1 buckets are processed, only the routing for joining is needed.</p>
-<p><strong>Aggregate Operator</strong></p>
-<p>Parallel Calculation of Partial Results: Each processor in the Gamma system calculates the aggregate result for its own portion of the data simultaneously. For example, if the goal is to calculate a sum, each processor will first compute the sum for the data it is responsible for.</p>
+<h2 id="Aggregate-Operator"><a href="#Aggregate-Operator" class="headerlink" title="Aggregate Operator"></a>Aggregate Operator</h2><p>Parallel Calculation of Partial Results: Each processor in the Gamma system calculates the aggregate result for its own portion of the data simultaneously. For example, if the goal is to calculate a sum, each processor will first compute the sum for the data it is responsible for.</p>
 <p>Combining Partial Results: After calculating their partial results, the processors send these results to a central process. This central process is responsible for combining all the partial results to produce the final answer.</p>
 <p>Two-Step Computation:</p>
 <ul>
 <li><strong>Step 1</strong>: Each processor calculates the aggregate value (e.g., sum, count) for its data partition, resulting in partial results.</li>
 <li><strong>Step 2</strong>: The processors then redistribute these partial results based on the “group by” attribute. This means that the partial results for each group are collected at a single processor, where the final aggregation for that group is completed.</li>
 </ul>
-<p><strong>Update Operator</strong></p>
-<p>For the most part, the update operators (replace, delete, and append) are implemented using standard techniques. The only exception occurs when a replace operator modifies the partitioning attribute of a tuple. In this case, rather than writing the modified tuple back into the local fragment of the relation, the modified tuple is passed through a split table to determine which site should contain the tuple.</p>
-<p><strong>Concurrency Control</strong></p>
-<p>Gamma uses a two-phase locking strategy to manage concurrency. This means that before accessing data, a process must first acquire locks (first phase), and then release the locks after completing its operations (second phase). This ensures that multiple operations do not modify the same data at the same time, preventing conflicts.</p>
+<h2 id="Update-Operator"><a href="#Update-Operator" class="headerlink" title="Update Operator"></a>Update Operator</h2><p>For the most part, the update operators (replace, delete, and append) are implemented using standard techniques. The only exception occurs when a replace operator modifies the partitioning attribute of a tuple. In this case, rather than writing the modified tuple back into the local fragment of the relation, the modified tuple is passed through a split table to determine which site should contain the tuple.</p>
+<h1 id="Concurrency-Control"><a href="#Concurrency-Control" class="headerlink" title="Concurrency Control"></a><strong>Concurrency Control</strong></h1><p>Gamma uses a two-phase locking strategy to manage concurrency. This means that before accessing data, a process must first acquire locks (first phase), and then release the locks after completing its operations (second phase). This ensures that multiple operations do not modify the same data at the same time, preventing conflicts.</p>
 <p>Gamma supports two levels of lock granularity: file-level and page-level (smaller scope). There are also five lock modes:</p>
 <ul>
 <li><strong>S (Shared) Lock</strong>: Allows multiple operations to read the data simultaneously.</li>
@@ -345,8 +367,7 @@
 <li>The collected graphs are combined into a global wait-for-graph. If a cycle is detected in this global graph, it indicates a deadlock.</li>
 </ul>
 <p>When a deadlock is detected, the system will abort the transaction holding the fewest locks to free up resources quickly and allow other operations to proceed.</p>
-<p><strong>Recovery and Log</strong></p>
-<p>Logging Changes:</p>
+<h1 id="Recovery-and-Log"><a href="#Recovery-and-Log" class="headerlink" title="Recovery and Log"></a>Recovery and Log</h1><p>Logging Changes:</p>
 <p>When a record in the database is updated, Gamma creates a log record that notes the change. Each log record has a unique identifier called a Log Sequence Number (LSN), which includes a node number (determined when the system is set up) and a local sequence number (which keeps increasing). These log records are used for recovery if something goes wrong.</p>
 <p>Log Management:</p>
 <ul>
@@ -374,8 +395,7 @@
 <li>The system uses the <strong>ARIES algorithms</strong> for undoing changes, checkpointing, and restarting after a crash.</li>
 <li><strong>Checkpointing</strong> helps the system know the most recent stable state, reducing the amount of work needed during recovery.</li>
 </ul>
-<p><strong>Dataflow scheduling technologies</strong></p>
-<ol>
+<h1 id="Dataflow-scheduling-technologies"><a href="#Dataflow-scheduling-technologies" class="headerlink" title="Dataflow scheduling technologies"></a>Dataflow scheduling technologies</h1><ol>
 <li><strong>Data-Driven Execution Instead of Operator Control</strong>: Gamma’s dataflow scheduling lets data automatically move between operators, forming a pipeline. Each operator acts like a step on an assembly line: when data reaches the operator, it processes the data and then passes the processed results to the next operator.</li>
 <li><strong>Reducing Coordination Overhead</strong>: Because of this dataflow design, the system does not need to frequently coordinate or synchronize the execution of each operator. This approach reduces the complexity and overhead of scheduling, especially when multiple operators are running in parallel, and avoids performance bottlenecks caused by waiting or synchronization.</li>
 <li><strong>Inherent Support for Parallelism</strong>: Dataflow scheduling is well-suited for parallel processing because data can flow between multiple operators at the same time. For example, a query can simultaneously perform scanning, joining, and aggregation across different processors. Each operator can independently process the data it receives without waiting for other operators to finish, allowing the system to efficiently utilize the computational power of multiple processors.</li>
@@ -407,8 +427,7 @@
 <li>Partitioning data so different processors work on different sections simultaneously.</li>
 <li>Enabling multiple stages of query execution (e.g., scanning, filtering, joining) to happen concurrently.</li>
 </ul>
-<p>Questions:</p>
-<p><strong>What is a fragment or a shard in Gamma?</strong> </p>
+<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>What is a fragment or a shard in Gamma?</strong> </p>
 <p>A fragment or shard refers to a portion of a database relation that is horizontally partitioned across multiple disk drives.</p>
 <p><strong>How does a Gamma operator know where to send its stream of records?</strong> </p>
 <p>There is a structure called split table to determine where each tuple should be sent, based on the values of tuples.</p>
@@ -508,8 +527,8 @@
       <i class="fa fa-chevron-left"></i> SDM
     </a></div>
       <div class="post-nav-item">
-    <a href="/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/13/HRPS%20Background/" rel="next" title="HRPS Background">
-      HRPS Background <i class="fa fa-chevron-right"></i>
+    <a href="/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/13/HRPS/" rel="next" title="HRPS">
+      HRPS <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -569,7 +588,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Gamma"><span class="nav-number">1.</span> <span class="nav-text">Gamma</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Intro"><span class="nav-number">1.</span> <span class="nav-text">Intro</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Operators"><span class="nav-number">2.</span> <span class="nav-text">Operators</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Selection-Operator"><span class="nav-number">2.1.</span> <span class="nav-text">Selection Operator</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Join-Operator"><span class="nav-number">2.2.</span> <span class="nav-text">Join Operator</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Hybrid-Hash-Join"><span class="nav-number">2.2.1.</span> <span class="nav-text">Hybrid Hash-Join</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Parallel-version-of-Hybrid-Hash-Join"><span class="nav-number">2.2.2.</span> <span class="nav-text">Parallel version of Hybrid Hash-Join</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Aggregate-Operator"><span class="nav-number">2.3.</span> <span class="nav-text">Aggregate Operator</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Update-Operator"><span class="nav-number">2.4.</span> <span class="nav-text">Update Operator</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Concurrency-Control"><span class="nav-number">3.</span> <span class="nav-text">Concurrency Control</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Recovery-and-Log"><span class="nav-number">4.</span> <span class="nav-text">Recovery and Log</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Dataflow-scheduling-technologies"><span class="nav-number">5.</span> <span class="nav-text">Dataflow scheduling technologies</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Questions"><span class="nav-number">6.</span> <span class="nav-text">Questions</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -662,6 +681,10 @@
 
 
 
+  
+<script src="/js/local-search.js"></script>
+
+
 
 
 
@@ -676,6 +699,26 @@
   
 
   
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '50%',
+  right: '32px',
+  left: 'unset',
+  time: '0.5s',
+  mixColor: '#fff',
+  backgroundColor: '#fff',
+  buttonColorDark: '#100f2c',
+  buttonColorLight: '#fff',
+  saveInCookies: true,
+  label: '明暗',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
 
 </body>
 </html>

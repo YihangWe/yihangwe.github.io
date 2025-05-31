@@ -17,20 +17,20 @@
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"yihangwe.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+    var CONFIG = {"hostname":"yihangwe.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="DynamoDBDynamo has the ability of incremental scalability and predictable high performance, but it carries the operational complexity of self-managed large database systems. SimpleDB is easy to admini">
+  <meta name="description" content="IntroDynamo has the ability of incremental scalability and predictable high performance, but it carries the operational complexity of self-managed large database systems. SimpleDB is easy to administr">
 <meta property="og:type" content="article">
 <meta property="og:title" content="DynamoDB">
 <meta property="og:url" content="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/10/04/DynamoDB/index.html">
 <meta property="og:site_name" content="EthanWeee">
-<meta property="og:description" content="DynamoDBDynamo has the ability of incremental scalability and predictable high performance, but it carries the operational complexity of self-managed large database systems. SimpleDB is easy to admini">
+<meta property="og:description" content="IntroDynamo has the ability of incremental scalability and predictable high performance, but it carries the operational complexity of self-managed large database systems. SimpleDB is easy to administr">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://yihangwe.github.io/images/dynamodb_arch.png">
 <meta property="og:image" content="https://yihangwe.github.io/images/dynamodb_txn.png">
 <meta property="article:published_time" content="2024-10-04T07:00:00.000Z">
-<meta property="article:modified_time" content="2025-05-31T02:49:34.286Z">
+<meta property="article:modified_time" content="2025-05-31T05:03:35.935Z">
 <meta property="article:author" content="Yihang Wei">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://yihangwe.github.io/images/dynamodb_arch.png">
@@ -79,7 +79,7 @@
   </style>
 </noscript>
 
-</head>
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
 
 <body itemscope itemtype="http://schema.org/WebPage">
   <div class="container use-motion">
@@ -106,6 +106,7 @@
 
   <div class="site-nav-right">
     <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
     </div>
   </div>
 </div>
@@ -130,11 +131,38 @@
     <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
 
   </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
   </ul>
 </nav>
 
 
 
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
 
 </div>
     </header>
@@ -144,6 +172,7 @@
     <i class="fa fa-arrow-up"></i>
     <span>0%</span>
   </div>
+  <div class="reading-progress-bar"></div>
 
 
     <main class="main">
@@ -188,7 +217,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-05-30 19:49:34" itemprop="dateModified" datetime="2025-05-30T19:49:34-07:00">2025-05-30</time>
+                <time title="修改时间：2025-05-30 22:03:35" itemprop="dateModified" datetime="2025-05-30T22:03:35-07:00">2025-05-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -211,11 +240,10 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h1 id="DynamoDB"><a href="#DynamoDB" class="headerlink" title="DynamoDB"></a>DynamoDB</h1><p>Dynamo has the ability of incremental scalability and predictable high performance, but it carries the operational complexity of self-managed large database systems.</p>
+        <h1 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h1><p>Dynamo has the ability of incremental scalability and predictable high performance, but it carries the operational complexity of self-managed large database systems.</p>
 <p>SimpleDB is easy to administrate a cloud service, consistency, and a table-based data model, but it has limitations that tables have a small capacity in terms of storage and of request throughput, and that a unpredictable query and write latency.</p>
 <p>DynamoDB &#x3D; Dynamo + SImpleDB</p>
-<p><strong>Architecture:</strong></p>
-<p><img src="/../images/dynamodb_arch.png" alt="img"></p>
+<h1 id="Architecture"><a href="#Architecture" class="headerlink" title="Architecture"></a>Architecture</h1><p><img src="/../images/dynamodb_arch.png" alt="img"></p>
 <ol>
 <li><strong>DynamoDB Tables and Primary Keys</strong>: A DynamoDB table is a collection of items, each uniquely identified by a primary key. The primary key can be a partition key or a composite key (partition key + sort key).</li>
 <li><strong>Secondary Indexes</strong>: DynamoDB supports secondary indexes, allowing queries using alternate keys in addition to the primary key, enhancing query capabilities.</li>
@@ -224,8 +252,7 @@
 <li><strong>Failure Detection and Leader Election</strong>: If the current leader is detected as unhealthy, other replicas initiate a new election. The new leader can only start serving writes or consistent reads after the old leader’s lease expires.</li>
 <li><strong>Autoadmin Service</strong>: The autoadmin service monitors the health of the fleet and partitions, scaling tables and replacing unhealthy replicas or hardware to maintain system stability. It automatically detects and resolves issues, ensuring a stable and healthy infrastructure.</li>
 </ol>
-<p><strong>Journey from provisioned to on-demand:</strong></p>
-<ul>
+<h1 id="Journey-from-provisioned-to-on-demand"><a href="#Journey-from-provisioned-to-on-demand" class="headerlink" title="Journey from provisioned to on-demand"></a>Journey from provisioned to on-demand</h1><ul>
 <li><p><strong>Bursting:</strong> To address the issue of uneven workload distribution across partitions, DynamoDB introduced the concept of <strong>bursting</strong>. Bursting allows an application to utilize unused capacity at the partition level when its provisioned throughput is exhausted, helping to <strong>handle short-term spikes</strong> in workload. DynamoDB retains unused capacity in a partition for <strong>up to 300 seconds</strong>, which can be tapped into when the consumed capacity exceeds the provisioned capacity. This reserved capacity is referred to as <strong>burst capacity</strong>.</p>
 <p><strong>How It Works</strong>: DynamoDB manages throughput using multiple <strong>token buckets</strong>:</p>
 <ul>
@@ -339,19 +366,15 @@
 <li><strong>GAC</strong> 管理整个系统的全局资源分配，确保突发和按需扩展时不影响其他应用，同时在必要时与 <strong>proactive load balancing</strong> 机制配合，进行分区迁移。</li>
 <li><strong>Bursting</strong> 提供短期解决方案，而当负载持续增加时，系统会通过 <strong>主动负载平衡</strong> 来长期调整资源分配，防止系统瓶颈。</li>
 </ul>
-<p><strong>Durability and correctness</strong></p>
-<p><strong>Hardware failures</strong></p>
-<p>The write-ahead logs in DynamoDB are crucial for ensuring data durability and crash recovery. Each partition has three replicas that store the write-ahead logs. To enhance durability, the logs are periodically archived to Amazon S3. The unarchived logs typically amount to a few hundred megabytes.</p>
+<h1 id="Durability-and-correctness"><a href="#Durability-and-correctness" class="headerlink" title="Durability and correctness"></a>Durability and correctness</h1><h2 id="Hardware-failures"><a href="#Hardware-failures" class="headerlink" title="Hardware failures"></a>Hardware failures</h2><p>The write-ahead logs in DynamoDB are crucial for ensuring data durability and crash recovery. Each partition has three replicas that store the write-ahead logs. To enhance durability, the logs are periodically archived to Amazon S3. The unarchived logs typically amount to a few hundred megabytes.</p>
 <p>In large-scale systems, hardware failures such as memory or disk failures are common. When a node fails, all replication groups hosted on that node are reduced to two copies. The process of repairing a storage replica can take several minutes, as it involves copying both the B-tree and the write-ahead logs.</p>
 <p>When the system detects an unhealthy replica, the leader of the replication group adds a log replica to ensure data durability is not compromised. Since only the recent write-ahead logs need to be copied without the B-tree, adding the log replica takes just a few seconds. This quick addition helps restore the affected replication group, ensuring that the most recent writes remain highly durable.</p>
-<p><strong>Silent data errors</strong></p>
-<p>Hardware failures can cause incorrect data storage: In DynamoDB, errors may occur due to issues with storage media, CPU, or memory, and these errors are often difficult to detect.</p>
+<h2 id="Silent-data-errors"><a href="#Silent-data-errors" class="headerlink" title="Silent data errors"></a>Silent data errors</h2><p>Hardware failures can cause incorrect data storage: In DynamoDB, errors may occur due to issues with storage media, CPU, or memory, and these errors are often difficult to detect.</p>
 <p>Extensive use of checksums: DynamoDB maintains checksums for every log entry, message, and log file to detect silent errors and ensure data integrity during each data transfer. When messages are transmitted between nodes, checksums verify whether errors occurred during transmission.</p>
 <p>Log archiving and validation: Each log file archived to S3 has a manifest that records details such as the table, partition, and data markers. Before uploading, the archiving agent performs various checks, including checksum validation, verifying that the log belongs to the correct table and partition, and ensuring that there are no gaps in the sequence numbers.</p>
 <p>Multiple replica log archiving: Log archiving agents run on all three replicas. If one agent finds that a log file has already been archived, it downloads the file and compares it with the local write-ahead log to verify data integrity.</p>
 <p>Checksum validation during S3 upload: Every log file and manifest file is uploaded to S3 with a content checksum. S3 verifies this checksum during the upload process to catch any errors in data transmission.</p>
-<p><strong>Continuous verification</strong></p>
-<p>Continuous Data Integrity Verification: DynamoDB continuously verifies data at rest to detect silent data errors and bit rot, which can occur due to hardware failures or data corruption. This is a critical defense mechanism for maintaining data reliability.</p>
+<h2 id="Continuous-verification"><a href="#Continuous-verification" class="headerlink" title="Continuous verification"></a>Continuous verification</h2><p>Continuous Data Integrity Verification: DynamoDB continuously verifies data at rest to detect silent data errors and bit rot, which can occur due to hardware failures or data corruption. This is a critical defense mechanism for maintaining data reliability.</p>
 <p>Scrub Process: The scrub process is central to detecting unforeseen errors. It checks two main aspects:</p>
 <ul>
 <li><strong>Replica Consistency</strong>: Ensures that all three replicas in a replication group have identical data.</li>
@@ -359,53 +382,26 @@
 </ul>
 <p>Verification Mechanism: Scrub computes checksums for the live replicas and compares them with those generated from replicas built using archived logs.</p>
 <p>Defense in Depth: This mechanism ensures that live storage replicas and those rebuilt from historical logs remain consistent, providing confidence in the system’s integrity and reliability.</p>
-<p><strong>Backups and restores</strong></p>
-<p>Backup and Restore Mechanism: DynamoDB supports backup and restore to protect against logical corruption caused by bugs in customer applications. Backups and restores are built using write-ahead logs stored in S3 and do not affect table performance or availability.</p>
+<h2 id="Backups-and-restores"><a href="#Backups-and-restores" class="headerlink" title="Backups and restores"></a>Backups and restores</h2><p>Backup and Restore Mechanism: DynamoDB supports backup and restore to protect against logical corruption caused by bugs in customer applications. Backups and restores are built using write-ahead logs stored in S3 and do not affect table performance or availability.</p>
 <p>Backup Consistency: Backups are full copies of DynamoDB tables, consistent across multiple partitions to the nearest second, and stored in Amazon S3. Data can be restored to a new DynamoDB table at any time.</p>
 <p>Point-in-Time Restore: DynamoDB supports point-in-time restore, allowing customers to restore a table to any point within the last 35 days. This feature creates periodic snapshots of table partitions and stores them in S3.</p>
 <p>Snapshots and Write-Ahead Logs: For point-in-time restore, DynamoDB identifies the closest snapshots to the requested time, applies the corresponding write-ahead logs, and restores the table to the desired state.</p>
-<p><strong>Availability</strong></p>
-<p><strong>Write and consistent read availability</strong></p>
-<p>Write Availability: DynamoDB partition write availability depends on having a healthy leader and a healthy write quorum. A write quorum in DynamoDB requires two out of three replicas across different Availability Zones (AZs) to be healthy.</p>
+<h1 id="Availability"><a href="#Availability" class="headerlink" title="Availability"></a>Availability</h1><h2 id="Write-and-consistent-read-availability"><a href="#Write-and-consistent-read-availability" class="headerlink" title="Write and consistent read availability"></a>Write and consistent read availability</h2><p>Write Availability: DynamoDB partition write availability depends on having a healthy leader and a healthy write quorum. A write quorum in DynamoDB requires two out of three replicas across different Availability Zones (AZs) to be healthy.</p>
 <p>Handling Write Quorum Failures: <strong>If one replica becomes unresponsive, the leader adds a log replica, which is the fastest way to meet the quorum requirement and minimize write disruptions caused by an unhealthy quorum.</strong></p>
 <p>Consistent Reads: Consistent reads are served by the leader replica. <strong>If the leader fails, other replicas detect the failure and elect a new leader to minimize disruptions to consistent read availability.</strong></p>
 <p>Impact of Log Replicas: The introduction of log replicas was a significant system change. The use of the formally proven Paxos protocol provided confidence to safely implement this change, increasing system availability. DynamoDB can run millions of Paxos groups with log replicas in a single region.</p>
 <p>Eventually Consistent Reads: Eventually consistent reads can be served by any of the replicas.</p>
-<p><strong>Failure detection</strong></p>
-<p>New Leader Waits for Lease Expiry: A newly elected leader must wait for the old leader’s lease to expire before handling traffic, causing a few seconds of disruption where no new writes or consistent reads can be processed.</p>
+<h2 id="Failure-detection"><a href="#Failure-detection" class="headerlink" title="Failure detection"></a>Failure detection</h2><p>New Leader Waits for Lease Expiry: A newly elected leader must wait for the old leader’s lease to expire before handling traffic, causing a few seconds of disruption where no new writes or consistent reads can be processed.</p>
 <p>Importance of Leader Failure Detection: Quick and robust leader failure detection is crucial for minimizing disruptions. False positives in failure detection can lead to unnecessary leader elections, further disrupting availability.</p>
 <p>Impact of Gray Network Failures: Gray network failures, such as communication issues between nodes or routers, can result in false or missed failure detections. These failures can trigger unnecessary leader elections, causing availability interruptions.</p>
 <p>Improved Failure Detection Algorithm: To address the availability issues caused by gray failures, DynamoDB’s failure detection algorithm was improved. <strong>When a follower attempts to trigger a failover, it first checks with other replicas to see if they can still communicate with the leader. If they report the leader is healthy, the follower cancels the failover attempt.</strong> This change significantly reduced false leader elections and minimized availability disruptions.</p>
-<p><strong>Metadata availability</strong></p>
-<p>Metadata Needs for Request Routers: DynamoDB’s request routers require metadata mapping between table primary keys and storage nodes. Initially, this metadata was stored in DynamoDB, and the routers cached it locally. Although the cache hit rate was high, cache misses or cold starts caused metadata lookup traffic spikes, potentially destabilizing the system.</p>
+<h2 id="Metadata-availability"><a href="#Metadata-availability" class="headerlink" title="Metadata availability"></a>Metadata availability</h2><p>Metadata Needs for Request Routers: DynamoDB’s request routers require metadata mapping between table primary keys and storage nodes. Initially, this metadata was stored in DynamoDB, and the routers cached it locally. Although the cache hit rate was high, cache misses or cold starts caused metadata lookup traffic spikes, potentially destabilizing the system.</p>
 <p>Caching Challenges: When caches failed or during cold starts, request routers frequently queried the metadata service, putting immense pressure on it and leading to cascading failures in other parts of the system.</p>
 <p>Introduction of MemDS: <strong>To reduce reliance on local caches, DynamoDB introduced MemDS, a distributed in-memory data store for storing and replicating metadata.</strong> MemDS scales horizontally to handle all incoming requests and stores data in a compressed format. It uses a Perkle tree structure, combining Patricia and Merkle tree features for efficient key lookups and range queries.</p>
 <p>Perkle Tree Operations: MemDS supports efficient key lookups, range queries, and special operations like floor (find the largest key ≤ given key) and ceiling (find the smallest key ≥ given key) for metadata retrieval.</p>
 <p>New Partition Map Cache: DynamoDB implemented a new cache on request routers, addressing the issues of bimodal behavior. Even when a cache hit occurs, an asynchronous call is made to MemDS to refresh the cache. This ensures that MemDS consistently handles a steady volume of traffic, preventing reliance on cache hit ratios and avoiding cascading failures when caches become ineffective.</p>
 <p>Partition Membership Updates: DynamoDB storage nodes, the authoritative source of partition membership data, push updates to MemDS. If a request router queries an incorrect storage node due to outdated information, the node provides updated membership data or triggers a new MemDS lookup.</p>
-<p><strong>Transactions:</strong></p>
-<p><img src="/../images/dynamodb_txn.png" alt="img"></p>
-<p><strong>Request Router (RR)</strong>:</p>
-<ul>
-<li>The <strong>Request Router</strong> is the first major component that handles incoming requests after they pass through the network.</li>
-<li><strong>Authentication and Authorization</strong>: RR typically interacts with an <strong>Authentication System</strong> to ensure that the request is valid and the user has the proper permissions to access or modify the data.</li>
-<li><strong>Routing Requests</strong>: Once a request is authenticated, the RR determines which <strong>Storage Nodes</strong> the request should be forwarded to. It uses the <strong>Metadata System</strong> to map the key(s) involved in the request to the correct storage nodes, as the data is distributed across many nodes.</li>
-<li><strong>Forwarding Requests</strong>: Depending on whether the operation is a simple read&#x2F;write or part of a larger transaction, the RR may route the request directly to storage nodes or to the Transaction Coordinator.</li>
-</ul>
-<p><strong>Transaction Coordinator (TC)</strong>:</p>
-<ul>
-<li>The <strong>Transaction Coordinator</strong> plays a central role in handling transactions that span multiple items or storage nodes.</li>
-<li><strong>Transaction Management</strong>: For requests that involve multiple storage nodes or require consistency (e.g., multi-item writes in a transaction), the RR forwards the request to the TC. The TC is responsible for breaking down the transaction into individual operations and coordinating these operations across the necessary storage nodes.</li>
-<li><strong>Distributed Transaction Execution</strong>: The TC ensures that the operations follow the appropriate protocol (e.g., two-phase commit) to guarantee atomicity and consistency, ensuring that all parts of the transaction are either completed successfully or rolled back.</li>
-<li><strong>Timestamp Assignment and Conflict Resolution</strong>: In a timestamp-based system like DynamoDB, the TC may assign timestamps to ensure the correct ordering of operations and manage any potential conflicts between concurrent transactions.</li>
-</ul>
-<p>In summary:</p>
-<ul>
-<li><strong>Request Router (RR)</strong> handles initial authentication and routing of requests to the appropriate storage nodes or transaction coordinator.</li>
-<li><strong>Transaction Coordinator (TC)</strong> manages distributed transactions, ensuring data consistency and handling multi-node operations.</li>
-</ul>
-<p><strong>Programming Interface:</strong></p>
-<ol>
+<h1 id="Programming-Interface"><a href="#Programming-Interface" class="headerlink" title="Programming Interface"></a>Programming Interface</h1><ol>
 <li><p><strong>Key-Value Store</strong></p>
 <p>DynamoDB allows users to create tables that can grow almost indefinitely. Each table is a collection of items, and each item is a collection of attributes. Each item is uniquely identified by a primary key, ensuring uniqueness within the table. DynamoDB provides a simple interface to store or retrieve items from a table or an index.</p>
 </li>
@@ -433,8 +429,27 @@
 </ul>
 </li>
 </ol>
-<p>Transaction execution:</p>
-<ol>
+<h1 id="Transactions"><a href="#Transactions" class="headerlink" title="Transactions"></a>Transactions</h1><p><img src="/../images/dynamodb_txn.png" alt="img"></p>
+<p><strong>Request Router (RR)</strong>:</p>
+<ul>
+<li>The <strong>Request Router</strong> is the first major component that handles incoming requests after they pass through the network.</li>
+<li><strong>Authentication and Authorization</strong>: RR typically interacts with an <strong>Authentication System</strong> to ensure that the request is valid and the user has the proper permissions to access or modify the data.</li>
+<li><strong>Routing Requests</strong>: Once a request is authenticated, the RR determines which <strong>Storage Nodes</strong> the request should be forwarded to. It uses the <strong>Metadata System</strong> to map the key(s) involved in the request to the correct storage nodes, as the data is distributed across many nodes.</li>
+<li><strong>Forwarding Requests</strong>: Depending on whether the operation is a simple read&#x2F;write or part of a larger transaction, the RR may route the request directly to storage nodes or to the Transaction Coordinator.</li>
+</ul>
+<p><strong>Transaction Coordinator (TC)</strong>:</p>
+<ul>
+<li>The <strong>Transaction Coordinator</strong> plays a central role in handling transactions that span multiple items or storage nodes.</li>
+<li><strong>Transaction Management</strong>: For requests that involve multiple storage nodes or require consistency (e.g., multi-item writes in a transaction), the RR forwards the request to the TC. The TC is responsible for breaking down the transaction into individual operations and coordinating these operations across the necessary storage nodes.</li>
+<li><strong>Distributed Transaction Execution</strong>: The TC ensures that the operations follow the appropriate protocol (e.g., two-phase commit) to guarantee atomicity and consistency, ensuring that all parts of the transaction are either completed successfully or rolled back.</li>
+<li><strong>Timestamp Assignment and Conflict Resolution</strong>: In a timestamp-based system like DynamoDB, the TC may assign timestamps to ensure the correct ordering of operations and manage any potential conflicts between concurrent transactions.</li>
+</ul>
+<p>In summary:</p>
+<ul>
+<li><strong>Request Router (RR)</strong> handles initial authentication and routing of requests to the appropriate storage nodes or transaction coordinator.</li>
+<li><strong>Transaction Coordinator (TC)</strong> manages distributed transactions, ensuring data consistency and handling multi-node operations.</li>
+</ul>
+<h1 id="Transaction-execution"><a href="#Transaction-execution" class="headerlink" title="Transaction execution"></a>Transaction execution</h1><ol>
 <li><p><strong>Transaction Routing</strong></p>
 <p>All operation requests first reach a set of frontend hosts known as request routers. These routers are responsible for authenticating the requests and routing them to the appropriate storage nodes. Storage nodes are mapped based on key ranges. For transaction management, the routers forward transaction operations to transaction coordinators.</p>
 <p>Transaction coordinators break down the transaction into multiple operations targeting different items and coordinate the execution of these operations across the storage nodes using a distributed protocol.</p>
@@ -456,8 +471,7 @@
 <p>Transaction coordinator failures are more complex. Coordinators maintain a persistent record of each transaction to ensure atomicity and completeness. Recovery managers periodically scan these transaction records, looking for incomplete transactions, and reassign them to new coordinators to resume execution.</p>
 </li>
 </ol>
-<p><strong>Two-phase commit (2PC)</strong></p>
-<ol>
+<h1 id="Two-phase-commit-2PC"><a href="#Two-phase-commit-2PC" class="headerlink" title="Two-phase commit (2PC)"></a>Two-phase commit (2PC)</h1><ol>
 <li><p><strong>Prepare Phase</strong></p>
 <p>In the prepare phase, the transaction coordinator (TC) is responsible for sending the transaction’s write operations to all the participating storage nodes. The coordinator breaks down the transaction into individual operations targeting specific data items and sends a prepare message to each storage node involved. This message includes:</p>
 <ul>
@@ -494,8 +508,7 @@
 <p>If any node rejects the transaction during the prepare phase, the coordinator sends a cancel message to all storage nodes, instructing them to discard any prepared changes. No writes are applied, ensuring atomicity.</p>
 </li>
 </ol>
-<p><strong>Adapting timestamp ordering for keyvalue operations</strong></p>
-<ol>
+<h1 id="Adapting-timestamp-ordering-for-key-value-operations"><a href="#Adapting-timestamp-ordering-for-key-value-operations" class="headerlink" title="Adapting timestamp ordering for key-value operations"></a>Adapting timestamp ordering for key-value operations</h1><ol>
 <li><p><strong>Individual Item Read Operations</strong></p>
 <p>In DynamoDB, even if there is a prepared transaction attempting to read to a particular data item, the system still allows read operations on that item. Specifically:</p>
 <ul>
@@ -570,8 +583,7 @@
 </ul>
 </li>
 </ol>
-<p>Questions:</p>
-<p><strong>Why does DynmoDB not use the two-phase locking protocol?</strong> </p>
+<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>Why does DynmoDB not use the two-phase locking protocol?</strong> </p>
 <p>While two-phase locking is used traditionally to prevent concurrent transactions from reading and writing the same data items, it has drawbacks. Locking <strong>restricts concurrency</strong> and can lead to <strong>deadlocks</strong>. Moreover, it requires <strong>a recovery mechanism</strong> to release locks when an application fails after acquiring locks as part of a transaction but before that transaction commits. To simplify the design and take advantage of low-contention workloads, DynamoDB uses an optimistic concurrency control scheme that avoids locking altogether.</p>
 <p><strong>With DynamoDB, what is the role of a transaction coordinator?</strong></p>
 <ul>
@@ -696,7 +708,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#DynamoDB"><span class="nav-number">1.</span> <span class="nav-text">DynamoDB</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Intro"><span class="nav-number">1.</span> <span class="nav-text">Intro</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Architecture"><span class="nav-number">2.</span> <span class="nav-text">Architecture</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Journey-from-provisioned-to-on-demand"><span class="nav-number">3.</span> <span class="nav-text">Journey from provisioned to on-demand</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Durability-and-correctness"><span class="nav-number">4.</span> <span class="nav-text">Durability and correctness</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Hardware-failures"><span class="nav-number">4.1.</span> <span class="nav-text">Hardware failures</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Silent-data-errors"><span class="nav-number">4.2.</span> <span class="nav-text">Silent data errors</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Continuous-verification"><span class="nav-number">4.3.</span> <span class="nav-text">Continuous verification</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Backups-and-restores"><span class="nav-number">4.4.</span> <span class="nav-text">Backups and restores</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Availability"><span class="nav-number">5.</span> <span class="nav-text">Availability</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Write-and-consistent-read-availability"><span class="nav-number">5.1.</span> <span class="nav-text">Write and consistent read availability</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Failure-detection"><span class="nav-number">5.2.</span> <span class="nav-text">Failure detection</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Metadata-availability"><span class="nav-number">5.3.</span> <span class="nav-text">Metadata availability</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Programming-Interface"><span class="nav-number">6.</span> <span class="nav-text">Programming Interface</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Transactions"><span class="nav-number">7.</span> <span class="nav-text">Transactions</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Transaction-execution"><span class="nav-number">8.</span> <span class="nav-text">Transaction execution</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Two-phase-commit-2PC"><span class="nav-number">9.</span> <span class="nav-text">Two-phase commit (2PC)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Adapting-timestamp-ordering-for-key-value-operations"><span class="nav-number">10.</span> <span class="nav-text">Adapting timestamp ordering for key-value operations</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Questions"><span class="nav-number">11.</span> <span class="nav-text">Questions</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -789,6 +801,10 @@
 
 
 
+  
+<script src="/js/local-search.js"></script>
+
+
 
 
 
@@ -803,6 +819,26 @@
   
 
   
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '50%',
+  right: '32px',
+  left: 'unset',
+  time: '0.5s',
+  mixColor: '#fff',
+  backgroundColor: '#fff',
+  buttonColorDark: '#100f2c',
+  buttonColorLight: '#fff',
+  saveInCookies: true,
+  label: '明暗',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
 
 </body>
 </html>
