@@ -611,6 +611,358 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/06/Gamma/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/06/Gamma/" class="post-title-link" itemprop="url">Gamma</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-09-06 00:00:00" itemprop="dateCreated datePublished" datetime="2024-09-06T00:00:00-07:00">2024-09-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-05-29 19:45:44" itemprop="dateModified" datetime="2025-05-29T19:45:44-07:00">2025-05-29</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">数据库系统</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="Gamma"><a href="#Gamma" class="headerlink" title="Gamma"></a>Gamma</h1><p>主要特点：</p>
+<ol>
+<li><strong>并行处理</strong>： Gamma 利用了分布式架构，通过将数据和计算任务分散到多个节点上并行处理，极大提高了查询性能和吞吐量。不同的节点可以同时处理不同的任务，从而加速整个系统的响应时间。</li>
+<li><ul>
+<li><strong>并行查询处理</strong>： Gamma 支持并行执行查询计划中的操作（如选择、投影、连接等）。系统采用流水线并行（pipelined parallelism）和分块并行（partitioned parallelism）技术来最大化资源利用率。</li>
+<li><strong>流式处理（Pipelining）</strong>： Gamma 支持流式处理，即在一个操作产生部分结果时，直接将这些结果传递给下一个操作，而不是等待整个操作完成。这样可以减少内存占用，并加快查询处理速度。</li>
+</ul>
+</li>
+<li><strong>数据分片（Declustering）</strong>： Gamma 系统通过数据分片将数据表水平拆分成多个片段，并将这些片段分布到不同的处理节点上。这种方式不仅均衡了负载，还支持并行的查询处理，避免单点瓶颈。</li>
+<li><strong>动态负载均衡</strong>： Gamma 能够根据查询的工作负载，动态分配任务到不同的节点，确保整个系统的负载均衡，避免某些节点过载导致性能下降。通过监控每个节点的工作情况，Gamma 能够优化数据和任务分布。</li>
+<li><strong>故障容错（Fault Tolerance）</strong>： Gamma 具有一定的故障容错能力，当某个节点出现故障时，系统可以通过冗余机制和数据复制，重新分配任务或从其他节点获取数据，避免系统中断。</li>
+<li><strong>扩展性（Scalability）</strong>： Gamma 系统的设计能够随着节点的增加而线性扩展。通过增加处理节点，Gamma 可以处理更大规模的数据和更多的并发查询，保持高性能。</li>
+</ol>
+<p>Gamma is based on the concept of a shared-nothing architecture in which processors do not share disk drives or random access memory and can only communicate with one another by sending messages through an interconnection network. Mass storage in such an architecture is generally distributed among the processors by connecting one or more disk drives to each processor.</p>
+<p><img src="/../images/Gamma_Arch.png" alt="Gamma 架构"></p>
+<p>Reasons why the shared-nothing approach has become the architecture of choice.</p>
+<ul>
+<li>There is nothing to prevent the architecture from <strong>scaling</strong> to 1000s of processors unlike shared-memory machines for which scaling beyond 30-40 processors may be impossible.</li>
+<li>By associating a small number of disks with each processor and distributing the tuples of each relation across the disk drives, it is possible to achieve very high aggregate I&#x2F;O bandwidths without using custom disk controllers</li>
+</ul>
+<p>When Gamma’s system is figuring out the best way to run a query, it uses information about how the data is divided up (partitioned). This partitioning information helps the system decide how many processors (computers) need to be involved in running the query.</p>
+<ul>
+<li><strong>For hash partitioning</strong>: If a table (say, “X”) is divided based on a hash function applied to a certain column (like “y”), and the query asks for records where “X.y &#x3D; some value,” <strong>the system can directly go to the specific processor that holds the data matching that value</strong>.</li>
+<li><strong>For range partitioning</strong>: If the table is divided based on ranges of values for a column, <strong>the system can limit the query to only the processors that have data within the relevant range</strong>. For example, if “X” is partitioned such that one processor handles values from 1 to 100, and another handles values from 101 to 200, then a query asking for “X.y between 50 and 150” will involve only the processors that have data in those ranges.</li>
+</ul>
+<p>Different processes in the Gamma system work together. Here’s a simplified explanation of the main types of processes and their roles:</p>
+<ol>
+<li><p><strong>Catalog Manager</strong>: Acts like a “database encyclopedia,” <strong>storing all the information about data tables and structures</strong>. It ensures that data remains consistent when multiple users access the database.</p>
+</li>
+<li><p><strong>Query Manager</strong>: Each user gets a query manager that handles query requests. It is responsible for <strong>parsing the query, optimizing it, and generating the execution plan</strong>.</p>
+</li>
+<li><p><strong>Scheduler Processes</strong>: When a query is executed, the scheduler <strong>coordinates the execution steps</strong>. It activates the necessary operator processes (such as scan, selection, etc.) and ensures that all steps are performed in the correct order.</p>
+</li>
+<li><p><strong>Operator Processes</strong>: These processes <strong>carry out specific database operations</strong>, like filtering data or joining tables. To reduce the startup delay during query execution, some operator processes are pre-initialized when the system starts.</p>
+</li>
+<li><p><strong>Other Processes</strong>:</p>
+<ul>
+<li><p><strong>Deadlock Detection Process</strong>: Detects situations where two or more processes are stuck waiting for each other to release resources.</p>
+</li>
+<li><p><strong>Recovery Process</strong>: Manages data recovery after a system failure.</p>
+</li>
+</ul>
+</li>
+</ol>
+<p>How the Gamma system executes database queries?</p>
+<ol>
+<li><strong>Query Parsing and Optimization</strong>: When a user submits a query, Gamma first parses it to understand what the query is asking for. Then, the system optimizes the query to find the most efficient way to execute it.</li>
+<li><strong>Query Compilation</strong>: After optimization, the query is compiled into an “<strong>operator tree</strong>“ made up of different operations (such as scan, selection, join, etc.). This tree outlines the steps and the order in which the query will be executed.</li>
+<li><strong>Single-Site vs. Multi-Site Queries</strong>: If the query only involves data on a single node (e.g., querying a small table), the system executes it directly on that node. However, if the query involves data distributed across multiple nodes (e.g., joining large tables), the system uses a “scheduler process” to coordinate the execution.</li>
+<li><strong>Scheduler Coordination</strong>: The scheduler process is responsible for activating various operator processes across the nodes, such as instructing one node to scan data while another filters it. The scheduler also manages the flow of data between these operations, ensuring they happen in the correct order.</li>
+<li><strong>Returning the Results</strong>: Once all operations are completed, the query results are collected and returned to the user. For queries embedded in a program, the results are passed back to the program that initiated the query.</li>
+</ol>
+<p>Different operations (like scanning data, filtering, joining tables, etc.) are carried out in a parallel manner. Here’s a simplified explanation:</p>
+<ol>
+<li><strong>Operator Processes</strong>: In Gamma, each operation in a query is handled by something called an “operator process.” For example, if the query needs to scan data from a table, filter some rows, and then join with another table, there would be separate operator processes for scanning, filtering, and joining.</li>
+<li><strong>Data Flow</strong>: The data flows from one operator process to the next. For instance, the scan operator reads data from the disk and sends it to the filter operator, which then passes the filtered results to the join operator. This creates a kind of “data pipeline.”</li>
+<li><strong>Split Table</strong>: Gamma uses a “split table” to decide where the data should go next. Think of it like a routing table that directs the flow of data. For example, if the data needs to be sent to multiple nodes for parallel processing, the split table helps determine which node each piece of data should go to.</li>
+<li><strong>End of Processing</strong>: Once an operator finishes processing all its data, it closes its output streams and sends a signal to the scheduler process (which coordinates the whole query) to let it know that this part of the work is done.</li>
+</ol>
+<p>In simple terms, the operator and process structure in Gamma is like an assembly line where data moves from one step (operator) to the next, with each operator performing a specific task, and the split table guiding the data flow. This setup allows the system to process data in parallel across multiple nodes, making it much faster.</p>
+<p><strong>Selection Operator</strong></p>
+<p>Data Spread Across Multiple Disks: In Gamma, data tables are split up and stored across multiple disks (this is called “declustering”). Because of this, when you want to search (select) for specific data, the system can perform the search in parallel across multiple disks.</p>
+<p>Parallel Selection Process:</p>
+<ul>
+<li>If the search condition (predicate) matches the way the data is divided (partitioned), the system can narrow down the search to just the relevant nodes (computers with disks) that have the data. For example:</li>
+<li><ul>
+<li>If the data is divided using a <strong>hash or range</strong> partitioning method based on a certain attribute (like “employee ID”), and the search is also based on that attribute (e.g., “employee ID &#x3D; 123”), then the search can be directed only to the node that holds data matching that condition.</li>
+<li>If the data is divided using a <strong>round-robin</strong> method (spreading data evenly across all disks) or if the search condition <strong>doesn’t match the partitioning attribute</strong>, then the system has to search on all nodes.</li>
+</ul>
+</li>
+</ul>
+<p>Performance Optimization:</p>
+<ul>
+<li>To make the search faster, Gamma uses a “<strong>read-ahead</strong>“ technique. This means that when it reads one page of data, it starts loading the next page at the same time, so that the processing of data can keep going without waiting for the next page to load.</li>
+</ul>
+<p><strong>Join Operator</strong></p>
+<p>Using Hash Partitioning: The join algorithms in Gamma are based on a concept called “buckets.” This means splitting the two tables to be joined into separate groups (buckets) that don’t overlap. The groups are created by applying a hash function to the join attribute (e.g., Employee ID), so that data with the same hash value ends up in the same bucket.</p>
+<p>By partitioning the data into different buckets, each bucket contains unique data subsets, allowing parallel processing of these buckets, which speeds up the join operation. Additionally, <strong>all data with the same join attribute value is in the same bucket</strong>, making it easier to perform the join.</p>
+<p>Gamma implements four different parallel join algorithms:</p>
+<ul>
+<li><strong>Sort-Merge Join</strong>: Joins data by sorting and merging.</li>
+<li><strong>Grace Join</strong>: A distributed hash-based join algorithm.</li>
+<li><strong>Simple Hash Join</strong>: A straightforward hash-based partitioning join.</li>
+<li><strong>Hybrid Hash Join</strong>: A combination of different join techniques.</li>
+</ul>
+<p><strong>Default to Hybrid Hash Join:</strong> Research showed that the Hybrid Hash Join almost always performs the best, so Gamma uses this algorithm by default.</p>
+<p>Limitations: These hash-based join algorithms can <strong>only handle equi-joins</strong> (joins with equality conditions, like “Employee ID &#x3D; Department ID”). They currently don’t support non-equi-joins (conditions like “Salary &gt; Department Budget * 2”). To address this, Gamma is working on designing a new parallel non-equi-join algorithm.</p>
+<p><strong>Hybrid Hash-Join</strong></p>
+<ul>
+<li>In the first phase, the algorithm uses a hash function to partition the inner (smaller) relation, R, into N buckets. The tuples of the first bucket are used to build an in-memory hash table while the remaining N-1 buckets are stored in temporary files. A good hash function produces just enough buckets to ensure that each bucket of tuples will be small enough to fit entirely in main memory.</li>
+<li>During the second phase, relation S is partitioned using the hash function from step 1. Again, the last N-1 buckets are stored in temporary files while the tuples in the first bucket are used to immediately probe the in-memory hash table built during the first phase.</li>
+<li>During the third phase, the algorithm joins the remaining N-1 buckets from relation R with their respective buckets from relation S.</li>
+</ul>
+<p>The join is thus broken up into a series of smaller joins; each of which hopefully can be computed without experiencing join overflow. The size of the smaller relation determines the number of buckets; this calculation is independent of the size of the larger relation.</p>
+<p><strong>Parallel version of Hybrid Hash-Join</strong></p>
+<p>Partitioning into Buckets: The data from the two tables being joined is first divided into N buckets (small groups). The number of buckets is chosen so that each bucket can fit in the combined memory of the processors that are handling the join.</p>
+<p>Storage of Buckets: Out of the N buckets, N-1 buckets are stored temporarily on disk across different disk sites, while one bucket is kept in memory for immediate processing.</p>
+<p>Parallel Processing: A joining split table is used to decide which processor should handle each bucket, helping to divide the work across multiple processors. This means that <strong>different processors can work on different parts of the join at the same time</strong>, speeding up the process.</p>
+<p>Overlapping Phases for Efficiency:</p>
+<ul>
+<li>When partitioning the <strong>first table (R)</strong> into buckets, Gamma simultaneously builds a hash table for the first bucket in memory at each processor.</li>
+<li>When partitioning the <strong>second table (S)</strong>, Gamma simultaneously performs the join for the first bucket from S with the first bucket from R. This way, partitioning and joining overlap, making the process more efficient.</li>
+</ul>
+<p>Adjusting the Split Table for Parallel Joining: The joining split table is updated to make sure that the data from the first bucket of both tables is sent to the right processors that will perform the join. When the remaining N-1 buckets are processed, only the routing for joining is needed.</p>
+<p><strong>Aggregate Operator</strong></p>
+<p>Parallel Calculation of Partial Results: Each processor in the Gamma system calculates the aggregate result for its own portion of the data simultaneously. For example, if the goal is to calculate a sum, each processor will first compute the sum for the data it is responsible for.</p>
+<p>Combining Partial Results: After calculating their partial results, the processors send these results to a central process. This central process is responsible for combining all the partial results to produce the final answer.</p>
+<p>Two-Step Computation:</p>
+<ul>
+<li><strong>Step 1</strong>: Each processor calculates the aggregate value (e.g., sum, count) for its data partition, resulting in partial results.</li>
+<li><strong>Step 2</strong>: The processors then redistribute these partial results based on the “group by” attribute. This means that the partial results for each group are collected at a single processor, where the final aggregation for that group is completed.</li>
+</ul>
+<p><strong>Update Operator</strong></p>
+<p>For the most part, the update operators (replace, delete, and append) are implemented using standard techniques. The only exception occurs when a replace operator modifies the partitioning attribute of a tuple. In this case, rather than writing the modified tuple back into the local fragment of the relation, the modified tuple is passed through a split table to determine which site should contain the tuple.</p>
+<p><strong>Concurrency Control</strong></p>
+<p>Gamma uses a two-phase locking strategy to manage concurrency. This means that before accessing data, a process must first acquire locks (first phase), and then release the locks after completing its operations (second phase). This ensures that multiple operations do not modify the same data at the same time, preventing conflicts.</p>
+<p>Gamma supports two levels of lock granularity: file-level and page-level (smaller scope). There are also five lock modes:</p>
+<ul>
+<li><strong>S (Shared) Lock</strong>: Allows multiple operations to read the data simultaneously.</li>
+<li><strong>X (Exclusive) Lock</strong>: Only one operation can modify the data, while others must wait.</li>
+<li><strong>IS, IX, and SIX Locks</strong>: Used to manage locking at larger scopes, such as entire files, allowing different combinations of read and write permissions.</li>
+</ul>
+<p>Each node in Gamma has its own lock manager and deadlock detector to handle local data locking. The lock manager maintains a lock table and a transaction wait-for-graph, which tracks which operations are waiting for which locks.</p>
+<p>The cost of setting a lock depends on whether there is a conflict:</p>
+<ul>
+<li><strong>No Conflict</strong>: Takes about 100 instructions.</li>
+<li><strong>With Conflict</strong>: Takes about 250 instructions because the system needs to check the wait-for-graph for deadlocks and suspend the requesting transaction using a semaphore mechanism.</li>
+</ul>
+<p>Gamma uses a centralized deadlock detection algorithm to handle deadlocks across nodes:</p>
+<ul>
+<li>Periodically (initially every second), the centralized deadlock detector requests each node’s local wait-for-graph.</li>
+<li>If no deadlock is found, the detection interval is doubled (up to 60 seconds). If a deadlock is found, the interval is halved (down to 1 second).</li>
+<li>The collected graphs are combined into a global wait-for-graph. If a cycle is detected in this global graph, it indicates a deadlock.</li>
+</ul>
+<p>When a deadlock is detected, the system will abort the transaction holding the fewest locks to free up resources quickly and allow other operations to proceed.</p>
+<p><strong>Recovery and Log</strong></p>
+<p>Logging Changes:</p>
+<p>When a record in the database is updated, Gamma creates a log record that notes the change. Each log record has a unique identifier called a Log Sequence Number (LSN), which includes a node number (determined when the system is set up) and a local sequence number (which keeps increasing). These log records are used for recovery if something goes wrong.</p>
+<p>Log Management:</p>
+<ul>
+<li>The system sends log records from query processors to <strong>Log Managers</strong>, which are separate processors that organize the logs into a single stream.</li>
+<li>If there are multiple Log Managers (M of them), a query processor sends its logs to one of them based on a simple formula: <strong>processor number mod M</strong>. This way, each query processor always sends its logs to the same Log Manager, making it easy to find logs later for recovery.</li>
+</ul>
+<p>Writing Logs to Disk:</p>
+<ul>
+<li>Once a “page” of log records is filled, it is saved to disk.</li>
+<li>The Log Manager keeps a <strong>Flushed Log Table</strong>, which tracks the last log record written to disk for each node. This helps know which logs are safely stored.</li>
+</ul>
+<p>Writing Data to Disk (WAL Protocol):</p>
+<ul>
+<li>Before writing any changed data (a <strong>dirty page</strong>) to disk, the system checks if the corresponding log records have already been saved.</li>
+<li>If the logs are saved, the data can be safely written to disk. If not, the system must first ensure the logs are written to disk before proceeding.</li>
+<li>To avoid waiting too long for log confirmations, the system always tries to keep a certain number of <strong>clean buffer pages</strong> (unused pages) available.</li>
+</ul>
+<p>Commit and Abort Handling:</p>
+<ul>
+<li><strong>Commit</strong>: If a transaction completes successfully, the system sends a commit message to all the relevant Log Managers.</li>
+<li><strong>Abort</strong>: If a transaction fails, an <strong>abort message</strong> is sent to all processors involved, and each processor retrieves its log records to undo the changes using the <strong>ARIES algorithm</strong>, which rolls back changes in the reverse order they occurred.</li>
+</ul>
+<p>Recovery Process:</p>
+<ul>
+<li>The system uses the <strong>ARIES algorithms</strong> for undoing changes, checkpointing, and restarting after a crash.</li>
+<li><strong>Checkpointing</strong> helps the system know the most recent stable state, reducing the amount of work needed during recovery.</li>
+</ul>
+<p><strong>Dataflow scheduling technologies</strong></p>
+<ol>
+<li><strong>Data-Driven Execution Instead of Operator Control</strong>: Gamma’s dataflow scheduling lets data automatically move between operators, forming a pipeline. Each operator acts like a step on an assembly line: when data reaches the operator, it processes the data and then passes the processed results to the next operator.</li>
+<li><strong>Reducing Coordination Overhead</strong>: Because of this dataflow design, the system does not need to frequently coordinate or synchronize the execution of each operator. This approach reduces the complexity and overhead of scheduling, especially when multiple operators are running in parallel, and avoids performance bottlenecks caused by waiting or synchronization.</li>
+<li><strong>Inherent Support for Parallelism</strong>: Dataflow scheduling is well-suited for parallel processing because data can flow between multiple operators at the same time. For example, a query can simultaneously perform scanning, joining, and aggregation across different processors. Each operator can independently process the data it receives without waiting for other operators to finish, allowing the system to efficiently utilize the computational power of multiple processors.</li>
+<li><strong>Adaptability to Dynamic Environments</strong>: During query execution, dataflow scheduling can be adjusted based on the actual system load and data characteristics. This flexibility allows the system to dynamically optimize the performance of query execution, especially for large and complex queries, by better adapting to changing query demands and system conditions.</li>
+</ol>
+<p>Gamma’s unique dataflow scheduling techniques allow data to flow naturally between operators, reducing the need for direct control over operations. This significantly lowers coordination overhead in multi-processor environments, enhances the system’s parallel processing capabilities, and improves the efficiency of executing complex queries.</p>
+<p>In Gamma’s dataflow scheduling techniques, parallelism is extensively used to improve query execution efficiency. Here’s where and how parallelism is applied:</p>
+<ol>
+<li><p><strong>Parallel Execution of Operators</strong>: Queries often involve multiple operators (e.g., scan, filter, join, aggregation). With dataflow scheduling, these operators can run in parallel:</p>
+<ul>
+<li><p><strong>Scan and Filter in Parallel</strong>: While one processor scans a data block, another processor can be filtering the data from previous blocks.</p>
+</li>
+<li><p><strong>Parallel Joins</strong>: If a join operation involves large datasets distributed across different nodes, Gamma can perform the join operation on these different parts of the data simultaneously. The result of the join is computed in parallel across multiple processors.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Data Partitioning for Parallelism</strong>: The relations (data tables) are often partitioned across multiple processors in Gamma. This means that different processors can work on different partitions of the data at the same time. For example:</p>
+<ul>
+<li><p><strong>Partitioned Hash Joins</strong>: Data can be split into “buckets” based on a hash function, and different processors can handle the join for different buckets simultaneously.</p>
+</li>
+<li><p><strong>Parallel Aggregation</strong>: When computing aggregate functions (e.g., sum or average), each processor calculates a partial result for its own partition of the data, and these partial results are later combined.</p>
+</li>
+</ul>
+</li>
+</ol>
+<p>In summary, parallelism in Gamma is achieved through:</p>
+<ul>
+<li>Distributing query operators across multiple processors.</li>
+<li>Partitioning data so different processors work on different sections simultaneously.</li>
+<li>Enabling multiple stages of query execution (e.g., scanning, filtering, joining) to happen concurrently.</li>
+</ul>
+<p>Questions:</p>
+<p><strong>What is a fragment or a shard in Gamma?</strong> </p>
+<p>A fragment or shard refers to a portion of a database relation that is horizontally partitioned across multiple disk drives.</p>
+<p><strong>How does a Gamma operator know where to send its stream of records?</strong> </p>
+<p>There is a structure called split table to determine where each tuple should be sent, based on the values of tuples.</p>
+<p><strong>With interleaved declusttering, why not use a cluster size that includes all nodes in the system?</strong></p>
+<p>If an interleaved declustteing system includes all nodes, it will become more vulnerable to failures. The failure of any two nodes could make the data inaccessible. A smaller cluster will limits the risk of complete data unavailability and balance the load.</p>
+<p><strong>Hash-join is appropriate for processing equi-join predicates (Emp.dno &#x3D; Dept.dno). How can Gamma process nonequi-join predicates (Emp.Sal &gt; Dept.dno*1000) in a pipelined manner?</strong></p>
+<p><strong>Range partitioning</strong>: Pre-partition the data based on ranges of values to reduce the search space.</p>
+<p><strong>Broadcast join</strong>: When the smaller relation is broadcasted to all nodes, and then each node evaluates the nonequi-join predicate in parallel.</p>
+<p><strong>Nested-loop join</strong>: Use a nested-loop join strategy where each tuple from one relation is compared against all tuples from the other relation.</p>
+<p><strong>What is the difference between Gamma, Google MapReduce, Microsoft Dryad and Apache Flink?</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>Aspect</strong></th>
+<th>Gamma</th>
+<th>MapReduce</th>
+<th>Dryad</th>
+<th>Flink</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Primary Use</strong></td>
+<td>Parallel database queries</td>
+<td>Batch processing</td>
+<td>Graph-based parallel computation</td>
+<td>Stream and batch processing</td>
+</tr>
+<tr>
+<td><strong>Architecture</strong></td>
+<td>Shared-nothing, partitioned data</td>
+<td>Cluster-based, distributed</td>
+<td>DAG of tasks</td>
+<td>Distributed, supports DAG</td>
+</tr>
+<tr>
+<td><strong>Data Model</strong></td>
+<td>Relational operations (SQL-like)</td>
+<td>Key-value pairs</td>
+<td>Data flow in DAG</td>
+<td>Stream processing with state</td>
+</tr>
+<tr>
+<td><strong>Partitioning</strong></td>
+<td>Horizontal partitioning</td>
+<td>Data split into chunks</td>
+<td>Data partitioned across graph</td>
+<td>Data partitioned into streams</td>
+</tr>
+<tr>
+<td><strong>Fault Tolerance</strong></td>
+<td>Limited</td>
+<td>Checkpointing</td>
+<td>Task-level recovery</td>
+<td>State snapshots, exactly-once</td>
+</tr>
+<tr>
+<td><strong>Programming</strong></td>
+<td>Relational (SQL-style)</td>
+<td>Functional (Map&#x2F;Reduce)</td>
+<td>Sequential tasks in DAG</td>
+<td>Functional, stream APIs</td>
+</tr>
+<tr>
+<td><strong>Scalability</strong></td>
+<td>Hundreds of processors</td>
+<td>Horizontally across many nodes</td>
+<td>Scales with more nodes</td>
+<td>Highly scalable, stream and batch</td>
+</tr>
+<tr>
+<td><strong>Use Case</strong></td>
+<td>Database query processing</td>
+<td>Log processing, data aggregation</td>
+<td>Scientific computing</td>
+<td>Real-time analytics, event processing</td>
+</tr>
+</tbody></table>
+<p><strong>Will a version of Gamma using FLOW be more modular than its current design?</strong></p>
+<p>Yes. FLOW enables more fine-grained control over the data flow and process interactions, which could simplify the addition of new operators and functionalities. It would also make the system easier to maintain and extend, as each component could be developed and optimized independently.</p>
+<p>Reference: <a target="_blank" rel="noopener" href="https://pages.cs.wisc.edu/~dewitt/includes/paralleldb/ieee90.pdf">https://pages.cs.wisc.edu/~dewitt/includes/paralleldb/ieee90.pdf</a></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/10/04/DynamoDB/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1092,7 +1444,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/06/Gamma/">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/13/HRPS/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -1106,359 +1458,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/06/Gamma/" class="post-title-link" itemprop="url">Gamma</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-09-06 00:00:00" itemprop="dateCreated datePublished" datetime="2024-09-06T00:00:00-07:00">2024-09-06</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-05-29 19:45:44" itemprop="dateModified" datetime="2025-05-29T19:45:44-07:00">2025-05-29</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">数据库系统</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="Gamma"><a href="#Gamma" class="headerlink" title="Gamma"></a>Gamma</h1><p>主要特点：</p>
-<ol>
-<li><strong>并行处理</strong>： Gamma 利用了分布式架构，通过将数据和计算任务分散到多个节点上并行处理，极大提高了查询性能和吞吐量。不同的节点可以同时处理不同的任务，从而加速整个系统的响应时间。</li>
-<li><ul>
-<li><strong>并行查询处理</strong>： Gamma 支持并行执行查询计划中的操作（如选择、投影、连接等）。系统采用流水线并行（pipelined parallelism）和分块并行（partitioned parallelism）技术来最大化资源利用率。</li>
-<li><strong>流式处理（Pipelining）</strong>： Gamma 支持流式处理，即在一个操作产生部分结果时，直接将这些结果传递给下一个操作，而不是等待整个操作完成。这样可以减少内存占用，并加快查询处理速度。</li>
-</ul>
-</li>
-<li><strong>数据分片（Declustering）</strong>： Gamma 系统通过数据分片将数据表水平拆分成多个片段，并将这些片段分布到不同的处理节点上。这种方式不仅均衡了负载，还支持并行的查询处理，避免单点瓶颈。</li>
-<li><strong>动态负载均衡</strong>： Gamma 能够根据查询的工作负载，动态分配任务到不同的节点，确保整个系统的负载均衡，避免某些节点过载导致性能下降。通过监控每个节点的工作情况，Gamma 能够优化数据和任务分布。</li>
-<li><strong>故障容错（Fault Tolerance）</strong>： Gamma 具有一定的故障容错能力，当某个节点出现故障时，系统可以通过冗余机制和数据复制，重新分配任务或从其他节点获取数据，避免系统中断。</li>
-<li><strong>扩展性（Scalability）</strong>： Gamma 系统的设计能够随着节点的增加而线性扩展。通过增加处理节点，Gamma 可以处理更大规模的数据和更多的并发查询，保持高性能。</li>
-</ol>
-<p>Gamma is based on the concept of a shared-nothing architecture in which processors do not share disk drives or random access memory and can only communicate with one another by sending messages through an interconnection network. Mass storage in such an architecture is generally distributed among the processors by connecting one or more disk drives to each processor.</p>
-<p><img src="/../images/Gamma_Arch.png" alt="Gamma 架构"></p>
-<p>Reasons why the shared-nothing approach has become the architecture of choice.</p>
-<ul>
-<li>There is nothing to prevent the architecture from <strong>scaling</strong> to 1000s of processors unlike shared-memory machines for which scaling beyond 30-40 processors may be impossible.</li>
-<li>By associating a small number of disks with each processor and distributing the tuples of each relation across the disk drives, it is possible to achieve very high aggregate I&#x2F;O bandwidths without using custom disk controllers</li>
-</ul>
-<p>When Gamma’s system is figuring out the best way to run a query, it uses information about how the data is divided up (partitioned). This partitioning information helps the system decide how many processors (computers) need to be involved in running the query.</p>
-<ul>
-<li><strong>For hash partitioning</strong>: If a table (say, “X”) is divided based on a hash function applied to a certain column (like “y”), and the query asks for records where “X.y &#x3D; some value,” <strong>the system can directly go to the specific processor that holds the data matching that value</strong>.</li>
-<li><strong>For range partitioning</strong>: If the table is divided based on ranges of values for a column, <strong>the system can limit the query to only the processors that have data within the relevant range</strong>. For example, if “X” is partitioned such that one processor handles values from 1 to 100, and another handles values from 101 to 200, then a query asking for “X.y between 50 and 150” will involve only the processors that have data in those ranges.</li>
-</ul>
-<p>Different processes in the Gamma system work together. Here’s a simplified explanation of the main types of processes and their roles:</p>
-<ol>
-<li><p><strong>Catalog Manager</strong>: Acts like a “database encyclopedia,” <strong>storing all the information about data tables and structures</strong>. It ensures that data remains consistent when multiple users access the database.</p>
-</li>
-<li><p><strong>Query Manager</strong>: Each user gets a query manager that handles query requests. It is responsible for <strong>parsing the query, optimizing it, and generating the execution plan</strong>.</p>
-</li>
-<li><p><strong>Scheduler Processes</strong>: When a query is executed, the scheduler <strong>coordinates the execution steps</strong>. It activates the necessary operator processes (such as scan, selection, etc.) and ensures that all steps are performed in the correct order.</p>
-</li>
-<li><p><strong>Operator Processes</strong>: These processes <strong>carry out specific database operations</strong>, like filtering data or joining tables. To reduce the startup delay during query execution, some operator processes are pre-initialized when the system starts.</p>
-</li>
-<li><p><strong>Other Processes</strong>:</p>
-<ul>
-<li><p><strong>Deadlock Detection Process</strong>: Detects situations where two or more processes are stuck waiting for each other to release resources.</p>
-</li>
-<li><p><strong>Recovery Process</strong>: Manages data recovery after a system failure.</p>
-</li>
-</ul>
-</li>
-</ol>
-<p>How the Gamma system executes database queries?</p>
-<ol>
-<li><strong>Query Parsing and Optimization</strong>: When a user submits a query, Gamma first parses it to understand what the query is asking for. Then, the system optimizes the query to find the most efficient way to execute it.</li>
-<li><strong>Query Compilation</strong>: After optimization, the query is compiled into an “<strong>operator tree</strong>“ made up of different operations (such as scan, selection, join, etc.). This tree outlines the steps and the order in which the query will be executed.</li>
-<li><strong>Single-Site vs. Multi-Site Queries</strong>: If the query only involves data on a single node (e.g., querying a small table), the system executes it directly on that node. However, if the query involves data distributed across multiple nodes (e.g., joining large tables), the system uses a “scheduler process” to coordinate the execution.</li>
-<li><strong>Scheduler Coordination</strong>: The scheduler process is responsible for activating various operator processes across the nodes, such as instructing one node to scan data while another filters it. The scheduler also manages the flow of data between these operations, ensuring they happen in the correct order.</li>
-<li><strong>Returning the Results</strong>: Once all operations are completed, the query results are collected and returned to the user. For queries embedded in a program, the results are passed back to the program that initiated the query.</li>
-</ol>
-<p>Different operations (like scanning data, filtering, joining tables, etc.) are carried out in a parallel manner. Here’s a simplified explanation:</p>
-<ol>
-<li><strong>Operator Processes</strong>: In Gamma, each operation in a query is handled by something called an “operator process.” For example, if the query needs to scan data from a table, filter some rows, and then join with another table, there would be separate operator processes for scanning, filtering, and joining.</li>
-<li><strong>Data Flow</strong>: The data flows from one operator process to the next. For instance, the scan operator reads data from the disk and sends it to the filter operator, which then passes the filtered results to the join operator. This creates a kind of “data pipeline.”</li>
-<li><strong>Split Table</strong>: Gamma uses a “split table” to decide where the data should go next. Think of it like a routing table that directs the flow of data. For example, if the data needs to be sent to multiple nodes for parallel processing, the split table helps determine which node each piece of data should go to.</li>
-<li><strong>End of Processing</strong>: Once an operator finishes processing all its data, it closes its output streams and sends a signal to the scheduler process (which coordinates the whole query) to let it know that this part of the work is done.</li>
-</ol>
-<p>In simple terms, the operator and process structure in Gamma is like an assembly line where data moves from one step (operator) to the next, with each operator performing a specific task, and the split table guiding the data flow. This setup allows the system to process data in parallel across multiple nodes, making it much faster.</p>
-<p><strong>Selection Operator</strong></p>
-<p>Data Spread Across Multiple Disks: In Gamma, data tables are split up and stored across multiple disks (this is called “declustering”). Because of this, when you want to search (select) for specific data, the system can perform the search in parallel across multiple disks.</p>
-<p>Parallel Selection Process:</p>
-<ul>
-<li>If the search condition (predicate) matches the way the data is divided (partitioned), the system can narrow down the search to just the relevant nodes (computers with disks) that have the data. For example:</li>
-<li><ul>
-<li>If the data is divided using a <strong>hash or range</strong> partitioning method based on a certain attribute (like “employee ID”), and the search is also based on that attribute (e.g., “employee ID &#x3D; 123”), then the search can be directed only to the node that holds data matching that condition.</li>
-<li>If the data is divided using a <strong>round-robin</strong> method (spreading data evenly across all disks) or if the search condition <strong>doesn’t match the partitioning attribute</strong>, then the system has to search on all nodes.</li>
-</ul>
-</li>
-</ul>
-<p>Performance Optimization:</p>
-<ul>
-<li>To make the search faster, Gamma uses a “<strong>read-ahead</strong>“ technique. This means that when it reads one page of data, it starts loading the next page at the same time, so that the processing of data can keep going without waiting for the next page to load.</li>
-</ul>
-<p><strong>Join Operator</strong></p>
-<p>Using Hash Partitioning: The join algorithms in Gamma are based on a concept called “buckets.” This means splitting the two tables to be joined into separate groups (buckets) that don’t overlap. The groups are created by applying a hash function to the join attribute (e.g., Employee ID), so that data with the same hash value ends up in the same bucket.</p>
-<p>By partitioning the data into different buckets, each bucket contains unique data subsets, allowing parallel processing of these buckets, which speeds up the join operation. Additionally, <strong>all data with the same join attribute value is in the same bucket</strong>, making it easier to perform the join.</p>
-<p>Gamma implements four different parallel join algorithms:</p>
-<ul>
-<li><strong>Sort-Merge Join</strong>: Joins data by sorting and merging.</li>
-<li><strong>Grace Join</strong>: A distributed hash-based join algorithm.</li>
-<li><strong>Simple Hash Join</strong>: A straightforward hash-based partitioning join.</li>
-<li><strong>Hybrid Hash Join</strong>: A combination of different join techniques.</li>
-</ul>
-<p><strong>Default to Hybrid Hash Join:</strong> Research showed that the Hybrid Hash Join almost always performs the best, so Gamma uses this algorithm by default.</p>
-<p>Limitations: These hash-based join algorithms can <strong>only handle equi-joins</strong> (joins with equality conditions, like “Employee ID &#x3D; Department ID”). They currently don’t support non-equi-joins (conditions like “Salary &gt; Department Budget * 2”). To address this, Gamma is working on designing a new parallel non-equi-join algorithm.</p>
-<p><strong>Hybrid Hash-Join</strong></p>
-<ul>
-<li>In the first phase, the algorithm uses a hash function to partition the inner (smaller) relation, R, into N buckets. The tuples of the first bucket are used to build an in-memory hash table while the remaining N-1 buckets are stored in temporary files. A good hash function produces just enough buckets to ensure that each bucket of tuples will be small enough to fit entirely in main memory.</li>
-<li>During the second phase, relation S is partitioned using the hash function from step 1. Again, the last N-1 buckets are stored in temporary files while the tuples in the first bucket are used to immediately probe the in-memory hash table built during the first phase.</li>
-<li>During the third phase, the algorithm joins the remaining N-1 buckets from relation R with their respective buckets from relation S.</li>
-</ul>
-<p>The join is thus broken up into a series of smaller joins; each of which hopefully can be computed without experiencing join overflow. The size of the smaller relation determines the number of buckets; this calculation is independent of the size of the larger relation.</p>
-<p><strong>Parallel version of Hybrid Hash-Join</strong></p>
-<p>Partitioning into Buckets: The data from the two tables being joined is first divided into N buckets (small groups). The number of buckets is chosen so that each bucket can fit in the combined memory of the processors that are handling the join.</p>
-<p>Storage of Buckets: Out of the N buckets, N-1 buckets are stored temporarily on disk across different disk sites, while one bucket is kept in memory for immediate processing.</p>
-<p>Parallel Processing: A joining split table is used to decide which processor should handle each bucket, helping to divide the work across multiple processors. This means that <strong>different processors can work on different parts of the join at the same time</strong>, speeding up the process.</p>
-<p>Overlapping Phases for Efficiency:</p>
-<ul>
-<li>When partitioning the <strong>first table (R)</strong> into buckets, Gamma simultaneously builds a hash table for the first bucket in memory at each processor.</li>
-<li>When partitioning the <strong>second table (S)</strong>, Gamma simultaneously performs the join for the first bucket from S with the first bucket from R. This way, partitioning and joining overlap, making the process more efficient.</li>
-</ul>
-<p>Adjusting the Split Table for Parallel Joining: The joining split table is updated to make sure that the data from the first bucket of both tables is sent to the right processors that will perform the join. When the remaining N-1 buckets are processed, only the routing for joining is needed.</p>
-<p><strong>Aggregate Operator</strong></p>
-<p>Parallel Calculation of Partial Results: Each processor in the Gamma system calculates the aggregate result for its own portion of the data simultaneously. For example, if the goal is to calculate a sum, each processor will first compute the sum for the data it is responsible for.</p>
-<p>Combining Partial Results: After calculating their partial results, the processors send these results to a central process. This central process is responsible for combining all the partial results to produce the final answer.</p>
-<p>Two-Step Computation:</p>
-<ul>
-<li><strong>Step 1</strong>: Each processor calculates the aggregate value (e.g., sum, count) for its data partition, resulting in partial results.</li>
-<li><strong>Step 2</strong>: The processors then redistribute these partial results based on the “group by” attribute. This means that the partial results for each group are collected at a single processor, where the final aggregation for that group is completed.</li>
-</ul>
-<p><strong>Update Operator</strong></p>
-<p>For the most part, the update operators (replace, delete, and append) are implemented using standard techniques. The only exception occurs when a replace operator modifies the partitioning attribute of a tuple. In this case, rather than writing the modified tuple back into the local fragment of the relation, the modified tuple is passed through a split table to determine which site should contain the tuple.</p>
-<p><strong>Concurrency Control</strong></p>
-<p>Gamma uses a two-phase locking strategy to manage concurrency. This means that before accessing data, a process must first acquire locks (first phase), and then release the locks after completing its operations (second phase). This ensures that multiple operations do not modify the same data at the same time, preventing conflicts.</p>
-<p>Gamma supports two levels of lock granularity: file-level and page-level (smaller scope). There are also five lock modes:</p>
-<ul>
-<li><strong>S (Shared) Lock</strong>: Allows multiple operations to read the data simultaneously.</li>
-<li><strong>X (Exclusive) Lock</strong>: Only one operation can modify the data, while others must wait.</li>
-<li><strong>IS, IX, and SIX Locks</strong>: Used to manage locking at larger scopes, such as entire files, allowing different combinations of read and write permissions.</li>
-</ul>
-<p>Each node in Gamma has its own lock manager and deadlock detector to handle local data locking. The lock manager maintains a lock table and a transaction wait-for-graph, which tracks which operations are waiting for which locks.</p>
-<p>The cost of setting a lock depends on whether there is a conflict:</p>
-<ul>
-<li><strong>No Conflict</strong>: Takes about 100 instructions.</li>
-<li><strong>With Conflict</strong>: Takes about 250 instructions because the system needs to check the wait-for-graph for deadlocks and suspend the requesting transaction using a semaphore mechanism.</li>
-</ul>
-<p>Gamma uses a centralized deadlock detection algorithm to handle deadlocks across nodes:</p>
-<ul>
-<li>Periodically (initially every second), the centralized deadlock detector requests each node’s local wait-for-graph.</li>
-<li>If no deadlock is found, the detection interval is doubled (up to 60 seconds). If a deadlock is found, the interval is halved (down to 1 second).</li>
-<li>The collected graphs are combined into a global wait-for-graph. If a cycle is detected in this global graph, it indicates a deadlock.</li>
-</ul>
-<p>When a deadlock is detected, the system will abort the transaction holding the fewest locks to free up resources quickly and allow other operations to proceed.</p>
-<p><strong>Recovery and Log</strong></p>
-<p>Logging Changes:</p>
-<p>When a record in the database is updated, Gamma creates a log record that notes the change. Each log record has a unique identifier called a Log Sequence Number (LSN), which includes a node number (determined when the system is set up) and a local sequence number (which keeps increasing). These log records are used for recovery if something goes wrong.</p>
-<p>Log Management:</p>
-<ul>
-<li>The system sends log records from query processors to <strong>Log Managers</strong>, which are separate processors that organize the logs into a single stream.</li>
-<li>If there are multiple Log Managers (M of them), a query processor sends its logs to one of them based on a simple formula: <strong>processor number mod M</strong>. This way, each query processor always sends its logs to the same Log Manager, making it easy to find logs later for recovery.</li>
-</ul>
-<p>Writing Logs to Disk:</p>
-<ul>
-<li>Once a “page” of log records is filled, it is saved to disk.</li>
-<li>The Log Manager keeps a <strong>Flushed Log Table</strong>, which tracks the last log record written to disk for each node. This helps know which logs are safely stored.</li>
-</ul>
-<p>Writing Data to Disk (WAL Protocol):</p>
-<ul>
-<li>Before writing any changed data (a <strong>dirty page</strong>) to disk, the system checks if the corresponding log records have already been saved.</li>
-<li>If the logs are saved, the data can be safely written to disk. If not, the system must first ensure the logs are written to disk before proceeding.</li>
-<li>To avoid waiting too long for log confirmations, the system always tries to keep a certain number of <strong>clean buffer pages</strong> (unused pages) available.</li>
-</ul>
-<p>Commit and Abort Handling:</p>
-<ul>
-<li><strong>Commit</strong>: If a transaction completes successfully, the system sends a commit message to all the relevant Log Managers.</li>
-<li><strong>Abort</strong>: If a transaction fails, an <strong>abort message</strong> is sent to all processors involved, and each processor retrieves its log records to undo the changes using the <strong>ARIES algorithm</strong>, which rolls back changes in the reverse order they occurred.</li>
-</ul>
-<p>Recovery Process:</p>
-<ul>
-<li>The system uses the <strong>ARIES algorithms</strong> for undoing changes, checkpointing, and restarting after a crash.</li>
-<li><strong>Checkpointing</strong> helps the system know the most recent stable state, reducing the amount of work needed during recovery.</li>
-</ul>
-<p><strong>Dataflow scheduling technologies</strong></p>
-<ol>
-<li><strong>Data-Driven Execution Instead of Operator Control</strong>: Gamma’s dataflow scheduling lets data automatically move between operators, forming a pipeline. Each operator acts like a step on an assembly line: when data reaches the operator, it processes the data and then passes the processed results to the next operator.</li>
-<li><strong>Reducing Coordination Overhead</strong>: Because of this dataflow design, the system does not need to frequently coordinate or synchronize the execution of each operator. This approach reduces the complexity and overhead of scheduling, especially when multiple operators are running in parallel, and avoids performance bottlenecks caused by waiting or synchronization.</li>
-<li><strong>Inherent Support for Parallelism</strong>: Dataflow scheduling is well-suited for parallel processing because data can flow between multiple operators at the same time. For example, a query can simultaneously perform scanning, joining, and aggregation across different processors. Each operator can independently process the data it receives without waiting for other operators to finish, allowing the system to efficiently utilize the computational power of multiple processors.</li>
-<li><strong>Adaptability to Dynamic Environments</strong>: During query execution, dataflow scheduling can be adjusted based on the actual system load and data characteristics. This flexibility allows the system to dynamically optimize the performance of query execution, especially for large and complex queries, by better adapting to changing query demands and system conditions.</li>
-</ol>
-<p>Gamma’s unique dataflow scheduling techniques allow data to flow naturally between operators, reducing the need for direct control over operations. This significantly lowers coordination overhead in multi-processor environments, enhances the system’s parallel processing capabilities, and improves the efficiency of executing complex queries.</p>
-<p>In Gamma’s dataflow scheduling techniques, parallelism is extensively used to improve query execution efficiency. Here’s where and how parallelism is applied:</p>
-<ol>
-<li><p><strong>Parallel Execution of Operators</strong>: Queries often involve multiple operators (e.g., scan, filter, join, aggregation). With dataflow scheduling, these operators can run in parallel:</p>
-<ul>
-<li><p><strong>Scan and Filter in Parallel</strong>: While one processor scans a data block, another processor can be filtering the data from previous blocks.</p>
-</li>
-<li><p><strong>Parallel Joins</strong>: If a join operation involves large datasets distributed across different nodes, Gamma can perform the join operation on these different parts of the data simultaneously. The result of the join is computed in parallel across multiple processors.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Data Partitioning for Parallelism</strong>: The relations (data tables) are often partitioned across multiple processors in Gamma. This means that different processors can work on different partitions of the data at the same time. For example:</p>
-<ul>
-<li><p><strong>Partitioned Hash Joins</strong>: Data can be split into “buckets” based on a hash function, and different processors can handle the join for different buckets simultaneously.</p>
-</li>
-<li><p><strong>Parallel Aggregation</strong>: When computing aggregate functions (e.g., sum or average), each processor calculates a partial result for its own partition of the data, and these partial results are later combined.</p>
-</li>
-</ul>
-</li>
-</ol>
-<p>In summary, parallelism in Gamma is achieved through:</p>
-<ul>
-<li>Distributing query operators across multiple processors.</li>
-<li>Partitioning data so different processors work on different sections simultaneously.</li>
-<li>Enabling multiple stages of query execution (e.g., scanning, filtering, joining) to happen concurrently.</li>
-</ul>
-<p>Questions:</p>
-<p><strong>What is a fragment or a shard in Gamma?</strong> </p>
-<p>A fragment or shard refers to a portion of a database relation that is horizontally partitioned across multiple disk drives.</p>
-<p><strong>How does a Gamma operator know where to send its stream of records?</strong> </p>
-<p>There is a structure called split table to determine where each tuple should be sent, based on the values of tuples.</p>
-<p><strong>With interleaved declusttering, why not use a cluster size that includes all nodes in the system?</strong></p>
-<p>If an interleaved declustteing system includes all nodes, it will become more vulnerable to failures. The failure of any two nodes could make the data inaccessible. A smaller cluster will limits the risk of complete data unavailability and balance the load.</p>
-<p><strong>Hash-join is appropriate for processing equi-join predicates (Emp.dno &#x3D; Dept.dno). How can Gamma process nonequi-join predicates (Emp.Sal &gt; Dept.dno*1000) in a pipelined manner?</strong></p>
-<p><strong>Range partitioning</strong>: Pre-partition the data based on ranges of values to reduce the search space.</p>
-<p><strong>Broadcast join</strong>: When the smaller relation is broadcasted to all nodes, and then each node evaluates the nonequi-join predicate in parallel.</p>
-<p><strong>Nested-loop join</strong>: Use a nested-loop join strategy where each tuple from one relation is compared against all tuples from the other relation.</p>
-<p><strong>What is the difference between Gamma, Google MapReduce, Microsoft Dryad and Apache Flink?</strong></p>
-<table>
-<thead>
-<tr>
-<th><strong>Aspect</strong></th>
-<th>Gamma</th>
-<th>MapReduce</th>
-<th>Dryad</th>
-<th>Flink</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><strong>Primary Use</strong></td>
-<td>Parallel database queries</td>
-<td>Batch processing</td>
-<td>Graph-based parallel computation</td>
-<td>Stream and batch processing</td>
-</tr>
-<tr>
-<td><strong>Architecture</strong></td>
-<td>Shared-nothing, partitioned data</td>
-<td>Cluster-based, distributed</td>
-<td>DAG of tasks</td>
-<td>Distributed, supports DAG</td>
-</tr>
-<tr>
-<td><strong>Data Model</strong></td>
-<td>Relational operations (SQL-like)</td>
-<td>Key-value pairs</td>
-<td>Data flow in DAG</td>
-<td>Stream processing with state</td>
-</tr>
-<tr>
-<td><strong>Partitioning</strong></td>
-<td>Horizontal partitioning</td>
-<td>Data split into chunks</td>
-<td>Data partitioned across graph</td>
-<td>Data partitioned into streams</td>
-</tr>
-<tr>
-<td><strong>Fault Tolerance</strong></td>
-<td>Limited</td>
-<td>Checkpointing</td>
-<td>Task-level recovery</td>
-<td>State snapshots, exactly-once</td>
-</tr>
-<tr>
-<td><strong>Programming</strong></td>
-<td>Relational (SQL-style)</td>
-<td>Functional (Map&#x2F;Reduce)</td>
-<td>Sequential tasks in DAG</td>
-<td>Functional, stream APIs</td>
-</tr>
-<tr>
-<td><strong>Scalability</strong></td>
-<td>Hundreds of processors</td>
-<td>Horizontally across many nodes</td>
-<td>Scales with more nodes</td>
-<td>Highly scalable, stream and batch</td>
-</tr>
-<tr>
-<td><strong>Use Case</strong></td>
-<td>Database query processing</td>
-<td>Log processing, data aggregation</td>
-<td>Scientific computing</td>
-<td>Real-time analytics, event processing</td>
-</tr>
-</tbody></table>
-<p><strong>Will a version of Gamma using FLOW be more modular than its current design?</strong></p>
-<p>Yes. FLOW enables more fine-grained control over the data flow and process interactions, which could simplify the addition of new operators and functionalities. It would also make the system easier to maintain and extend, as each component could be developed and optimized independently.</p>
-<p>Reference: <a target="_blank" rel="noopener" href="https://pages.cs.wisc.edu/~dewitt/includes/paralleldb/ieee90.pdf">https://pages.cs.wisc.edu/~dewitt/includes/paralleldb/ieee90.pdf</a></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/13/HRPS%20Background/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Yihang Wei">
-      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="EthanWeee">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/13/HRPS%20Background/" class="post-title-link" itemprop="url">HRPS Background</a>
+            <a href="/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/13/HRPS/" class="post-title-link" itemprop="url">HRPS</a>
         </h2>
 
         <div class="post-meta">
@@ -1475,7 +1475,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-05-30 19:42:46" itemprop="dateModified" datetime="2025-05-30T19:42:46-07:00">2025-05-30</time>
+                <time title="修改时间：2025-05-30 19:35:44" itemprop="dateModified" datetime="2025-05-30T19:35:44-07:00">2025-05-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1498,20 +1498,46 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="HRPS-Background"><a href="#HRPS-Background" class="headerlink" title="HRPS Background"></a>HRPS Background</h1><p><img src="/../images/index_and_page.png" alt="img"></p>
-<p>Each page consits of the header, the record space and a pointer array. Each slot in this array points to a record within the page.</p>
-<p>A record is located by providing its page address and the slot number. The combination is called RID.</p>
-<p>Life Cycle of a record:</p>
-<p>Insert: Find an empty space to put it and set a slot at the very end of the page to point to it.</p>
-<p>Delete: Remove the record and reclaim this space, set its slot number to null. When there are too many garbage slots, the system will drop the index structure, do reorganization on this disk page by removing all null slots, and reconstruct the index structure from scratch.</p>
-<p>Non-clustered Index: the data of the disk page is independent of the bucket or leaf node of index.</p>
-<p>Clustered Index: the data of the disk page resides within the bucket or leaf node of index.</p>
-<p>Hash Index: the item in buckets is not ordered by the attribute value of index.</p>
-<p>B+Tree Index: the item in leaf nodes is ordered by the attribute value of index.</p>
+          <h1 id="HRPS"><a href="#HRPS" class="headerlink" title="HRPS"></a>HRPS</h1><p>The HRPS declusters a relation into fragment based on the following criteria:</p>
 <ul>
-<li>Primary Index: the data in the disk page is ordered.</li>
-<li>Secondary Index: the data in the disk page is not ordered.</li>
+<li>Each fragment contains approximately FC tuples.</li>
+<li>Each fragment contains a unique range of values of the partitioning attribute.</li>
 </ul>
+<p>The variable FC is determined based on the processing capability of the system and the resource requirements of the queries that access the relation (rather than the number of processors in the configuration).</p>
+<p>A major underlying assumption of this partitioning strategy is that the selection operators which access the database retrieve and process the selected tuples using either a range predicate or an equality predicate.</p>
+<p>For each query Qi, the workload defines the CPU processing time (CPUi), the Disk Processing Time (Diski), and the Network Processing time (Neti) of that query. Observe that these times are determined based on the resource requirements of each individual query and the processing capability of the system. Each query retrieves and processes (TuplesPerQi) tuples from the database. Furthermore, we assume that the workload defines the frequency of occurrence of each query (FreqQi).</p>
+<p>Rather than describing the HRPS with respect to each query in the workload, we deline an average query (Qavg) that is representative of all the queries in the workload. The CPU, disk and network processing quanta for this query are:</p>
+<p><img src="/../images/CPU_Disk_Net_TPQ.png" alt="截屏2025-05-30 18.28.03"></p>
+<p>Assume that a single processor cannot overlap the use of two resources for an individual query. Thus, the execution time of Qavg on a single processor in a single user environment is:</p>
+<p><img src="/../images/exe_time.png" alt="截屏2025-05-30 18.28.21"></p>
+<p>As more processors are used for query execution, the response time decreases. However, this also incurs additional overhead, represented by the variable CP, which refers to the cost of coordinating the query execution across multiple processors (e.g., messaging overhead). The response time of the query on M processors can be described by the following formula:</p>
+<p><img src="/../images/RT_M.png" alt="RT_M"></p>
+<p>In a single-user environment, both HRPS and range partitioning perform similarly because they both efficiently execute the query on the required processor. However, in a multi-user environment, the range partitioning strategy is likely to perform better because it can distribute the workload across multiple processors, improving system throughput. In contrast, HRPS might not utilize all available processors as effectively, potentially leading to lower throughput.</p>
+<p>Instead of M representing the number of processors over which a relation should be declustered, M is used instead to represent the number of processors that should participate in the execution of Qavg. Since Qavg processes TuplesPerQavg tuples, each fragment of the relation should contain FC &#x3D; TuplesPerQavg &#x2F; M tuples.</p>
+<p>The process of fragmenting and distributing data in HRPS:</p>
+<ol>
+<li><strong>Sorting the relation</strong>: The relation is first sorted based on the partitioning attribute to ensure each fragment contains a distinct range of values.</li>
+<li><strong>Fragmentation</strong>: The relation is then split into fragments, each containing approximately <strong>FC</strong> tuples.</li>
+<li><strong>Round-robin distribution</strong>: These fragments are distributed to processors in a <strong>round-robin fashion</strong>, ensuring that adjacent fragments are assigned to different processors (unless the number of processors <strong>N</strong> is less than the required processors <strong>M</strong>).</li>
+<li><strong>Storing fragments</strong>: All the fragments for a relation on a given processor are stored in the same physical file.</li>
+<li><strong>Range table</strong>: The mapping of fragments to processors is maintained in a <strong>one-dimensional directory</strong> called the range table.</li>
+</ol>
+<p>This method ensures that at least M processors and at most M + 1 processors participate in the execution of a query.</p>
+<p><strong>M &#x3D; N</strong>：系统和查询需求匹配，HRPS 调度所有处理器，达到最大并行度和最优性能。</p>
+<p><strong>M &lt; N</strong>：HRPS 只调度一部分处理器执行查询，减少通信开销，但部分处理器资源可能闲置。</p>
+<p><strong>M &gt; N</strong>：HRPS 将多个片段分配给处理器，尽量利用所有处理器，但每个处理器负担加重，查询执行速度可能受到影响。</p>
+<p>HRPS in this paper supports only homogeneous nodes.</p>
+<p>Questions:</p>
+<p><strong>How does HRPS decide the ideal degree of parallelism for a query?</strong></p>
+<p>HRPS (Hybrid-Range Partitioning Strategy) decides the ideal degree of parallelism by analyzing the resource requirements of the query, such as CPU, disk I&#x2F;O, and communication costs. It calculates the optimal number of processors (denoted as M) based on these factors. The strategy strikes a balance between minimizing query response time and avoiding excessive overhead from using too many processors.</p>
+<p><strong>Why is it not appropriate to direct a query that fetches one record using an index structure to all the nodes of a system based on the shared-nothing architecture?</strong> </p>
+<p>Fetching one record should only involve the node that contains the relevant data, as querying all nodes wastes resources and increases response time.</p>
+<p><strong>How to extend HRPS to support heterogeneous nodes?</strong></p>
+<ol>
+<li>More powerful nodes would receive more fragments, while weaker nodes would handle fewer fragments.</li>
+<li>The system could monitor node performance and dynamically adjust the degree of parallelism and fragment allocation based on current load and node availability.</li>
+<li>Heavier tasks may be directed to more powerful nodes, while smaller or simpler queries could be executed on less powerful nodes.</li>
+</ol>
 <p>Reference: <a target="_blank" rel="noopener" href="https://www.vldb.org/conf/1990/P481.PDF">https://www.vldb.org/conf/1990/P481.PDF</a></p>
 
       
@@ -1892,7 +1918,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/13/HRPS/">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/13/HRPS%20Background/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -1906,7 +1932,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/13/HRPS/" class="post-title-link" itemprop="url">HRPS</a>
+            <a href="/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/13/HRPS%20Background/" class="post-title-link" itemprop="url">HRPS Background</a>
         </h2>
 
         <div class="post-meta">
@@ -1923,7 +1949,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-05-30 19:35:44" itemprop="dateModified" datetime="2025-05-30T19:35:44-07:00">2025-05-30</time>
+                <time title="修改时间：2025-05-30 19:42:46" itemprop="dateModified" datetime="2025-05-30T19:42:46-07:00">2025-05-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1946,46 +1972,20 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="HRPS"><a href="#HRPS" class="headerlink" title="HRPS"></a>HRPS</h1><p>The HRPS declusters a relation into fragment based on the following criteria:</p>
+          <h1 id="HRPS-Background"><a href="#HRPS-Background" class="headerlink" title="HRPS Background"></a>HRPS Background</h1><p><img src="/../images/index_and_page.png" alt="img"></p>
+<p>Each page consits of the header, the record space and a pointer array. Each slot in this array points to a record within the page.</p>
+<p>A record is located by providing its page address and the slot number. The combination is called RID.</p>
+<p>Life Cycle of a record:</p>
+<p>Insert: Find an empty space to put it and set a slot at the very end of the page to point to it.</p>
+<p>Delete: Remove the record and reclaim this space, set its slot number to null. When there are too many garbage slots, the system will drop the index structure, do reorganization on this disk page by removing all null slots, and reconstruct the index structure from scratch.</p>
+<p>Non-clustered Index: the data of the disk page is independent of the bucket or leaf node of index.</p>
+<p>Clustered Index: the data of the disk page resides within the bucket or leaf node of index.</p>
+<p>Hash Index: the item in buckets is not ordered by the attribute value of index.</p>
+<p>B+Tree Index: the item in leaf nodes is ordered by the attribute value of index.</p>
 <ul>
-<li>Each fragment contains approximately FC tuples.</li>
-<li>Each fragment contains a unique range of values of the partitioning attribute.</li>
+<li>Primary Index: the data in the disk page is ordered.</li>
+<li>Secondary Index: the data in the disk page is not ordered.</li>
 </ul>
-<p>The variable FC is determined based on the processing capability of the system and the resource requirements of the queries that access the relation (rather than the number of processors in the configuration).</p>
-<p>A major underlying assumption of this partitioning strategy is that the selection operators which access the database retrieve and process the selected tuples using either a range predicate or an equality predicate.</p>
-<p>For each query Qi, the workload defines the CPU processing time (CPUi), the Disk Processing Time (Diski), and the Network Processing time (Neti) of that query. Observe that these times are determined based on the resource requirements of each individual query and the processing capability of the system. Each query retrieves and processes (TuplesPerQi) tuples from the database. Furthermore, we assume that the workload defines the frequency of occurrence of each query (FreqQi).</p>
-<p>Rather than describing the HRPS with respect to each query in the workload, we deline an average query (Qavg) that is representative of all the queries in the workload. The CPU, disk and network processing quanta for this query are:</p>
-<p><img src="/../images/CPU_Disk_Net_TPQ.png" alt="截屏2025-05-30 18.28.03"></p>
-<p>Assume that a single processor cannot overlap the use of two resources for an individual query. Thus, the execution time of Qavg on a single processor in a single user environment is:</p>
-<p><img src="/../images/exe_time.png" alt="截屏2025-05-30 18.28.21"></p>
-<p>As more processors are used for query execution, the response time decreases. However, this also incurs additional overhead, represented by the variable CP, which refers to the cost of coordinating the query execution across multiple processors (e.g., messaging overhead). The response time of the query on M processors can be described by the following formula:</p>
-<p><img src="/../images/RT_M.png" alt="RT_M"></p>
-<p>In a single-user environment, both HRPS and range partitioning perform similarly because they both efficiently execute the query on the required processor. However, in a multi-user environment, the range partitioning strategy is likely to perform better because it can distribute the workload across multiple processors, improving system throughput. In contrast, HRPS might not utilize all available processors as effectively, potentially leading to lower throughput.</p>
-<p>Instead of M representing the number of processors over which a relation should be declustered, M is used instead to represent the number of processors that should participate in the execution of Qavg. Since Qavg processes TuplesPerQavg tuples, each fragment of the relation should contain FC &#x3D; TuplesPerQavg &#x2F; M tuples.</p>
-<p>The process of fragmenting and distributing data in HRPS:</p>
-<ol>
-<li><strong>Sorting the relation</strong>: The relation is first sorted based on the partitioning attribute to ensure each fragment contains a distinct range of values.</li>
-<li><strong>Fragmentation</strong>: The relation is then split into fragments, each containing approximately <strong>FC</strong> tuples.</li>
-<li><strong>Round-robin distribution</strong>: These fragments are distributed to processors in a <strong>round-robin fashion</strong>, ensuring that adjacent fragments are assigned to different processors (unless the number of processors <strong>N</strong> is less than the required processors <strong>M</strong>).</li>
-<li><strong>Storing fragments</strong>: All the fragments for a relation on a given processor are stored in the same physical file.</li>
-<li><strong>Range table</strong>: The mapping of fragments to processors is maintained in a <strong>one-dimensional directory</strong> called the range table.</li>
-</ol>
-<p>This method ensures that at least M processors and at most M + 1 processors participate in the execution of a query.</p>
-<p><strong>M &#x3D; N</strong>：系统和查询需求匹配，HRPS 调度所有处理器，达到最大并行度和最优性能。</p>
-<p><strong>M &lt; N</strong>：HRPS 只调度一部分处理器执行查询，减少通信开销，但部分处理器资源可能闲置。</p>
-<p><strong>M &gt; N</strong>：HRPS 将多个片段分配给处理器，尽量利用所有处理器，但每个处理器负担加重，查询执行速度可能受到影响。</p>
-<p>HRPS in this paper supports only homogeneous nodes.</p>
-<p>Questions:</p>
-<p><strong>How does HRPS decide the ideal degree of parallelism for a query?</strong></p>
-<p>HRPS (Hybrid-Range Partitioning Strategy) decides the ideal degree of parallelism by analyzing the resource requirements of the query, such as CPU, disk I&#x2F;O, and communication costs. It calculates the optimal number of processors (denoted as M) based on these factors. The strategy strikes a balance between minimizing query response time and avoiding excessive overhead from using too many processors.</p>
-<p><strong>Why is it not appropriate to direct a query that fetches one record using an index structure to all the nodes of a system based on the shared-nothing architecture?</strong> </p>
-<p>Fetching one record should only involve the node that contains the relevant data, as querying all nodes wastes resources and increases response time.</p>
-<p><strong>How to extend HRPS to support heterogeneous nodes?</strong></p>
-<ol>
-<li>More powerful nodes would receive more fragments, while weaker nodes would handle fewer fragments.</li>
-<li>The system could monitor node performance and dynamically adjust the degree of parallelism and fragment allocation based on current load and node availability.</li>
-<li>Heavier tasks may be directed to more powerful nodes, while smaller or simpler queries could be executed on less powerful nodes.</li>
-</ol>
 <p>Reference: <a target="_blank" rel="noopener" href="https://www.vldb.org/conf/1990/P481.PDF">https://www.vldb.org/conf/1990/P481.PDF</a></p>
 
       
