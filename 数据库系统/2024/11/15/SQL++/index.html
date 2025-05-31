@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yihangwe.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Data ModelSQL++ has a more flexible data model:  It relaxes traditional SQL’s strict rules to handle modern, semi-structured data like JSON or CBOR. SQL++ databases can store self-describing data, mea">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SQL++">
+<meta property="og:url" content="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/15/SQL++/index.html">
+<meta property="og:site_name" content="EthanWeee">
+<meta property="og:description" content="Data ModelSQL++ has a more flexible data model:  It relaxes traditional SQL’s strict rules to handle modern, semi-structured data like JSON or CBOR. SQL++ databases can store self-describing data, mea">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yihangwe.github.io/images/SQLPP_code1.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/SQLPP_code2.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/SQLPP_code3.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/SQLPP_code4.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/SQLPP_code5.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/SQLPP_code6.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/SQLPP_code7.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/SQLPP_code8.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/SQLPP_code9.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/SQLPP_code10.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/SQLPP_code11.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/SQLPP_code12.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/SQLPP_code13.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/SQLPP_code14.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/SQLPP_code15.png">
+<meta property="article:published_time" content="2024-11-15T08:00:00.000Z">
+<meta property="article:modified_time" content="2025-05-31T08:23:26.847Z">
+<meta property="article:author" content="Yihang Wei">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yihangwe.github.io/images/SQLPP_code1.png">
+
+<link rel="canonical" href="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/15/SQL++/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>SQL++ | EthanWeee</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">EthanWeee</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/15/SQL++/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          SQL++
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-11-15 00:00:00" itemprop="dateCreated datePublished" datetime="2024-11-15T00:00:00-08:00">2024-11-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-05-31 01:23:26" itemprop="dateModified" datetime="2025-05-31T01:23:26-07:00">2025-05-31</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">数据库系统</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Data-Model"><a href="#Data-Model" class="headerlink" title="Data Model"></a>Data Model</h1><p><strong>SQL++ has a more flexible data model:</strong></p>
+<ul>
+<li>It relaxes traditional SQL’s strict rules to handle modern, semi-structured data like JSON or CBOR.</li>
+<li>SQL++ databases can store self-describing data, meaning you don’t need a predefined schema (data structure).</li>
+</ul>
+<p><strong>Supports diverse data types:</strong></p>
+<ul>
+<li>Data can be single values (scalars), tuples (a set of key-value pairs), collections (like arrays or multisets), or combinations of these.</li>
+<li>Unlike traditional SQL, tuples in SQL++ are <strong>unordered</strong>, which means the order of attributes doesn’t matter.</li>
+</ul>
+<p><strong>Allows duplicate attribute names but discourages them:</strong></p>
+<ul>
+<li>This is to accommodate non-strict formats like JSON.</li>
+<li>However, duplicate names can lead to unpredictable query results, so they’re not recommended.</li>
+</ul>
+<p><strong>Two kinds of missing values:</strong> <strong><code>NULL</code> and <code>MISSING</code></strong>:</p>
+<ul>
+<li><strong><code>NULL</code></strong>: Means an attribute exists but has no value.</li>
+<li><strong><code>MISSING</code></strong>: Means the attribute doesn’t exist at all.</li>
+<li>This distinction is useful for clearer query results and error handling.</li>
+</ul>
+<p><strong>Importance of</strong> <strong><code>MISSING</code></strong>:</p>
+<ul>
+<li>SQL++ doesn’t stop processing if some data is missing; instead, it marks those cases as <code>MISSING</code> and continues.</li>
+<li>This makes queries more robust and tolerant of data inconsistencies.</li>
+</ul>
+<h1 id="Accessing-Nested-Data"><a href="#Accessing-Nested-Data" class="headerlink" title="Accessing Nested Data"></a>Accessing Nested Data</h1><p><strong>SQL-92 vs. Modern Data:</strong></p>
+<ul>
+<li>SQL-92 only supports tables with rows (tuples) containing simple values (scalars).</li>
+<li>Modern data formats often include <strong>nested structures</strong>, where attributes can hold complex data types like arrays, tables, or even arrays of arrays.</li>
+</ul>
+<p><strong>Nested Data Example:</strong></p>
+<p><img src="/../images/SQLPP_code1.png" alt="img"></p>
+<p><img src="/../images/SQLPP_code2.png" alt="img"></p>
+<p><img src="/../images/SQLPP_code3.png" alt="img"></p>
+<ul>
+<li>In the example, the <code>projects</code> attribute of an employee is an <strong>array of tuples</strong>, representing multiple projects each employee is involved in.</li>
+</ul>
+<p><strong>Querying Nested Data in SQL++:</strong></p>
+<ul>
+<li>SQL++ can handle such nested data without adding new syntax to SQL.</li>
+<li>For example, a query can find employees working on projects with “security” in their names and output both the employee’s name and the project’s name.</li>
+</ul>
+<p><strong>How It Works:</strong></p>
+<ul>
+<li>SQL++ uses <strong>left-correlation</strong>, allowing expressions in the <code>FROM</code> clause to refer to variables declared earlier in the same clause.</li>
+<li>For instance, <code>e.projects</code> accesses the projects of an employee <code>e</code>.</li>
+<li>This relaxes SQL’s restrictions and effectively enables a join between an employee and their projects.</li>
+</ul>
+<p><strong>Using Variables in Queries:</strong></p>
+<ul>
+<li>SQL++ requires <strong>explicit</strong> use of variables (e.g., <code>e.name</code> instead of just <code>name</code>) because schema is optional and cannot guarantee automatic disambiguation.</li>
+<li>If a schema exists, SQL++ can still optimize by rewriting the query for clarity and execution.</li>
+</ul>
+<p><strong>Flexibility with Nested Collections:</strong></p>
+<ul>
+<li>Variables in SQL++ can represent any type of data—whether it’s a table, array, or scalar.</li>
+<li>These variables can be used seamlessly in <code>FROM</code>, <code>WHERE</code>, and <code>SELECT</code> clauses.</li>
+</ul>
+<p><strong>Aliases Can Bind to Any Data Type:</strong></p>
+<ul>
+<li>In SQL++, variables (aliases) don’t have to refer only to tuples.</li>
+<li>They can bind to <strong>arrays of scalars</strong>, <strong>arrays of arrays</strong>, or any combination of scalars, tuples, and arrays.</li>
+</ul>
+<p><strong>Flexibility in Querying Nested Data:</strong></p>
+<ul>
+<li>Users don’t need to learn new query syntax for different data structures.</li>
+<li>The same <strong>unnesting feature</strong> is used regardless of whether the data is an array of tuples or an array of scalars.</li>
+</ul>
+<p>Example:</p>
+<p><img src="/../images/SQLPP_code4.png" alt="img"></p>
+<p><img src="/../images/SQLPP_code5.png" alt="img"></p>
+<p><img src="/../images/SQLPP_code6.png" alt="img"></p>
+<ul>
+<li>If the <code>projects</code> attribute is an <strong>array of strings</strong> (instead of tuples), SQL++ queries can still process it.</li>
+<li>The query would range over <code>e.projects</code> and bind <code>p</code> to each project name (a string).</li>
+</ul>
+<p><strong>Relaxed Semantics Compared to SQL:</strong></p>
+<ul>
+<li>In traditional SQL, the <code>FROM</code> clause binds variables strictly to tuples.</li>
+<li>SQL++ generalizes this by treating the <code>FROM</code> clause as a function that can bind variables to <strong>any type of data</strong>—not just tuples.</li>
+</ul>
+<p><strong>Practical Outcome:</strong></p>
+<ul>
+<li>In the example, the <code>FROM</code> clause produced variable bindings like <code>&#123;e: employee_data, p: project_name&#125;</code>.</li>
+<li>This allows the query to handle data structures that SQL would not support without extensions.</li>
+</ul>
+<h1 id="ABSENCE-OF-SCHEMA-AND-SEMI-STRUCTURED-DATA"><a href="#ABSENCE-OF-SCHEMA-AND-SEMI-STRUCTURED-DATA" class="headerlink" title="ABSENCE OF SCHEMA AND SEMI-STRUCTURED DATA"></a>ABSENCE OF SCHEMA AND SEMI-STRUCTURED DATA</h1><p>Schemaless Data:</p>
+<ul>
+<li>Many modern data formats (e.g., JSON) don’t require a predefined schema to describe their structure.</li>
+<li>This allows for <strong>flexible and diverse data</strong>, but it also introduces <strong>heterogeneity</strong>.</li>
+</ul>
+<p>Types of Heterogeneity:</p>
+<ul>
+<li><strong>Attribute presence</strong>: Some tuples may have a specific attribute (e.g., <code>x</code>), while others may not.</li>
+<li><strong>Attribute type</strong>: The same attribute can have different types across tuples. For example:<ul>
+<li>In one tuple, <code>x</code> might be a string.</li>
+<li>In another tuple, <code>x</code> might be an array.</li>
+</ul>
+</li>
+<li><strong>Element types in collections</strong>: A collection (e.g., an array or a bag) can have elements of different types. For example:<ul>
+<li>The first element could be a string, the second an integer, and the third an array.</li>
+</ul>
+</li>
+<li><strong>Legacy or data evolution</strong>: These heterogeneities often result from evolving requirements or data conversions (e.g., converting XML to JSON).</li>
+</ul>
+<p>Heterogeneity Is Not Limited to Schemaless Data:</p>
+<ul>
+<li>Even structured databases can have heterogeneity. For example:<ul>
+<li>Hive’s <strong>union type</strong> allows an attribute to hold multiple types, like a string or an array of strings.</li>
+</ul>
+</li>
+</ul>
+<p>How SQL++ Handles It:</p>
+<ul>
+<li>SQL++ is designed to work seamlessly with <strong>heterogeneous data</strong>, whether the data comes from a schemaless format or a schema-based system.</li>
+<li>It offers features and mechanisms to process such data flexibly, without enforcing rigid structure requirements.</li>
+</ul>
+<h2 id="Missing-Attributes"><a href="#Missing-Attributes" class="headerlink" title="Missing Attributes"></a>Missing Attributes</h2><ol>
+<li><p><strong>Representation of Missing Information</strong>:</p>
+<ul>
+<li><p>In SQL, a missing value is typically represented as <code>NULL</code> (e.g., Bob Smith’s title in the first example).</p>
+</li>
+<li><p>In SQL++, there’s an additional option: simply omitting the attribute altogether (as seen in the second example for Bob Smith).</p>
+</li>
+</ul>
+</li>
+<li><p><code>NULL</code> <strong>vs.</strong> <code>MISSING</code>:</p>
+<ul>
+<li><p><code>NULL</code>: Indicates the attribute exists but has no value.</p>
+</li>
+<li><p><code>MISSING</code>: Indicates the attribute is entirely absent.</p>
+</li>
+<li><p>SQL++ supports distinguishing between these two cases, unlike traditional SQL.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Why This Matters</strong>:</p>
+<ul>
+<li><p>Some data systems or formats (e.g., JSON) naturally omit <strong>missing</strong> attributes rather than assigning a <code>NULL</code> value.</p>
+</li>
+<li><p>SQL++ makes it easy to work with both approaches by allowing queries to handle <code>NULL</code> and <code>MISSING</code> values distinctly.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Query Behavior</strong>:</p>
+<ul>
+<li><p>Queries in SQL++ can propagate <code>NULL</code> and <code>MISSING</code> values as they are.</p>
+</li>
+<li><p>The system introduces the special value <code>MISSING</code> to represent absent attributes, allowing clear differentiation from <code>NULL</code>.</p>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="MISSING-as-a-Value"><a href="#MISSING-as-a-Value" class="headerlink" title="MISSING as a Value"></a>MISSING as a Value</h2><p>What Happens When Data is Missing:</p>
+<ul>
+<li>If a query references an attribute that doesn’t exist in a tuple (e.g., <code>e.title</code> for Bob Smith), SQL++ assigns the value <code>MISSING</code>.</li>
+<li>This avoids query failures and ensures processing can continue.</li>
+</ul>
+<p><strong>Three Cases Where</strong> <code>MISSING</code> <strong>is Produced</strong>:</p>
+<p><img src="/../images/SQLPP_code7.png" alt="img"></p>
+<ul>
+<li><strong>Case 1</strong>: Accessing a missing attribute. For example, <code>&#123;id: 3, name: &#39;Bob Smith&#39;&#125;.title</code> results in <code>MISSING</code>.</li>
+<li><strong>Case 2</strong>: Using invalid input types for functions or operators (e.g., <code>2 * &#39;some string&#39;</code>).</li>
+<li><strong>Case 3</strong>: When <code>MISSING</code> is an input to a function or operator, it propagates as <code>MISSING</code> in the output.</li>
+</ul>
+<p>SQL Compatibility Mode:</p>
+<ul>
+<li>In SQL compatibility mode, <code>MISSING</code> behaves like <code>NULL</code> for compatibility. For instance, <code>COALESCE(MISSING, 2)</code> will return <code>2</code>, just as <code>COALESCE(NULL, 2)</code> does in SQL.</li>
+</ul>
+<p><strong>Propagation of</strong> <code>MISSING</code> <strong>in Queries</strong>:</p>
+<ul>
+<li>In queries, <code>MISSING</code> values flow naturally through transformations, enabling consistent handling of absent data.</li>
+<li>For example, in a <code>CASE</code> statement, if <code>e.title</code> evaluates to <code>MISSING</code>, the result of the entire <code>CASE</code> expression will also be <code>MISSING</code>.</li>
+</ul>
+<p><strong>Results with</strong> <code>MISSING</code>:</p>
+<ul>
+<li>If a query result includes <code>MISSING</code>, SQL++ will omit the attribute from the result tuple.</li>
+<li>In communication with external systems like JDBC&#x2F;ODBC, <code>MISSING</code> is transmitted as <code>NULL</code> to ensure compatibility.</li>
+</ul>
+<h1 id="RESULT-CONSTRUCTION-NESTING-AND-GROUPING"><a href="#RESULT-CONSTRUCTION-NESTING-AND-GROUPING" class="headerlink" title="RESULT CONSTRUCTION,NESTING, AND GROUPING"></a>RESULT CONSTRUCTION,NESTING, AND GROUPING</h1><h2 id="Creating-Collections-of-Any-Value"><a href="#Creating-Collections-of-Any-Value" class="headerlink" title="Creating Collections of Any Value"></a>Creating Collections of Any Value</h2><p><strong>Power of</strong> <code>SELECT VALUE</code>:</p>
+<ul>
+<li>The <code>SELECT VALUE</code> clause in SQL++ allows constructing collections of any type of data, not just tuples.</li>
+<li>It enables creating outputs that match the structure of nested data without flattening it unnecessarily.</li>
+</ul>
+<p>Example Query:</p>
+<p><img src="/../images/SQLPP_code8.png" alt="img"></p>
+<ul>
+<li>The query in Listing 10 demonstrates how to use <code>SELECT VALUE</code> to extract only the “security” projects of employees, resulting in a nested structure.</li>
+<li>Each employee’s tuple includes their ID, name, title, and a collection of their security-related projects.</li>
+</ul>
+<p>Result:</p>
+<p><img src="/../images/SQLPP_code9.png" alt="img"></p>
+<ul>
+<li>Listing 11 shows the result where each employee has a field <code>security_proj</code> containing a nested collection of projects that match the condition (e.g., projects with “Security” in the name).</li>
+</ul>
+<p>Key Difference from Standard SQL:</p>
+<ul>
+<li>SQL’s <code>SELECT</code> clause can be viewed as shorthand for <code>SELECT VALUE</code>, but with differences:<ul>
+<li>SQL automatically coerces subquery results into scalar values, collections of scalars, or tuples based on context.</li>
+<li>In contrast, <code>SELECT VALUE</code> in SQL++ consistently produces a collection and does not apply implicit coercion.</li>
+</ul>
+</li>
+</ul>
+<p>Flexibility:</p>
+<ul>
+<li>SQL++ avoids implicit “magic” by explicitly treating <code>SELECT</code> as shorthand for <code>SELECT VALUE</code>.</li>
+<li>This approach aligns more closely with functional programming principles, making it easier to handle and compose nested data results.</li>
+</ul>
+<h2 id="GROUP-BY-and-GROUP-AS"><a href="#GROUP-BY-and-GROUP-AS" class="headerlink" title="GROUP BY and GROUP AS"></a>GROUP BY and GROUP AS</h2><p><strong>Introduction to</strong> <code>GROUP BY ... GROUP AS</code>:</p>
+<ul>
+<li>This feature extends SQL’s <code>GROUP BY</code> functionality, allowing groups (and their contents) to be directly accessible in the <code>SELECT</code> and <code>HAVING</code> clauses.</li>
+<li>It is more efficient and intuitive for creating nested results compared to traditional SQL, especially when the output nesting doesn’t directly align with the input data structure.</li>
+</ul>
+<p>How It Works:</p>
+<ul>
+<li><strong>Generalization</strong>: Unlike SQL, which limits access to grouped data in <code>GROUP BY</code>, SQL++ allows accessing the full group details as part of the query.</li>
+<li><strong>Pipeline Model</strong>: SQL++ processes queries in a step-by-step fashion, starting with <code>FROM</code>, followed by optional clauses like <code>WHERE</code>, <code>GROUP BY</code>, <code>HAVING</code>, and ending with <code>SELECT</code>.</li>
+</ul>
+<p>Example:</p>
+<ul>
+<li>In the query from <strong>Listing 12</strong>, employees are grouped by their project names (converted to lowercase), and a nested list of employees for each project is created.</li>
+<li>The <code>GROUP BY LOWER(p) AS p GROUP AS g</code> clause groups data and stores each group in <code>g</code>.</li>
+<li>The <code>SELECT</code> clause then extracts project names and employees.</li>
+</ul>
+<p>Result:</p>
+<ul>
+<li>The output (shown in <strong>Listing 13</strong>) contains nested objects:</li>
+<li><ul>
+<li>Each object has a <code>proj_name</code> (e.g., <code>&#39;OLTP Security&#39;</code>) and an <code>employees</code> field listing the names of employees associated with that project.</li>
+</ul>
+</li>
+</ul>
+<p><strong>Details of</strong> <code>GROUP BY ... GROUP AS</code>:</p>
+<ul>
+<li>The clause produces bindings like the ones in <strong>Listing 14</strong>, where each group (<code>g</code>) includes all the data for its corresponding key (<code>p</code>).</li>
+<li>The result allows users to flexibly access and format the grouped data.</li>
+</ul>
+<p>SQL++ Flexibility:</p>
+<ul>
+<li>SQL++ allows placing the <code>SELECT</code> clause either at the start or the end of a query block, enhancing readability and flexibility.</li>
+<li>This approach is more consistent with functional programming and reduces constraints found in traditional SQL.</li>
+</ul>
+<p>Advanced Features:</p>
+<ul>
+<li>SQL++ supports additional analytical tools like <code>CUBE</code>, <code>ROLLUP</code>, and <code>GROUPING SETS</code>, making it highly compatible with SQL but better suited for nested and semi-structured data.</li>
+</ul>
+<h2 id="Aggregate-Functions"><a href="#Aggregate-Functions" class="headerlink" title="Aggregate Functions"></a>Aggregate Functions</h2><p>Limitations of Traditional SQL Aggregate Functions:</p>
+<ul>
+<li>Aggregate functions like <code>AVG</code> and <code>MAX</code> in traditional SQL lack <strong>composability</strong>.</li>
+<li>They work directly on table columns but don’t easily integrate with more complex expressions or subqueries.</li>
+</ul>
+<p>SQL++ Solution:</p>
+<ul>
+<li>SQL++ introduces <strong>composable aggregate functions</strong>, such as <code>COLL_AVG</code> (for calculating the average of a collection) and <code>COLL_MAX</code>.</li>
+<li>These functions take a <strong>collection</strong> as input and return the aggregated value.</li>
+</ul>
+<p>Importance of Composability:</p>
+<ul>
+<li>In SQL++, data is conceptually <strong>materialized</strong> into a collection first, then passed to the composable aggregate function.</li>
+<li>While this materialization is conceptual, SQL++ engines optimize the execution (e.g., using pipelined aggregation).</li>
+</ul>
+<p>Example 1: Calculating the Average Salary of Engineers:</p>
+<p><img src="/../images/SQLPP_code10.png" alt="img"></p>
+<ul>
+<li><strong>SQL Query</strong> (Listing 15): Uses <code>AVG(e.salary)</code> directly.</li>
+<li><strong>SQL++ Core Query</strong> (Listing 16): Converts <code>e.salary</code> into a collection and applies the <code>COLL_AVG</code> function.</li>
+<li>SQL++ clearly defines the flow of data, making it more intuitive and flexible.</li>
+</ul>
+<p>Example 2: Calculating the Average Salary of Engineers by Department:</p>
+<p><img src="/../images/SQLPP_code11.png" alt="img"></p>
+<ul>
+<li><strong>SQL Query</strong> (Listing 17): Uses <code>GROUP BY</code> and <code>AVG</code>.</li>
+<li><strong>SQL++ Core Query</strong> (Listing 18):<ul>
+<li>Uses <code>GROUP BY ... GROUP AS</code> to form groups.</li>
+<li>Feeds each group into <code>COLL_AVG</code> to calculate the average salary.</li>
+<li>Constructs the result using the <code>SELECT VALUE</code> clause, explicitly specifying the output format.</li>
+</ul>
+</li>
+</ul>
+<p>Flexibility of SQL++ Style:</p>
+<ul>
+<li>SQL++ allows the <code>SELECT</code> clause to be written at the end of a query block, consistent with functional programming styles.</li>
+<li>This enhances readability and composability while maintaining compatibility with SQL.</li>
+</ul>
+<h1 id="Pivoting-and-Unpivoting"><a href="#Pivoting-and-Unpivoting" class="headerlink" title="Pivoting and Unpivoting"></a>Pivoting and Unpivoting</h1><h2 id="UNPIVOT-Transforming-Attributes-into-Rows"><a href="#UNPIVOT-Transforming-Attributes-into-Rows" class="headerlink" title="UNPIVOT: Transforming Attributes into Rows"></a>UNPIVOT: Transforming Attributes into Rows</h2><ol>
+<li><p><strong>What is Unpivoting?</strong></p>
+<ul>
+<li><p>Unpivoting is the process of converting attribute names (used as keys) into data rows.</p>
+</li>
+<li><p>This is useful for cases where key-value pairs in the data need to be analyzed as individual rows.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Example (Listing 19-21)</strong>:</p>
+</li>
+</ol>
+<p><img src="/../images/SQLPP_code12.png" alt="img"></p>
+<ul>
+<li><p>Input: A <code>closing_prices</code> collection where stock symbols (<code>amzn</code>, <code>goog</code>, <code>fb</code>) are attributes with prices as values.</p>
+</li>
+<li><p>Query (Listing 20): The <code>UNPIVOT</code> clause transforms these attributes into rows with fields for <code>symbol</code> and <code>price</code>.</p>
+</li>
+<li><p>Output (Listing 21): A flattened structure where each row contains the date, stock symbol, and price.</p>
+</li>
+</ul>
+<h2 id="Pivoting"><a href="#Pivoting" class="headerlink" title="Pivoting"></a>Pivoting</h2><ol>
+<li><strong>Purpose of Pivoting</strong>:<ul>
+<li>Pivoting transforms rows into attributes (columns).</li>
+</ul>
+</li>
+<li><strong>Example from Listings 23-25</strong>:</li>
+</ol>
+<p><img src="/../images/SQLPP_code13.png" alt="img"></p>
+<ul>
+<li><strong>Input (Listing 23)</strong>: Rows of <code>today_stock_prices</code> where each stock symbol and its price are separate rows.</li>
+<li><strong>Query (Listing 24)</strong>: The <code>PIVOT</code> operation turns these rows into a single object, using <code>sp.symbol</code> as attribute names and <code>sp.price</code> as their values.</li>
+<li><strong>Output (Listing 25)</strong>: A tuple where each stock symbol (<code>amzn</code>, <code>goog</code>, <code>fb</code>) is an attribute, and their corresponding prices are the values.</li>
+</ul>
+<p><strong>Combining Grouping and Pivoting</strong></p>
+<ol>
+<li><strong>Using Pivot with Grouping</strong>:</li>
+<li><ul>
+<li>Combining <code>GROUP BY</code> and <code>PIVOT</code> enables aggregation of grouped rows into a more structured output.</li>
+<li>This is particularly useful when working with time-series data or hierarchical datasets.</li>
+</ul>
+</li>
+<li><strong>Example Query (Listing 26)</strong>:</li>
+</ol>
+<p><img src="/../images/SQLPP_code14.png" alt="img"></p>
+<p><img src="/../images/SQLPP_code15.png" alt="img"></p>
+<ul>
+<li>Input: Data from <code>stock_prices</code> (Listing 27), which includes stock prices for multiple dates as individual rows.</li>
+<li>Query:<ul>
+<li>Groups the data by <code>date</code> using <code>GROUP BY sp.date</code>.</li>
+<li>Pivots the grouped rows to produce a nested structure where each date contains all its stock prices as attributes.</li>
+</ul>
+</li>
+<li>Output (Listing 28): For each date, an object with a <code>prices</code> field lists the stock symbols as attributes and their respective prices as values.</li>
+</ul>
+<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>SQL++ identifies aggregate functions as an SQL violation of functional composability. Give an example of an aggregate function and describe how it violates SQL’s functional composability.</strong></p>
+<ul>
+<li><p><strong>Aggregate Function</strong>:<code>COLL_AVG()</code></p>
+</li>
+<li><p><strong>Violation Explanation</strong>:</p>
+<ul>
+<li><p>In traditional SQL, aggregate functions like <code>AVG</code> processes the column and returns a single value.</p>
+</li>
+<li><p>In SQL++, this issue is resolved by providing <strong>composable versions</strong> of aggregate functions, such as <code>COLL_AVG</code>, which operate on collections, allowing intermediate results to flow naturally into the aggregation.</p>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>With SQL++, what is the difference between NULL and Missing?</strong></p>
+<p><code>NULL</code>: Indicates that an attribute exists but has no value.</p>
+<p><code>MISSING</code>: Indicates that an attribute is completely absent in the data.</p>
+<p><strong>True or false: One must define a schema for data prior to using SQL++.</strong> </p>
+<p>False:</p>
+<ul>
+<li>SQL++ supports <strong>schema-optional</strong> and <strong>schema-less</strong> data formats, such as JSON.</li>
+<li>While schemas can improve query optimization and validation, SQL++ can process data without requiring predefined schemas, making it highly flexible for semi-structured data use cases.</li>
+</ul>
+<p><strong>How does the I lease prevent a thundering herd?</strong></p>
+<p>The I lease (Inhibit Lease) prevents a thundering herd problem by ensuring that only one read session at a time is allowed to query the RDBMS for a missing key-value pair in the Key-Value Store (KVS). Here’s how it works:</p>
+<ol>
+<li><p><strong>Thundering Herd Problem</strong>:</p>
+<ul>
+<li><p>When a key-value pair is not found in the KVS (a <strong>KVS miss</strong>), multiple read sessions might simultaneously query the RDBMS to fetch the value.</p>
+</li>
+<li><p>This can overload the RDBMS and degrade performance under high concurrency.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Role of the I Lease</strong>:</p>
+<ul>
+<li><p>When the first read session encounters a KVS miss, it requests an I lease for the key.</p>
+</li>
+<li><p>Once the I lease is granted, the KVS prevents other read sessions from querying the RDBMS for the same key.</p>
+</li>
+<li><p>All other read sessions must “back off” and wait for the value to be updated in the KVS by the session holding the I lease.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Result</strong>:</p>
+<ul>
+<li><p>The session with the I lease queries the RDBMS, retrieves the value, and populates the KVS.</p>
+</li>
+<li><p>Subsequent read sessions observe a <strong>KVS hit</strong> and do not need to access the RDBMS.</p>
+</li>
+<li><p>This mechanism avoids simultaneous RDBMS queries, effectively solving the thundering herd problem.</p>
+</li>
+</ul>
+</li>
+</ol>
+<p><strong>What is the difference between invalidate and refresh&#x2F;refill for maintaining the cache consistent with the database management system?</strong></p>
+<ul>
+<li><strong>Invalidate</strong>: Deletes stale cache entries to prevent incorrect reads, but at the cost of forcing subsequent queries to access the RDBMS.</li>
+<li><strong>Refresh&#x2F;Refill</strong>: Proactively updates the cache with new data, ensuring consistent reads while reducing future load on the RDBMS at the expense of immediate computation.</li>
+</ul>
+<p><strong>Describe how CAMP inserts a key-value pair in the cache.</strong></p>
+<p><strong>Check Cache Capacity</strong></p>
+<ul>
+<li>If there is <strong>enough memory</strong> to store the new key-value pair:<ul>
+<li>The pair is inserted directly into the appropriate <strong>priority group</strong> based on its cost-to-size ratio.</li>
+<li>L is not updated.</li>
+</ul>
+</li>
+<li>If the cache is <strong>full</strong>:<ul>
+<li>CAMP selects one or more key-value pairs to <strong>evict</strong> based on their H(p) values.</li>
+<li>It removes the pair(s) with the <strong>lowest H(p)</strong> values until there is sufficient space for the new pair.</li>
+</ul>
+</li>
+</ul>
+<p><strong>Insert the New Pair</strong></p>
+<ul>
+<li>The new key-value pair p is added to the cache, and its H(p) value is computed and recorded.</li>
+<li>The pair is placed in the appropriate priority queue based on its cost-to-size ratio.</li>
+</ul>
+<p><strong>How does BG compute the SoAR of a database management system?</strong> </p>
+<ol>
+<li>Define the SLA.</li>
+<li>Run a series of experiments with increasing numbers of threads (T) to find the peak throughput while ensuring SLA compliance.</li>
+</ol>
+<p>Reference: <a target="_blank" rel="noopener" href="https://escholarship.org/content/qt2bj3m590/qt2bj3m590_noSplash_084218340bb4e928c05878f04d01f04d.pdf">https://escholarship.org/content/qt2bj3m590/qt2bj3m590_noSplash_084218340bb4e928c05878f04d01f04d.pdf</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/08/IQ/" rel="prev" title="IQ">
+      <i class="fa fa-chevron-left"></i> IQ
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/22/MapReduce/" rel="next" title="MapReduce">
+      MapReduce <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Data-Model"><span class="nav-number">1.</span> <span class="nav-text">Data Model</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Accessing-Nested-Data"><span class="nav-number">2.</span> <span class="nav-text">Accessing Nested Data</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ABSENCE-OF-SCHEMA-AND-SEMI-STRUCTURED-DATA"><span class="nav-number">3.</span> <span class="nav-text">ABSENCE OF SCHEMA AND SEMI-STRUCTURED DATA</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Missing-Attributes"><span class="nav-number">3.1.</span> <span class="nav-text">Missing Attributes</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MISSING-as-a-Value"><span class="nav-number">3.2.</span> <span class="nav-text">MISSING as a Value</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#RESULT-CONSTRUCTION-NESTING-AND-GROUPING"><span class="nav-number">4.</span> <span class="nav-text">RESULT CONSTRUCTION,NESTING, AND GROUPING</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Creating-Collections-of-Any-Value"><span class="nav-number">4.1.</span> <span class="nav-text">Creating Collections of Any Value</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GROUP-BY-and-GROUP-AS"><span class="nav-number">4.2.</span> <span class="nav-text">GROUP BY and GROUP AS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Aggregate-Functions"><span class="nav-number">4.3.</span> <span class="nav-text">Aggregate Functions</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Pivoting-and-Unpivoting"><span class="nav-number">5.</span> <span class="nav-text">Pivoting and Unpivoting</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#UNPIVOT-Transforming-Attributes-into-Rows"><span class="nav-number">5.1.</span> <span class="nav-text">UNPIVOT: Transforming Attributes into Rows</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Pivoting"><span class="nav-number">5.2.</span> <span class="nav-text">Pivoting</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Questions"><span class="nav-number">6.</span> <span class="nav-text">Questions</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Yihang Wei</p>
+  <div class="site-description" itemprop="description">聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">13</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yihang Wei</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '50%',
+  right: '32px',
+  left: 'unset',
+  time: '0.5s',
+  mixColor: '#fff',
+  backgroundColor: '#fff',
+  buttonColorDark: '#100f2c',
+  buttonColorLight: '#fff',
+  saveInCookies: true,
+  label: '明暗',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+</body>
+</html>
