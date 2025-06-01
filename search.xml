@@ -1,6 +1,128 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>介绍</title>
+    <url>/MySQL/2024/09/12/MySQL/%E4%BB%8B%E7%BB%8D/</url>
+    <content><![CDATA[<h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>数据库是数据存储的仓库，是文件的集合，是依照某种数据模型组织起来并存放于二级存储器中的数据集合。</p>
+<p>数据库实例是程序，是位于用户和操作系统之间的一层数据管理软件，用户对数据库数据的任何操作都是在数据库实例下进行的。应用程序只有通过数据库实例才能和数据库打交道。</p>
+<p>在 MySQL 中，实例和数据库的关系通常是一一对应的。但在集群下可能存在一个数据库被多个数据库实例使用的情况。</p>
+<p>关系型数据库（结构数据模型，表）：建立在关系模型基础上，由多张相互连接的<strong>二维表</strong>组成的数据库。</p>
+<p>数据库管理系统（DBMS）：操纵和管理数据库的应用程序。</p>
+<p>SQL：操作关系型数据库的编程语言，也是一套标准。</p>
+<p>客户端&#x3D;&gt;数据库管理系统&#x3D;&gt;数据库&#x3D;&gt;数据表。</p>
+<h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>MySQL 是由 Oracle 公司开发的开源关系型数据库管理系统（RDBMS），它使用结构化查询语言（SQL）来定义、操作和管理数据表格，并将数据存储在由行和列组成的表中，以实现数据之间的关联与组织。MySQL 支持完整的 ACID 事务特性和多版本并发控制（MVCC），能够在高并发环境下保持数据的一致性与隔离度，同时提供跨 Windows、Linux、macOS、FreeBSD 等多个平台的部署能力。由于其易用、高性能和可靠性，MySQL 在 Web 应用和企业级系统中被广泛采用。</p>
+<p>MySQL 的架构采用可插拔的存储引擎机制，其中 InnoDB 作为默认引擎提供行级锁、外键约束、崩溃恢复和双写缓冲等功能，以实现高可用的事务处理和崩溃恢复能力。除了 InnoDB，MySQL 还支持 MyISAM（非事务、表级锁）、Memory（将数据保存在内存中用于临时表或缓存）以及 NDB Cluster（面向分布式高可用集群）等存储引擎，以满足不同场景下的性能与可靠性需求。在服务器层面，MySQL 包含 SQL 解析器、查询优化器和执行器，优化器基于统计信息和索引选择最优执行计划，执行器通过存储引擎接口完成具体的数据访问和操作。</p>
+<p>在部署与扩展方面，MySQL 支持基于二进制日志（Binlog）的异步复制、半同步复制和组复制，能够构建主从复制或多主复制架构，以实现高可用和读写分离，从而提升系统的读吞吐量与容错能力。此外，MySQL 生态中有 Percona Toolkit、ProxySQL、Orchestrator 等工具可用于性能诊断、主库切换和连接池管理，官方提供的图形化管理工具 MySQL Workbench 和 phpMyAdmin 也大大简化了数据库设计与运维流程。典型应用场景包括 Web 应用后端（如内容管理系统）、电子商务平台（通过主从复制实现高并发访问）、日志与分析系统（结合 Archive 或 MyISAM 引擎加速写入），以及借助 Vitess、ShardingSphere 等中间件实现的水平分片架构，以应对千万级 QPS 的大规模分布式需求。</p>
+<h1 id="数据库三大范式"><a href="#数据库三大范式" class="headerlink" title="数据库三大范式"></a>数据库三大范式</h1><p>第一范式（1NF）：确保表的每一列都是<strong>不可分割</strong>的基本数据单元，比如说用户地址，应该拆分成省、市、区、详细信息等 4 个字段。</p>
+<p>第二范式（2NF）：在 1NF 的基础上，要求数据库表中的<strong>每一列都和主键直接相关</strong>，而不能只与主键的某一部分相关（主要针对联合主键）。</p>
+<p>第三范式（3NF）：在 2NF 的基础上，消除非主键列对主键的传递依赖，即<strong>非主键列只依赖于主键列</strong>，不依赖于其他非主键列。</p>
+]]></content>
+      <categories>
+        <category>MySQL</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Adaptive Execution of Compiled Queries</title>
+    <url>/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/03/02/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Adaptive%20Execution%20of%20Compiled%20Queries/</url>
+    <content><![CDATA[<h1 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h1><p>The paper addresses 3 problems:</p>
+<ol>
+<li>How to reduce the compilation time of complex but fast queries?</li>
+<li>How to reduce the compilation time of extremely large queries?</li>
+<li>How to reduce the compilation time of the first incoming query?</li>
+</ol>
+<p>The paper provides 2 novel ideas and elaborates the proposed approach for the implementation of each idea:</p>
+<ol>
+<li>Adaptive execution: For a specific query pipeline, the paper tracks the progress of worker threads, predicts the remaining workload duration under 3 execution modes based on the overall state of all threads in the pipeline, and finally selects the mode with the shortest duration to apply to all threads.</li>
+<li>Fast bytecode interpretation: Based on register machine, the paper implements linear-time liveness computation through processing basic blocks in intervals and using algorithms such as the disjoint set and path compression, which optimizes register allocation further. Furthermore, the bytecode interpreter behaves equivalently to the generated machine code, ensuring seamless switching between interpretation and machine code.</li>
+</ol>
+<p>Analytical and experimental findings: For different scale factors, adaptive execution can switch to the mode with the optimal performance, ensuring the lowest execution time compared to other static mode selections. For action, adaptive execution can immediately start to process pipeline morsels on all available worker threads and dynamically switch modes for pipelines with heavy workloads, allowing it to finish queries 10%, 40%, and 80% faster than its competitors. While interpreted code is slower than compiled code, it is faster than PostgreSQL and scales as well as compiled code when using multiple cores. Furthermore, the byte interpreter scales perfectly and can process the large query in a short time.</p>
+<h1 id="Paper-Strength"><a href="#Paper-Strength" class="headerlink" title="Paper Strength"></a>Paper Strength</h1><ul>
+<li>The paper provides a clear and detailed description of the problem to be addressed. In Section II, it presents the multi-step process of a SQL query in HyPer through a flowchart, highlighting that the LLVM compilation tasks takes the majority of the overall execution time. By comparing the compilation and execution times of different execution modes on TPC-H Query 1 on scale factor 1, the paper introduces the trade-off between interpreters and compilers, demonstrating that different execution modes can be applied to different parts of the same query. Furthermore, the paper analyzes the largest TPC-H and TPC-DS queries, concluding that compilation time grows super-linearly with the query size.</li>
+<li>The paper provides a comprehensive literature review. In Section VI, it references experimental results from other papers on compilation time, concluding that compiling to LLVM IR is faster than compiling to C. Based on the personal experience, the paper highlights that query compilation latency becomes a major problem in production environments, this makes adaptive execution a crucial component for making query compilation truly practical. It then explores the feasibility of integrating adaptive execution into database systems such as MemSQL, LegoBase, and Microsoft Hekaton. Furthermore, the paper demonstrates the advantages of adaptive execution over automatic plan caching, i.e. the ability to re-optimize queries on every execution. Finally, the paper discusses the similarities and differences between adaptive execution and execution engines in programming languages, such as JVM, V8, and CLR.</li>
+<li>The paper achieves significant improvements, the linear-time liveness computation. The traditional solution for computing the liveness of each block individually usually takes $O(n^2)$ runtime. However, the paper proposes a linear-time algorithm. The algorithm labels all basic blocks in reverse postorder and organizes them into a dominator tree, which allows interpreter to determine the relationships of basic blocks in $O(1)$ time and paves the way for identifying loops. It identifies the innermost enclosing loop of each basic block by using the disjoint set with path compression, and, based on the the distribution of basic blocks related to the definition and uses of a certain value, determines the lifetime of that value. The low cost of the computation is primarily attributed to the appropriate data structures.</li>
+</ul>
+<h1 id="Paper-Weakness"><a href="#Paper-Weakness" class="headerlink" title="Paper Weakness"></a>Paper Weakness</h1><ul>
+<li>The paper does not provide a clear explanation of the basic concepts. In Section II, it does not explain the meaning of latency and throughput in the context of HyPer, nor the relationship between them, so readers may not realize the significance of the tradeoff and possibly do not understand how performance improvements in later experimental results are achieved. For example, readers might not figure out why interpreters can achieve very low latency by sacrificing throughput. Therefore, the paper should explain these concepts.</li>
+<li>The paper’s experiments are not comprehensive enough. As a core component in data processing and storage, adaptive execution framework is only shown to have an advantage in execution time, while experiments demonstrating its physical device utilization, stability and fault recovery performance are lacking. These metrics are also critical in evaluating the overall performance of the framework. For example, for the same set of queries, if the execution time is short but the CPU and memory usage are extremely high, or if the probability of throwing an exception is high and a large amount of time is required for fault recovery, then the framework still has room for improvement. Therefore, the paper should include experimental results for these metrics.</li>
+<li>The paper does not provide a detailed explanation of how to translate into VM code. In Section IV-B, the paper mentions that subsumed instructions will not be translated, but it does not specify which types of instructions are subsumed or in what manner they are subsumed. These omissions can confuse readers and hinder their understanding of the translation pseudocode. Therefore, the paper should explain principles behind subsumed instructions.</li>
+</ul>
+<p>Reference: <a href="https://db.in.tum.de/~leis/papers/adaptiveexecution.pdf">https://db.in.tum.de/~leis/papers/adaptiveexecution.pdf</a></p>
+]]></content>
+      <categories>
+        <category>高级数据存储</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>AnalyticDB - Real-time OLAP Database System at Alibaba Cloud</title>
+    <url>/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/25/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20AnalyticDB%20Real-time%20OLAP%20Database%20System%20at%20Alibaba%20Cloud/</url>
+    <content><![CDATA[<h1 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h1><p>The paper addresses 3 problems:</p>
+<ol>
+<li>How to process more complicated and diverse queries of users with low latency;</li>
+<li>How to design a friendly and unified data layout that is compatible with column-stores and row-stores and is able to process the complex data type, with low latency;</li>
+<li>How to process massive requests per second with low latency.</li>
+</ol>
+<p>The paper provides 5 novel ideas and elaborates the proposed approach for the implementation of each idea:</p>
+<ol>
+<li>Read&#x2F;write decoupling, a worker node processes either read or write operation, guarantees that read operations do not interfere with read operations. In the real-time read mode, version verification is introduced to ensure that each query retrieves the latest data, i.e., the $\text{latest version} &#x3D; max⁡(V_1,V_2)$. Furthermore, after each write operation is completed, the write node actively pulls the latest version to the corresponding read node to avoid high latency in subsequent read operations.</li>
+<li>The hybrid row-columnar storage for storing complex-typed data, a detail file &#x3D; $n$ row groups, a row group &#x3D; $k$ data blocks, a data block &#x3D; $p$ FBlocks, a FBlock &#x3D; $x$ values of a certain column of a partial row to many rows.</li>
+<li>Efficient index management includes the building and maintenance of indexes for both baseline data and incremental data. For baseline data, AnalyticDB builds inverted indexes and introduces a filter ratio to optimize read operations. For incremental data, AnalyticDB constructs lightweight sorted indexes on read nodes to expedite read operations before the asynchronous construction of the inverted index of this type of data is finished.</li>
+<li>For the optimizer, AnalyticDB introduces the STARs framework to evaluate both the capability of storage and relational algebra ability and adopts dynamic programming, in order to achieve efficient predicate push-down. This database minimizes the cost of shuffling tables for join push-down. For index-based join and aggregation, it employs the LeftDeepTree to efficiently utilize index-on-all-columns while also pushing down predicates and aggregations. Furthermore, the optimizer and execution engine perform sampling-based cardinality estimation with caching previously sampled results, optimized sampling algorithm, and improved derived cardinality.</li>
+<li>The execution engine is able to operate directly on serialized binary data rather than Java objects, eliminating the expensive costs of serialization and deserialization during the process of shuffling big data.</li>
+</ol>
+<p>Analytical and experimental findings: AnalyticDB outperforms PrestoDB, Druid, Spark-SQL, and Greenplum in performance on the 1TB dataset, and its performance is not affected dramatically when scaled to the 10TB dataset. As the number of write nodes increases, the write throughput of AnalyticDB exhibits steady growth. In the TPC-H Benchmark, AnalyticDB completes 20 out of 22 queries in half the time required by the second-fastest database. However, for Query 2, AnalyticDB is slower than PrestoDB and Greenplum due to selecting a different join order.</p>
+<h1 id="Paper-Strength"><a href="#Paper-Strength" class="headerlink" title="Paper Strength"></a>Paper Strength</h1><ul>
+<li>3 challenges outlined in the paper precisely target the critical obstacles faced by OLAP systems in achieving real-time and efficient response. Addressing these challenges not only significantly enhances the database’s compatibility with diverse queries and complex data types, but also improves its responsiveness in the production environment, underscoring the high research value. The integration of read-write decoupling with version verification ensures that read and write operations remain isolated, while consistently providing read queries with the latest data. The design of the hybrid data layout and indexes incorporates support for complex data types such as JSON, full-text, and vector data, enabling a unified access interface for diverse data operations. This significantly broadens the applicability of AnalyticDB to a wider range of use cases. Furthermore, the execution engine, which combines sampling-based cardinality estimation with caching and optimized sampling algorithms, etc, achieves high estimation accuracy at low overhead and minimal latency. In conclusion, the advancements and optimizations introduced in AnalyticDB represent a major step forward in enhancing data versatility and real-time responsiveness in OLAP systems, the comprehensive solution will fully demonstrate its capabilities in high-concurrency e-commerce scenarios.</li>
+<li>The paper provides a comprehensive literature review. The 2. Related Work section discusses the shortcomings of different databases. For example, expensive index updates in OLTP databases can degrade throughput and increase latency, and column-store in OLAP databases, such as TeradataDB and Greenplum, causes high random I&#x2F;O costs for point-lookup queries. Those issues above are effectively addressed in AnalyticDB. Furthermore, the paper outlines AnalyticDB’s improvements over Amazon Redshift and differences in query and aggregation compared to Google BigQuery.</li>
+<li>The paper provides the detailed description of processes of functionalities in AnalyticDB, including:<ol>
+<li>A thorough explanation of the read-write decoupling process from both reading and writing perspectives, accompanied by a flowchart specifically illustrating the more complex read operations.</li>
+<li>Pseudocode and comments of key instructions for 3 algorithms involved in Query Execution.</li>
+<li>A diagram outlining the merging process of baseline data and incremental data, broken down into 3 phases.</li>
+</ol>
+</li>
+</ul>
+<h1 id="Paper-Weakness"><a href="#Paper-Weakness" class="headerlink" title="Paper Weakness"></a>Paper Weakness</h1><ul>
+<li>The description of some functionalities in the paper is not complete. In Section 3.4 Read&#x2F;Write Decoupling of the paper, only the real-time read is mentioned, while the bounded-staleness read is missed. For OLAP, reading outdated data is acceptable, and the bounded-staleness read allows read nodes to only access the latest data on write nodes after a certain delay following write operations, so it ensures fast responses in AnalyticDB to some extent. However, this type of read is not explained in the paper.</li>
+<li>The paper lacks clarity in its description of certain newly introduced concepts. In Section 5.1.1, the discussion on predicate push-down provides only a brief overview of the STARs framework, without explaining how it applies relational algebra, how cost calculations are performed, and how the optimizer uses dynamic programming to encapsulate relational algebra operators. These omissions may leave readers confused.</li>
+<li>The performance evaluation experiments in the paper are relatively simplistic. First, only 3 SQL statements were tested, focusing on a narrow range of query types, specific table partitioning strategies, specific tables and fields, and specific data types. The tests did not address complex data types such as JSON. Second, the experiments only tested datasets of 1TB and 10 TB. However, in production environments, daily new data can reach tens or even hundreds of petabytes. On peak promotional days like Double 11 or 618, the daily data processing amount can reach hundreds or even thousands of petabytes. For example, during the 2022 Double 11, Taobao and Tmall experienced a peak order payment rate of 583000 transactions per second. Thus, the datasets used in the experiments fall far short of reflecting the scale of real-world scenarios. Third, the tests based on the TPC-H Benchmark evaluated only 22 queries, which is insufficient to comprehensively reflect the true performance of these 5 databases. Therefore, it is recommended to include all data and queries involved in the production environment, such as MySQL binlogs, ElasticSearch index logs and Kafka logs, etc, and a stability test lasting one week or longer should be conducted on these 5 databases to provide a more realistic evaluation.</li>
+</ul>
+<p>Reference: <a href="https://www.vldb.org/pvldb/vol12/p2059-zhan.pdf">https://www.vldb.org/pvldb/vol12/p2059-zhan.pdf</a></p>
+]]></content>
+      <categories>
+        <category>高级数据存储</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Managing Cold Data in a Memory-Optimized Database</title>
+    <url>/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/04/06/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Managing%20Cold%20Data%20in%20a%20Memory-Optimized%20Database/</url>
+    <content><![CDATA[<h1 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h1><p>The paper addresses 2 problems:</p>
+<ol>
+<li>How to migrate records to and from the cold store.</li>
+<li>How to read and update records in the cold store in a transactionally consistent manner.</li>
+</ol>
+<p>The paper provides 3 novel ideas and elaborates the proposed approach for the implementation of each idea:</p>
+<ol>
+<li>A unified interface that hides the physical location of a record to higher layer: the collaboration among cold store, access filters, private cache, and update memo.</li>
+<li>Minimizing the overhead caused by accessing secondary storage: each transaction has its own private cache.</li>
+<li>Seamless migration between hot and cold stores: the system performs migration using insert and delete operations in a transaction.</li>
+</ol>
+<p>Analytical and experimental findings: The paper evaluates the performance of Siberia on both the YCSB Benchmark and Multi-step read&#x2F;update workload, showing the following conclusions. With realistic client delay, the throughput loss is only 3%. Even under extreme cold access data rate, the in-memory Siberia machinery results in a low performance loss. When live migration is active, the system’s performance remains stable. The overhead of accessing the memo is expensive, which means that memo cleaning is important for improving performance. For read-only transactions at realistic cold data access rates of 5% and 10%, the performance losses are 7% and 14% respectively, which are acceptable. For update-only transactions, 5% cold data updates lead to 8% throughput loss, 10% cold data update rates lead to 13% throughput loss, which are also acceptable. For the YCSB workload, as the access skew decreases and the memory to database size ratio increases, performance degrades, and read-heavy workloads exhibit lower abort rates for transactions at higher skew rates compared to write-heavy workloads.</p>
+<h1 id="Paper-Strength"><a href="#Paper-Strength" class="headerlink" title="Paper Strength"></a>Paper Strength</h1><ul>
+<li>The paper provides a comprehensive literature review. In the HEKATON STORAGE AND INDEXING section, the paper briefly outlines the index and data storage structure of HEKATON and its read and update operations based on MVCC. In the RELATED WORK section, the paper analyzes how existing database systems handle cold data, explaining that Hyper manages cold data using virtual pages, Stoica et al propose separating hot and cold data into different memory locations. Finally, the paper describes the working principle of Anti-caching and highlights its 2 drawbacks: limited space savings and repeated execution.</li>
+<li>The paper provides a detailed description of the working principles after integrating SIBERIA into HEKATON. It presents the workflow of 2 transactions used during data migration to the cold store. Insert and update operations ensure that data is placed into the hot store to avoid the overhead of checking the cold store. Delete and read operations utilize notices in the update memo to perform concurrency control and conflict detection. Cold store cleaning is also driven by the update memo, which enables the timely removal of records from the cold store that are no longer visible to any active transactions. Furthermore, validation leverages the notices in the update memo as well and computes TsBoundSer to ensure the correctness of serializable transactions, thereby enhancing phantom detection.</li>
+<li>The paper presents the relatively comprehensive experiment. The experiments are based on the YCSB Benchmark and Multi-step read&#x2F;update workload, which allow for testing Siberia’s performance under different workloads. Moreover, the paper evaluates the pure in-memory overhead of Siberia, the overhead of running live migration, and the overhead of the update memo on the path to accessing a cold record. Furthermore, under the YCSB workload, it demonstrates the relationship among workload skew, memory to database size ratios, and workload performance.</li>
+</ul>
+<h1 id="Paper-Weakness"><a href="#Paper-Weakness" class="headerlink" title="Paper Weakness"></a>Paper Weakness</h1><ul>
+<li>The paper does not describe the process of integrating Siberia in HEKATON at the code level, but only mentions integration at the level of data processing and storage mechanisms. It details the cold data migration process and explains how update memo notices in the insert, delete, read, and update operations work in collaboration with HEKATON’s versioning and concurrency control. However, the paper does not address how Siberia is integrated into HEKATON at the code level, such as by identifying core functions, code segments, and the corresponding modifications. This omission makes it difficult for readers to easily re-achieve the Siberia. Therefore, the paper should at least provide an outline of the code modifications.</li>
+<li>In the Synthetic End-to-End Workload section, the paper does not discuss the throughput loss under moderate to high cold data access rates. The paper only presents the throughput loss at 5% and 10% cold data access rates, claiming these are realistic cold data access rates. First, the paper fails to explain which report or literature supports that 5% and 10% are “realistic cold data access rates” in the Read-Only Transactions section. Second, we assume the above data is accurate, but the paper does not describes how the throughput loss changes when cold data access rates exceed 10%. This omission prevents readers from gaining a comprehensive understanding of the performance of handling workload in Siberia. Therefore, the paper should explain how the realistic cold data access rates were determined and describe the changes in throughput loss under moderate to high cold data access rates.</li>
+<li>The paper does not discuss Siberia’s performance limitations or the conditions under which its performance might degenerate, despite the Experiments section showcasing impressive performance. It is possible that such impressive performance comes at the cost of high hardware utilization such as high CPU usage. Alternatively, while integrating Siberia in HEKATON may enhance the handling of hot and cold data, it could potentially compromise some of HEKATON’s original features. Therefore, the paper should clarify the situations under which Siberia’s performance may degenerate.</li>
+</ul>
+<p>Reference: <a href="https://www.vldb.org/pvldb/vol7/p931-eldawy.pdf">https://www.vldb.org/pvldb/vol7/p931-eldawy.pdf</a></p>
+]]></content>
+      <categories>
+        <category>高级数据存储</category>
+      </categories>
+  </entry>
+  <entry>
     <title>SQL</title>
     <url>/MySQL/2024/09/14/MySQL/SQL/</url>
     <content><![CDATA[<h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>注释：</p>
@@ -189,434 +311,35 @@
       </categories>
   </entry>
   <entry>
-    <title>介绍</title>
-    <url>/MySQL/2024/09/12/MySQL/%E4%BB%8B%E7%BB%8D/</url>
-    <content><![CDATA[<h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>数据库是数据存储的仓库，是文件的集合，是依照某种数据模型组织起来并存放于二级存储器中的数据集合。</p>
-<p>数据库实例是程序，是位于用户和操作系统之间的一层数据管理软件，用户对数据库数据的任何操作都是在数据库实例下进行的。应用程序只有通过数据库实例才能和数据库打交道。</p>
-<p>在 MySQL 中，实例和数据库的关系通常是一一对应的。但在集群下可能存在一个数据库被多个数据库实例使用的情况。</p>
-<p>关系型数据库（结构数据模型，表）：建立在关系模型基础上，由多张相互连接的<strong>二维表</strong>组成的数据库。</p>
-<p>数据库管理系统（DBMS）：操纵和管理数据库的应用程序。</p>
-<p>SQL：操作关系型数据库的编程语言，也是一套标准。</p>
-<p>客户端&#x3D;&gt;数据库管理系统&#x3D;&gt;数据库&#x3D;&gt;数据表。</p>
-<h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>MySQL 是由 Oracle 公司开发的开源关系型数据库管理系统（RDBMS），它使用结构化查询语言（SQL）来定义、操作和管理数据表格，并将数据存储在由行和列组成的表中，以实现数据之间的关联与组织。MySQL 支持完整的 ACID 事务特性和多版本并发控制（MVCC），能够在高并发环境下保持数据的一致性与隔离度，同时提供跨 Windows、Linux、macOS、FreeBSD 等多个平台的部署能力。由于其易用、高性能和可靠性，MySQL 在 Web 应用和企业级系统中被广泛采用。</p>
-<p>MySQL 的架构采用可插拔的存储引擎机制，其中 InnoDB 作为默认引擎提供行级锁、外键约束、崩溃恢复和双写缓冲等功能，以实现高可用的事务处理和崩溃恢复能力。除了 InnoDB，MySQL 还支持 MyISAM（非事务、表级锁）、Memory（将数据保存在内存中用于临时表或缓存）以及 NDB Cluster（面向分布式高可用集群）等存储引擎，以满足不同场景下的性能与可靠性需求。在服务器层面，MySQL 包含 SQL 解析器、查询优化器和执行器，优化器基于统计信息和索引选择最优执行计划，执行器通过存储引擎接口完成具体的数据访问和操作。</p>
-<p>在部署与扩展方面，MySQL 支持基于二进制日志（Binlog）的异步复制、半同步复制和组复制，能够构建主从复制或多主复制架构，以实现高可用和读写分离，从而提升系统的读吞吐量与容错能力。此外，MySQL 生态中有 Percona Toolkit、ProxySQL、Orchestrator 等工具可用于性能诊断、主库切换和连接池管理，官方提供的图形化管理工具 MySQL Workbench 和 phpMyAdmin 也大大简化了数据库设计与运维流程。典型应用场景包括 Web 应用后端（如内容管理系统）、电子商务平台（通过主从复制实现高并发访问）、日志与分析系统（结合 Archive 或 MyISAM 引擎加速写入），以及借助 Vitess、ShardingSphere 等中间件实现的水平分片架构，以应对千万级 QPS 的大规模分布式需求。</p>
-<h1 id="数据库三大范式"><a href="#数据库三大范式" class="headerlink" title="数据库三大范式"></a>数据库三大范式</h1><p>第一范式（1NF）：确保表的每一列都是<strong>不可分割</strong>的基本数据单元，比如说用户地址，应该拆分成省、市、区、详细信息等 4 个字段。</p>
-<p>第二范式（2NF）：在 1NF 的基础上，要求数据库表中的<strong>每一列都和主键直接相关</strong>，而不能只与主键的某一部分相关（主要针对联合主键）。</p>
-<p>第三范式（3NF）：在 2NF 的基础上，消除非主键列对主键的传递依赖，即<strong>非主键列只依赖于主键列</strong>，不依赖于其他非主键列。</p>
+    <title>Orca - A Modular Query Optimizer Architecture for Big Data</title>
+    <url>/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/02/11/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Orca/</url>
+    <content><![CDATA[<h1 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h1><p>The paper addresses 2 problems:</p>
+<ol>
+<li>How to design a query optimizer that can handle big data and complex analytical queries while ensuring the generation of efficient query plans.</li>
+<li>Exploring the application of advanced query optimization theories in production environments.</li>
+</ol>
+<p>The paper provides 4 novel ideas and elaborates the proposed approach for the implementation of each idea:</p>
+<ol>
+<li>Decoupling the optimizer from the DB systems through DXL: Different DB systems need to implement 3 translators, Query2DXL, MD Provider, and DXL2Plan, to support Orca.</li>
+<li>Use Memo and Group Hash Tables to optimize: Each group in the Memo stores all logically equivalent group expressions for a given operation, including enforcer operators. The group hash tables record the optimal implementation for each optimization request, i.e., the best group expressions. During query optimization, by retrieving the best group expression (best GExprs) corresponding to a given optimization request for each group and its child groups, these best GExprs are linked together to form the best execution plan.</li>
+<li>Implementing the parallel query optimization with jobs dependency graph and job queues: If a group is currently processing an optimization job, other jobs will be placed in a queue to wait. Once the job is completed, its results can be utilized by subsequent jobs.</li>
+<li>Developed efficient tools for testing: AMPERe is used to catch errors and generate dump files for later replaying to debug. TAQO samples plans uniformly based on the optimization requests’ linkage structure and evaluates the optimizer’s accuracy by calculating the correlation score between the ranking of sampled plans based on estimated costs and their ranking based on actual costs.</li>
+</ol>
+<p>Analytical and experimental findings: Based on the TPC-DS Benchmark, a limited set of queries was used to test GPDB legacy query optimizer (111 queries, MPP) and Orca, as well as Impala (31 queries, Hadoop), Stinger (19 queries, Hadoop), Presto (12 queries, Hadoop) and HAWQ. The results concluded that Orca matched or outperformed the GPDB optimizer in 80% of query executions. For 14 queries, Orca achieved a speed-up ratio of at least 1000× compared to the GPDB optimizer. Presto failed to process any TPC-DS queries under all test conditions, and query execution performance on HAWQ was generally superior to that on Impala and Stinger.</p>
+<h1 id="Paper-Strength"><a href="#Paper-Strength" class="headerlink" title="Paper Strength"></a>Paper Strength</h1><ul>
+<li>The paper provides a comprehensive literature review and covers the prerequisite knowledge needed to understand Orca. In the PRELIMINARIES, the paper briefly analyzes GPDB and explains its 3 core components: master, segments, and the interconnect layer, explains how SQL and query optimizers have been integrated into big data processing components such as Hadoop. Furthermore, it analyzes the advantages of the HAWQ architecture which is optimized by Orca compared to Impala and Presto. In the RELATED WORK, the paper introduces Volcano and Cascades, highlighting that Cascades offers greater flexibility than Volcano, then discusses various query optimizer implementations for big data in MPP databases, such as PDW and SCOPE. Finally, the paper reviews existing efforts to integrate SQL with Hadoop, such as converting queries into MapReduce jobs (Hive) and co-location of DBMS and Hadoop technologies (Hadapt).</li>
+<li>The paper presents highly valuable solutions for query optimization on big data: DXL and Parallel Query Optimization. Different DBs only need to implement their own Query2DXL and DXL2Plan translators to achieve compatibility with Orca, giving Orca the potential to be adapted to any existing database system. To satisfy the core requirement of big data, concurrent processing, Orca constructs an optimization jobs dependency graph to determine the dependencies between jobs. Parent jobs can only be executed after their child jobs are completed, while independent jobs can run in parallel. For handling resource contention, Orca places incoming jobs in a job queue, where they wait until the running job is finished. These waiting jobs can then leverage the results generated by the completed jobs.</li>
+<li>The paper elaborates steps of Orca’s optimization in the QUERY OPTIMIZATION section. In the Exploration phase, Orca creates logically equivalent expressions and deduplicates them using the Memo. In the Statistics Derivation phase, Orca estimates the cardinality and data skew for Memo groups. In the Implementation phase, Orca generates physical implementations of logical expressions. In the Optimization phase, multiple execution plans are generated, incorporating enforcer operators when necessary. The cost model is then used to select the execution plan with the lowest cost. These details effectively help readers gain a high-level understanding of Orca’s working principles.</li>
+</ul>
+<h1 id="Paper-Weakness"><a href="#Paper-Weakness" class="headerlink" title="Paper Weakness"></a>Paper Weakness</h1><ul>
+<li>The paper lacks a description of how execution plan costs are computed during the Optimization phase. Specifically, there is a complete absence of discussion on the cost model, which should be a core functionality of Orca. This is particularly crucial when dealing with big data and a shared-nothing architecture, where the cost model here may differ from the Selinger’s cost model by incorporating coordination and communication across multiple worker nodes and need to account for network bandwidth. I recommend that the paper include a detailed description of the cost model and discuss its behavior in both monolithic and distributed DB systems.</li>
+<li>The paper’s experimental evaluation for MPP databases is based on a limited dataset. Orca was only compared against the GPDB legacy query optimizer using 119 queries. Both the number of queries and the number of MPP database optimizer being compared are insufficient to convincingly demonstrate Orca’s advantages over other MPP database optimizers. Therefore, the experiment should conduct comparisons with a broader range of MPP databases, such as Amazon Redshift and Teradata Aster, to provide a more comprehensive evaluation.</li>
+<li>The paper’s experiments do not reflect Orca’s hardware utilization, such as CPU usage, memory consumption, etc. Orca will possibly be used in a shared-nothing architecture, it will run across multiple servers. However, in the production environment, these servers will be not dedicated solely to Orca, other processes including databases that Orca will optimize is going to be probably running on the same server where Orca will be. If Orca has excessively high CPU or memory usage, it could negatively impact those databases’ query execution and the performance of other applications. This effect could accumulate across multiple servers, leading to significant performance degradation. Therefore, the paper should also include an evaluation of Orca’s hardware resource consumption.</li>
+</ul>
+<p>Reference: <a href="https://dl.acm.org/doi/10.1145/2588555.2595637">https://dl.acm.org/doi/10.1145/2588555.2595637</a></p>
 ]]></content>
       <categories>
-        <category>MySQL</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>CAMP</title>
-    <url>/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/CAMP/</url>
-    <content><![CDATA[<h1 id="Greedy-Dual-Size-GDS-algorithm"><a href="#Greedy-Dual-Size-GDS-algorithm" class="headerlink" title="Greedy Dual Size (GDS) algorithm"></a>Greedy Dual Size (GDS) algorithm</h1><p>Key Concepts:</p>
-<ol>
-<li><strong>Variable Size and Cost</strong>:<ul>
-<li>Unlike simple algorithms that treat all objects equally, GDS takes into account:<ul>
-<li><strong>Size of the object</strong> (<code>size(p)</code>): Larger objects take up more space in memory.</li>
-<li><strong>Cost of the object</strong> (<code>cost(p)</code>): This can represent factors like time to retrieve the object, computational effort, or other resource usage.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><strong>Score H(p)</strong>:<ul>
-<li>Each key-value pair ppp in the cache is assigned a score H(p). This score reflects the <strong>benefit of keeping the object</strong> in memory and is calculated using:<ul>
-<li>A <strong>global parameter L</strong>, which adjusts dynamically based on cache state.</li>
-<li>The <strong>size(p)</strong> of the object.</li>
-<li>The <strong>cost(p)</strong> associated with the object.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><strong>Eviction Strategy</strong>:<ul>
-<li>When the cache is full, and a new object needs to be added, GDS removes the object with the <strong>lowest score H(p)</strong>. This process continues until there is enough space for the new object.</li>
-</ul>
-</li>
-</ol>
-<h2 id="Proposition-1"><a href="#Proposition-1" class="headerlink" title="Proposition 1"></a>Proposition 1</h2><p><strong>L is non-decreasing over time.</strong></p>
-<ul>
-<li>The global parameter L, which reflects the minimum priority H(p) among all key-value pairs in the KVS, will either stay the same or increase with each operation. This ensures stability and helps prioritize eviction decisions consistently.</li>
-</ul>
-<p>For any key-value pair ppp in the KVS, the relationship holds:</p>
-<p><strong>L ≤ H(p) ≤ L + cost(p) &#x2F; size(p)</strong></p>
-<ul>
-<li>H(p), the priority of p, always lies between the global minimum L and L + cost(p) &#x2F; size(p), ensuring H(p) reflects both its retrieval cost and size relative to other elements.</li>
-</ul>
-<p><strong>Intuition Behind Proposition 1:</strong></p>
-<ul>
-<li>As L increases over time (reflecting the minimum H(p)), less recently used or less “valuable” pairs become increasingly likely to be evicted. This ensures that newer and higher-priority pairs stay in the KVS longer.</li>
-</ul>
-<p><strong>Key Insights from Proposition 1:</strong></p>
-<ol>
-<li><strong>Delayed Eviction:</strong><ul>
-<li>When p is requested again while in memory, its H(p) increases to L + cost(p) &#x2F; size(p), delaying its eviction.</li>
-</ul>
-</li>
-<li><strong>Impact of Cost-to-Size Ratio:</strong><ul>
-<li>Pairs with higher cost(p) &#x2F; size(p) stay longer in the KVS. For example, if one pair’s ratio is c times another’s, it will stay approximately c times longer.</li>
-</ul>
-</li>
-</ol>
-<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/chart3.png" alt="img"></p>
-<h2 id="Key-Points-in-the-Diagram"><a href="#Key-Points-in-the-Diagram" class="headerlink" title="Key Points in the Diagram"></a>Key Points in the Diagram</h2><ol>
-<li><strong>Cost-to-Size Ratios</strong>:<ol>
-<li>Key-value pairs are grouped into <strong>queues</strong> according to their cost-to-size ratio.</li>
-<li>Each queue corresponds to a specific cost-to-size ratio.</li>
-</ol>
-</li>
-<li><strong>Grouping by Ratio</strong>:<ol>
-<li>Within each queue, key-value pairs are managed using the <strong>Least Recently Used (LRU)</strong> strategy.</li>
-</ol>
-</li>
-<li><strong>Priority Management</strong>:<ol>
-<li>The <strong>priority (H-value)</strong> of a key-value pair is based on: <strong>H(p) &#x3D; L + cost(p) &#x2F; size(p)</strong><ol>
-<li>L: The global non-decreasing variable.</li>
-<li>cost(p) &#x2F; size(p): The cost-to-size ratio of the key-value pair.</li>
-</ol>
-</li>
-</ol>
-</li>
-<li><strong>Efficient Eviction</strong>:<ol>
-<li>CAMP maintains a <strong>heap</strong> that points to the <strong>head of each queue</strong>, storing the minimum H(p) from every queue.</li>
-<li>To identify the next key-value pair for eviction:<ol>
-<li><strong>The algorithm checks the heap to find the queue with the smallest H(p).</strong></li>
-<li><strong>It then evicts the key-value pair at the front of that queue (i.e., the least recently used pair in that cost-to-size group).</strong></li>
-</ol>
-</li>
-</ol>
-</li>
-</ol>
-<h2 id="Rounding-in-CAMP"><a href="#Rounding-in-CAMP" class="headerlink" title="Rounding in CAMP"></a>Rounding in CAMP</h2><p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/bg_bm_rounding.png" alt="img"></p>
-<ol>
-<li><strong>Purpose</strong>: To improve performance, CAMP <strong>reduces the number of LRU queues</strong> by grouping key-value pairs with <strong>similar cost-to-size ratios</strong> into the same queue.</li>
-<li><strong>Key Idea</strong>: Preserve the most significant bits proportional to the value’s size.</li>
-</ol>
-<h2 id="Proposition-2-Explanation-of-Rounding-and-Distinct-Values"><a href="#Proposition-2-Explanation-of-Rounding-and-Distinct-Values" class="headerlink" title="Proposition 2: Explanation of Rounding and Distinct Values"></a>Proposition 2: Explanation of Rounding and Distinct Values</h2><h3 id="Implications"><a href="#Implications" class="headerlink" title="Implications"></a>Implications</h3><ol>
-<li><p><strong>Trade-Off Between Precision and Efficiency</strong>:</p>
-<ul>
-<li><p>A higher p preserves more precision but increases the number of distinct values (and thus computational complexity).</p>
-</li>
-<li><p>Lower p reduces the number of distinct values, making CAMP more efficient but less precise.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Rounding Efficiency</strong>:</p>
-<ul>
-<li>By limiting the number of distinct values, CAMP minimizes the number of LRU queues, reducing overhead while still approximating GDS closely.</li>
-</ul>
-</li>
-</ol>
-<h2 id="Proposition-3-Competitive-Ratio-of-CAMP"><a href="#Proposition-3-Competitive-Ratio-of-CAMP" class="headerlink" title="Proposition 3: Competitive Ratio of CAMP"></a>Proposition 3: Competitive Ratio of CAMP</h2><h3 id="Practical-Implications"><a href="#Practical-Implications" class="headerlink" title="Practical Implications"></a>Practical Implications</h3><ol>
-<li><p><strong>Precision ppp</strong>:</p>
-<ul>
-<li><p>The smaller the ϵ (higher ppp), the closer CAMP approximates GDS.</p>
-</li>
-<li><p>For sufficiently large p, CAMP performs nearly as well as GDS.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Trade-off</strong>:</p>
-<ul>
-<li>Higher p increases precision but also increases the number of distinct cost-to-size ratios and computational overhead.</li>
-</ul>
-</li>
-</ol>
-<h3 id="CAMP’s-Improvement-Over-GDS"><a href="#CAMP’s-Improvement-Over-GDS" class="headerlink" title="CAMP’s Improvement Over GDS:"></a>CAMP’s Improvement Over GDS:</h3><ol>
-<li><strong>Approximation:</strong> CAMP simplifies H(p) by <strong>rounding</strong> the cost-to-size ratio, reducing the precision but making the algorithm more efficient.</li>
-<li><strong>Grouping:</strong> Key-value pairs are <strong>grouped</strong> by similar cost-to-size ratios, reducing the number of queues and simplifying priority management.</li>
-<li><strong>Tie-Breaking:</strong> CAMP uses <strong>LRU within each group</strong> to determine the eviction order, making it computationally cheaper.</li>
-</ol>
-<h3 id="Figure-4-Heap-Node-Visits"><a href="#Figure-4-Heap-Node-Visits" class="headerlink" title="Figure 4: Heap Node Visits"></a>Figure 4: Heap Node Visits</h3><p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/chart4.png" alt="img"></p>
-<p>This figure compares the number of heap node visits for GDS and CAMP as a function of cache size:</p>
-<ol>
-<li><p><strong>GDS</strong>:</p>
-<ul>
-<li><p><strong>Heap size equals the total number of key-value pairs in the cache.</strong></p>
-</li>
-<li><p>Every heap update (insertion, deletion, or priority change) requires visiting O(log⁡n) nodes, where n is the number of cache entries.</p>
-</li>
-<li><p>As cache size increases, GDS’s overhead grows significantly.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>CAMP</strong>:</p>
-<ul>
-<li><p><strong>Heap size equals the number of non-empty LRU queues, which is much smaller than the total number of cache entries.</strong></p>
-</li>
-<li><p>Heap updates occur only when:</p>
-<ul>
-<li><p>The priority of the head of an LRU queue changes.</p>
-</li>
-<li><p>A new LRU queue is created.</p>
-</li>
-</ul>
-</li>
-<li><p>As cache size increases, the number of non-empty LRU queues remains relatively constant, resulting in fewer heap updates.</p>
-</li>
-</ul>
-</li>
-</ol>
-<h1 id="Evaluation"><a href="#Evaluation" class="headerlink" title="Evaluation"></a>Evaluation</h1><p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/chart5.png" alt="img"></p>
-<p><strong>(a) Cost-Miss Ratio vs Precision</strong></p>
-<ul>
-<li><strong>横轴</strong>：精度（Precision），从低到高。</li>
-<li><strong>纵轴</strong>：成本未命中比（Cost-Miss Ratio）。</li>
-<li><strong>结果</strong>：<ul>
-<li>不同的缓存大小比（0.01、0.1 和 0.3）在较低精度下表现一致。</li>
-<li>提高精度后，成本未命中比没有显著变化。</li>
-<li>说明即使使用较低精度，CAMP 的成本未命中比也能接近 GDS（标准实现）。</li>
-</ul>
-</li>
-</ul>
-<p><strong>(b) LRU Queues vs Precision</strong></p>
-<ul>
-<li><strong>横轴</strong>：精度（Precision）。</li>
-<li><strong>纵轴</strong>：CAMP 维护的非空 LRU 队列数量。</li>
-<li><strong>结果</strong>：<ul>
-<li><strong>低精度</strong>（1-5）：CAMP 维持稳定的少量 LRU 队列（约 5 个）。</li>
-<li><strong>高精度</strong>（&gt;10）：队列数增加，尤其是在较大的缓存大小比（如 1.0）下。</li>
-<li><strong>结论</strong>：<ul>
-<li>在较低精度下，CAMP 能保持较低的计算开销，同时维持高效的队列管理。</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<p><strong>(c) Cost-Miss Ratio vs Cache Size Ratio</strong></p>
-<ul>
-<li><strong>横轴</strong>：缓存大小比（Cache Size Ratio），即缓存大小与 trace 文件中唯一键值对总大小的比值。</li>
-<li><strong>纵轴</strong>：成本未命中比（Cost-Miss Ratio）。</li>
-<li><strong>结果</strong>：<ul>
-<li><strong>CAMP</strong>：<ul>
-<li>在所有缓存大小下，成本未命中比最低。</li>
-<li>说明 CAMP 在高成本键值对管理上更具效率。</li>
-</ul>
-</li>
-<li><strong>Pooled LRU</strong>：<ul>
-<li>在较小缓存下表现稍差，但随着缓存增加，接近 CAMP。</li>
-</ul>
-</li>
-<li><strong>LRU</strong>：<ul>
-<li>成本未命中比始终最高。</li>
-</ul>
-</li>
-<li><strong>结论</strong>：<ul>
-<li>CAMP 优于 LRU 和 Pooled LRU，尤其是在小缓存下。</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<p><strong>(d) Miss Rate vs Cache Size Ratio</strong></p>
-<ul>
-<li><strong>横轴</strong>：缓存大小比（Cache Size Ratio）。</li>
-<li><strong>纵轴</strong>：未命中率（Miss Rate）。</li>
-<li><strong>结果</strong>：<ul>
-<li><strong>CAMP</strong>：<ul>
-<li>未命中率显著低于 LRU 和 Pooled LRU，尤其在小缓存下表现最优。</li>
-</ul>
-</li>
-<li><strong>Pooled LRU</strong>：<ul>
-<li>未命中率随着缓存增大而下降，但始终高于 CAMP。</li>
-<li>最低成本池（cheapest pool）未命中率接近 100%，次低成本池未命中率达到 65%。</li>
-</ul>
-</li>
-<li><strong>LRU</strong>：<ul>
-<li>始终高于 CAMP 和 Pooled LRU。</li>
-</ul>
-</li>
-<li><strong>结论</strong>：<ul>
-<li>CAMP 在多种缓存大小下都保持较低的未命中率，且比 Pooled LRU 更均衡。</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h1 id="CAMP-的适应能力：访问模式变化的分析"><a href="#CAMP-的适应能力：访问模式变化的分析" class="headerlink" title="CAMP 的适应能力：访问模式变化的分析"></a>CAMP 的适应能力：访问模式变化的分析</h1><p>实验设置：</p>
-<ul>
-<li>使用 10 个不同的 trace 文件，每个文件包含 400 万个键值对引用。</li>
-<li>每个 trace 文件（如 TF1、TF2 等）中的请求在其结束后不会再被引用，模拟访问模式的突然变化。</li>
-<li>访问模式具有倾斜分布（如 Zipf 分布），每个 trace 文件中的高成本对象可能在下一次访问中完全无效。</li>
-</ul>
-<p>目标：</p>
-<ul>
-<li>比较 <strong>CAMP</strong>、<strong>Pooled LRU</strong> 和 <strong>LRU</strong> 在不同缓存大小下对访问模式突变的适应能力。</li>
-<li>评估三种算法在突然变化后清除旧的高成本键值对的效率，以及对总体性能（如成本未命中比和未命中率）的影响。</li>
-</ul>
-<p>不同算法的行为分析</p>
-<ol>
-<li><p><strong>LRU</strong>：</p>
-<ul>
-<li><p>按最近使用排序，当新请求的总大小超过缓存大小时清除旧数据。</p>
-</li>
-<li><p>当缓存大小比为 1 时，清除 TF1 数据的时间点对应于 TF3 开始请求的第一个键值对。</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Pooled LRU</strong>：</p>
-<ul>
-<li><p>将键值对按成本分组，每组分配固定比例的缓存空间。</p>
-</li>
-<li><p>高成本池占据 99% 的缓存空间，因此在每个新 trace 开始时会突然清除一批旧数据。</p>
-</li>
-<li><p>对于缓存大小比 2&#x2F;3 或更高的情况，直到 TF4（约 800 万请求后）才会清除所有 TF1 数据。</p>
-</li>
-</ul>
-</li>
-<li><p><strong>CAMP</strong>：</p>
-<ul>
-<li><p>对每个成本-大小比维护 LRU 队列，这些队列的大小可以动态调整。</p>
-</li>
-<li><p><strong>优先淘汰较低优先级的数据，但高成本数据即使来自旧 trace，也具有一定保留优先级。</strong></p>
-</li>
-<li><p><strong>当新数据的总大小超过缓存时，旧 trace 的高成本数据才会被逐步清除。</strong></p>
-</li>
-</ul>
-</li>
-</ol>
-<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/chart6.png" alt="img"></p>
-<p><strong>图 6c：缓存比 0.25（小缓存）</strong></p>
-<ol>
-<li><p><strong>LRU</strong>：</p>
-<ul>
-<li><p>清除最快，仅需 <strong>2.1 万次请求</strong> 即完全清除 Trace 1 的所有键值对。</p>
-</li>
-<li><p>由于 LRU 优先淘汰最久未使用的数据，小缓存下表现最佳。</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Pooled LRU</strong>：</p>
-<ul>
-<li><p>清除速度较慢，需要 <strong>13.1 万次请求</strong>。</p>
-</li>
-<li><p>原因：Pooled LRU 按成本对键值对分组，高成本池占用较多缓存空间，导致清除滞后。</p>
-</li>
-</ul>
-</li>
-<li><p><strong>CAMP</strong>：</p>
-<ul>
-<li><p>初期清除速度比 Pooled LRU 更快，但最后完全清除所有键值对需到 <strong>TF3 结束（770 万次请求）</strong>。</p>
-</li>
-<li><p>然而，这些未被清除的 Trace 1 数据仅占缓存的 <strong>2%</strong>，说明 CAMP 优先保留了高成本键值对。</p>
-</li>
-</ul>
-</li>
-</ol>
-<p><strong>图 6d：缓存比 0.75（大缓存）</strong></p>
-<ol>
-<li><p><strong>LRU</strong>：</p>
-<ul>
-<li><p>同样清除最快，几乎在 Trace 2 开始时就清除掉大部分 Trace 1 的数据。</p>
-</li>
-<li><p>说明即使缓存较大，LRU 仍然倾向淘汰旧数据。</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Pooled LRU</strong>：</p>
-<ul>
-<li><p>清除延迟显著，需要 <strong>730 万次请求</strong>，接近 TF3 结束。</p>
-</li>
-<li><p>原因：高成本池占用过多缓存空间，延迟清除低成本和无用数据。</p>
-</li>
-</ul>
-</li>
-<li><p><strong>CAMP</strong>：</p>
-<ul>
-<li><p>大部分 Trace 1 数据在较早阶段被淘汰，仅保留少量最昂贵的键值对（占缓存比小于 <strong>0.6%</strong>）。</p>
-</li>
-<li><p>即使在 <strong>4000 万次请求</strong>后，这些高成本键值对仍在缓存中，但对整体缓存利用影响极小。</p>
-</li>
-</ul>
-</li>
-</ol>
-<p>针对不同大小但成本相同的键值对，CAMP 优先保留较小的键值对，从而降低未命中率和成本未命中比。</p>
-<p>针对相同大小但成本不同的键值对，CAMP 优先保留高成本键值对，在成本未命中比上显著优于其他算法。</p>
-<p>与其他算法的对比：</p>
-<ul>
-<li><p>LRU：适用于简单场景，但无法处理成本差异。</p>
-</li>
-<li><p>Pooled LRU：小缓存情况下表现不错，但静态分区策略限制了其大缓存场景的效率。</p>
-</li>
-</ul>
-<p>CAMP 的适应性：在处理多样化的成本分布时，通过动态调整和四舍五入策略，CAMP 在复杂负载下表现出更高的灵活性和效率。</p>
-<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>What is the time complexity of LRU to select a victim?</strong></p>
-<p><strong>O(1)</strong> because the least recently used item is always at the tail of the list.</p>
-<p><strong>What is the time complexity of CAMP to select a victim?</strong></p>
-<p><strong>O(logk)</strong> CAMP identifies the key-value pair with the smallest priority from the heap, deletes it and then <strong>heapifies</strong>.</p>
-<p><strong>Why does CAMP do rounding using the high order bits?</strong></p>
-<ul>
-<li>CAMP rounds cost-to-size ratios to <strong>reduce the number of distinct ratios (or LRU queues)</strong>.</li>
-<li>High-order bits are retained because they represent the <strong>most significant portion of the value</strong>, ensuring that <strong>approximate prioritization is maintained</strong>.</li>
-</ul>
-<p><strong>How does BG generate social networking actions that are always valid?</strong></p>
-<p><strong>Pre-Validation of Actions:</strong></p>
-<ul>
-<li>Before generating an action, BG <strong>checks</strong> the current state of the database to ensure the action is valid. For instance:<ul>
-<li>A friend request is only generated if the two users are not already friends or in a “pending” relationship.</li>
-<li>A comment can only be posted on a resource if the resource exists.</li>
-</ul>
-</li>
-</ul>
-<p><strong>Avoiding Concurrent Modifications:</strong></p>
-<ul>
-<li>BG <strong>prevents multiple threads from concurrently modifying the same user’s state</strong>.</li>
-</ul>
-<p><strong>How does BG scale to a large number of nodes?</strong></p>
-<p>BG employs <strong>a shared-nothing architecture</strong> with the following mechanisms to scale effectively:</p>
-<ol>
-<li><p><strong>Partitioning Members and Resources:</strong></p>
-<ul>
-<li><p>BGCoord <strong>partitions</strong> the database into <strong>logical fragments</strong>, each containing <strong>a unique subset</strong> of members, their resources, and relationships.</p>
-</li>
-<li><p>These fragments are assigned to individual BGClients.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Multiple BGClients:</strong></p>
-<ul>
-<li><p>Each BGClient operates <strong>independently</strong>, generating workloads for its assigned logical fragment.</p>
-</li>
-<li><p>By running <strong>multiple</strong> BGClients <strong>in parallel</strong> across different nodes, BG can scale horizontally to handle millions of requests.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>D-Zipfian Distribution:</strong></p>
-<ul>
-<li><p>To ensure realistic and scalable workloads, BG uses a decentralized Zipfian distribution (D-Zipfian) that <strong>dynamically assigns</strong> requests to BGClients based on node performance.</p>
-</li>
-<li><p>Faster nodes receive a larger share of the logical fragments, ensuring even workload distribution.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Concurrency Control:</strong></p>
-<ul>
-<li>BG <strong>prevents simultaneous threads from issuing actions for the same user</strong>, maintaining the integrity of modeled user interactions and avoiding resource contention.</li>
-</ul>
-</li>
-</ol>
-<p><strong>True or False: BG quantifies the amount of unpredictable data produced by a data store?</strong></p>
-<p>True.</p>
-<p>This is achieved through:</p>
-<ul>
-<li><strong>Validation Phase:</strong><ul>
-<li>BG uses <strong>read and write log records</strong> to detect instances where a read operation observes a value <strong>outside the acceptable range</strong>, classifying it as “unpredictable data.”</li>
-</ul>
-</li>
-<li><strong>Metrics Collection:</strong><ul>
-<li>The percentage of requests that observe unpredictable data (τ) is a key metric used to evaluate the data store’s consistency.</li>
-</ul>
-</li>
-</ul>
-<p><strong>How is BG’s SoAR different than its Socialites rating?</strong></p>
-<p>SoAR (Social Action Rating): Represents the <strong>maximum throughput</strong> (actions per second) a data store can achieve while meeting a given SLA.</p>
-<p>Socialites Rating: Represents the <strong>maximum number of concurrent threads</strong> <strong>(users)</strong> a data store can support while meeting the SLA.</p>
-<p>Reference: <a href="https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=d6f9678772a09ca29101f5efce583960ecf53745">https://citeseerx.ist.psu.edu/document?repid=rep1&amp;type=pdf&amp;doi=d6f9678772a09ca29101f5efce583960ecf53745</a></p>
-]]></content>
-      <categories>
-        <category>数据库系统</category>
+        <category>高级数据存储</category>
       </categories>
   </entry>
   <entry>
@@ -1047,283 +770,6 @@
 <p>No, BG does not generate a friend request from A to B if they are already friends.</p>
 <p>Before generating a friend request, BG <strong>validates</strong> whether the relationship between A and B is pending or already confirmed. For example, in the <code>InviteFrdSession</code>, BG only selects users who have no existing “friend” or “pending” relationship with the requester to receive a new friend request.</p>
 <p>Reference: <a href="https://www.cidrdb.org/cidr2013/Papers/CIDR13_Paper93.pdf">https://www.cidrdb.org/cidr2013/Papers/CIDR13_Paper93.pdf</a></p>
-]]></content>
-      <categories>
-        <category>数据库系统</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>Gamma</title>
-    <url>/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/06/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/Gamma/</url>
-    <content><![CDATA[<h1 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h1><p>主要特点：</p>
-<ol>
-<li><strong>并行处理</strong>： Gamma 利用了分布式架构，通过将数据和计算任务分散到多个节点上并行处理，极大提高了查询性能和吞吐量。不同的节点可以同时处理不同的任务，从而加速整个系统的响应时间。</li>
-<li><ul>
-<li><strong>并行查询处理</strong>： Gamma 支持并行执行查询计划中的操作（如选择、投影、连接等）。系统采用流水线并行（pipelined parallelism）和分块并行（partitioned parallelism）技术来最大化资源利用率。</li>
-<li><strong>流式处理（Pipelining）</strong>： Gamma 支持流式处理，即在一个操作产生部分结果时，直接将这些结果传递给下一个操作，而不是等待整个操作完成。这样可以减少内存占用，并加快查询处理速度。</li>
-</ul>
-</li>
-<li><strong>数据分片（Declustering）</strong>： Gamma 系统通过数据分片将数据表水平拆分成多个片段，并将这些片段分布到不同的处理节点上。这种方式不仅均衡了负载，还支持并行的查询处理，避免单点瓶颈。</li>
-<li><strong>动态负载均衡</strong>： Gamma 能够根据查询的工作负载，动态分配任务到不同的节点，确保整个系统的负载均衡，避免某些节点过载导致性能下降。通过监控每个节点的工作情况，Gamma 能够优化数据和任务分布。</li>
-<li><strong>故障容错（Fault Tolerance）</strong>： Gamma 具有一定的故障容错能力，当某个节点出现故障时，系统可以通过冗余机制和数据复制，重新分配任务或从其他节点获取数据，避免系统中断。</li>
-<li><strong>扩展性（Scalability）</strong>： Gamma 系统的设计能够随着节点的增加而线性扩展。通过增加处理节点，Gamma 可以处理更大规模的数据和更多的并发查询，保持高性能。</li>
-</ol>
-<p>Gamma is based on the concept of a shared-nothing architecture in which processors do not share disk drives or random access memory and can only communicate with one another by sending messages through an interconnection network. Mass storage in such an architecture is generally distributed among the processors by connecting one or more disk drives to each processor.</p>
-<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/Gamma_Arch.png" alt="Gamma 架构"></p>
-<p>Reasons why the shared-nothing approach has become the architecture of choice.</p>
-<ul>
-<li>There is nothing to prevent the architecture from <strong>scaling</strong> to 1000s of processors unlike shared-memory machines for which scaling beyond 30-40 processors may be impossible.</li>
-<li>By associating a small number of disks with each processor and distributing the tuples of each relation across the disk drives, it is possible to achieve very high aggregate I&#x2F;O bandwidths without using custom disk controllers</li>
-</ul>
-<p>When Gamma’s system is figuring out the best way to run a query, it uses information about how the data is divided up (partitioned). This partitioning information helps the system decide how many processors (computers) need to be involved in running the query.</p>
-<ul>
-<li><strong>For hash partitioning</strong>: If a table (say, “X”) is divided based on a hash function applied to a certain column (like “y”), and the query asks for records where “X.y &#x3D; some value,” <strong>the system can directly go to the specific processor that holds the data matching that value</strong>.</li>
-<li><strong>For range partitioning</strong>: If the table is divided based on ranges of values for a column, <strong>the system can limit the query to only the processors that have data within the relevant range</strong>. For example, if “X” is partitioned such that one processor handles values from 1 to 100, and another handles values from 101 to 200, then a query asking for “X.y between 50 and 150” will involve only the processors that have data in those ranges.</li>
-</ul>
-<p>Different processes in the Gamma system work together. Here’s a simplified explanation of the main types of processes and their roles:</p>
-<ol>
-<li><p><strong>Catalog Manager</strong>: Acts like a “database encyclopedia,” <strong>storing all the information about data tables and structures</strong>. It ensures that data remains consistent when multiple users access the database.</p>
-</li>
-<li><p><strong>Query Manager</strong>: Each user gets a query manager that handles query requests. It is responsible for <strong>parsing the query, optimizing it, and generating the execution plan</strong>.</p>
-</li>
-<li><p><strong>Scheduler Processes</strong>: When a query is executed, the scheduler <strong>coordinates the execution steps</strong>. It activates the necessary operator processes (such as scan, selection, etc.) and ensures that all steps are performed in the correct order.</p>
-</li>
-<li><p><strong>Operator Processes</strong>: These processes <strong>carry out specific database operations</strong>, like filtering data or joining tables. To reduce the startup delay during query execution, some operator processes are pre-initialized when the system starts.</p>
-</li>
-<li><p><strong>Other Processes</strong>:</p>
-<ul>
-<li><p><strong>Deadlock Detection Process</strong>: Detects situations where two or more processes are stuck waiting for each other to release resources.</p>
-</li>
-<li><p><strong>Recovery Process</strong>: Manages data recovery after a system failure.</p>
-</li>
-</ul>
-</li>
-</ol>
-<p>How the Gamma system executes database queries?</p>
-<ol>
-<li><strong>Query Parsing and Optimization</strong>: When a user submits a query, Gamma first parses it to understand what the query is asking for. Then, the system optimizes the query to find the most efficient way to execute it.</li>
-<li><strong>Query Compilation</strong>: After optimization, the query is compiled into an “<strong>operator tree</strong>“ made up of different operations (such as scan, selection, join, etc.). This tree outlines the steps and the order in which the query will be executed.</li>
-<li><strong>Single-Site vs. Multi-Site Queries</strong>: If the query only involves data on a single node (e.g., querying a small table), the system executes it directly on that node. However, if the query involves data distributed across multiple nodes (e.g., joining large tables), the system uses a “scheduler process” to coordinate the execution.</li>
-<li><strong>Scheduler Coordination</strong>: The scheduler process is responsible for activating various operator processes across the nodes, such as instructing one node to scan data while another filters it. The scheduler also manages the flow of data between these operations, ensuring they happen in the correct order.</li>
-<li><strong>Returning the Results</strong>: Once all operations are completed, the query results are collected and returned to the user. For queries embedded in a program, the results are passed back to the program that initiated the query.</li>
-</ol>
-<p>Different operations (like scanning data, filtering, joining tables, etc.) are carried out in a parallel manner. Here’s a simplified explanation:</p>
-<ol>
-<li><strong>Operator Processes</strong>: In Gamma, each operation in a query is handled by something called an “operator process.” For example, if the query needs to scan data from a table, filter some rows, and then join with another table, there would be separate operator processes for scanning, filtering, and joining.</li>
-<li><strong>Data Flow</strong>: The data flows from one operator process to the next. For instance, the scan operator reads data from the disk and sends it to the filter operator, which then passes the filtered results to the join operator. This creates a kind of “data pipeline.”</li>
-<li><strong>Split Table</strong>: Gamma uses a “split table” to decide where the data should go next. Think of it like a routing table that directs the flow of data. For example, if the data needs to be sent to multiple nodes for parallel processing, the split table helps determine which node each piece of data should go to.</li>
-<li><strong>End of Processing</strong>: Once an operator finishes processing all its data, it closes its output streams and sends a signal to the scheduler process (which coordinates the whole query) to let it know that this part of the work is done.</li>
-</ol>
-<p>In simple terms, the operator and process structure in Gamma is like an assembly line where data moves from one step (operator) to the next, with each operator performing a specific task, and the split table guiding the data flow. This setup allows the system to process data in parallel across multiple nodes, making it much faster.</p>
-<h1 id="Operators"><a href="#Operators" class="headerlink" title="Operators"></a>Operators</h1><h2 id="Selection-Operator"><a href="#Selection-Operator" class="headerlink" title="Selection Operator"></a>Selection Operator</h2><p>Data Spread Across Multiple Disks: In Gamma, data tables are split up and stored across multiple disks (this is called “declustering”). Because of this, when you want to search (select) for specific data, the system can perform the search in parallel across multiple disks.</p>
-<p>Parallel Selection Process:</p>
-<ul>
-<li>If the search condition (predicate) matches the way the data is divided (partitioned), the system can narrow down the search to just the relevant nodes (computers with disks) that have the data. For example:</li>
-<li><ul>
-<li>If the data is divided using a <strong>hash or range</strong> partitioning method based on a certain attribute (like “employee ID”), and the search is also based on that attribute (e.g., “employee ID &#x3D; 123”), then the search can be directed only to the node that holds data matching that condition.</li>
-<li>If the data is divided using a <strong>round-robin</strong> method (spreading data evenly across all disks) or if the search condition <strong>doesn’t match the partitioning attribute</strong>, then the system has to search on all nodes.</li>
-</ul>
-</li>
-</ul>
-<p>Performance Optimization:</p>
-<ul>
-<li>To make the search faster, Gamma uses a “<strong>read-ahead</strong>“ technique. This means that when it reads one page of data, it starts loading the next page at the same time, so that the processing of data can keep going without waiting for the next page to load.</li>
-</ul>
-<h2 id="Join-Operator"><a href="#Join-Operator" class="headerlink" title="Join Operator"></a>Join Operator</h2><p>Using Hash Partitioning: The join algorithms in Gamma are based on a concept called “buckets.” This means splitting the two tables to be joined into separate groups (buckets) that don’t overlap. The groups are created by applying a hash function to the join attribute (e.g., Employee ID), so that data with the same hash value ends up in the same bucket.</p>
-<p>By partitioning the data into different buckets, each bucket contains unique data subsets, allowing parallel processing of these buckets, which speeds up the join operation. Additionally, <strong>all data with the same join attribute value is in the same bucket</strong>, making it easier to perform the join.</p>
-<p>Gamma implements four different parallel join algorithms:</p>
-<ul>
-<li><strong>Sort-Merge Join</strong>: Joins data by sorting and merging.</li>
-<li><strong>Grace Join</strong>: A distributed hash-based join algorithm.</li>
-<li><strong>Simple Hash Join</strong>: A straightforward hash-based partitioning join.</li>
-<li><strong>Hybrid Hash Join</strong>: A combination of different join techniques.</li>
-</ul>
-<p><strong>Default to Hybrid Hash Join:</strong> Research showed that the Hybrid Hash Join almost always performs the best, so Gamma uses this algorithm by default.</p>
-<p>Limitations: These hash-based join algorithms can <strong>only handle equi-joins</strong> (joins with equality conditions, like “Employee ID &#x3D; Department ID”). They currently don’t support non-equi-joins (conditions like “Salary &gt; Department Budget * 2”). To address this, Gamma is working on designing a new parallel non-equi-join algorithm.</p>
-<h3 id="Hybrid-Hash-Join"><a href="#Hybrid-Hash-Join" class="headerlink" title="Hybrid Hash-Join"></a>Hybrid Hash-Join</h3><ul>
-<li>In the first phase, the algorithm uses a hash function to partition the inner (smaller) relation, R, into N buckets. The tuples of the first bucket are used to build an in-memory hash table while the remaining N-1 buckets are stored in temporary files. A good hash function produces just enough buckets to ensure that each bucket of tuples will be small enough to fit entirely in main memory.</li>
-<li>During the second phase, relation S is partitioned using the hash function from step 1. Again, the last N-1 buckets are stored in temporary files while the tuples in the first bucket are used to immediately probe the in-memory hash table built during the first phase.</li>
-<li>During the third phase, the algorithm joins the remaining N-1 buckets from relation R with their respective buckets from relation S.</li>
-</ul>
-<p>The join is thus broken up into a series of smaller joins; each of which hopefully can be computed without experiencing join overflow. The size of the smaller relation determines the number of buckets; this calculation is independent of the size of the larger relation.</p>
-<h3 id="Parallel-version-of-Hybrid-Hash-Join"><a href="#Parallel-version-of-Hybrid-Hash-Join" class="headerlink" title="Parallel version of Hybrid Hash-Join"></a>Parallel version of Hybrid Hash-Join</h3><p>Partitioning into Buckets: The data from the two tables being joined is first divided into N buckets (small groups). The number of buckets is chosen so that each bucket can fit in the combined memory of the processors that are handling the join.</p>
-<p>Storage of Buckets: Out of the N buckets, N-1 buckets are stored temporarily on disk across different disk sites, while one bucket is kept in memory for immediate processing.</p>
-<p>Parallel Processing: A joining split table is used to decide which processor should handle each bucket, helping to divide the work across multiple processors. This means that <strong>different processors can work on different parts of the join at the same time</strong>, speeding up the process.</p>
-<p>Overlapping Phases for Efficiency:</p>
-<ul>
-<li>When partitioning the <strong>first table (R)</strong> into buckets, Gamma simultaneously builds a hash table for the first bucket in memory at each processor.</li>
-<li>When partitioning the <strong>second table (S)</strong>, Gamma simultaneously performs the join for the first bucket from S with the first bucket from R. This way, partitioning and joining overlap, making the process more efficient.</li>
-</ul>
-<p>Adjusting the Split Table for Parallel Joining: The joining split table is updated to make sure that the data from the first bucket of both tables is sent to the right processors that will perform the join. When the remaining N-1 buckets are processed, only the routing for joining is needed.</p>
-<h2 id="Aggregate-Operator"><a href="#Aggregate-Operator" class="headerlink" title="Aggregate Operator"></a>Aggregate Operator</h2><p>Parallel Calculation of Partial Results: Each processor in the Gamma system calculates the aggregate result for its own portion of the data simultaneously. For example, if the goal is to calculate a sum, each processor will first compute the sum for the data it is responsible for.</p>
-<p>Combining Partial Results: After calculating their partial results, the processors send these results to a central process. This central process is responsible for combining all the partial results to produce the final answer.</p>
-<p>Two-Step Computation:</p>
-<ul>
-<li><strong>Step 1</strong>: Each processor calculates the aggregate value (e.g., sum, count) for its data partition, resulting in partial results.</li>
-<li><strong>Step 2</strong>: The processors then redistribute these partial results based on the “group by” attribute. This means that the partial results for each group are collected at a single processor, where the final aggregation for that group is completed.</li>
-</ul>
-<h2 id="Update-Operator"><a href="#Update-Operator" class="headerlink" title="Update Operator"></a>Update Operator</h2><p>For the most part, the update operators (replace, delete, and append) are implemented using standard techniques. The only exception occurs when a replace operator modifies the partitioning attribute of a tuple. In this case, rather than writing the modified tuple back into the local fragment of the relation, the modified tuple is passed through a split table to determine which site should contain the tuple.</p>
-<h1 id="Concurrency-Control"><a href="#Concurrency-Control" class="headerlink" title="Concurrency Control"></a><strong>Concurrency Control</strong></h1><p>Gamma uses a two-phase locking strategy to manage concurrency. This means that before accessing data, a process must first acquire locks (first phase), and then release the locks after completing its operations (second phase). This ensures that multiple operations do not modify the same data at the same time, preventing conflicts.</p>
-<p>Gamma supports two levels of lock granularity: file-level and page-level (smaller scope). There are also five lock modes:</p>
-<ul>
-<li><strong>S (Shared) Lock</strong>: Allows multiple operations to read the data simultaneously.</li>
-<li><strong>X (Exclusive) Lock</strong>: Only one operation can modify the data, while others must wait.</li>
-<li><strong>IS, IX, and SIX Locks</strong>: Used to manage locking at larger scopes, such as entire files, allowing different combinations of read and write permissions.</li>
-</ul>
-<p>Each node in Gamma has its own lock manager and deadlock detector to handle local data locking. The lock manager maintains a lock table and a transaction wait-for-graph, which tracks which operations are waiting for which locks.</p>
-<p>The cost of setting a lock depends on whether there is a conflict:</p>
-<ul>
-<li><strong>No Conflict</strong>: Takes about 100 instructions.</li>
-<li><strong>With Conflict</strong>: Takes about 250 instructions because the system needs to check the wait-for-graph for deadlocks and suspend the requesting transaction using a semaphore mechanism.</li>
-</ul>
-<p>Gamma uses a centralized deadlock detection algorithm to handle deadlocks across nodes:</p>
-<ul>
-<li>Periodically (initially every second), the centralized deadlock detector requests each node’s local wait-for-graph.</li>
-<li>If no deadlock is found, the detection interval is doubled (up to 60 seconds). If a deadlock is found, the interval is halved (down to 1 second).</li>
-<li>The collected graphs are combined into a global wait-for-graph. If a cycle is detected in this global graph, it indicates a deadlock.</li>
-</ul>
-<p>When a deadlock is detected, the system will abort the transaction holding the fewest locks to free up resources quickly and allow other operations to proceed.</p>
-<h1 id="Recovery-and-Log"><a href="#Recovery-and-Log" class="headerlink" title="Recovery and Log"></a>Recovery and Log</h1><p>Logging Changes:</p>
-<p>When a record in the database is updated, Gamma creates a log record that notes the change. Each log record has a unique identifier called a Log Sequence Number (LSN), which includes a node number (determined when the system is set up) and a local sequence number (which keeps increasing). These log records are used for recovery if something goes wrong.</p>
-<p>Log Management:</p>
-<ul>
-<li>The system sends log records from query processors to <strong>Log Managers</strong>, which are separate processors that organize the logs into a single stream.</li>
-<li>If there are multiple Log Managers (M of them), a query processor sends its logs to one of them based on a simple formula: <strong>processor number mod M</strong>. This way, each query processor always sends its logs to the same Log Manager, making it easy to find logs later for recovery.</li>
-</ul>
-<p>Writing Logs to Disk:</p>
-<ul>
-<li>Once a “page” of log records is filled, it is saved to disk.</li>
-<li>The Log Manager keeps a <strong>Flushed Log Table</strong>, which tracks the last log record written to disk for each node. This helps know which logs are safely stored.</li>
-</ul>
-<p>Writing Data to Disk (WAL Protocol):</p>
-<ul>
-<li>Before writing any changed data (a <strong>dirty page</strong>) to disk, the system checks if the corresponding log records have already been saved.</li>
-<li>If the logs are saved, the data can be safely written to disk. If not, the system must first ensure the logs are written to disk before proceeding.</li>
-<li>To avoid waiting too long for log confirmations, the system always tries to keep a certain number of <strong>clean buffer pages</strong> (unused pages) available.</li>
-</ul>
-<p>Commit and Abort Handling:</p>
-<ul>
-<li><strong>Commit</strong>: If a transaction completes successfully, the system sends a commit message to all the relevant Log Managers.</li>
-<li><strong>Abort</strong>: If a transaction fails, an <strong>abort message</strong> is sent to all processors involved, and each processor retrieves its log records to undo the changes using the <strong>ARIES algorithm</strong>, which rolls back changes in the reverse order they occurred.</li>
-</ul>
-<p>Recovery Process:</p>
-<ul>
-<li>The system uses the <strong>ARIES algorithms</strong> for undoing changes, checkpointing, and restarting after a crash.</li>
-<li><strong>Checkpointing</strong> helps the system know the most recent stable state, reducing the amount of work needed during recovery.</li>
-</ul>
-<h1 id="Dataflow-scheduling-technologies"><a href="#Dataflow-scheduling-technologies" class="headerlink" title="Dataflow scheduling technologies"></a>Dataflow scheduling technologies</h1><ol>
-<li><strong>Data-Driven Execution Instead of Operator Control</strong>: Gamma’s dataflow scheduling lets data automatically move between operators, forming a pipeline. Each operator acts like a step on an assembly line: when data reaches the operator, it processes the data and then passes the processed results to the next operator.</li>
-<li><strong>Reducing Coordination Overhead</strong>: Because of this dataflow design, the system does not need to frequently coordinate or synchronize the execution of each operator. This approach reduces the complexity and overhead of scheduling, especially when multiple operators are running in parallel, and avoids performance bottlenecks caused by waiting or synchronization.</li>
-<li><strong>Inherent Support for Parallelism</strong>: Dataflow scheduling is well-suited for parallel processing because data can flow between multiple operators at the same time. For example, a query can simultaneously perform scanning, joining, and aggregation across different processors. Each operator can independently process the data it receives without waiting for other operators to finish, allowing the system to efficiently utilize the computational power of multiple processors.</li>
-<li><strong>Adaptability to Dynamic Environments</strong>: During query execution, dataflow scheduling can be adjusted based on the actual system load and data characteristics. This flexibility allows the system to dynamically optimize the performance of query execution, especially for large and complex queries, by better adapting to changing query demands and system conditions.</li>
-</ol>
-<p>Gamma’s unique dataflow scheduling techniques allow data to flow naturally between operators, reducing the need for direct control over operations. This significantly lowers coordination overhead in multi-processor environments, enhances the system’s parallel processing capabilities, and improves the efficiency of executing complex queries.</p>
-<p>In Gamma’s dataflow scheduling techniques, parallelism is extensively used to improve query execution efficiency. Here’s where and how parallelism is applied:</p>
-<ol>
-<li><p><strong>Parallel Execution of Operators</strong>: Queries often involve multiple operators (e.g., scan, filter, join, aggregation). With dataflow scheduling, these operators can run in parallel:</p>
-<ul>
-<li><p><strong>Scan and Filter in Parallel</strong>: While one processor scans a data block, another processor can be filtering the data from previous blocks.</p>
-</li>
-<li><p><strong>Parallel Joins</strong>: If a join operation involves large datasets distributed across different nodes, Gamma can perform the join operation on these different parts of the data simultaneously. The result of the join is computed in parallel across multiple processors.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Data Partitioning for Parallelism</strong>: The relations (data tables) are often partitioned across multiple processors in Gamma. This means that different processors can work on different partitions of the data at the same time. For example:</p>
-<ul>
-<li><p><strong>Partitioned Hash Joins</strong>: Data can be split into “buckets” based on a hash function, and different processors can handle the join for different buckets simultaneously.</p>
-</li>
-<li><p><strong>Parallel Aggregation</strong>: When computing aggregate functions (e.g., sum or average), each processor calculates a partial result for its own partition of the data, and these partial results are later combined.</p>
-</li>
-</ul>
-</li>
-</ol>
-<p>In summary, parallelism in Gamma is achieved through:</p>
-<ul>
-<li>Distributing query operators across multiple processors.</li>
-<li>Partitioning data so different processors work on different sections simultaneously.</li>
-<li>Enabling multiple stages of query execution (e.g., scanning, filtering, joining) to happen concurrently.</li>
-</ul>
-<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>What is a fragment or a shard in Gamma?</strong> </p>
-<p>A fragment or shard refers to a portion of a database relation that is horizontally partitioned across multiple disk drives.</p>
-<p><strong>How does a Gamma operator know where to send its stream of records?</strong> </p>
-<p>There is a structure called split table to determine where each tuple should be sent, based on the values of tuples.</p>
-<p><strong>With interleaved declusttering, why not use a cluster size that includes all nodes in the system?</strong></p>
-<p>If an interleaved declustteing system includes all nodes, it will become more vulnerable to failures. The failure of any two nodes could make the data inaccessible. A smaller cluster will limits the risk of complete data unavailability and balance the load.</p>
-<p><strong>Hash-join is appropriate for processing equi-join predicates (Emp.dno &#x3D; Dept.dno). How can Gamma process nonequi-join predicates (Emp.Sal &gt; Dept.dno*1000) in a pipelined manner?</strong></p>
-<p><strong>Range partitioning</strong>: Pre-partition the data based on ranges of values to reduce the search space.</p>
-<p><strong>Broadcast join</strong>: When the smaller relation is broadcasted to all nodes, and then each node evaluates the nonequi-join predicate in parallel.</p>
-<p><strong>Nested-loop join</strong>: Use a nested-loop join strategy where each tuple from one relation is compared against all tuples from the other relation.</p>
-<p><strong>What is the difference between Gamma, Google MapReduce, Microsoft Dryad and Apache Flink?</strong></p>
-<table>
-<thead>
-<tr>
-<th><strong>Aspect</strong></th>
-<th>Gamma</th>
-<th>MapReduce</th>
-<th>Dryad</th>
-<th>Flink</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><strong>Primary Use</strong></td>
-<td>Parallel database queries</td>
-<td>Batch processing</td>
-<td>Graph-based parallel computation</td>
-<td>Stream and batch processing</td>
-</tr>
-<tr>
-<td><strong>Architecture</strong></td>
-<td>Shared-nothing, partitioned data</td>
-<td>Cluster-based, distributed</td>
-<td>DAG of tasks</td>
-<td>Distributed, supports DAG</td>
-</tr>
-<tr>
-<td><strong>Data Model</strong></td>
-<td>Relational operations (SQL-like)</td>
-<td>Key-value pairs</td>
-<td>Data flow in DAG</td>
-<td>Stream processing with state</td>
-</tr>
-<tr>
-<td><strong>Partitioning</strong></td>
-<td>Horizontal partitioning</td>
-<td>Data split into chunks</td>
-<td>Data partitioned across graph</td>
-<td>Data partitioned into streams</td>
-</tr>
-<tr>
-<td><strong>Fault Tolerance</strong></td>
-<td>Limited</td>
-<td>Checkpointing</td>
-<td>Task-level recovery</td>
-<td>State snapshots, exactly-once</td>
-</tr>
-<tr>
-<td><strong>Programming</strong></td>
-<td>Relational (SQL-style)</td>
-<td>Functional (Map&#x2F;Reduce)</td>
-<td>Sequential tasks in DAG</td>
-<td>Functional, stream APIs</td>
-</tr>
-<tr>
-<td><strong>Scalability</strong></td>
-<td>Hundreds of processors</td>
-<td>Horizontally across many nodes</td>
-<td>Scales with more nodes</td>
-<td>Highly scalable, stream and batch</td>
-</tr>
-<tr>
-<td><strong>Use Case</strong></td>
-<td>Database query processing</td>
-<td>Log processing, data aggregation</td>
-<td>Scientific computing</td>
-<td>Real-time analytics, event processing</td>
-</tr>
-</tbody></table>
-<p><strong>Will a version of Gamma using FLOW be more modular than its current design?</strong></p>
-<p>Yes. FLOW enables more fine-grained control over the data flow and process interactions, which could simplify the addition of new operators and functionalities. It would also make the system easier to maintain and extend, as each component could be developed and optimized independently.</p>
-<p>Reference: <a href="https://pages.cs.wisc.edu/~dewitt/includes/paralleldb/ieee90.pdf">https://pages.cs.wisc.edu/~dewitt/includes/paralleldb/ieee90.pdf</a></p>
 ]]></content>
       <categories>
         <category>数据库系统</category>
@@ -3078,77 +2524,488 @@
       </categories>
   </entry>
   <entry>
-    <title>SDM</title>
-    <url>/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/08/30/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/SDM/</url>
-    <content><![CDATA[<h1 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h1><p>Data Models: Conceptual -&gt; Logical -&gt; Physical.</p>
-<p>SDM is a conceptual data modeling tool, at the intersection of conceptual and logical. It facilitates <strong>an understaning of the meaning of the data</strong>.</p>
+    <title>CAMP</title>
+    <url>/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/CAMP/</url>
+    <content><![CDATA[<h1 id="Greedy-Dual-Size-GDS-algorithm"><a href="#Greedy-Dual-Size-GDS-algorithm" class="headerlink" title="Greedy Dual Size (GDS) algorithm"></a>Greedy Dual Size (GDS) algorithm</h1><p>Key Concepts:</p>
+<ol>
+<li><strong>Variable Size and Cost</strong>:<ul>
+<li>Unlike simple algorithms that treat all objects equally, GDS takes into account:<ul>
+<li><strong>Size of the object</strong> (<code>size(p)</code>): Larger objects take up more space in memory.</li>
+<li><strong>Cost of the object</strong> (<code>cost(p)</code>): This can represent factors like time to retrieve the object, computational effort, or other resource usage.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>Score H(p)</strong>:<ul>
+<li>Each key-value pair ppp in the cache is assigned a score H(p). This score reflects the <strong>benefit of keeping the object</strong> in memory and is calculated using:<ul>
+<li>A <strong>global parameter L</strong>, which adjusts dynamically based on cache state.</li>
+<li>The <strong>size(p)</strong> of the object.</li>
+<li>The <strong>cost(p)</strong> associated with the object.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>Eviction Strategy</strong>:<ul>
+<li>When the cache is full, and a new object needs to be added, GDS removes the object with the <strong>lowest score H(p)</strong>. This process continues until there is enough space for the new object.</li>
+</ul>
+</li>
+</ol>
+<h2 id="Proposition-1"><a href="#Proposition-1" class="headerlink" title="Proposition 1"></a>Proposition 1</h2><p><strong>L is non-decreasing over time.</strong></p>
 <ul>
-<li>Identify and classify principal intensional (semantic) structures of an application.</li>
+<li>The global parameter L, which reflects the minimum priority H(p) among all key-value pairs in the KVS, will either stay the same or increase with each operation. This ensures stability and helps prioritize eviction decisions consistently.</li>
 </ul>
-<p>A set of constructs that express the essential meaning and structure of different problem domains.</p>
-<h1 id="Basic-Structure"><a href="#Basic-Structure" class="headerlink" title="Basic Structure"></a>Basic Structure</h1><ul>
-<li>Classes: a collection of entities. Each class has:</li>
-<li><ul>
-<li>A name.</li>
-<li>A collection of members: Its entities. 3 member types:</li>
-<li><ul>
-<li>Objects:</li>
-<li><ul>
-<li>Concrete.</li>
-<li>Abstraction: a generalization of another entity.</li>
-<li>Aggregate: a collection of another type of entity.</li>
+<p>For any key-value pair ppp in the KVS, the relationship holds:</p>
+<p><strong>L ≤ H(p) ≤ L + cost(p) &#x2F; size(p)</strong></p>
+<ul>
+<li>H(p), the priority of p, always lies between the global minimum L and L + cost(p) &#x2F; size(p), ensuring H(p) reflects both its retrieval cost and size relative to other elements.</li>
+</ul>
+<p><strong>Intuition Behind Proposition 1:</strong></p>
+<ul>
+<li>As L increases over time (reflecting the minimum H(p)), less recently used or less “valuable” pairs become increasingly likely to be evicted. This ensures that newer and higher-priority pairs stay in the KVS longer.</li>
+</ul>
+<p><strong>Key Insights from Proposition 1:</strong></p>
+<ol>
+<li><strong>Delayed Eviction:</strong><ul>
+<li>When p is requested again while in memory, its H(p) increases to L + cost(p) &#x2F; size(p), delaying its eviction.</li>
 </ul>
 </li>
-<li>Events: Action or activities in the application. Point and duration events.</li>
-<li>Names are deginators for objects or events.</li>
+<li><strong>Impact of Cost-to-Size Ratio:</strong><ul>
+<li>Pairs with higher cost(p) &#x2F; size(p) stay longer in the KVS. For example, if one pair’s ratio is c times another’s, it will stay approximately c times longer.</li>
 </ul>
 </li>
-<li>Attributes.</li>
-<li>A description: nature, purpose, and uses of the class.</li>
-<li>Identified as either base or nonbase.</li>
+</ol>
+<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/chart3.png" alt="img"></p>
+<h2 id="Key-Points-in-the-Diagram"><a href="#Key-Points-in-the-Diagram" class="headerlink" title="Key Points in the Diagram"></a>Key Points in the Diagram</h2><ol>
+<li><strong>Cost-to-Size Ratios</strong>:<ol>
+<li>Key-value pairs are grouped into <strong>queues</strong> according to their cost-to-size ratio.</li>
+<li>Each queue corresponds to a specific cost-to-size ratio.</li>
+</ol>
+</li>
+<li><strong>Grouping by Ratio</strong>:<ol>
+<li>Within each queue, key-value pairs are managed using the <strong>Least Recently Used (LRU)</strong> strategy.</li>
+</ol>
+</li>
+<li><strong>Priority Management</strong>:<ol>
+<li>The <strong>priority (H-value)</strong> of a key-value pair is based on: <strong>H(p) &#x3D; L + cost(p) &#x2F; size(p)</strong><ol>
+<li>L: The global non-decreasing variable.</li>
+<li>cost(p) &#x2F; size(p): The cost-to-size ratio of the key-value pair.</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><strong>Efficient Eviction</strong>:<ol>
+<li>CAMP maintains a <strong>heap</strong> that points to the <strong>head of each queue</strong>, storing the minimum H(p) from every queue.</li>
+<li>To identify the next key-value pair for eviction:<ol>
+<li><strong>The algorithm checks the heap to find the queue with the smallest H(p).</strong></li>
+<li><strong>It then evicts the key-value pair at the front of that queue (i.e., the least recently used pair in that cost-to-size group).</strong></li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<h2 id="Rounding-in-CAMP"><a href="#Rounding-in-CAMP" class="headerlink" title="Rounding in CAMP"></a>Rounding in CAMP</h2><p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/bg_bm_rounding.png" alt="img"></p>
+<ol>
+<li><strong>Purpose</strong>: To improve performance, CAMP <strong>reduces the number of LRU queues</strong> by grouping key-value pairs with <strong>similar cost-to-size ratios</strong> into the same queue.</li>
+<li><strong>Key Idea</strong>: Preserve the most significant bits proportional to the value’s size.</li>
+</ol>
+<h2 id="Proposition-2-Explanation-of-Rounding-and-Distinct-Values"><a href="#Proposition-2-Explanation-of-Rounding-and-Distinct-Values" class="headerlink" title="Proposition 2: Explanation of Rounding and Distinct Values"></a>Proposition 2: Explanation of Rounding and Distinct Values</h2><h3 id="Implications"><a href="#Implications" class="headerlink" title="Implications"></a>Implications</h3><ol>
+<li><p><strong>Trade-Off Between Precision and Efficiency</strong>:</p>
+<ul>
+<li><p>A higher p preserves more precision but increases the number of distinct values (and thus computational complexity).</p>
+</li>
+<li><p>Lower p reduces the number of distinct values, making CAMP more efficient but less precise.</p>
+</li>
 </ul>
 </li>
-<li>Schema: a collection of classes.</li>
+<li><p><strong>Rounding Efficiency</strong>:</p>
+<ul>
+<li>By limiting the number of distinct values, CAMP minimizes the number of LRU queues, reducing overhead while still approximating GDS closely.</li>
 </ul>
-<p>Class Attributes:</p>
-<ol>
-<li><strong>Member attributes</strong> link the member to one or more related entities in the same or another class.</li>
-<li><strong>Class determined attribute</strong> is associated with the whole class and has the same value for all members of that class.</li>
-<li><strong>Class attribute</strong> describes a property of a class taken as a whole.</li>
+</li>
 </ol>
-<p>An attribute value is either a primitive (user defined) or derived (a value calculated from other information in the database).</p>
-<h1 id="Base-class"><a href="#Base-class" class="headerlink" title="Base class"></a>Base class</h1><p>It is independent of other classes. In SDM, it may be a concrete object class, a point event class, a duration event, a name class.</p>
-<p>It is specified as either containing duplicates or not containing duplicates. The latter models a multiset&#x2F;bag of entities.</p>
-<p>It has an associated list of groups of member attributes. One or more may serve as the unique identifier of a member.</p>
-<h1 id="Nonbase-class"><a href="#Nonbase-class" class="headerlink" title="Nonbase class"></a>Nonbase class</h1><p>Subclass of a parent class. Members of the subclass inherit all attributes of the parent class. Subclass may add new member attributes. 2 types:</p>
-<ol>
-<li>Restrict: a predicate identifies which members of the parent belong to a subclass.</li>
-<li>Subset: A human user decides entities in the subclass as long as the subclass is a subset of its parent.</li>
+<h2 id="Proposition-3-Competitive-Ratio-of-CAMP"><a href="#Proposition-3-Competitive-Ratio-of-CAMP" class="headerlink" title="Proposition 3: Competitive Ratio of CAMP"></a>Proposition 3: Competitive Ratio of CAMP</h2><h3 id="Practical-Implications"><a href="#Practical-Implications" class="headerlink" title="Practical Implications"></a>Practical Implications</h3><ol>
+<li><p><strong>Precision ppp</strong>:</p>
+<ul>
+<li><p>The smaller the ϵ (higher ppp), the closer CAMP approximates GDS.</p>
+</li>
+<li><p>For sufficiently large p, CAMP performs nearly as well as GDS.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Trade-off</strong>:</p>
+<ul>
+<li>Higher p increases precision but also increases the number of distinct cost-to-size ratios and computational overhead.</li>
+</ul>
+</li>
 </ol>
-<p>Attribute value: either an entity or a class of entities. It can be UNKNOWN.</p>
-<p>Semantic types:</p>
-<ol>
-<li>A componenet models a physical part of an object.</li>
-<li>A participant of the event entity models an entity that plays a role in an event.</li>
-<li>A property of an attribute is an attribute that provides further information on the relationship between the entity and the value of one of its attributes.</li>
+<h3 id="CAMP’s-Improvement-Over-GDS"><a href="#CAMP’s-Improvement-Over-GDS" class="headerlink" title="CAMP’s Improvement Over GDS:"></a>CAMP’s Improvement Over GDS:</h3><ol>
+<li><strong>Approximation:</strong> CAMP simplifies H(p) by <strong>rounding</strong> the cost-to-size ratio, reducing the precision but making the algorithm more efficient.</li>
+<li><strong>Grouping:</strong> Key-value pairs are <strong>grouped</strong> by similar cost-to-size ratios, reducing the number of queues and simplifying priority management.</li>
+<li><strong>Tie-Breaking:</strong> CAMP uses <strong>LRU within each group</strong> to determine the eviction order, making it computationally cheaper.</li>
 </ol>
-<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>Why is it important for a relational schema to satisfy the 5 normal forms?</strong></p>
-<p>To ensure the data integrity and consistency, and minimize the loss and redundancy of information.</p>
-<p>1NF: all occurences of a record type must contain the same number of fields.</p>
-<p>2 and 3NF: a non-key attribute is a fact about only the whole key.</p>
-<p>4NF: a record should not contain two or more independent multi-valued fact about an entity.</p>
-<p>5NF: decompose a table into smaller ones to eliminate multi-valued dependencies, while ensuring that the original data can be losslessly reconstructed through join operation.</p>
-<p><strong>With SDM, what is the unique identifier of a class containing duplicates?</strong></p>
-<p>There is no unique identifier of a class containing duplicates since some of the members of this class are indistinguishable.</p>
-<p><strong>Is SDM a competitor to the relational data model?</strong> </p>
-<p>Yes. But SDM is not intended to be a direct competitor to the relational data model. The goal of SDM is to provide a more semantic way to model complex application environments, expressing the structure and meaning of data more effectively than tradtional relational models. It is designed to enhance the relational data model.</p>
-<p><strong>A database represents a snapshot of the state of an application and the changes to the database over time. What is the change in a 3D display that illuminates animations using FLSs? Does an FLS display represent a database using drones?</strong> </p>
-<p>A 3D FLS display illuminates animations by computing the flight paths of the FLS drones based on the dynamic attributes of objects, such as geometry, color, and movement over time. Changes in the display represent transitions in the object’s states or visual properties.</p>
-<p>Yes, the FLS display act as a dynamic visualization tool that represents a database where each drone corresponds to data points or entities, displaying multimedia content in a 3D space.</p>
-<p><strong>Section 1 of the SDM paper states: “SDM is not dependent on the successful implementation of a new database management system that directly supports the SDM. The latter approach would be impractical for a variety of reasons.” Why is it impractical to implement a new database management system that supports the SDM? Do you know of a system?</strong></p>
-<p>SDM emphasizes the <strong>meaning</strong> and <strong>relationship</strong> of data, requiring sophisticated handling of semantics, which adds complexity. Integrating SDM into existing systems will cause incompatibility with current DBMS architectures.</p>
-<p>While there is not a widely adopted DBMS that fully supports SDM, some graph databases or knowledge graph systems such as <strong>Neo4j</strong>, <strong>RDF stores</strong> partially align with SDM principles.</p>
-<p>Reference: <a href="https://dl.acm.org/doi/pdf/10.1145/509252.509264">https://dl.acm.org/doi/pdf/10.1145/509252.509264</a></p>
+<h3 id="Figure-4-Heap-Node-Visits"><a href="#Figure-4-Heap-Node-Visits" class="headerlink" title="Figure 4: Heap Node Visits"></a>Figure 4: Heap Node Visits</h3><p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/chart4.png" alt="img"></p>
+<p>This figure compares the number of heap node visits for GDS and CAMP as a function of cache size:</p>
+<ol>
+<li><p><strong>GDS</strong>:</p>
+<ul>
+<li><p><strong>Heap size equals the total number of key-value pairs in the cache.</strong></p>
+</li>
+<li><p>Every heap update (insertion, deletion, or priority change) requires visiting O(log⁡n) nodes, where n is the number of cache entries.</p>
+</li>
+<li><p>As cache size increases, GDS’s overhead grows significantly.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>CAMP</strong>:</p>
+<ul>
+<li><p><strong>Heap size equals the number of non-empty LRU queues, which is much smaller than the total number of cache entries.</strong></p>
+</li>
+<li><p>Heap updates occur only when:</p>
+<ul>
+<li><p>The priority of the head of an LRU queue changes.</p>
+</li>
+<li><p>A new LRU queue is created.</p>
+</li>
+</ul>
+</li>
+<li><p>As cache size increases, the number of non-empty LRU queues remains relatively constant, resulting in fewer heap updates.</p>
+</li>
+</ul>
+</li>
+</ol>
+<h1 id="Evaluation"><a href="#Evaluation" class="headerlink" title="Evaluation"></a>Evaluation</h1><p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/chart5.png" alt="img"></p>
+<p><strong>(a) Cost-Miss Ratio vs Precision</strong></p>
+<ul>
+<li><strong>横轴</strong>：精度（Precision），从低到高。</li>
+<li><strong>纵轴</strong>：成本未命中比（Cost-Miss Ratio）。</li>
+<li><strong>结果</strong>：<ul>
+<li>不同的缓存大小比（0.01、0.1 和 0.3）在较低精度下表现一致。</li>
+<li>提高精度后，成本未命中比没有显著变化。</li>
+<li>说明即使使用较低精度，CAMP 的成本未命中比也能接近 GDS（标准实现）。</li>
+</ul>
+</li>
+</ul>
+<p><strong>(b) LRU Queues vs Precision</strong></p>
+<ul>
+<li><strong>横轴</strong>：精度（Precision）。</li>
+<li><strong>纵轴</strong>：CAMP 维护的非空 LRU 队列数量。</li>
+<li><strong>结果</strong>：<ul>
+<li><strong>低精度</strong>（1-5）：CAMP 维持稳定的少量 LRU 队列（约 5 个）。</li>
+<li><strong>高精度</strong>（&gt;10）：队列数增加，尤其是在较大的缓存大小比（如 1.0）下。</li>
+<li><strong>结论</strong>：<ul>
+<li>在较低精度下，CAMP 能保持较低的计算开销，同时维持高效的队列管理。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>(c) Cost-Miss Ratio vs Cache Size Ratio</strong></p>
+<ul>
+<li><strong>横轴</strong>：缓存大小比（Cache Size Ratio），即缓存大小与 trace 文件中唯一键值对总大小的比值。</li>
+<li><strong>纵轴</strong>：成本未命中比（Cost-Miss Ratio）。</li>
+<li><strong>结果</strong>：<ul>
+<li><strong>CAMP</strong>：<ul>
+<li>在所有缓存大小下，成本未命中比最低。</li>
+<li>说明 CAMP 在高成本键值对管理上更具效率。</li>
+</ul>
+</li>
+<li><strong>Pooled LRU</strong>：<ul>
+<li>在较小缓存下表现稍差，但随着缓存增加，接近 CAMP。</li>
+</ul>
+</li>
+<li><strong>LRU</strong>：<ul>
+<li>成本未命中比始终最高。</li>
+</ul>
+</li>
+<li><strong>结论</strong>：<ul>
+<li>CAMP 优于 LRU 和 Pooled LRU，尤其是在小缓存下。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>(d) Miss Rate vs Cache Size Ratio</strong></p>
+<ul>
+<li><strong>横轴</strong>：缓存大小比（Cache Size Ratio）。</li>
+<li><strong>纵轴</strong>：未命中率（Miss Rate）。</li>
+<li><strong>结果</strong>：<ul>
+<li><strong>CAMP</strong>：<ul>
+<li>未命中率显著低于 LRU 和 Pooled LRU，尤其在小缓存下表现最优。</li>
+</ul>
+</li>
+<li><strong>Pooled LRU</strong>：<ul>
+<li>未命中率随着缓存增大而下降，但始终高于 CAMP。</li>
+<li>最低成本池（cheapest pool）未命中率接近 100%，次低成本池未命中率达到 65%。</li>
+</ul>
+</li>
+<li><strong>LRU</strong>：<ul>
+<li>始终高于 CAMP 和 Pooled LRU。</li>
+</ul>
+</li>
+<li><strong>结论</strong>：<ul>
+<li>CAMP 在多种缓存大小下都保持较低的未命中率，且比 Pooled LRU 更均衡。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="CAMP-的适应能力：访问模式变化的分析"><a href="#CAMP-的适应能力：访问模式变化的分析" class="headerlink" title="CAMP 的适应能力：访问模式变化的分析"></a>CAMP 的适应能力：访问模式变化的分析</h1><p>实验设置：</p>
+<ul>
+<li>使用 10 个不同的 trace 文件，每个文件包含 400 万个键值对引用。</li>
+<li>每个 trace 文件（如 TF1、TF2 等）中的请求在其结束后不会再被引用，模拟访问模式的突然变化。</li>
+<li>访问模式具有倾斜分布（如 Zipf 分布），每个 trace 文件中的高成本对象可能在下一次访问中完全无效。</li>
+</ul>
+<p>目标：</p>
+<ul>
+<li>比较 <strong>CAMP</strong>、<strong>Pooled LRU</strong> 和 <strong>LRU</strong> 在不同缓存大小下对访问模式突变的适应能力。</li>
+<li>评估三种算法在突然变化后清除旧的高成本键值对的效率，以及对总体性能（如成本未命中比和未命中率）的影响。</li>
+</ul>
+<p>不同算法的行为分析</p>
+<ol>
+<li><p><strong>LRU</strong>：</p>
+<ul>
+<li><p>按最近使用排序，当新请求的总大小超过缓存大小时清除旧数据。</p>
+</li>
+<li><p>当缓存大小比为 1 时，清除 TF1 数据的时间点对应于 TF3 开始请求的第一个键值对。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Pooled LRU</strong>：</p>
+<ul>
+<li><p>将键值对按成本分组，每组分配固定比例的缓存空间。</p>
+</li>
+<li><p>高成本池占据 99% 的缓存空间，因此在每个新 trace 开始时会突然清除一批旧数据。</p>
+</li>
+<li><p>对于缓存大小比 2&#x2F;3 或更高的情况，直到 TF4（约 800 万请求后）才会清除所有 TF1 数据。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>CAMP</strong>：</p>
+<ul>
+<li><p>对每个成本-大小比维护 LRU 队列，这些队列的大小可以动态调整。</p>
+</li>
+<li><p><strong>优先淘汰较低优先级的数据，但高成本数据即使来自旧 trace，也具有一定保留优先级。</strong></p>
+</li>
+<li><p><strong>当新数据的总大小超过缓存时，旧 trace 的高成本数据才会被逐步清除。</strong></p>
+</li>
+</ul>
+</li>
+</ol>
+<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/chart6.png" alt="img"></p>
+<p><strong>图 6c：缓存比 0.25（小缓存）</strong></p>
+<ol>
+<li><p><strong>LRU</strong>：</p>
+<ul>
+<li><p>清除最快，仅需 <strong>2.1 万次请求</strong> 即完全清除 Trace 1 的所有键值对。</p>
+</li>
+<li><p>由于 LRU 优先淘汰最久未使用的数据，小缓存下表现最佳。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Pooled LRU</strong>：</p>
+<ul>
+<li><p>清除速度较慢，需要 <strong>13.1 万次请求</strong>。</p>
+</li>
+<li><p>原因：Pooled LRU 按成本对键值对分组，高成本池占用较多缓存空间，导致清除滞后。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>CAMP</strong>：</p>
+<ul>
+<li><p>初期清除速度比 Pooled LRU 更快，但最后完全清除所有键值对需到 <strong>TF3 结束（770 万次请求）</strong>。</p>
+</li>
+<li><p>然而，这些未被清除的 Trace 1 数据仅占缓存的 <strong>2%</strong>，说明 CAMP 优先保留了高成本键值对。</p>
+</li>
+</ul>
+</li>
+</ol>
+<p><strong>图 6d：缓存比 0.75（大缓存）</strong></p>
+<ol>
+<li><p><strong>LRU</strong>：</p>
+<ul>
+<li><p>同样清除最快，几乎在 Trace 2 开始时就清除掉大部分 Trace 1 的数据。</p>
+</li>
+<li><p>说明即使缓存较大，LRU 仍然倾向淘汰旧数据。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Pooled LRU</strong>：</p>
+<ul>
+<li><p>清除延迟显著，需要 <strong>730 万次请求</strong>，接近 TF3 结束。</p>
+</li>
+<li><p>原因：高成本池占用过多缓存空间，延迟清除低成本和无用数据。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>CAMP</strong>：</p>
+<ul>
+<li><p>大部分 Trace 1 数据在较早阶段被淘汰，仅保留少量最昂贵的键值对（占缓存比小于 <strong>0.6%</strong>）。</p>
+</li>
+<li><p>即使在 <strong>4000 万次请求</strong>后，这些高成本键值对仍在缓存中，但对整体缓存利用影响极小。</p>
+</li>
+</ul>
+</li>
+</ol>
+<p>针对不同大小但成本相同的键值对，CAMP 优先保留较小的键值对，从而降低未命中率和成本未命中比。</p>
+<p>针对相同大小但成本不同的键值对，CAMP 优先保留高成本键值对，在成本未命中比上显著优于其他算法。</p>
+<p>与其他算法的对比：</p>
+<ul>
+<li><p>LRU：适用于简单场景，但无法处理成本差异。</p>
+</li>
+<li><p>Pooled LRU：小缓存情况下表现不错，但静态分区策略限制了其大缓存场景的效率。</p>
+</li>
+</ul>
+<p>CAMP 的适应性：在处理多样化的成本分布时，通过动态调整和四舍五入策略，CAMP 在复杂负载下表现出更高的灵活性和效率。</p>
+<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>What is the time complexity of LRU to select a victim?</strong></p>
+<p><strong>O(1)</strong> because the least recently used item is always at the tail of the list.</p>
+<p><strong>What is the time complexity of CAMP to select a victim?</strong></p>
+<p><strong>O(logk)</strong> CAMP identifies the key-value pair with the smallest priority from the heap, deletes it and then <strong>heapifies</strong>.</p>
+<p><strong>Why does CAMP do rounding using the high order bits?</strong></p>
+<ul>
+<li>CAMP rounds cost-to-size ratios to <strong>reduce the number of distinct ratios (or LRU queues)</strong>.</li>
+<li>High-order bits are retained because they represent the <strong>most significant portion of the value</strong>, ensuring that <strong>approximate prioritization is maintained</strong>.</li>
+</ul>
+<p><strong>How does BG generate social networking actions that are always valid?</strong></p>
+<p><strong>Pre-Validation of Actions:</strong></p>
+<ul>
+<li>Before generating an action, BG <strong>checks</strong> the current state of the database to ensure the action is valid. For instance:<ul>
+<li>A friend request is only generated if the two users are not already friends or in a “pending” relationship.</li>
+<li>A comment can only be posted on a resource if the resource exists.</li>
+</ul>
+</li>
+</ul>
+<p><strong>Avoiding Concurrent Modifications:</strong></p>
+<ul>
+<li>BG <strong>prevents multiple threads from concurrently modifying the same user’s state</strong>.</li>
+</ul>
+<p><strong>How does BG scale to a large number of nodes?</strong></p>
+<p>BG employs <strong>a shared-nothing architecture</strong> with the following mechanisms to scale effectively:</p>
+<ol>
+<li><p><strong>Partitioning Members and Resources:</strong></p>
+<ul>
+<li><p>BGCoord <strong>partitions</strong> the database into <strong>logical fragments</strong>, each containing <strong>a unique subset</strong> of members, their resources, and relationships.</p>
+</li>
+<li><p>These fragments are assigned to individual BGClients.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Multiple BGClients:</strong></p>
+<ul>
+<li><p>Each BGClient operates <strong>independently</strong>, generating workloads for its assigned logical fragment.</p>
+</li>
+<li><p>By running <strong>multiple</strong> BGClients <strong>in parallel</strong> across different nodes, BG can scale horizontally to handle millions of requests.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>D-Zipfian Distribution:</strong></p>
+<ul>
+<li><p>To ensure realistic and scalable workloads, BG uses a decentralized Zipfian distribution (D-Zipfian) that <strong>dynamically assigns</strong> requests to BGClients based on node performance.</p>
+</li>
+<li><p>Faster nodes receive a larger share of the logical fragments, ensuring even workload distribution.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Concurrency Control:</strong></p>
+<ul>
+<li>BG <strong>prevents simultaneous threads from issuing actions for the same user</strong>, maintaining the integrity of modeled user interactions and avoiding resource contention.</li>
+</ul>
+</li>
+</ol>
+<p><strong>True or False: BG quantifies the amount of unpredictable data produced by a data store?</strong></p>
+<p>True.</p>
+<p>This is achieved through:</p>
+<ul>
+<li><strong>Validation Phase:</strong><ul>
+<li>BG uses <strong>read and write log records</strong> to detect instances where a read operation observes a value <strong>outside the acceptable range</strong>, classifying it as “unpredictable data.”</li>
+</ul>
+</li>
+<li><strong>Metrics Collection:</strong><ul>
+<li>The percentage of requests that observe unpredictable data (τ) is a key metric used to evaluate the data store’s consistency.</li>
+</ul>
+</li>
+</ul>
+<p><strong>How is BG’s SoAR different than its Socialites rating?</strong></p>
+<p>SoAR (Social Action Rating): Represents the <strong>maximum throughput</strong> (actions per second) a data store can achieve while meeting a given SLA.</p>
+<p>Socialites Rating: Represents the <strong>maximum number of concurrent threads</strong> <strong>(users)</strong> a data store can support while meeting the SLA.</p>
+<p>Reference: <a href="https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=d6f9678772a09ca29101f5efce583960ecf53745">https://citeseerx.ist.psu.edu/document?repid=rep1&amp;type=pdf&amp;doi=d6f9678772a09ca29101f5efce583960ecf53745</a></p>
+]]></content>
+      <categories>
+        <category>数据库系统</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>TicToc</title>
+    <url>/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/03/18/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20TicToc/</url>
+    <content><![CDATA[<h1 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h1><p>The paper addresses 1 problem:</p>
+<ol>
+<li>How to design an efficient concurrency control algorithm to improve scalability of OLTP DBMSs in the multi-core environment?</li>
+</ol>
+<p>The paper provides 4 novel ideas and elaborates the proposed approach for the implementation of each idea:</p>
+<ol>
+<li>TicToc algorithm: Implemented on top of OCC, it ensures a transaction’s timestamp will be calculated lazily at the commit time based on tuples this transaction process, which will improve the parallelism as well.</li>
+<li>No-wait locking in validation phase: If a transaction fails to acquire a lock for a tuple in the write set, the validation phase will be aborted immediately. TicToc will restarts this phase after a period of time.</li>
+<li>Preemptive aborts: Based on an approximate commit timestamp together with the local rts and wts, it is possible to determine whether to abort a transaction before locking the tuples in its write set.</li>
+<li>Timestamp history: When a read tuple’s local rts is lower than the commit_ts and its wts differs from the latest wts, further inspection of the tuple’s history buffer is conducted to decide whether to start the validation phase.</li>
+</ol>
+<p>Analytical and experimental findings: The paper compares five algorithms: TicToc, Silo, HEKATON, DL_DETECT, and NO_WAIT. In the TPC-C results, with 4 warehouses, TicToc achieves the highest throughput and a lower abort rate than Silo. As the number of warehouses increases, TicToc’s throughput is eventually surpassed by Silo around 80 warehouses, but its abort rate remains lower than that of Silo. In the YCSB results, when processing read-only transactions, TicToc’s throughput is close to Silo’s and higher than that of the other algorithms; for read-write transactions under medium contention, TicToc maintains throughput similar to SIlo’s while its abort rate is significantly lower than those of Silo, HEKATON, and NO_WAIT; under high contention conditions, TicToc’s throughput far surpasses that of Silo, although its abort rate becomes more close to Silo’s. Tests for optimization indicate that most of the performance improvements come from the no-wait and preemptive aborts. Furthermore, TicToc’s timestamp growth rate is substantially lower than that of TS_ALLOC. When the isolation level is lower, TicToc shows improved throughput and a reduced abort rate, but the degree of these changes is not as pronounced compared to the other algorithms.</p>
+<h1 id="Paper-Strength"><a href="#Paper-Strength" class="headerlink" title="Paper Strength"></a>Paper Strength</h1><ul>
+<li>The paper provides a clear description of the background knowledge and the problem to be addressed. It elaborates on the weaknesses of the 2PL strategy and highlights that the T&#x2F;O strategy, such as MVCC and OCC, has gradually become mainstream. It then points out that the centralized timestamp allocator and the CPU’s cache coherence protocol in traditional T&#x2F;O algorithms have led to a timestamp allocation bottleneck. Moreover, all the hardware solutions mentioned in the paper fail to perfectly align with the architecture of most modern CPUs, and their performance remains suboptimal even if implemented. Furthermore, the paper briefly describes the execution phases of OCC and introduces 2 optimized approaches based on OCC, that is DTA and Silo, and highlights that both solutions still suffer from scalability bottlenecks. In order to tackle these problems, the paper presents TicToc algorithm.</li>
+<li>The paper provides code, charts, and an example for the core processes of the TicToc algorithm, enabling readers to quickly understand the implementation details and workflow. In Section 3.2, the paper presents pseudocode for the Read Phase, Validation Phase, and Write Phase, which clearly illustrates the design considerations in addressing conflicts in concurrent and parallel scenarios and the decentralized timestamp assignment. In Section 3.6, the paper demonstrates the structure used for storing read and write timestamps and, through pseudocode, effectively presents a solution to the potential overflow problem of the delta attribute. Moreover, in Section 3.3, the paper provides an example of interleaved transaction execution, accompanied by a bar chart, clearly displaying TicToc’s high flexibility and performance in handling concurrency and parallelism challenges.</li>
+<li>The paper presents a comprehensive experiment of TicToc on DBx1000. It assesses TicToc’s performance in both TPC-C and YCSB scenarios, comparing throughput and abort rate under various contention levels and different numbers of warehouses, with Silo, HEKATON, DL_DETECT, and NO_WAIT. The paper also evaluates TicToc optimizations, emphasizing the contributions of the no-wait and pre-abort to performance improvements. Moreover, the paper compares TicToc’s timestamp growth rate and linear timestamp growth rate, and the differences in throughput and abort rate between TicToc and other 4 algorithms under different isolation levels.</li>
+</ul>
+<h1 id="Paper-Weakness"><a href="#Paper-Weakness" class="headerlink" title="Paper Weakness"></a>Paper Weakness</h1><ul>
+<li>The paper does not show the process of integrating the TicToc into DBx1000. As a concurrency control algorithm, TicToc must be interfaced with other key components such as transactions, indexes, and logs, which involves a considerable amount of work. However, the paper fails to address this aspect, thereby preventing readers from easily re-achieving the algorithm. Therefore, the paper should at least provide a brief outline of the necessary steps to help readers implement this functionality.</li>
+<li>The paper’s experiments fail to demonstrate the general applicability of the TicToc across a range of databases. The evaluation was conducted only in the DBx1000 environment, thereby only substantiating TicToc’s high performance within DBx1000. But many commercially available databases, such as SQL Server and MySQL etc., exhibit distinct characteristics under varying workloads, which could potentially lead to different performance when using TicToc. However, the paper is entirely silent on this aspect. Therefore, the paper should also incorporate integration and testing of TicToc on these mainstream databases.</li>
+<li>The paper fails to provide code or explanations for certain key concepts in the critical OPTIMIZATIONS section. According to the experimental results, the no-wait and preemptive aborts lead to significant performance improvements. However, the OPTIMIZATIONS section does not present any relevant code. For instance, in the No-Wait Locking in Validation Phase section, the paper does not clarify what thrashing problems mean in the given context, nor does it showcase the code for the no-wait or highlight its modifications relative to the original TicToc implementation. Therefore, the paper should include the optimization code and explanations for concepts.</li>
+</ul>
+<p>Reference: <a href="https://people.csail.mit.edu/sanchez/papers/2016.tictoc.sigmod.pdf">https://people.csail.mit.edu/sanchez/papers/2016.tictoc.sigmod.pdf</a></p>
+]]></content>
+      <categories>
+        <category>高级数据存储</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>OCC 和 MVCC</title>
+    <url>/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/10/11/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/OCC%20%E5%92%8C%20MVCC/</url>
+    <content><![CDATA[<h1 id="Time-Stamp-Based-Protocols"><a href="#Time-Stamp-Based-Protocols" class="headerlink" title="Time-Stamp Based Protocols"></a>Time-Stamp Based Protocols</h1><p>Suppose transaction Ti issues read(Q):</p>
+<ul>
+<li>If TS(Ti) &lt; W-TimeStamp(Q), then Ti needs to read the value of Q which was already overwritten. Hence the read request is rejected and Ti is rolled back.</li>
+<li>If TS(Ti) &gt;&#x3D; W-TimeStamp(Q), then the read operation is executed and the R-timeStamp(Q) is set to the maximum of R-TimeStamp(Q) and TS(Ti).</li>
+</ul>
+<p>Suppose transaction Ti issues write(Q):</p>
+<ul>
+<li>If TS(Ti) &lt; R-TimeStamp(Q), then this implies that some transaction has already consumed the value of Q and Ti should have produced a value before that transaction read it. Thus, the write request is rejected and Ti is rolled back.</li>
+<li>If TS(Ti) &lt; W-TimeStamp(Q), then Ti is trying to write an obsolete value of Q. Hence reject Ti’s request and roll it back. &#x2F; Ignore this write operation. (Tomas’s Write Rule)</li>
+<li>Otherwise, execute the write(Q) operation and update W-TimeStamp(Q) to TS(Ti).</li>
+</ul>
+<h1 id="OCC"><a href="#OCC" class="headerlink" title="OCC"></a>OCC</h1><p>Each transaction Ti has three phases:</p>
+<ul>
+<li>Read phase: reads the value of data items and copies its contents to variables local to Ti. All writes are performed on the temporary local variables.</li>
+<li>Validation phase: Ti determines whether the local variables whose values have been overwritten can be copied to the database. If not, then abort. Otherwise, proceed to Write phase.</li>
+<li><ul>
+<li>When validating transaction Tj, for all transactions Ti with TS(Ti) &lt; TS(Tj), one of the following must hold:</li>
+<li><ul>
+<li>Finish(Ti) &lt; Start(Tj), OR</li>
+<li>Set of data items written by Ti does not intersect with the set of data items read by Tj, and Ti completes its write phase before Tj starts its validation phase.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Write phase: The values stored in local variables overwrite the value of the data items in the database.</li>
+</ul>
+<p>A transaction has three time stamps:</p>
+<ul>
+<li>Start(Ti): When Ti started its execution.</li>
+<li>Validation(Ti): When Ti finished its read phase and started its validation.</li>
+<li>Finish(Ti): Done with the write phase.</li>
+</ul>
+<h1 id="MVCC"><a href="#MVCC" class="headerlink" title="MVCC"></a>MVCC</h1><p>Assume that transaction Ti issues either a read(Q) or a write(Q) operation.</p>
+<p>Let Qk denote the version of Q whose write timestamp is the largest write timestamp less than TS(Ti), i.e., W-TimeStamp(Qk) &lt; TS(Ti).</p>
+<ul>
+<li>If Ti issues a Read(Q), then return the value of Qk.</li>
+<li>If Ti issues a write(Q), and TS(Ti) &lt; R-TimeStamp(Qk), then Ti is rolled back.</li>
+<li>Otherwise, a new version of Qk is created.</li>
+</ul>
 ]]></content>
       <categories>
         <category>数据库系统</category>
@@ -3296,47 +3153,354 @@
       </categories>
   </entry>
   <entry>
-    <title>OCC 和 MVCC</title>
-    <url>/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/10/11/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/OCC%20%E5%92%8C%20MVCC/</url>
-    <content><![CDATA[<h1 id="Time-Stamp-Based-Protocols"><a href="#Time-Stamp-Based-Protocols" class="headerlink" title="Time-Stamp Based Protocols"></a>Time-Stamp Based Protocols</h1><p>Suppose transaction Ti issues read(Q):</p>
+    <title>SDM</title>
+    <url>/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/08/30/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/SDM/</url>
+    <content><![CDATA[<h1 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h1><p>Data Models: Conceptual -&gt; Logical -&gt; Physical.</p>
+<p>SDM is a conceptual data modeling tool, at the intersection of conceptual and logical. It facilitates <strong>an understaning of the meaning of the data</strong>.</p>
 <ul>
-<li>If TS(Ti) &lt; W-TimeStamp(Q), then Ti needs to read the value of Q which was already overwritten. Hence the read request is rejected and Ti is rolled back.</li>
-<li>If TS(Ti) &gt;&#x3D; W-TimeStamp(Q), then the read operation is executed and the R-timeStamp(Q) is set to the maximum of R-TimeStamp(Q) and TS(Ti).</li>
+<li>Identify and classify principal intensional (semantic) structures of an application.</li>
 </ul>
-<p>Suppose transaction Ti issues write(Q):</p>
-<ul>
-<li>If TS(Ti) &lt; R-TimeStamp(Q), then this implies that some transaction has already consumed the value of Q and Ti should have produced a value before that transaction read it. Thus, the write request is rejected and Ti is rolled back.</li>
-<li>If TS(Ti) &lt; W-TimeStamp(Q), then Ti is trying to write an obsolete value of Q. Hence reject Ti’s request and roll it back. &#x2F; Ignore this write operation. (Tomas’s Write Rule)</li>
-<li>Otherwise, execute the write(Q) operation and update W-TimeStamp(Q) to TS(Ti).</li>
-</ul>
-<h1 id="OCC"><a href="#OCC" class="headerlink" title="OCC"></a>OCC</h1><p>Each transaction Ti has three phases:</p>
-<ul>
-<li>Read phase: reads the value of data items and copies its contents to variables local to Ti. All writes are performed on the temporary local variables.</li>
-<li>Validation phase: Ti determines whether the local variables whose values have been overwritten can be copied to the database. If not, then abort. Otherwise, proceed to Write phase.</li>
+<p>A set of constructs that express the essential meaning and structure of different problem domains.</p>
+<h1 id="Basic-Structure"><a href="#Basic-Structure" class="headerlink" title="Basic Structure"></a>Basic Structure</h1><ul>
+<li>Classes: a collection of entities. Each class has:</li>
 <li><ul>
-<li>When validating transaction Tj, for all transactions Ti with TS(Ti) &lt; TS(Tj), one of the following must hold:</li>
+<li>A name.</li>
+<li>A collection of members: Its entities. 3 member types:</li>
 <li><ul>
-<li>Finish(Ti) &lt; Start(Tj), OR</li>
-<li>Set of data items written by Ti does not intersect with the set of data items read by Tj, and Ti completes its write phase before Tj starts its validation phase.</li>
+<li>Objects:</li>
+<li><ul>
+<li>Concrete.</li>
+<li>Abstraction: a generalization of another entity.</li>
+<li>Aggregate: a collection of another type of entity.</li>
 </ul>
+</li>
+<li>Events: Action or activities in the application. Point and duration events.</li>
+<li>Names are deginators for objects or events.</li>
+</ul>
+</li>
+<li>Attributes.</li>
+<li>A description: nature, purpose, and uses of the class.</li>
+<li>Identified as either base or nonbase.</li>
+</ul>
+</li>
+<li>Schema: a collection of classes.</li>
+</ul>
+<p>Class Attributes:</p>
+<ol>
+<li><strong>Member attributes</strong> link the member to one or more related entities in the same or another class.</li>
+<li><strong>Class determined attribute</strong> is associated with the whole class and has the same value for all members of that class.</li>
+<li><strong>Class attribute</strong> describes a property of a class taken as a whole.</li>
+</ol>
+<p>An attribute value is either a primitive (user defined) or derived (a value calculated from other information in the database).</p>
+<h1 id="Base-class"><a href="#Base-class" class="headerlink" title="Base class"></a>Base class</h1><p>It is independent of other classes. In SDM, it may be a concrete object class, a point event class, a duration event, a name class.</p>
+<p>It is specified as either containing duplicates or not containing duplicates. The latter models a multiset&#x2F;bag of entities.</p>
+<p>It has an associated list of groups of member attributes. One or more may serve as the unique identifier of a member.</p>
+<h1 id="Nonbase-class"><a href="#Nonbase-class" class="headerlink" title="Nonbase class"></a>Nonbase class</h1><p>Subclass of a parent class. Members of the subclass inherit all attributes of the parent class. Subclass may add new member attributes. 2 types:</p>
+<ol>
+<li>Restrict: a predicate identifies which members of the parent belong to a subclass.</li>
+<li>Subset: A human user decides entities in the subclass as long as the subclass is a subset of its parent.</li>
+</ol>
+<p>Attribute value: either an entity or a class of entities. It can be UNKNOWN.</p>
+<p>Semantic types:</p>
+<ol>
+<li>A componenet models a physical part of an object.</li>
+<li>A participant of the event entity models an entity that plays a role in an event.</li>
+<li>A property of an attribute is an attribute that provides further information on the relationship between the entity and the value of one of its attributes.</li>
+</ol>
+<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>Why is it important for a relational schema to satisfy the 5 normal forms?</strong></p>
+<p>To ensure the data integrity and consistency, and minimize the loss and redundancy of information.</p>
+<p>1NF: all occurences of a record type must contain the same number of fields.</p>
+<p>2 and 3NF: a non-key attribute is a fact about only the whole key.</p>
+<p>4NF: a record should not contain two or more independent multi-valued fact about an entity.</p>
+<p>5NF: decompose a table into smaller ones to eliminate multi-valued dependencies, while ensuring that the original data can be losslessly reconstructed through join operation.</p>
+<p><strong>With SDM, what is the unique identifier of a class containing duplicates?</strong></p>
+<p>There is no unique identifier of a class containing duplicates since some of the members of this class are indistinguishable.</p>
+<p><strong>Is SDM a competitor to the relational data model?</strong> </p>
+<p>Yes. But SDM is not intended to be a direct competitor to the relational data model. The goal of SDM is to provide a more semantic way to model complex application environments, expressing the structure and meaning of data more effectively than tradtional relational models. It is designed to enhance the relational data model.</p>
+<p><strong>A database represents a snapshot of the state of an application and the changes to the database over time. What is the change in a 3D display that illuminates animations using FLSs? Does an FLS display represent a database using drones?</strong> </p>
+<p>A 3D FLS display illuminates animations by computing the flight paths of the FLS drones based on the dynamic attributes of objects, such as geometry, color, and movement over time. Changes in the display represent transitions in the object’s states or visual properties.</p>
+<p>Yes, the FLS display act as a dynamic visualization tool that represents a database where each drone corresponds to data points or entities, displaying multimedia content in a 3D space.</p>
+<p><strong>Section 1 of the SDM paper states: “SDM is not dependent on the successful implementation of a new database management system that directly supports the SDM. The latter approach would be impractical for a variety of reasons.” Why is it impractical to implement a new database management system that supports the SDM? Do you know of a system?</strong></p>
+<p>SDM emphasizes the <strong>meaning</strong> and <strong>relationship</strong> of data, requiring sophisticated handling of semantics, which adds complexity. Integrating SDM into existing systems will cause incompatibility with current DBMS architectures.</p>
+<p>While there is not a widely adopted DBMS that fully supports SDM, some graph databases or knowledge graph systems such as <strong>Neo4j</strong>, <strong>RDF stores</strong> partially align with SDM principles.</p>
+<p>Reference: <a href="https://dl.acm.org/doi/pdf/10.1145/509252.509264">https://dl.acm.org/doi/pdf/10.1145/509252.509264</a></p>
+]]></content>
+      <categories>
+        <category>数据库系统</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Gamma</title>
+    <url>/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/06/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/Gamma/</url>
+    <content><![CDATA[<h1 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h1><p>主要特点：</p>
+<ol>
+<li><strong>并行处理</strong>： Gamma 利用了分布式架构，通过将数据和计算任务分散到多个节点上并行处理，极大提高了查询性能和吞吐量。不同的节点可以同时处理不同的任务，从而加速整个系统的响应时间。</li>
+<li><ul>
+<li><strong>并行查询处理</strong>： Gamma 支持并行执行查询计划中的操作（如选择、投影、连接等）。系统采用流水线并行（pipelined parallelism）和分块并行（partitioned parallelism）技术来最大化资源利用率。</li>
+<li><strong>流式处理（Pipelining）</strong>： Gamma 支持流式处理，即在一个操作产生部分结果时，直接将这些结果传递给下一个操作，而不是等待整个操作完成。这样可以减少内存占用，并加快查询处理速度。</li>
+</ul>
+</li>
+<li><strong>数据分片（Declustering）</strong>： Gamma 系统通过数据分片将数据表水平拆分成多个片段，并将这些片段分布到不同的处理节点上。这种方式不仅均衡了负载，还支持并行的查询处理，避免单点瓶颈。</li>
+<li><strong>动态负载均衡</strong>： Gamma 能够根据查询的工作负载，动态分配任务到不同的节点，确保整个系统的负载均衡，避免某些节点过载导致性能下降。通过监控每个节点的工作情况，Gamma 能够优化数据和任务分布。</li>
+<li><strong>故障容错（Fault Tolerance）</strong>： Gamma 具有一定的故障容错能力，当某个节点出现故障时，系统可以通过冗余机制和数据复制，重新分配任务或从其他节点获取数据，避免系统中断。</li>
+<li><strong>扩展性（Scalability）</strong>： Gamma 系统的设计能够随着节点的增加而线性扩展。通过增加处理节点，Gamma 可以处理更大规模的数据和更多的并发查询，保持高性能。</li>
+</ol>
+<p>Gamma is based on the concept of a shared-nothing architecture in which processors do not share disk drives or random access memory and can only communicate with one another by sending messages through an interconnection network. Mass storage in such an architecture is generally distributed among the processors by connecting one or more disk drives to each processor.</p>
+<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/Gamma_Arch.png" alt="Gamma 架构"></p>
+<p>Reasons why the shared-nothing approach has become the architecture of choice.</p>
+<ul>
+<li>There is nothing to prevent the architecture from <strong>scaling</strong> to 1000s of processors unlike shared-memory machines for which scaling beyond 30-40 processors may be impossible.</li>
+<li>By associating a small number of disks with each processor and distributing the tuples of each relation across the disk drives, it is possible to achieve very high aggregate I&#x2F;O bandwidths without using custom disk controllers</li>
+</ul>
+<p>When Gamma’s system is figuring out the best way to run a query, it uses information about how the data is divided up (partitioned). This partitioning information helps the system decide how many processors (computers) need to be involved in running the query.</p>
+<ul>
+<li><strong>For hash partitioning</strong>: If a table (say, “X”) is divided based on a hash function applied to a certain column (like “y”), and the query asks for records where “X.y &#x3D; some value,” <strong>the system can directly go to the specific processor that holds the data matching that value</strong>.</li>
+<li><strong>For range partitioning</strong>: If the table is divided based on ranges of values for a column, <strong>the system can limit the query to only the processors that have data within the relevant range</strong>. For example, if “X” is partitioned such that one processor handles values from 1 to 100, and another handles values from 101 to 200, then a query asking for “X.y between 50 and 150” will involve only the processors that have data in those ranges.</li>
+</ul>
+<p>Different processes in the Gamma system work together. Here’s a simplified explanation of the main types of processes and their roles:</p>
+<ol>
+<li><p><strong>Catalog Manager</strong>: Acts like a “database encyclopedia,” <strong>storing all the information about data tables and structures</strong>. It ensures that data remains consistent when multiple users access the database.</p>
+</li>
+<li><p><strong>Query Manager</strong>: Each user gets a query manager that handles query requests. It is responsible for <strong>parsing the query, optimizing it, and generating the execution plan</strong>.</p>
+</li>
+<li><p><strong>Scheduler Processes</strong>: When a query is executed, the scheduler <strong>coordinates the execution steps</strong>. It activates the necessary operator processes (such as scan, selection, etc.) and ensures that all steps are performed in the correct order.</p>
+</li>
+<li><p><strong>Operator Processes</strong>: These processes <strong>carry out specific database operations</strong>, like filtering data or joining tables. To reduce the startup delay during query execution, some operator processes are pre-initialized when the system starts.</p>
+</li>
+<li><p><strong>Other Processes</strong>:</p>
+<ul>
+<li><p><strong>Deadlock Detection Process</strong>: Detects situations where two or more processes are stuck waiting for each other to release resources.</p>
+</li>
+<li><p><strong>Recovery Process</strong>: Manages data recovery after a system failure.</p>
 </li>
 </ul>
 </li>
-<li>Write phase: The values stored in local variables overwrite the value of the data items in the database.</li>
-</ul>
-<p>A transaction has three time stamps:</p>
+</ol>
+<p>How the Gamma system executes database queries?</p>
+<ol>
+<li><strong>Query Parsing and Optimization</strong>: When a user submits a query, Gamma first parses it to understand what the query is asking for. Then, the system optimizes the query to find the most efficient way to execute it.</li>
+<li><strong>Query Compilation</strong>: After optimization, the query is compiled into an “<strong>operator tree</strong>“ made up of different operations (such as scan, selection, join, etc.). This tree outlines the steps and the order in which the query will be executed.</li>
+<li><strong>Single-Site vs. Multi-Site Queries</strong>: If the query only involves data on a single node (e.g., querying a small table), the system executes it directly on that node. However, if the query involves data distributed across multiple nodes (e.g., joining large tables), the system uses a “scheduler process” to coordinate the execution.</li>
+<li><strong>Scheduler Coordination</strong>: The scheduler process is responsible for activating various operator processes across the nodes, such as instructing one node to scan data while another filters it. The scheduler also manages the flow of data between these operations, ensuring they happen in the correct order.</li>
+<li><strong>Returning the Results</strong>: Once all operations are completed, the query results are collected and returned to the user. For queries embedded in a program, the results are passed back to the program that initiated the query.</li>
+</ol>
+<p>Different operations (like scanning data, filtering, joining tables, etc.) are carried out in a parallel manner. Here’s a simplified explanation:</p>
+<ol>
+<li><strong>Operator Processes</strong>: In Gamma, each operation in a query is handled by something called an “operator process.” For example, if the query needs to scan data from a table, filter some rows, and then join with another table, there would be separate operator processes for scanning, filtering, and joining.</li>
+<li><strong>Data Flow</strong>: The data flows from one operator process to the next. For instance, the scan operator reads data from the disk and sends it to the filter operator, which then passes the filtered results to the join operator. This creates a kind of “data pipeline.”</li>
+<li><strong>Split Table</strong>: Gamma uses a “split table” to decide where the data should go next. Think of it like a routing table that directs the flow of data. For example, if the data needs to be sent to multiple nodes for parallel processing, the split table helps determine which node each piece of data should go to.</li>
+<li><strong>End of Processing</strong>: Once an operator finishes processing all its data, it closes its output streams and sends a signal to the scheduler process (which coordinates the whole query) to let it know that this part of the work is done.</li>
+</ol>
+<p>In simple terms, the operator and process structure in Gamma is like an assembly line where data moves from one step (operator) to the next, with each operator performing a specific task, and the split table guiding the data flow. This setup allows the system to process data in parallel across multiple nodes, making it much faster.</p>
+<h1 id="Operators"><a href="#Operators" class="headerlink" title="Operators"></a>Operators</h1><h2 id="Selection-Operator"><a href="#Selection-Operator" class="headerlink" title="Selection Operator"></a>Selection Operator</h2><p>Data Spread Across Multiple Disks: In Gamma, data tables are split up and stored across multiple disks (this is called “declustering”). Because of this, when you want to search (select) for specific data, the system can perform the search in parallel across multiple disks.</p>
+<p>Parallel Selection Process:</p>
 <ul>
-<li>Start(Ti): When Ti started its execution.</li>
-<li>Validation(Ti): When Ti finished its read phase and started its validation.</li>
-<li>Finish(Ti): Done with the write phase.</li>
+<li>If the search condition (predicate) matches the way the data is divided (partitioned), the system can narrow down the search to just the relevant nodes (computers with disks) that have the data. For example:</li>
+<li><ul>
+<li>If the data is divided using a <strong>hash or range</strong> partitioning method based on a certain attribute (like “employee ID”), and the search is also based on that attribute (e.g., “employee ID &#x3D; 123”), then the search can be directed only to the node that holds data matching that condition.</li>
+<li>If the data is divided using a <strong>round-robin</strong> method (spreading data evenly across all disks) or if the search condition <strong>doesn’t match the partitioning attribute</strong>, then the system has to search on all nodes.</li>
 </ul>
-<h1 id="MVCC"><a href="#MVCC" class="headerlink" title="MVCC"></a>MVCC</h1><p>Assume that transaction Ti issues either a read(Q) or a write(Q) operation.</p>
-<p>Let Qk denote the version of Q whose write timestamp is the largest write timestamp less than TS(Ti), i.e., W-TimeStamp(Qk) &lt; TS(Ti).</p>
+</li>
+</ul>
+<p>Performance Optimization:</p>
 <ul>
-<li>If Ti issues a Read(Q), then return the value of Qk.</li>
-<li>If Ti issues a write(Q), and TS(Ti) &lt; R-TimeStamp(Qk), then Ti is rolled back.</li>
-<li>Otherwise, a new version of Qk is created.</li>
+<li>To make the search faster, Gamma uses a “<strong>read-ahead</strong>“ technique. This means that when it reads one page of data, it starts loading the next page at the same time, so that the processing of data can keep going without waiting for the next page to load.</li>
 </ul>
+<h2 id="Join-Operator"><a href="#Join-Operator" class="headerlink" title="Join Operator"></a>Join Operator</h2><p>Using Hash Partitioning: The join algorithms in Gamma are based on a concept called “buckets.” This means splitting the two tables to be joined into separate groups (buckets) that don’t overlap. The groups are created by applying a hash function to the join attribute (e.g., Employee ID), so that data with the same hash value ends up in the same bucket.</p>
+<p>By partitioning the data into different buckets, each bucket contains unique data subsets, allowing parallel processing of these buckets, which speeds up the join operation. Additionally, <strong>all data with the same join attribute value is in the same bucket</strong>, making it easier to perform the join.</p>
+<p>Gamma implements four different parallel join algorithms:</p>
+<ul>
+<li><strong>Sort-Merge Join</strong>: Joins data by sorting and merging.</li>
+<li><strong>Grace Join</strong>: A distributed hash-based join algorithm.</li>
+<li><strong>Simple Hash Join</strong>: A straightforward hash-based partitioning join.</li>
+<li><strong>Hybrid Hash Join</strong>: A combination of different join techniques.</li>
+</ul>
+<p><strong>Default to Hybrid Hash Join:</strong> Research showed that the Hybrid Hash Join almost always performs the best, so Gamma uses this algorithm by default.</p>
+<p>Limitations: These hash-based join algorithms can <strong>only handle equi-joins</strong> (joins with equality conditions, like “Employee ID &#x3D; Department ID”). They currently don’t support non-equi-joins (conditions like “Salary &gt; Department Budget * 2”). To address this, Gamma is working on designing a new parallel non-equi-join algorithm.</p>
+<h3 id="Hybrid-Hash-Join"><a href="#Hybrid-Hash-Join" class="headerlink" title="Hybrid Hash-Join"></a>Hybrid Hash-Join</h3><ul>
+<li>In the first phase, the algorithm uses a hash function to partition the inner (smaller) relation, R, into N buckets. The tuples of the first bucket are used to build an in-memory hash table while the remaining N-1 buckets are stored in temporary files. A good hash function produces just enough buckets to ensure that each bucket of tuples will be small enough to fit entirely in main memory.</li>
+<li>During the second phase, relation S is partitioned using the hash function from step 1. Again, the last N-1 buckets are stored in temporary files while the tuples in the first bucket are used to immediately probe the in-memory hash table built during the first phase.</li>
+<li>During the third phase, the algorithm joins the remaining N-1 buckets from relation R with their respective buckets from relation S.</li>
+</ul>
+<p>The join is thus broken up into a series of smaller joins; each of which hopefully can be computed without experiencing join overflow. The size of the smaller relation determines the number of buckets; this calculation is independent of the size of the larger relation.</p>
+<h3 id="Parallel-version-of-Hybrid-Hash-Join"><a href="#Parallel-version-of-Hybrid-Hash-Join" class="headerlink" title="Parallel version of Hybrid Hash-Join"></a>Parallel version of Hybrid Hash-Join</h3><p>Partitioning into Buckets: The data from the two tables being joined is first divided into N buckets (small groups). The number of buckets is chosen so that each bucket can fit in the combined memory of the processors that are handling the join.</p>
+<p>Storage of Buckets: Out of the N buckets, N-1 buckets are stored temporarily on disk across different disk sites, while one bucket is kept in memory for immediate processing.</p>
+<p>Parallel Processing: A joining split table is used to decide which processor should handle each bucket, helping to divide the work across multiple processors. This means that <strong>different processors can work on different parts of the join at the same time</strong>, speeding up the process.</p>
+<p>Overlapping Phases for Efficiency:</p>
+<ul>
+<li>When partitioning the <strong>first table (R)</strong> into buckets, Gamma simultaneously builds a hash table for the first bucket in memory at each processor.</li>
+<li>When partitioning the <strong>second table (S)</strong>, Gamma simultaneously performs the join for the first bucket from S with the first bucket from R. This way, partitioning and joining overlap, making the process more efficient.</li>
+</ul>
+<p>Adjusting the Split Table for Parallel Joining: The joining split table is updated to make sure that the data from the first bucket of both tables is sent to the right processors that will perform the join. When the remaining N-1 buckets are processed, only the routing for joining is needed.</p>
+<h2 id="Aggregate-Operator"><a href="#Aggregate-Operator" class="headerlink" title="Aggregate Operator"></a>Aggregate Operator</h2><p>Parallel Calculation of Partial Results: Each processor in the Gamma system calculates the aggregate result for its own portion of the data simultaneously. For example, if the goal is to calculate a sum, each processor will first compute the sum for the data it is responsible for.</p>
+<p>Combining Partial Results: After calculating their partial results, the processors send these results to a central process. This central process is responsible for combining all the partial results to produce the final answer.</p>
+<p>Two-Step Computation:</p>
+<ul>
+<li><strong>Step 1</strong>: Each processor calculates the aggregate value (e.g., sum, count) for its data partition, resulting in partial results.</li>
+<li><strong>Step 2</strong>: The processors then redistribute these partial results based on the “group by” attribute. This means that the partial results for each group are collected at a single processor, where the final aggregation for that group is completed.</li>
+</ul>
+<h2 id="Update-Operator"><a href="#Update-Operator" class="headerlink" title="Update Operator"></a>Update Operator</h2><p>For the most part, the update operators (replace, delete, and append) are implemented using standard techniques. The only exception occurs when a replace operator modifies the partitioning attribute of a tuple. In this case, rather than writing the modified tuple back into the local fragment of the relation, the modified tuple is passed through a split table to determine which site should contain the tuple.</p>
+<h1 id="Concurrency-Control"><a href="#Concurrency-Control" class="headerlink" title="Concurrency Control"></a><strong>Concurrency Control</strong></h1><p>Gamma uses a two-phase locking strategy to manage concurrency. This means that before accessing data, a process must first acquire locks (first phase), and then release the locks after completing its operations (second phase). This ensures that multiple operations do not modify the same data at the same time, preventing conflicts.</p>
+<p>Gamma supports two levels of lock granularity: file-level and page-level (smaller scope). There are also five lock modes:</p>
+<ul>
+<li><strong>S (Shared) Lock</strong>: Allows multiple operations to read the data simultaneously.</li>
+<li><strong>X (Exclusive) Lock</strong>: Only one operation can modify the data, while others must wait.</li>
+<li><strong>IS, IX, and SIX Locks</strong>: Used to manage locking at larger scopes, such as entire files, allowing different combinations of read and write permissions.</li>
+</ul>
+<p>Each node in Gamma has its own lock manager and deadlock detector to handle local data locking. The lock manager maintains a lock table and a transaction wait-for-graph, which tracks which operations are waiting for which locks.</p>
+<p>The cost of setting a lock depends on whether there is a conflict:</p>
+<ul>
+<li><strong>No Conflict</strong>: Takes about 100 instructions.</li>
+<li><strong>With Conflict</strong>: Takes about 250 instructions because the system needs to check the wait-for-graph for deadlocks and suspend the requesting transaction using a semaphore mechanism.</li>
+</ul>
+<p>Gamma uses a centralized deadlock detection algorithm to handle deadlocks across nodes:</p>
+<ul>
+<li>Periodically (initially every second), the centralized deadlock detector requests each node’s local wait-for-graph.</li>
+<li>If no deadlock is found, the detection interval is doubled (up to 60 seconds). If a deadlock is found, the interval is halved (down to 1 second).</li>
+<li>The collected graphs are combined into a global wait-for-graph. If a cycle is detected in this global graph, it indicates a deadlock.</li>
+</ul>
+<p>When a deadlock is detected, the system will abort the transaction holding the fewest locks to free up resources quickly and allow other operations to proceed.</p>
+<h1 id="Recovery-and-Log"><a href="#Recovery-and-Log" class="headerlink" title="Recovery and Log"></a>Recovery and Log</h1><p>Logging Changes:</p>
+<p>When a record in the database is updated, Gamma creates a log record that notes the change. Each log record has a unique identifier called a Log Sequence Number (LSN), which includes a node number (determined when the system is set up) and a local sequence number (which keeps increasing). These log records are used for recovery if something goes wrong.</p>
+<p>Log Management:</p>
+<ul>
+<li>The system sends log records from query processors to <strong>Log Managers</strong>, which are separate processors that organize the logs into a single stream.</li>
+<li>If there are multiple Log Managers (M of them), a query processor sends its logs to one of them based on a simple formula: <strong>processor number mod M</strong>. This way, each query processor always sends its logs to the same Log Manager, making it easy to find logs later for recovery.</li>
+</ul>
+<p>Writing Logs to Disk:</p>
+<ul>
+<li>Once a “page” of log records is filled, it is saved to disk.</li>
+<li>The Log Manager keeps a <strong>Flushed Log Table</strong>, which tracks the last log record written to disk for each node. This helps know which logs are safely stored.</li>
+</ul>
+<p>Writing Data to Disk (WAL Protocol):</p>
+<ul>
+<li>Before writing any changed data (a <strong>dirty page</strong>) to disk, the system checks if the corresponding log records have already been saved.</li>
+<li>If the logs are saved, the data can be safely written to disk. If not, the system must first ensure the logs are written to disk before proceeding.</li>
+<li>To avoid waiting too long for log confirmations, the system always tries to keep a certain number of <strong>clean buffer pages</strong> (unused pages) available.</li>
+</ul>
+<p>Commit and Abort Handling:</p>
+<ul>
+<li><strong>Commit</strong>: If a transaction completes successfully, the system sends a commit message to all the relevant Log Managers.</li>
+<li><strong>Abort</strong>: If a transaction fails, an <strong>abort message</strong> is sent to all processors involved, and each processor retrieves its log records to undo the changes using the <strong>ARIES algorithm</strong>, which rolls back changes in the reverse order they occurred.</li>
+</ul>
+<p>Recovery Process:</p>
+<ul>
+<li>The system uses the <strong>ARIES algorithms</strong> for undoing changes, checkpointing, and restarting after a crash.</li>
+<li><strong>Checkpointing</strong> helps the system know the most recent stable state, reducing the amount of work needed during recovery.</li>
+</ul>
+<h1 id="Dataflow-scheduling-technologies"><a href="#Dataflow-scheduling-technologies" class="headerlink" title="Dataflow scheduling technologies"></a>Dataflow scheduling technologies</h1><ol>
+<li><strong>Data-Driven Execution Instead of Operator Control</strong>: Gamma’s dataflow scheduling lets data automatically move between operators, forming a pipeline. Each operator acts like a step on an assembly line: when data reaches the operator, it processes the data and then passes the processed results to the next operator.</li>
+<li><strong>Reducing Coordination Overhead</strong>: Because of this dataflow design, the system does not need to frequently coordinate or synchronize the execution of each operator. This approach reduces the complexity and overhead of scheduling, especially when multiple operators are running in parallel, and avoids performance bottlenecks caused by waiting or synchronization.</li>
+<li><strong>Inherent Support for Parallelism</strong>: Dataflow scheduling is well-suited for parallel processing because data can flow between multiple operators at the same time. For example, a query can simultaneously perform scanning, joining, and aggregation across different processors. Each operator can independently process the data it receives without waiting for other operators to finish, allowing the system to efficiently utilize the computational power of multiple processors.</li>
+<li><strong>Adaptability to Dynamic Environments</strong>: During query execution, dataflow scheduling can be adjusted based on the actual system load and data characteristics. This flexibility allows the system to dynamically optimize the performance of query execution, especially for large and complex queries, by better adapting to changing query demands and system conditions.</li>
+</ol>
+<p>Gamma’s unique dataflow scheduling techniques allow data to flow naturally between operators, reducing the need for direct control over operations. This significantly lowers coordination overhead in multi-processor environments, enhances the system’s parallel processing capabilities, and improves the efficiency of executing complex queries.</p>
+<p>In Gamma’s dataflow scheduling techniques, parallelism is extensively used to improve query execution efficiency. Here’s where and how parallelism is applied:</p>
+<ol>
+<li><p><strong>Parallel Execution of Operators</strong>: Queries often involve multiple operators (e.g., scan, filter, join, aggregation). With dataflow scheduling, these operators can run in parallel:</p>
+<ul>
+<li><p><strong>Scan and Filter in Parallel</strong>: While one processor scans a data block, another processor can be filtering the data from previous blocks.</p>
+</li>
+<li><p><strong>Parallel Joins</strong>: If a join operation involves large datasets distributed across different nodes, Gamma can perform the join operation on these different parts of the data simultaneously. The result of the join is computed in parallel across multiple processors.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Data Partitioning for Parallelism</strong>: The relations (data tables) are often partitioned across multiple processors in Gamma. This means that different processors can work on different partitions of the data at the same time. For example:</p>
+<ul>
+<li><p><strong>Partitioned Hash Joins</strong>: Data can be split into “buckets” based on a hash function, and different processors can handle the join for different buckets simultaneously.</p>
+</li>
+<li><p><strong>Parallel Aggregation</strong>: When computing aggregate functions (e.g., sum or average), each processor calculates a partial result for its own partition of the data, and these partial results are later combined.</p>
+</li>
+</ul>
+</li>
+</ol>
+<p>In summary, parallelism in Gamma is achieved through:</p>
+<ul>
+<li>Distributing query operators across multiple processors.</li>
+<li>Partitioning data so different processors work on different sections simultaneously.</li>
+<li>Enabling multiple stages of query execution (e.g., scanning, filtering, joining) to happen concurrently.</li>
+</ul>
+<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>What is a fragment or a shard in Gamma?</strong> </p>
+<p>A fragment or shard refers to a portion of a database relation that is horizontally partitioned across multiple disk drives.</p>
+<p><strong>How does a Gamma operator know where to send its stream of records?</strong> </p>
+<p>There is a structure called split table to determine where each tuple should be sent, based on the values of tuples.</p>
+<p><strong>With interleaved declusttering, why not use a cluster size that includes all nodes in the system?</strong></p>
+<p>If an interleaved declustteing system includes all nodes, it will become more vulnerable to failures. The failure of any two nodes could make the data inaccessible. A smaller cluster will limits the risk of complete data unavailability and balance the load.</p>
+<p><strong>Hash-join is appropriate for processing equi-join predicates (Emp.dno &#x3D; Dept.dno). How can Gamma process nonequi-join predicates (Emp.Sal &gt; Dept.dno*1000) in a pipelined manner?</strong></p>
+<p><strong>Range partitioning</strong>: Pre-partition the data based on ranges of values to reduce the search space.</p>
+<p><strong>Broadcast join</strong>: When the smaller relation is broadcasted to all nodes, and then each node evaluates the nonequi-join predicate in parallel.</p>
+<p><strong>Nested-loop join</strong>: Use a nested-loop join strategy where each tuple from one relation is compared against all tuples from the other relation.</p>
+<p><strong>What is the difference between Gamma, Google MapReduce, Microsoft Dryad and Apache Flink?</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>Aspect</strong></th>
+<th>Gamma</th>
+<th>MapReduce</th>
+<th>Dryad</th>
+<th>Flink</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Primary Use</strong></td>
+<td>Parallel database queries</td>
+<td>Batch processing</td>
+<td>Graph-based parallel computation</td>
+<td>Stream and batch processing</td>
+</tr>
+<tr>
+<td><strong>Architecture</strong></td>
+<td>Shared-nothing, partitioned data</td>
+<td>Cluster-based, distributed</td>
+<td>DAG of tasks</td>
+<td>Distributed, supports DAG</td>
+</tr>
+<tr>
+<td><strong>Data Model</strong></td>
+<td>Relational operations (SQL-like)</td>
+<td>Key-value pairs</td>
+<td>Data flow in DAG</td>
+<td>Stream processing with state</td>
+</tr>
+<tr>
+<td><strong>Partitioning</strong></td>
+<td>Horizontal partitioning</td>
+<td>Data split into chunks</td>
+<td>Data partitioned across graph</td>
+<td>Data partitioned into streams</td>
+</tr>
+<tr>
+<td><strong>Fault Tolerance</strong></td>
+<td>Limited</td>
+<td>Checkpointing</td>
+<td>Task-level recovery</td>
+<td>State snapshots, exactly-once</td>
+</tr>
+<tr>
+<td><strong>Programming</strong></td>
+<td>Relational (SQL-style)</td>
+<td>Functional (Map&#x2F;Reduce)</td>
+<td>Sequential tasks in DAG</td>
+<td>Functional, stream APIs</td>
+</tr>
+<tr>
+<td><strong>Scalability</strong></td>
+<td>Hundreds of processors</td>
+<td>Horizontally across many nodes</td>
+<td>Scales with more nodes</td>
+<td>Highly scalable, stream and batch</td>
+</tr>
+<tr>
+<td><strong>Use Case</strong></td>
+<td>Database query processing</td>
+<td>Log processing, data aggregation</td>
+<td>Scientific computing</td>
+<td>Real-time analytics, event processing</td>
+</tr>
+</tbody></table>
+<p><strong>Will a version of Gamma using FLOW be more modular than its current design?</strong></p>
+<p>Yes. FLOW enables more fine-grained control over the data flow and process interactions, which could simplify the addition of new operators and functionalities. It would also make the system easier to maintain and extend, as each component could be developed and optimized independently.</p>
+<p>Reference: <a href="https://pages.cs.wisc.edu/~dewitt/includes/paralleldb/ieee90.pdf">https://pages.cs.wisc.edu/~dewitt/includes/paralleldb/ieee90.pdf</a></p>
 ]]></content>
       <categories>
         <category>数据库系统</category>
