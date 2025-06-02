@@ -20,19 +20,19 @@
     var CONFIG = {"hostname":"yihangwe.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="SummaryThe paper addresses 2 problems:  How to design a query optimizer that can handle big data and complex analytical queries while ensuring the generation of efficient query plans. Exploring the ap">
+  <meta name="description" content="多表关系 一对多：在多的一方建立外键，指向一的一方的主键。如：部门-员工。 多对多：建立第三张中间表，其中至少包含两个外键，分别关联两方主键。如：学生-课程。 一对一：用于单表拆分，将一张表的基础字段放在一张表中，其他详情字段放在另一张表中，以提升操作效率。在任意一方加入外键，关联另一方的主键，并且设置外键为唯一（UNIQUE） 。   [!NOTE] 在多表查询时，需要消除无效的笛卡尔积。  连">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Orca - A Modular Query Optimizer Architecture for Big Data">
-<meta property="og:url" content="https://yihangwe.github.io/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/02/11/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Orca/index.html">
+<meta property="og:title" content="多表查询">
+<meta property="og:url" content="https://yihangwe.github.io/MySQL/2024/09/23/MySQL/%E5%A4%9A%E8%A1%A8%E6%9F%A5%E8%AF%A2/index.html">
 <meta property="og:site_name" content="EthanWeee">
-<meta property="og:description" content="SummaryThe paper addresses 2 problems:  How to design a query optimizer that can handle big data and complex analytical queries while ensuring the generation of efficient query plans. Exploring the ap">
+<meta property="og:description" content="多表关系 一对多：在多的一方建立外键，指向一的一方的主键。如：部门-员工。 多对多：建立第三张中间表，其中至少包含两个外键，分别关联两方主键。如：学生-课程。 一对一：用于单表拆分，将一张表的基础字段放在一张表中，其他详情字段放在另一张表中，以提升操作效率。在任意一方加入外键，关联另一方的主键，并且设置外键为唯一（UNIQUE） 。   [!NOTE] 在多表查询时，需要消除无效的笛卡尔积。  连">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2025-02-11T08:00:00.000Z">
-<meta property="article:modified_time" content="2025-06-01T06:05:29.983Z">
+<meta property="article:published_time" content="2024-09-23T07:00:00.000Z">
+<meta property="article:modified_time" content="2025-06-02T01:32:09.608Z">
 <meta property="article:author" content="Yihang Wei">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="https://yihangwe.github.io/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/02/11/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Orca/">
+<link rel="canonical" href="https://yihangwe.github.io/MySQL/2024/09/23/MySQL/%E5%A4%9A%E8%A1%A8%E6%9F%A5%E8%AF%A2/">
 
 
 <script id="page-configurations">
@@ -45,7 +45,7 @@
   };
 </script>
 
-  <title>Orca - A Modular Query Optimizer Architecture for Big Data | EthanWeee</title>
+  <title>多表查询 | EthanWeee</title>
   
 
 
@@ -184,7 +184,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/02/11/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Orca/">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/MySQL/2024/09/23/MySQL/%E5%A4%9A%E8%A1%A8%E6%9F%A5%E8%AF%A2/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -197,7 +197,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Orca - A Modular Query Optimizer Architecture for Big Data
+          多表查询
         </h1>
 
         <div class="post-meta">
@@ -207,14 +207,14 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2025-02-11 00:00:00" itemprop="dateCreated datePublished" datetime="2025-02-11T00:00:00-08:00">2025-02-11</time>
+              <time title="创建时间：2024-09-23 00:00:00" itemprop="dateCreated datePublished" datetime="2024-09-23T00:00:00-07:00">2024-09-23</time>
             </span>
               <span class="post-meta-item">
                 <span class="post-meta-item-icon">
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-05-31 23:05:29" itemprop="dateModified" datetime="2025-05-31T23:05:29-07:00">2025-05-31</time>
+                <time title="修改时间：2025-06-01 18:32:09" itemprop="dateModified" datetime="2025-06-01T18:32:09-07:00">2025-06-01</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -222,7 +222,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/" itemprop="url" rel="index"><span itemprop="name">高级数据存储</span></a>
+                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
                 </span>
             </span>
 
@@ -237,30 +237,41 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h1 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h1><p>The paper addresses 2 problems:</p>
-<ol>
-<li>How to design a query optimizer that can handle big data and complex analytical queries while ensuring the generation of efficient query plans.</li>
-<li>Exploring the application of advanced query optimization theories in production environments.</li>
-</ol>
-<p>The paper provides 4 novel ideas and elaborates the proposed approach for the implementation of each idea:</p>
-<ol>
-<li>Decoupling the optimizer from the DB systems through DXL: Different DB systems need to implement 3 translators, Query2DXL, MD Provider, and DXL2Plan, to support Orca.</li>
-<li>Use Memo and Group Hash Tables to optimize: Each group in the Memo stores all logically equivalent group expressions for a given operation, including enforcer operators. The group hash tables record the optimal implementation for each optimization request, i.e., the best group expressions. During query optimization, by retrieving the best group expression (best GExprs) corresponding to a given optimization request for each group and its child groups, these best GExprs are linked together to form the best execution plan.</li>
-<li>Implementing the parallel query optimization with jobs dependency graph and job queues: If a group is currently processing an optimization job, other jobs will be placed in a queue to wait. Once the job is completed, its results can be utilized by subsequent jobs.</li>
-<li>Developed efficient tools for testing: AMPERe is used to catch errors and generate dump files for later replaying to debug. TAQO samples plans uniformly based on the optimization requests’ linkage structure and evaluates the optimizer’s accuracy by calculating the correlation score between the ranking of sampled plans based on estimated costs and their ranking based on actual costs.</li>
-</ol>
-<p>Analytical and experimental findings: Based on the TPC-DS Benchmark, a limited set of queries was used to test GPDB legacy query optimizer (111 queries, MPP) and Orca, as well as Impala (31 queries, Hadoop), Stinger (19 queries, Hadoop), Presto (12 queries, Hadoop) and HAWQ. The results concluded that Orca matched or outperformed the GPDB optimizer in 80% of query executions. For 14 queries, Orca achieved a speed-up ratio of at least 1000× compared to the GPDB optimizer. Presto failed to process any TPC-DS queries under all test conditions, and query execution performance on HAWQ was generally superior to that on Impala and Stinger.</p>
-<h1 id="Paper-Strength"><a href="#Paper-Strength" class="headerlink" title="Paper Strength"></a>Paper Strength</h1><ul>
-<li>The paper provides a comprehensive literature review and covers the prerequisite knowledge needed to understand Orca. In the PRELIMINARIES, the paper briefly analyzes GPDB and explains its 3 core components: master, segments, and the interconnect layer, explains how SQL and query optimizers have been integrated into big data processing components such as Hadoop. Furthermore, it analyzes the advantages of the HAWQ architecture which is optimized by Orca compared to Impala and Presto. In the RELATED WORK, the paper introduces Volcano and Cascades, highlighting that Cascades offers greater flexibility than Volcano, then discusses various query optimizer implementations for big data in MPP databases, such as PDW and SCOPE. Finally, the paper reviews existing efforts to integrate SQL with Hadoop, such as converting queries into MapReduce jobs (Hive) and co-location of DBMS and Hadoop technologies (Hadapt).</li>
-<li>The paper presents highly valuable solutions for query optimization on big data: DXL and Parallel Query Optimization. Different DBs only need to implement their own Query2DXL and DXL2Plan translators to achieve compatibility with Orca, giving Orca the potential to be adapted to any existing database system. To satisfy the core requirement of big data, concurrent processing, Orca constructs an optimization jobs dependency graph to determine the dependencies between jobs. Parent jobs can only be executed after their child jobs are completed, while independent jobs can run in parallel. For handling resource contention, Orca places incoming jobs in a job queue, where they wait until the running job is finished. These waiting jobs can then leverage the results generated by the completed jobs.</li>
-<li>The paper elaborates steps of Orca’s optimization in the QUERY OPTIMIZATION section. In the Exploration phase, Orca creates logically equivalent expressions and deduplicates them using the Memo. In the Statistics Derivation phase, Orca estimates the cardinality and data skew for Memo groups. In the Implementation phase, Orca generates physical implementations of logical expressions. In the Optimization phase, multiple execution plans are generated, incorporating enforcer operators when necessary. The cost model is then used to select the execution plan with the lowest cost. These details effectively help readers gain a high-level understanding of Orca’s working principles.</li>
+        <h1 id="多表关系"><a href="#多表关系" class="headerlink" title="多表关系"></a>多表关系</h1><ul>
+<li>一对多：在多的一方建立外键，指向一的一方的主键。如：部门-员工。</li>
+<li>多对多：建立第三张中间表，其中至少包含两个外键，分别关联两方主键。如：学生-课程。</li>
+<li>一对一：用于单表拆分，将一张表的基础字段放在一张表中，其他详情字段放在另一张表中，以提升操作效率。在任意一方加入外键，关联另一方的主键，并且设置外键为唯一（UNIQUE） 。</li>
 </ul>
-<h1 id="Paper-Weakness"><a href="#Paper-Weakness" class="headerlink" title="Paper Weakness"></a>Paper Weakness</h1><ul>
-<li>The paper lacks a description of how execution plan costs are computed during the Optimization phase. Specifically, there is a complete absence of discussion on the cost model, which should be a core functionality of Orca. This is particularly crucial when dealing with big data and a shared-nothing architecture, where the cost model here may differ from the Selinger’s cost model by incorporating coordination and communication across multiple worker nodes and need to account for network bandwidth. I recommend that the paper include a detailed description of the cost model and discuss its behavior in both monolithic and distributed DB systems.</li>
-<li>The paper’s experimental evaluation for MPP databases is based on a limited dataset. Orca was only compared against the GPDB legacy query optimizer using 119 queries. Both the number of queries and the number of MPP database optimizer being compared are insufficient to convincingly demonstrate Orca’s advantages over other MPP database optimizers. Therefore, the experiment should conduct comparisons with a broader range of MPP databases, such as Amazon Redshift and Teradata Aster, to provide a more comprehensive evaluation.</li>
-<li>The paper’s experiments do not reflect Orca’s hardware utilization, such as CPU usage, memory consumption, etc. Orca will possibly be used in a shared-nothing architecture, it will run across multiple servers. However, in the production environment, these servers will be not dedicated solely to Orca, other processes including databases that Orca will optimize is going to be probably running on the same server where Orca will be. If Orca has excessively high CPU or memory usage, it could negatively impact those databases’ query execution and the performance of other applications. This effect could accumulate across multiple servers, leading to significant performance degradation. Therefore, the paper should also include an evaluation of Orca’s hardware resource consumption.</li>
+<blockquote>
+<p>[!NOTE]</p>
+<p>在多表查询时，需要消除无效的笛卡尔积。</p>
+</blockquote>
+<h1 id="连接查询"><a href="#连接查询" class="headerlink" title="连接查询"></a>连接查询</h1><h2 id="内连接"><a href="#内连接" class="headerlink" title="内连接"></a>内连接</h2><p>相当于查询两张表交集部分数据。</p>
+<ul>
+<li>隐式内连接：<code>SELECT 字段列表 FROM 表1，表2 WHERE 条件;</code></li>
+<li>显式内连接 ：<code>SELECT 字段列表 FROM 表1 [INNER] JOIN 表2 ON 连接条件;</code></li>
 </ul>
-<p>Reference: <a target="_blank" rel="noopener" href="https://dl.acm.org/doi/10.1145/2588555.2595637">https://dl.acm.org/doi/10.1145/2588555.2595637</a></p>
+<h2 id="外连接"><a href="#外连接" class="headerlink" title="外连接"></a>外连接</h2><p>左外连接：查询左表所有数据，以及两张表交集部分数据。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> 字段列表 <span class="keyword">FROM</span> 表<span class="number">1</span> <span class="keyword">LEFT</span> [<span class="keyword">OUTER</span>] <span class="keyword">JOIN</span> 表<span class="number">2</span> <span class="keyword">ON</span> 条件;</span><br></pre></td></tr></table></figure>
+
+<p>右外连接：查询右表所有数据，以及两张表交集部分数据。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> 字段列表 <span class="keyword">FROM</span> 表<span class="number">1</span> <span class="keyword">RIGHT</span> [<span class="keyword">OUTER</span>] <span class="keyword">JOIN</span> 表<span class="number">2</span> <span class="keyword">ON</span> 条件;</span><br></pre></td></tr></table></figure>
+
+<p>自连接：当前表与自身的连接查询，必须使用表别名。可以是内连接，也可以是外连接。</p>
+<p>联合查询：把多次查询的结果合并以形成一个新的查询结果集。不使用 ALL 的时候，有去重效果。联合查询的多张表之间的列数和字段类型需要<strong>保持一致</strong>。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> 字段列表 <span class="keyword">FROM</span> 表<span class="number">1</span> <span class="keyword">UNION</span> [<span class="keyword">ALL</span>] <span class="keyword">SELECT</span> 字段列表 <span class="keyword">FROM</span> 表<span class="number">2</span>;</span><br></pre></td></tr></table></figure>
+
+<h1 id="子查询"><a href="#子查询" class="headerlink" title="子查询"></a>子查询</h1><p>SQL语句中嵌套 SELECT 语句，外部语句可以是 INSERT&#x2F;UPDATE&#x2F;DELETE&#x2F;SELECT 中任何一个。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> 表名 <span class="keyword">WHERE</span> col <span class="operator">=</span> (<span class="keyword">SELECT</span> col <span class="keyword">FROM</span> 表<span class="number">2</span>);</span><br></pre></td></tr></table></figure>
+
+<h2 id="子查询种类"><a href="#子查询种类" class="headerlink" title="子查询种类"></a>子查询种类</h2><p>根据结果</p>
+<ul>
+<li>标量子查询：返回结果是单个值。</li>
+<li>列子查询：返回结果是一列。</li>
+<li>行子查询：返回结果是一行（可以是多列）。</li>
+<li>表子查询：返回结果是多行多列。</li>
+</ul>
+<p>根据位置：WHERE 之后，FROM 之后，SELECT 之后。</p>
 
     </div>
 
@@ -276,12 +287,12 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/25/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20AnalyticDB%20Real-time%20OLAP%20Database%20System%20at%20Alibaba%20Cloud/" rel="prev" title="AnalyticDB - Real-time OLAP Database System at Alibaba Cloud">
-      <i class="fa fa-chevron-left"></i> AnalyticDB - Real-time OLAP Database System at Alibaba Cloud
+    <a href="/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/20/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/Nova-LSM/" rel="prev" title="Nova-LSM">
+      <i class="fa fa-chevron-left"></i> Nova-LSM
     </a></div>
       <div class="post-nav-item">
-    <a href="/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/03/02/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Adaptive%20Execution%20of%20Compiled%20Queries/" rel="next" title="Adaptive Execution of Compiled Queries">
-      Adaptive Execution of Compiled Queries <i class="fa fa-chevron-right"></i>
+    <a href="/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/27/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/FoundationDB/" rel="next" title="FoundationDB">
+      FoundationDB <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -341,7 +352,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Summary"><span class="nav-number">1.</span> <span class="nav-text">Summary</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Paper-Strength"><span class="nav-number">2.</span> <span class="nav-text">Paper Strength</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Paper-Weakness"><span class="nav-number">3.</span> <span class="nav-text">Paper Weakness</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%A4%9A%E8%A1%A8%E5%85%B3%E7%B3%BB"><span class="nav-number">1.</span> <span class="nav-text">多表关系</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%BF%9E%E6%8E%A5%E6%9F%A5%E8%AF%A2"><span class="nav-number">2.</span> <span class="nav-text">连接查询</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E8%BF%9E%E6%8E%A5"><span class="nav-number">2.1.</span> <span class="nav-text">内连接</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%96%E8%BF%9E%E6%8E%A5"><span class="nav-number">2.2.</span> <span class="nav-text">外连接</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AD%90%E6%9F%A5%E8%AF%A2"><span class="nav-number">3.</span> <span class="nav-text">子查询</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%90%E6%9F%A5%E8%AF%A2%E7%A7%8D%E7%B1%BB"><span class="nav-number">3.1.</span> <span class="nav-text">子查询种类</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
