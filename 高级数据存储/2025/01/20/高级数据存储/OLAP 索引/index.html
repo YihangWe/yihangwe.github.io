@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yihangwe.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Data Skipping我们可以利用辅助数据结构标识表中哪些部分可以跳过扫描，避免对每一行（tuple）都做判断。 OLAP 场景下为什么要用 Data Skipping？ 在 OLAP 场景中，查询往往是扫描大量历史数据，筛选满足某种复杂条件的子集，典型例子如数据仓库的多维分析、报表查询等。此时：  表非常大：可能有数十亿、上百亿行，逐行检查每个行是否满足条件，代价非常高。 查询通常按若干列做">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OLAP 索引">
+<meta property="og:url" content="https://yihangwe.github.io/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/20/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/OLAP%20%E7%B4%A2%E5%BC%95/index.html">
+<meta property="og:site_name" content="EthanWeee">
+<meta property="og:description" content="Data Skipping我们可以利用辅助数据结构标识表中哪些部分可以跳过扫描，避免对每一行（tuple）都做判断。 OLAP 场景下为什么要用 Data Skipping？ 在 OLAP 场景中，查询往往是扫描大量历史数据，筛选满足某种复杂条件的子集，典型例子如数据仓库的多维分析、报表查询等。此时：  表非常大：可能有数十亿、上百亿行，逐行检查每个行是否满足条件，代价非常高。 查询通常按若干列做">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-01-20T08:00:00.000Z">
+<meta property="article:modified_time" content="2025-06-06T03:45:07.961Z">
+<meta property="article:author" content="Yihang Wei">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://yihangwe.github.io/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/20/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/OLAP%20%E7%B4%A2%E5%BC%95/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>OLAP 索引 | EthanWeee</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">EthanWeee</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/20/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/OLAP%20%E7%B4%A2%E5%BC%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          OLAP 索引
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-01-20 00:00:00" itemprop="dateCreated datePublished" datetime="2025-01-20T00:00:00-08:00">2025-01-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-06-05 20:45:07" itemprop="dateModified" datetime="2025-06-05T20:45:07-07:00">2025-06-05</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/" itemprop="url" rel="index"><span itemprop="name">高级数据存储</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Data-Skipping"><a href="#Data-Skipping" class="headerlink" title="Data Skipping"></a>Data Skipping</h1><p>我们可以利用辅助数据结构标识表中哪些部分可以跳过扫描，避免对每一行（tuple）都做判断。</p>
+<p><strong>OLAP 场景下为什么要用 Data Skipping？</strong></p>
+<p>在 OLAP 场景中，查询往往是扫描大量历史数据，筛选满足某种复杂条件的子集，典型例子如数据仓库的多维分析、报表查询等。此时：</p>
+<ol>
+<li><strong>表非常大</strong>：可能有数十亿、上百亿行，逐行检查每个行是否满足条件，代价非常高。</li>
+<li><strong>查询通常按若干列做过滤</strong>：比如 <code>WHERE 年份 = 2024 AND 地区 = &#39;北京&#39;</code>，而且常常只要少量数据就够了（高选择性场景）。</li>
+<li><strong>批量扫描 vs. 随机读取</strong>：读整个表，会触发大量 I&#x2F;O；如果能一眼就知道哪些数据页根本不用读，就能省下大量 I&#x2F;O 时间。</li>
+</ol>
+<p>因此，Data Skipping 的核心思路，就是通过在数据块或分区级别维护一些<strong>辅助信息</strong>，让查询在执行过滤时能够判断“某个数据块（比如一个文件区块、一个数据页、一个段&#x2F;partition）肯定不包含满足过滤条件的行，就直接跳过，不去读取和解析该块中的每一行”，从而大幅减少 I&#x2F;O，以及后续的行级计算。</p>
+<p>常见的 Data Skipping 技术主要有以下几类：</p>
+<ol>
+<li><strong>Zone Map &#x2F; Min-Max 索引</strong><ul>
+<li>每个数据块（block 或 segment）存一对最小值和最大值，例如按时间分块后，记录该块中时间列的 [min_timestamp, max_timestamp]。</li>
+<li>查询时，如果查询条件为 <code>timestamp BETWEEN &#39;2024-01-01&#39; AND &#39;2024-03-01&#39;</code>，当某个块的最大时间都早于 ‘2024-01-01’，或者最小时间都晚于 ‘2024-03-01’，就可以完全跳过该块。</li>
+<li>优点：实现简单、维护开销低；适用于列值分布相对平缓的场景。</li>
+<li>缺点：如果一个块里 min–max 范围很宽（分布倾斜或块太大），就容易出现“区间重叠”，跳不过去，效率下降。</li>
+</ul>
+</li>
+<li><strong>位图索引（Bitmap Index）</strong><ul>
+<li>针对低基数的列（如性别、地区、状态等），为每个可能的离散取值维护一个位图（bitset）。</li>
+<li>每个数据块也可以维护该位图的摘要（比如每 N 行分一个小位图），查询时快速根据位图判断该数据段中是否存在某个值，若不存在就跳过。</li>
+<li>优点：在基数较低、数据倾斜度不高时，效果很好；位图操作位运算开销低。</li>
+<li>缺点：对于高基数列，位图会很大，且维护成本高。</li>
+</ul>
+</li>
+<li><strong>布隆过滤器（Bloom Filter）</strong><ul>
+<li>保存每个数据页中的列值集合的 Bloom Filter，当查询时先检查 Bloom Filter 是否可能包含该值，若 Bloom Filter 结果为不可能存在，则跳过整个页。</li>
+<li>优点：Bloom Filter 占用空间小，查询时布尔判断开销低。</li>
+<li>缺点：存在误报率（false-positive），即有时候 Bloom Filter 误判可能存在，需要再回退到读页；但绝不会误判真正存在而跳过，保证正确性。</li>
+</ul>
+</li>
+<li><strong>Skip List／Skip Table 结构</strong><ul>
+<li>某些列可以对数据块按值范围做多级跳跃索引，比如最外层根据范围将整个表划分为若干区域，里层再分页索引。</li>
+<li>OLAP 引擎（如 Apache Parquet、ORC）通常在文件格式层面（列存格式）会同时维护多层次的自底向上的统计信息（Statistics）。</li>
+<li>Query Planner 就会根据统计信息决定哪些 Row Group（行组）或 Stride（步长）可以跳过。</li>
+</ul>
+</li>
+<li><strong>分区表（Partitioning）</strong><ul>
+<li>将大表水平拆分成多个分区（按时间、地区、业务线等），在查询时如果过滤条件里包含分区键（如 date），可以直接分区剪裁，跳过不相关分区。</li>
+<li>其实分区本质也是一种粗粒度的 Data Skipping，跳过整个分区文件。</li>
+</ul>
+</li>
+</ol>
+<p><strong>设计 Data Skipping 时的关键考虑点</strong></p>
+<p><strong>1. 谓词选择性</strong></p>
+<ul>
+<li><p><strong>低选择性场景</strong></p>
+<p>比如查询 <code>WHERE gender = &#39;M&#39;</code>，如果全表大约一半行都是 <code>gender=&#39;M&#39;</code>，则满足谓词的行很多，跳过就算跳掉了另一半行，也意味着还要扫描一半行，节省有限。</p>
+</li>
+<li><p><strong>高选择性场景</strong></p>
+<p>比如查询 <code>WHERE customer_id = 123456789</code>，或 <code>WHERE event_date = &#39;2025-06-01&#39; AND region = &#39;北京&#39;</code>，只会有极少量行符合条件。此时如果辅助结构能识别掉绝大多数数据块，就能极大节省 I&#x2F;O。</p>
+</li>
+</ul>
+<p><strong>2. 列值分布</strong></p>
+<ul>
+<li>如果某列的值高度偏斜，例如某个列绝大多数行都是同一个值，其余值极少，Zone Map 或基于统计的跳过就不太准。<ul>
+<li>举例：某列几乎全是 ‘A’，只有很少行是 ‘B’，若文件切分并不按照该列聚簇，那么即便大多数块里都是 ‘A’，但每块的最小值&#x2F;最大值同样会显示为 ‘A’，所有块看起来都可能包含 ‘B’，无法跳过。</li>
+</ul>
+</li>
+<li>因此，一般会结合<strong>物理排序（clustering）或分桶（bucketing）</strong>：<ul>
+<li>在生成文件时先按该列做排序&#x2F;分桶，这样相同值会被写到同一数据块里；</li>
+<li>有了同一数据块里只有一个值的特性，块级统计就变得非常有效。</li>
+</ul>
+</li>
+</ul>
+<h1 id="Bitmap-Indexes"><a href="#Bitmap-Indexes" class="headerlink" title="Bitmap Indexes"></a>Bitmap Indexes</h1><p><strong>位图索引</strong>为某个属性（列）的每个不同取值，都存储一份单独的位图，位图中的第 <em>i</em> 位对应了表中第 <em>i</em> 条记录。</p>
+<p>对于下表的原始数据：</p>
+<table>
+<thead>
+<tr>
+<th>order_id</th>
+<th>paid</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>Y</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Y</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Y</td>
+</tr>
+<tr>
+<td>4</td>
+<td>N</td>
+</tr>
+</tbody></table>
+<p>压缩后的数据如下：</p>
+<table>
+  <thead>
+    <tr>
+      <th>order_id</th>
+      <th colspan="2">paid</th>
+    </tr>
+    <tr>
+      <td></td>
+      <td>Y</td>
+      <td>N</td>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>1</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>1</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>1</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>0</td>
+      <td>1</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>对于多列多值的组合过滤，Bitmap 索引支持高效的按位与（AND）、或（OR）、非（NOT）等位运算。</p>
+<p>如果把整个表的行数记为 <em>N</em>，那么一个属性值对应的位图长度就是 <em>N</em> 位。当表非常大（数千万、上亿行），单张位图也会变得很大。为避免一次性分配庞大、连续的内存块，常见做法是分段（segment&#x2F;chunk）：把总行数 <em>N</em> 划分成若干个固定大小的块（例如每块 1 百万行），那么位图也相应地分成若干个子段，每个子段只需要维护该区间内的位。查询时只需要扫描与目标区间重叠的位段。</p>
+<p>思考：</p>
+<p>为什么使用 Bitmap？</p>
+<ol>
+<li><p><strong>空间利用率较高</strong></p>
+<p>位图本质上是一个位数组，对于低基数或中等基数的列，位图能精确记录行与属性值的映射，且只需 1 位&#x2F;行。</p>
+</li>
+<li><p><strong>位运算速度快，适合多条件混合过滤</strong></p>
+<p>多列过滤条件时，只要获取每个条件对应的位图，对它们做位与&#x2F;或&#x2F;非等操作，就能快速算出满足所有条件的行集合。</p>
+</li>
+</ol>
+<p>为什么位图索引适合压缩？</p>
+<ul>
+<li>如果某个取值非常稀疏地分布在整个表中，那么位图中绝大多数位都是 0，只有少数位置是 1。或者，若有些连续行都满足该取值，又会出现连续的 1 序列。利用这种长串 0 或长串 1 可用<strong>压缩算法</strong>（如 Run-Length Encoding、WAH、Roaring Bitmap 等）进一步缩小存储空间。</li>
+<li>现代 OLAP 引擎（例如 Apache Druid、ClickHouse、Presto 等）在底层都会选择一些成熟的压缩位图实现，这些实现不仅压缩率高，而且能够在压缩态下做位运算，避免了每次查询都需要先把整个位图解压到内存。</li>
+</ul>
+<h1 id="常见的四种编码技术"><a href="#常见的四种编码技术" class="headerlink" title="常见的四种编码技术"></a>常见的四种编码技术</h1><p>位图索引常见的四种编码技术：等值编码（Equality Encoding）、区间编码（Range Encoding）、分层编码（Hierarchical Encoding）和位切片编码（Bit-sliced Encoding）。</p>
+<ol>
+<li><p><strong>等值编码</strong></p>
+<p>为某一列（属性）中的每个<strong>唯一取值</strong>都维护一份独立的位图。也就是说，如果该列有 m 个不同取值，则总共有 m 个位图，每份位图长度为表的总行数 N。这种编码形式上类似 One-Hot 独热编码。具体示例可参考之前的两张表。</p>
+<p>优点：直观简单并且等值查询高效。</p>
+<p>缺点：占用大量空间。</p>
+</li>
+<li><p><strong>区间编码</strong></p>
+<p>与等值编码不同，不为每个<strong>单一取值</strong>都建一份位图，而是按照若干有意义的区间（interval）来划分，每个区间对应一份位图。</p>
+<p>举例：以一个数值列 age 为例，表中 age 范围在 0–100 岁之间，可以把区间划分为 [0–17]、[18–30]、[31–50]、[51–70]、[71–100]。</p>
+<p>为每个区间建一份位图：</p>
+<ul>
+<li>Bitmap_0_17：标记哪些行的 age 落在 0–17 之间；</li>
+<li>Bitmap_18_30：标记哪些行的 age 落在 18–30 之间；</li>
+<li>以此类推。</li>
+</ul>
+<p>优点：适合范围查询并且比等值编码更节省空间。</p>
+<p>缺点：区间的粒度需要权衡。划分的区间越细，能更精准地匹配查询，但要维护的位图份数越多；划分区间越粗，则位图份数越少，但位图对应的行集合范围更大，查询时跳过的效率会下降。</p>
+</li>
+<li><p><strong>分层编码</strong></p>
+<p>通过构建<strong>树形层次结构</strong>（hierarchy），在不同层级对值或值范围做<strong>分段统计&#x2F;位图标识</strong>，用于快速识别那些整个子树&#x2F;子范围内没有数据的情况。</p>
+<p>通常从较粗的范围到较细的范围构建多层位图：</p>
+<ol>
+<li>第一层（根层）：记录整个列的全部可能值范围，并标注哪些子范围是非空（或者空）。</li>
+<li>第二层：把根层范围继续细分为若干更小区间，分别维护各自的标识。</li>
+<li>依次向下，直到最底层是单个取值或某个可接受的最小分区。</li>
+</ol>
+<p>以一列 zipcode（邮政编码）为例，取值范围是 00000–99999，总计 100,000 个可能值。如果直接对每个具体的 5 位数字都建一份位图，太耗空间。改用分层编码：</p>
+<ol>
+<li><strong>第一层</strong>：只看邮编的第一位，共 10 种可能（0、1、2、…、9），<ul>
+<li>构建 10 个顶层位图，分别标记表中哪些行的 zipcode 第一位是 0、哪些行的第一位是 1，以此类推。</li>
+</ul>
+</li>
+<li><strong>第二层</strong>：假设在第一层为前缀 &#x3D; 3（假设查询潜在目标值的前缀为 3）的情况下，第二层把 zipcode 的前两位 30 ～ 39 这 10 个前缀，各自再建位图；</li>
+<li><strong>第三层</strong>：再细分为 300 ～ 309 等前缀，递归向下，直到精确到具体 5 位。</li>
+</ol>
+<p>优点：快速剪裁空范围且适用于高基数&#x2F;稀疏分布的列。</p>
+<p>缺点：存储与维护复杂度更高。需要为每层维护对应的位图，并保持各层之间的一致性。</p>
+</li>
+<li><p><strong>位切片编码</strong></p>
+<p>不是将每个取值或每个区间映射到一份位图，而是针对某个<strong>数值列的二进制表示</strong>，维护<strong>按位的位置拆分的一组位图</strong>。</p>
+<p>假设有一个 8 位的整数列，如下：</p>
+<table>
+<thead>
+<tr>
+<th><strong>行号</strong></th>
+<th>value（原始值）</th>
+<th><strong>value（二进制）</strong></th>
+<th><strong>Bit_0</strong></th>
+<th><strong>Bit_1</strong></th>
+<th><strong>Bit_2</strong></th>
+<th><strong>Bit_3</strong></th>
+<th><strong>Bit_4</strong></th>
+<th><strong>Bit_5</strong></th>
+<th><strong>Bit_6</strong></th>
+<th><strong>Bit_7</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>5</td>
+<td>00000101</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>2</td>
+<td>18</td>
+<td>00010010</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>3</td>
+<td>7</td>
+<td>00000111</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>4</td>
+<td>25</td>
+<td>00011001</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody></table>
+<p>上表中，Bit_0 代表的是最低位，Bit_7 代表最高位。</p>
+<p>位切片编码中，如果要基于上表中的数据进行如下条件过滤：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> tbl <span class="keyword">WHERE</span> <span class="keyword">value</span> <span class="operator">&gt;</span> <span class="number">17</span>;</span><br></pre></td></tr></table></figure>
+
+<p>我们先将 17 转换成二进制：10001，并在位切片编码过的位图索引中搜索并过滤：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">10100000</span><br><span class="line">01001000</span><br><span class="line">11100000</span><br><span class="line">10011000</span><br><span class="line">--------</span><br><span class="line">10001000 # 17</span><br></pre></td></tr></table></figure>
+
+<p>我们先找出 17 的最高位是 Bit_4，并得出表中 4 行的这一位以及更高位中只有第 2 和第 4 行是和 17 至少一样大，因此可以快速过滤掉第 1 和第 3 行。</p>
+<p>优点：</p>
+<ol>
+<li><strong>支持任意数值比较</strong>：当需要执行 WHERE value &gt; K 或 WHERE value BETWEEN L AND R 之类的数值比较时，只需根据 K、L、R 的二进制表现，结合多份 Bit_j 位图做<strong>布尔代数运算</strong>（AND、OR、NOT），就能快速构造出满足条件的行号位图。</li>
+<li><strong>对高基数数值列尤为合适</strong>：与等值编码相比，高基数字段如果直接为每个取值建位图会产生海量位图；而位切片只需按二进制位宽度建 B 份位图，无论具体取值基数多大，都只需 B 份（例如 32 或 64）位图。</li>
+</ol>
+<p>缺点：</p>
+<ol>
+<li><strong>查询时位运算代价较大</strong>：与简单的等值位图（只要读取并返回一份位图）、区间位图（只要读取一份或几份位图）相比，位切片编码在做数值比较或范围查询时，需要对多份位图做组合运算（AND&#x2F;OR&#x2F;NOT），逻辑比较稍复杂，CPU 开销更高。但<strong>总体仍比全表扫描或传统 B+ 树索引的多次随机 I&#x2F;O 要高效得多</strong>，尤其在 OLAP 大规模并行计算场景下，位运算的吞吐量很大。</li>
+</ol>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/13/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E5%B8%83%E5%B1%80/" rel="prev" title="数据存储布局">
+      <i class="fa fa-chevron-left"></i> 数据存储布局
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/25/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20AnalyticDB%20Real-time%20OLAP%20Database%20System%20at%20Alibaba%20Cloud/" rel="next" title="AnalyticDB - Real-time OLAP Database System at Alibaba Cloud">
+      AnalyticDB - Real-time OLAP Database System at Alibaba Cloud <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Data-Skipping"><span class="nav-number">1.</span> <span class="nav-text">Data Skipping</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Bitmap-Indexes"><span class="nav-number">2.</span> <span class="nav-text">Bitmap Indexes</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B8%B8%E8%A7%81%E7%9A%84%E5%9B%9B%E7%A7%8D%E7%BC%96%E7%A0%81%E6%8A%80%E6%9C%AF"><span class="nav-number">3.</span> <span class="nav-text">常见的四种编码技术</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Yihang Wei</p>
+  <div class="site-description" itemprop="description">聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">25</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yihang Wei</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '50%',
+  right: '32px',
+  left: 'unset',
+  time: '0.5s',
+  mixColor: '#fff',
+  backgroundColor: '#fff',
+  buttonColorDark: '#100f2c',
+  buttonColorLight: '#fff',
+  saveInCookies: true,
+  label: '明暗',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+</body>
+</html>
