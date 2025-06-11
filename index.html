@@ -181,6 +181,200 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/MySQL/2024/09/12/MySQL/%E4%BB%8B%E7%BB%8D/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/MySQL/2024/09/12/MySQL/%E4%BB%8B%E7%BB%8D/" class="post-title-link" itemprop="url">介绍</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-09-12 00:00:00" itemprop="dateCreated datePublished" datetime="2024-09-12T00:00:00-07:00">2024-09-12</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-05-31 23:26:26" itemprop="dateModified" datetime="2025-05-31T23:26:26-07:00">2025-05-31</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>数据库是数据存储的仓库，是文件的集合，是依照某种数据模型组织起来并存放于二级存储器中的数据集合。</p>
+<p>数据库实例是程序，是位于用户和操作系统之间的一层数据管理软件，用户对数据库数据的任何操作都是在数据库实例下进行的。应用程序只有通过数据库实例才能和数据库打交道。</p>
+<p>在 MySQL 中，实例和数据库的关系通常是一一对应的。但在集群下可能存在一个数据库被多个数据库实例使用的情况。</p>
+<p>关系型数据库（结构数据模型，表）：建立在关系模型基础上，由多张相互连接的<strong>二维表</strong>组成的数据库。</p>
+<p>数据库管理系统（DBMS）：操纵和管理数据库的应用程序。</p>
+<p>SQL：操作关系型数据库的编程语言，也是一套标准。</p>
+<p>客户端&#x3D;&gt;数据库管理系统&#x3D;&gt;数据库&#x3D;&gt;数据表。</p>
+<h1 id="数据库三大范式"><a href="#数据库三大范式" class="headerlink" title="数据库三大范式"></a>数据库三大范式</h1><p>第一范式（1NF）：确保表的每一列都是<strong>不可分割</strong>的基本数据单元，比如说用户地址，应该拆分成省、市、区、详细信息等 4 个字段。</p>
+<p>第二范式（2NF）：在 1NF 的基础上，要求数据库表中的<strong>每一列都和主键直接相关</strong>，而不能只与主键的某一部分相关（主要针对联合主键）。</p>
+<p>第三范式（3NF）：在 2NF 的基础上，消除非主键列对主键的传递依赖，即<strong>非主键列只依赖于主键列</strong>，不依赖于其他非主键列。</p>
+<h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>MySQL 是一款开源的关系型数据库管理系统（RDBMS），最初由 MySQL AB 于 1995 年 5 月 23 日推出，现由 Oracle 维护和发布。MySQL 使用 SQL 来定义、操作和管理数据表，将数据组织为由行与列构成的表格，以实现数据之间的关联与查询。它原生支持完整的 ACID 事务特性和多版本并发控制（MVCC），在高并发环境下能够保持数据的一致性与隔离度；InnoDB 引擎通过回滚段存储旧版本数据，并结合两阶段锁定（Two-Phase Locking）和插入意向锁等机制，实现并发控制与死锁检测。MySQL 可跨 Windows、Linux、macOS、FreeBSD 等多个操作系统部署，凭借易用性、高性能与可靠性，长期被广泛应用于 Web 应用、电子商务平台和企业级系统。</p>
+<p>MySQL 采用可插拔的存储引擎架构，允许用户根据不同业务需求选择最合适的引擎。默认的 InnoDB 引擎提供事务处理、行级锁、外键约束、崩溃恢复（通过 redo log）和双写缓冲等功能，以确保数据安全与快速恢复。在 InnoDB 之前，MyISAM 曾为默认引擎，其采用表级锁设计、不支持事务与外键，适用于读密集型场景但无法满足高并发写入需求。此外，MySQL 还支持 Memory 引擎（将数据保存在内存中，适合临时表或高速缓存）和 NDB Cluster 引擎（面向分布式高可用集群，支持自动分片和多主复制），以满足不同场景下对性能与可用性的多样化需求。</p>
+<p>在服务器层面，MySQL 包括 SQL 解析器、查询优化器和执行器三大组件。解析器负责将客户端提交的 SQL 文本进行词法与语法分析，生成内部抽象语法树（AST）；优化器基于统计信息与索引代价估算，选择最优执行计划；执行器则通过存储引擎接口调用底层引擎完成实际的数据访问和操作，例如数据页读取、加锁、写入等。MySQL 采用磁盘导向的存储架构，InnoDB 使用页为单位将数据加载到缓冲池并通过分代 LRU 策略进行页面替换，以优化磁盘 I&#x2F;O 性能。在并发查询执行方面，MySQL 以元组级的迭代器模型处理查询，不支持内部并行化，但可借助索引和优化器策略减少 I&#x2F;O 次数，从而提升查询效率。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/MySQL/2024/09/23/MySQL/%E5%A4%9A%E8%A1%A8%E6%9F%A5%E8%AF%A2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/MySQL/2024/09/23/MySQL/%E5%A4%9A%E8%A1%A8%E6%9F%A5%E8%AF%A2/" class="post-title-link" itemprop="url">多表查询</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-09-23 00:00:00" itemprop="dateCreated datePublished" datetime="2024-09-23T00:00:00-07:00">2024-09-23</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-06-01 18:32:09" itemprop="dateModified" datetime="2025-06-01T18:32:09-07:00">2025-06-01</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="多表关系"><a href="#多表关系" class="headerlink" title="多表关系"></a>多表关系</h1><ul>
+<li>一对多：在多的一方建立外键，指向一的一方的主键。如：部门-员工。</li>
+<li>多对多：建立第三张中间表，其中至少包含两个外键，分别关联两方主键。如：学生-课程。</li>
+<li>一对一：用于单表拆分，将一张表的基础字段放在一张表中，其他详情字段放在另一张表中，以提升操作效率。在任意一方加入外键，关联另一方的主键，并且设置外键为唯一（UNIQUE） 。</li>
+</ul>
+<blockquote>
+<p>[!NOTE]</p>
+<p>在多表查询时，需要消除无效的笛卡尔积。</p>
+</blockquote>
+<h1 id="连接查询"><a href="#连接查询" class="headerlink" title="连接查询"></a>连接查询</h1><h2 id="内连接"><a href="#内连接" class="headerlink" title="内连接"></a>内连接</h2><p>相当于查询两张表交集部分数据。</p>
+<ul>
+<li>隐式内连接：<code>SELECT 字段列表 FROM 表1，表2 WHERE 条件;</code></li>
+<li>显式内连接 ：<code>SELECT 字段列表 FROM 表1 [INNER] JOIN 表2 ON 连接条件;</code></li>
+</ul>
+<h2 id="外连接"><a href="#外连接" class="headerlink" title="外连接"></a>外连接</h2><p>左外连接：查询左表所有数据，以及两张表交集部分数据。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> 字段列表 <span class="keyword">FROM</span> 表<span class="number">1</span> <span class="keyword">LEFT</span> [<span class="keyword">OUTER</span>] <span class="keyword">JOIN</span> 表<span class="number">2</span> <span class="keyword">ON</span> 条件;</span><br></pre></td></tr></table></figure>
+
+<p>右外连接：查询右表所有数据，以及两张表交集部分数据。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> 字段列表 <span class="keyword">FROM</span> 表<span class="number">1</span> <span class="keyword">RIGHT</span> [<span class="keyword">OUTER</span>] <span class="keyword">JOIN</span> 表<span class="number">2</span> <span class="keyword">ON</span> 条件;</span><br></pre></td></tr></table></figure>
+
+<p>自连接：当前表与自身的连接查询，必须使用表别名。可以是内连接，也可以是外连接。</p>
+<p>联合查询：把多次查询的结果合并以形成一个新的查询结果集。不使用 ALL 的时候，有去重效果。联合查询的多张表之间的列数和字段类型需要<strong>保持一致</strong>。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> 字段列表 <span class="keyword">FROM</span> 表<span class="number">1</span> <span class="keyword">UNION</span> [<span class="keyword">ALL</span>] <span class="keyword">SELECT</span> 字段列表 <span class="keyword">FROM</span> 表<span class="number">2</span>;</span><br></pre></td></tr></table></figure>
+
+<h1 id="子查询"><a href="#子查询" class="headerlink" title="子查询"></a>子查询</h1><p>SQL语句中嵌套 SELECT 语句，外部语句可以是 INSERT&#x2F;UPDATE&#x2F;DELETE&#x2F;SELECT 中任何一个。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> 表名 <span class="keyword">WHERE</span> col <span class="operator">=</span> (<span class="keyword">SELECT</span> col <span class="keyword">FROM</span> 表<span class="number">2</span>);</span><br></pre></td></tr></table></figure>
+
+<h2 id="子查询种类"><a href="#子查询种类" class="headerlink" title="子查询种类"></a>子查询种类</h2><p>根据结果</p>
+<ul>
+<li>标量子查询：返回结果是单个值。</li>
+<li>列子查询：返回结果是一列。</li>
+<li>行子查询：返回结果是一行（可以是多列）。</li>
+<li>表子查询：返回结果是多行多列。</li>
+</ul>
+<p>根据位置：WHERE 之后，FROM 之后，SELECT 之后。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/MySQL/2024/09/14/MySQL/SQL/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -434,92 +628,6 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/MySQL/2024/09/12/MySQL/%E4%BB%8B%E7%BB%8D/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Yihang Wei">
-      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="EthanWeee">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/MySQL/2024/09/12/MySQL/%E4%BB%8B%E7%BB%8D/" class="post-title-link" itemprop="url">介绍</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-09-12 00:00:00" itemprop="dateCreated datePublished" datetime="2024-09-12T00:00:00-07:00">2024-09-12</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-05-31 23:26:26" itemprop="dateModified" datetime="2025-05-31T23:26:26-07:00">2025-05-31</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>数据库是数据存储的仓库，是文件的集合，是依照某种数据模型组织起来并存放于二级存储器中的数据集合。</p>
-<p>数据库实例是程序，是位于用户和操作系统之间的一层数据管理软件，用户对数据库数据的任何操作都是在数据库实例下进行的。应用程序只有通过数据库实例才能和数据库打交道。</p>
-<p>在 MySQL 中，实例和数据库的关系通常是一一对应的。但在集群下可能存在一个数据库被多个数据库实例使用的情况。</p>
-<p>关系型数据库（结构数据模型，表）：建立在关系模型基础上，由多张相互连接的<strong>二维表</strong>组成的数据库。</p>
-<p>数据库管理系统（DBMS）：操纵和管理数据库的应用程序。</p>
-<p>SQL：操作关系型数据库的编程语言，也是一套标准。</p>
-<p>客户端&#x3D;&gt;数据库管理系统&#x3D;&gt;数据库&#x3D;&gt;数据表。</p>
-<h1 id="数据库三大范式"><a href="#数据库三大范式" class="headerlink" title="数据库三大范式"></a>数据库三大范式</h1><p>第一范式（1NF）：确保表的每一列都是<strong>不可分割</strong>的基本数据单元，比如说用户地址，应该拆分成省、市、区、详细信息等 4 个字段。</p>
-<p>第二范式（2NF）：在 1NF 的基础上，要求数据库表中的<strong>每一列都和主键直接相关</strong>，而不能只与主键的某一部分相关（主要针对联合主键）。</p>
-<p>第三范式（3NF）：在 2NF 的基础上，消除非主键列对主键的传递依赖，即<strong>非主键列只依赖于主键列</strong>，不依赖于其他非主键列。</p>
-<h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>MySQL 是一款开源的关系型数据库管理系统（RDBMS），最初由 MySQL AB 于 1995 年 5 月 23 日推出，现由 Oracle 维护和发布。MySQL 使用 SQL 来定义、操作和管理数据表，将数据组织为由行与列构成的表格，以实现数据之间的关联与查询。它原生支持完整的 ACID 事务特性和多版本并发控制（MVCC），在高并发环境下能够保持数据的一致性与隔离度；InnoDB 引擎通过回滚段存储旧版本数据，并结合两阶段锁定（Two-Phase Locking）和插入意向锁等机制，实现并发控制与死锁检测。MySQL 可跨 Windows、Linux、macOS、FreeBSD 等多个操作系统部署，凭借易用性、高性能与可靠性，长期被广泛应用于 Web 应用、电子商务平台和企业级系统。</p>
-<p>MySQL 采用可插拔的存储引擎架构，允许用户根据不同业务需求选择最合适的引擎。默认的 InnoDB 引擎提供事务处理、行级锁、外键约束、崩溃恢复（通过 redo log）和双写缓冲等功能，以确保数据安全与快速恢复。在 InnoDB 之前，MyISAM 曾为默认引擎，其采用表级锁设计、不支持事务与外键，适用于读密集型场景但无法满足高并发写入需求。此外，MySQL 还支持 Memory 引擎（将数据保存在内存中，适合临时表或高速缓存）和 NDB Cluster 引擎（面向分布式高可用集群，支持自动分片和多主复制），以满足不同场景下对性能与可用性的多样化需求。</p>
-<p>在服务器层面，MySQL 包括 SQL 解析器、查询优化器和执行器三大组件。解析器负责将客户端提交的 SQL 文本进行词法与语法分析，生成内部抽象语法树（AST）；优化器基于统计信息与索引代价估算，选择最优执行计划；执行器则通过存储引擎接口调用底层引擎完成实际的数据访问和操作，例如数据页读取、加锁、写入等。MySQL 采用磁盘导向的存储架构，InnoDB 使用页为单位将数据加载到缓冲池并通过分代 LRU 策略进行页面替换，以优化磁盘 I&#x2F;O 性能。在并发查询执行方面，MySQL 以元组级的迭代器模型处理查询，不支持内部并行化，但可借助索引和优化器策略减少 I&#x2F;O 次数，从而提升查询效率。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/MySQL/2024/09/15/MySQL/%E5%B8%B8%E7%94%A8%E5%87%BD%E6%95%B0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -606,114 +714,6 @@
 <li>CASE WHEN [val1] THEN [res1] … ELSE [default] END 如果 val1 为 true，返回 res1，… 否则返回 default 默认值；</li>
 <li>CASE [expr] WHEN [val1] THEN [res1] … ELSE [default] END 如果 expr 的值等于 val1，返回 res1, … 否则返回 default 默认值。</li>
 </ul>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/MySQL/2024/09/23/MySQL/%E5%A4%9A%E8%A1%A8%E6%9F%A5%E8%AF%A2/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Yihang Wei">
-      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="EthanWeee">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/MySQL/2024/09/23/MySQL/%E5%A4%9A%E8%A1%A8%E6%9F%A5%E8%AF%A2/" class="post-title-link" itemprop="url">多表查询</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-09-23 00:00:00" itemprop="dateCreated datePublished" datetime="2024-09-23T00:00:00-07:00">2024-09-23</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-06-01 18:32:09" itemprop="dateModified" datetime="2025-06-01T18:32:09-07:00">2025-06-01</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="多表关系"><a href="#多表关系" class="headerlink" title="多表关系"></a>多表关系</h1><ul>
-<li>一对多：在多的一方建立外键，指向一的一方的主键。如：部门-员工。</li>
-<li>多对多：建立第三张中间表，其中至少包含两个外键，分别关联两方主键。如：学生-课程。</li>
-<li>一对一：用于单表拆分，将一张表的基础字段放在一张表中，其他详情字段放在另一张表中，以提升操作效率。在任意一方加入外键，关联另一方的主键，并且设置外键为唯一（UNIQUE） 。</li>
-</ul>
-<blockquote>
-<p>[!NOTE]</p>
-<p>在多表查询时，需要消除无效的笛卡尔积。</p>
-</blockquote>
-<h1 id="连接查询"><a href="#连接查询" class="headerlink" title="连接查询"></a>连接查询</h1><h2 id="内连接"><a href="#内连接" class="headerlink" title="内连接"></a>内连接</h2><p>相当于查询两张表交集部分数据。</p>
-<ul>
-<li>隐式内连接：<code>SELECT 字段列表 FROM 表1，表2 WHERE 条件;</code></li>
-<li>显式内连接 ：<code>SELECT 字段列表 FROM 表1 [INNER] JOIN 表2 ON 连接条件;</code></li>
-</ul>
-<h2 id="外连接"><a href="#外连接" class="headerlink" title="外连接"></a>外连接</h2><p>左外连接：查询左表所有数据，以及两张表交集部分数据。</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> 字段列表 <span class="keyword">FROM</span> 表<span class="number">1</span> <span class="keyword">LEFT</span> [<span class="keyword">OUTER</span>] <span class="keyword">JOIN</span> 表<span class="number">2</span> <span class="keyword">ON</span> 条件;</span><br></pre></td></tr></table></figure>
-
-<p>右外连接：查询右表所有数据，以及两张表交集部分数据。</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> 字段列表 <span class="keyword">FROM</span> 表<span class="number">1</span> <span class="keyword">RIGHT</span> [<span class="keyword">OUTER</span>] <span class="keyword">JOIN</span> 表<span class="number">2</span> <span class="keyword">ON</span> 条件;</span><br></pre></td></tr></table></figure>
-
-<p>自连接：当前表与自身的连接查询，必须使用表别名。可以是内连接，也可以是外连接。</p>
-<p>联合查询：把多次查询的结果合并以形成一个新的查询结果集。不使用 ALL 的时候，有去重效果。联合查询的多张表之间的列数和字段类型需要<strong>保持一致</strong>。</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> 字段列表 <span class="keyword">FROM</span> 表<span class="number">1</span> <span class="keyword">UNION</span> [<span class="keyword">ALL</span>] <span class="keyword">SELECT</span> 字段列表 <span class="keyword">FROM</span> 表<span class="number">2</span>;</span><br></pre></td></tr></table></figure>
-
-<h1 id="子查询"><a href="#子查询" class="headerlink" title="子查询"></a>子查询</h1><p>SQL语句中嵌套 SELECT 语句，外部语句可以是 INSERT&#x2F;UPDATE&#x2F;DELETE&#x2F;SELECT 中任何一个。</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> 表名 <span class="keyword">WHERE</span> col <span class="operator">=</span> (<span class="keyword">SELECT</span> col <span class="keyword">FROM</span> 表<span class="number">2</span>);</span><br></pre></td></tr></table></figure>
-
-<h2 id="子查询种类"><a href="#子查询种类" class="headerlink" title="子查询种类"></a>子查询种类</h2><p>根据结果</p>
-<ul>
-<li>标量子查询：返回结果是单个值。</li>
-<li>列子查询：返回结果是一列。</li>
-<li>行子查询：返回结果是一行（可以是多列）。</li>
-<li>表子查询：返回结果是多行多列。</li>
-</ul>
-<p>根据位置：WHERE 之后，FROM 之后，SELECT 之后。</p>
 
       
     </div>
@@ -2704,207 +2704,6 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/13/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/HRPS%20Background/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Yihang Wei">
-      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="EthanWeee">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/13/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/HRPS%20Background/" class="post-title-link" itemprop="url">HRPS Background</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-09-13 00:00:00" itemprop="dateCreated datePublished" datetime="2024-09-13T00:00:00-07:00">2024-09-13</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-05-31 21:00:34" itemprop="dateModified" datetime="2025-05-31T21:00:34-07:00">2025-05-31</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">数据库系统</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/index_and_page.png" alt="img"></p>
-<p>Each page consits of the header, the record space and a pointer array. Each slot in this array points to a record within the page.</p>
-<p>A record is located by providing its page address and the slot number. The combination is called RID.</p>
-<p>Life Cycle of a record:</p>
-<p>Insert: Find an empty space to put it and set a slot at the very end of the page to point to it.</p>
-<p>Delete: Remove the record and reclaim this space, set its slot number to null. When there are too many garbage slots, the system will drop the index structure, do reorganization on this disk page by removing all null slots, and reconstruct the index structure from scratch.</p>
-<p>Non-clustered Index: the data of the disk page is independent of the bucket or leaf node of index.</p>
-<p>Clustered Index: the data of the disk page resides within the bucket or leaf node of index.</p>
-<p>Hash Index: the item in buckets is not ordered by the attribute value of index.</p>
-<p>B+Tree Index: the item in leaf nodes is ordered by the attribute value of index.</p>
-<ul>
-<li>Primary Index: the data in the disk page is ordered.</li>
-<li>Secondary Index: the data in the disk page is not ordered.</li>
-</ul>
-<p>Reference: <a target="_blank" rel="noopener" href="https://www.vldb.org/conf/1990/P481.PDF">https://www.vldb.org/conf/1990/P481.PDF</a></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/13/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/HRPS/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Yihang Wei">
-      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="EthanWeee">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/13/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/HRPS/" class="post-title-link" itemprop="url">HRPS</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-09-13 00:00:00" itemprop="dateCreated datePublished" datetime="2024-09-13T00:00:00-07:00">2024-09-13</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-05-31 21:00:23" itemprop="dateModified" datetime="2025-05-31T21:00:23-07:00">2025-05-31</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">数据库系统</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><p>The HRPS declusters a relation into fragment based on the following criteria:</p>
-<ul>
-<li>Each fragment contains approximately FC tuples.</li>
-<li>Each fragment contains a unique range of values of the partitioning attribute.</li>
-</ul>
-<p>The variable FC is determined based on the processing capability of the system and the resource requirements of the queries that access the relation (rather than the number of processors in the configuration).</p>
-<p>A major underlying assumption of this partitioning strategy is that the selection operators which access the database retrieve and process the selected tuples using either a range predicate or an equality predicate.</p>
-<p>For each query Qi, the workload defines the CPU processing time (CPUi), the Disk Processing Time (Diski), and the Network Processing time (Neti) of that query. Observe that these times are determined based on the resource requirements of each individual query and the processing capability of the system. Each query retrieves and processes (TuplesPerQi) tuples from the database. Furthermore, we assume that the workload defines the frequency of occurrence of each query (FreqQi).</p>
-<p>Rather than describing the HRPS with respect to each query in the workload, we deline an average query (Qavg) that is representative of all the queries in the workload. The CPU, disk and network processing quanta for this query are:</p>
-<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/CPU_Disk_Net_TPQ.png" alt="截屏2025-05-30 18.28.03"></p>
-<p>Assume that a single processor cannot overlap the use of two resources for an individual query. Thus, the execution time of Qavg on a single processor in a single user environment is:</p>
-<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/exe_time.png" alt="截屏2025-05-30 18.28.21"></p>
-<p>As more processors are used for query execution, the response time decreases. However, this also incurs additional overhead, represented by the variable CP, which refers to the cost of coordinating the query execution across multiple processors (e.g., messaging overhead). The response time of the query on M processors can be described by the following formula:</p>
-<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/RT_M.png" alt="RT_M"></p>
-<p>In a single-user environment, both HRPS and range partitioning perform similarly because they both efficiently execute the query on the required processor. However, in a multi-user environment, the range partitioning strategy is likely to perform better because it can distribute the workload across multiple processors, improving system throughput. In contrast, HRPS might not utilize all available processors as effectively, potentially leading to lower throughput.</p>
-<p>Instead of M representing the number of processors over which a relation should be declustered, M is used instead to represent the number of processors that should participate in the execution of Qavg. Since Qavg processes TuplesPerQavg tuples, each fragment of the relation should contain FC &#x3D; TuplesPerQavg &#x2F; M tuples.</p>
-<p>The process of fragmenting and distributing data in HRPS:</p>
-<ol>
-<li><strong>Sorting the relation</strong>: The relation is first sorted based on the partitioning attribute to ensure each fragment contains a distinct range of values.</li>
-<li><strong>Fragmentation</strong>: The relation is then split into fragments, each containing approximately <strong>FC</strong> tuples.</li>
-<li><strong>Round-robin distribution</strong>: These fragments are distributed to processors in a <strong>round-robin fashion</strong>, ensuring that adjacent fragments are assigned to different processors (unless the number of processors <strong>N</strong> is less than the required processors <strong>M</strong>).</li>
-<li><strong>Storing fragments</strong>: All the fragments for a relation on a given processor are stored in the same physical file.</li>
-<li><strong>Range table</strong>: The mapping of fragments to processors is maintained in a <strong>one-dimensional directory</strong> called the range table.</li>
-</ol>
-<p>This method ensures that at least M processors and at most M + 1 processors participate in the execution of a query.</p>
-<p><strong>M &#x3D; N</strong>：系统和查询需求匹配，HRPS 调度所有处理器，达到最大并行度和最优性能。</p>
-<p><strong>M &lt; N</strong>：HRPS 只调度一部分处理器执行查询，减少通信开销，但部分处理器资源可能闲置。</p>
-<p><strong>M &gt; N</strong>：HRPS 将多个片段分配给处理器，尽量利用所有处理器，但每个处理器负担加重，查询执行速度可能受到影响。</p>
-<p>HRPS in this paper supports only homogeneous nodes.</p>
-<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>How does HRPS decide the ideal degree of parallelism for a query?</strong></p>
-<p>HRPS (Hybrid-Range Partitioning Strategy) decides the ideal degree of parallelism by analyzing the resource requirements of the query, such as CPU, disk I&#x2F;O, and communication costs. It calculates the optimal number of processors (denoted as M) based on these factors. The strategy strikes a balance between minimizing query response time and avoiding excessive overhead from using too many processors.</p>
-<p><strong>Why is it not appropriate to direct a query that fetches one record using an index structure to all the nodes of a system based on the shared-nothing architecture?</strong> </p>
-<p>Fetching one record should only involve the node that contains the relevant data, as querying all nodes wastes resources and increases response time.</p>
-<p><strong>How to extend HRPS to support heterogeneous nodes?</strong></p>
-<ol>
-<li>More powerful nodes would receive more fragments, while weaker nodes would handle fewer fragments.</li>
-<li>The system could monitor node performance and dynamically adjust the degree of parallelism and fragment allocation based on current load and node availability.</li>
-<li>Heavier tasks may be directed to more powerful nodes, while smaller or simpler queries could be executed on less powerful nodes.</li>
-</ol>
-<p>Reference: <a target="_blank" rel="noopener" href="https://www.vldb.org/conf/1990/P481.PDF">https://www.vldb.org/conf/1990/P481.PDF</a></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/06/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/Gamma/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -3228,6 +3027,605 @@
 <p><strong>Will a version of Gamma using FLOW be more modular than its current design?</strong></p>
 <p>Yes. FLOW enables more fine-grained control over the data flow and process interactions, which could simplify the addition of new operators and functionalities. It would also make the system easier to maintain and extend, as each component could be developed and optimized independently.</p>
 <p>Reference: <a target="_blank" rel="noopener" href="https://pages.cs.wisc.edu/~dewitt/includes/paralleldb/ieee90.pdf">https://pages.cs.wisc.edu/~dewitt/includes/paralleldb/ieee90.pdf</a></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/13/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/HRPS/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/13/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/HRPS/" class="post-title-link" itemprop="url">HRPS</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-09-13 00:00:00" itemprop="dateCreated datePublished" datetime="2024-09-13T00:00:00-07:00">2024-09-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-05-31 21:00:23" itemprop="dateModified" datetime="2025-05-31T21:00:23-07:00">2025-05-31</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">数据库系统</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><p>The HRPS declusters a relation into fragment based on the following criteria:</p>
+<ul>
+<li>Each fragment contains approximately FC tuples.</li>
+<li>Each fragment contains a unique range of values of the partitioning attribute.</li>
+</ul>
+<p>The variable FC is determined based on the processing capability of the system and the resource requirements of the queries that access the relation (rather than the number of processors in the configuration).</p>
+<p>A major underlying assumption of this partitioning strategy is that the selection operators which access the database retrieve and process the selected tuples using either a range predicate or an equality predicate.</p>
+<p>For each query Qi, the workload defines the CPU processing time (CPUi), the Disk Processing Time (Diski), and the Network Processing time (Neti) of that query. Observe that these times are determined based on the resource requirements of each individual query and the processing capability of the system. Each query retrieves and processes (TuplesPerQi) tuples from the database. Furthermore, we assume that the workload defines the frequency of occurrence of each query (FreqQi).</p>
+<p>Rather than describing the HRPS with respect to each query in the workload, we deline an average query (Qavg) that is representative of all the queries in the workload. The CPU, disk and network processing quanta for this query are:</p>
+<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/CPU_Disk_Net_TPQ.png" alt="截屏2025-05-30 18.28.03"></p>
+<p>Assume that a single processor cannot overlap the use of two resources for an individual query. Thus, the execution time of Qavg on a single processor in a single user environment is:</p>
+<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/exe_time.png" alt="截屏2025-05-30 18.28.21"></p>
+<p>As more processors are used for query execution, the response time decreases. However, this also incurs additional overhead, represented by the variable CP, which refers to the cost of coordinating the query execution across multiple processors (e.g., messaging overhead). The response time of the query on M processors can be described by the following formula:</p>
+<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/RT_M.png" alt="RT_M"></p>
+<p>In a single-user environment, both HRPS and range partitioning perform similarly because they both efficiently execute the query on the required processor. However, in a multi-user environment, the range partitioning strategy is likely to perform better because it can distribute the workload across multiple processors, improving system throughput. In contrast, HRPS might not utilize all available processors as effectively, potentially leading to lower throughput.</p>
+<p>Instead of M representing the number of processors over which a relation should be declustered, M is used instead to represent the number of processors that should participate in the execution of Qavg. Since Qavg processes TuplesPerQavg tuples, each fragment of the relation should contain FC &#x3D; TuplesPerQavg &#x2F; M tuples.</p>
+<p>The process of fragmenting and distributing data in HRPS:</p>
+<ol>
+<li><strong>Sorting the relation</strong>: The relation is first sorted based on the partitioning attribute to ensure each fragment contains a distinct range of values.</li>
+<li><strong>Fragmentation</strong>: The relation is then split into fragments, each containing approximately <strong>FC</strong> tuples.</li>
+<li><strong>Round-robin distribution</strong>: These fragments are distributed to processors in a <strong>round-robin fashion</strong>, ensuring that adjacent fragments are assigned to different processors (unless the number of processors <strong>N</strong> is less than the required processors <strong>M</strong>).</li>
+<li><strong>Storing fragments</strong>: All the fragments for a relation on a given processor are stored in the same physical file.</li>
+<li><strong>Range table</strong>: The mapping of fragments to processors is maintained in a <strong>one-dimensional directory</strong> called the range table.</li>
+</ol>
+<p>This method ensures that at least M processors and at most M + 1 processors participate in the execution of a query.</p>
+<p><strong>M &#x3D; N</strong>：系统和查询需求匹配，HRPS 调度所有处理器，达到最大并行度和最优性能。</p>
+<p><strong>M &lt; N</strong>：HRPS 只调度一部分处理器执行查询，减少通信开销，但部分处理器资源可能闲置。</p>
+<p><strong>M &gt; N</strong>：HRPS 将多个片段分配给处理器，尽量利用所有处理器，但每个处理器负担加重，查询执行速度可能受到影响。</p>
+<p>HRPS in this paper supports only homogeneous nodes.</p>
+<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>How does HRPS decide the ideal degree of parallelism for a query?</strong></p>
+<p>HRPS (Hybrid-Range Partitioning Strategy) decides the ideal degree of parallelism by analyzing the resource requirements of the query, such as CPU, disk I&#x2F;O, and communication costs. It calculates the optimal number of processors (denoted as M) based on these factors. The strategy strikes a balance between minimizing query response time and avoiding excessive overhead from using too many processors.</p>
+<p><strong>Why is it not appropriate to direct a query that fetches one record using an index structure to all the nodes of a system based on the shared-nothing architecture?</strong> </p>
+<p>Fetching one record should only involve the node that contains the relevant data, as querying all nodes wastes resources and increases response time.</p>
+<p><strong>How to extend HRPS to support heterogeneous nodes?</strong></p>
+<ol>
+<li>More powerful nodes would receive more fragments, while weaker nodes would handle fewer fragments.</li>
+<li>The system could monitor node performance and dynamically adjust the degree of parallelism and fragment allocation based on current load and node availability.</li>
+<li>Heavier tasks may be directed to more powerful nodes, while smaller or simpler queries could be executed on less powerful nodes.</li>
+</ol>
+<p>Reference: <a target="_blank" rel="noopener" href="https://www.vldb.org/conf/1990/P481.PDF">https://www.vldb.org/conf/1990/P481.PDF</a></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/08/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/IQ/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/08/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/IQ/" class="post-title-link" itemprop="url">IQ</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-11-08 00:00:00" itemprop="dateCreated datePublished" datetime="2024-11-08T00:00:00-08:00">2024-11-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-05-31 21:00:45" itemprop="dateModified" datetime="2025-05-31T21:00:45-07:00">2025-05-31</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">数据库系统</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="What-is-the-IQ-Framework"><a href="#What-is-the-IQ-Framework" class="headerlink" title="What is the IQ Framework?"></a>What is the IQ Framework?</h1><p>The IQ framework is a solution designed for Cache-Augmented SQL (CASQL) systems, which combine relational databases (RDBMS) and key-value stores (KVS) to boost performance by caching database query results. However, CASQL systems often face challenges related to stale data and race conditions. The IQ framework ensures strong consistency while maintaining high performance.</p>
+<h1 id="Challenges-in-CASQL-Systems"><a href="#Challenges-in-CASQL-Systems" class="headerlink" title="Challenges in CASQL Systems"></a>Challenges in CASQL Systems</h1><ol>
+<li><p><strong>Stale Data in Cache</strong>:</p>
+<ul>
+<li><p>Cached data in the KVS can become outdated if updates to the RDBMS are not properly synchronized.</p>
+</li>
+<li><p>For example, if a record in the database is modified, but the corresponding cache entry isn’t updated, subsequent reads might return incorrect values.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Concurrency Issues</strong>:</p>
+<ul>
+<li><p>Multiple sessions accessing and modifying the same key in KVS concurrently can lead to inconsistent results.</p>
+</li>
+<li><p>Example:</p>
+<ul>
+<li>One session updates a value while another session modifies it based on outdated data.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>RDBMS and Cache Coordination</strong>:</p>
+<ul>
+<li>While RDBMS ensures transactional consistency, KVS often lacks this capability, making it difficult to synchronize their states.</li>
+</ul>
+</li>
+</ol>
+<h1 id="Key-Features-of-the-IQ-Framework"><a href="#Key-Features-of-the-IQ-Framework" class="headerlink" title="Key Features of the IQ Framework"></a>Key Features of the IQ Framework</h1><ol>
+<li><strong>Lease Mechanism: Inhibit (I) and Quarantine (Q)</strong>:<ol>
+<li><strong>I Lease</strong> (for reads):<ol>
+<li>Ensures that only one session can query the RDBMS for a cache miss and update the KVS.</li>
+<li>Other sessions attempting to read the same key must “back off” and wait.</li>
+</ol>
+</li>
+<li><strong>Q Lease</strong> (for writes):<ol>
+<li>Required for modifying, deleting, or incrementally updating keys in the KVS.</li>
+<li>If an I lease exists, the Q lease invalidates it to ensure the write operation’s integrity.</li>
+<li>The KVS ignores I’s write operation because this I lease is no longer valid.</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><strong>Lease Expiry</strong>:<ol>
+<li>A lease for a key has a fixed life time and is granted to one KVS connection (thread) at a time.</li>
+<li>Expired leases are automatically released, ensuring system availability.</li>
+<li>The finite life time enables the KVS to release the lease and continue processing operations in the presence of node failures hosting the application.</li>
+</ol>
+</li>
+<li><strong>Session-based Model</strong>:<ol>
+<li>The framework operates through sessions, similar to the <strong>two-phase locking protocol</strong>.</li>
+<li>Leases can be acquired either before or during an RDBMS transaction, providing flexibility.</li>
+</ol>
+</li>
+</ol>
+<h2 id="Implementing-ACID-Properties"><a href="#Implementing-ACID-Properties" class="headerlink" title="Implementing ACID Properties"></a>Implementing ACID Properties</h2><p>原子性 (Atomicity)： IQ 框架确保事务的操作同时在数据库 (RDBMS) 和缓存 (KVS) 中执行。也就是说，操作不会只在数据库中完成而没有更新缓存。这种设计假设 KVS 中的数据是 RDBMS 数据的一部分，因此如果遇到问题，可以直接删除 KVS 中的数据来保持一致。</p>
+<p>一致性 (Consistency)： IQ 框架保证事务在数据库和缓存中的数据状态从一个有效状态变为另一个有效状态。如果数据库的事务回滚 (abort)，那么缓存中的操作也不会被应用，确保不会留下无效的缓存数据。</p>
+<p>隔离性 (Isolation)： 即使有多个会话 (session) 同时执行，IQ 框架也让每个会话看起来像是独立执行的，避免了并发问题。例如，即使两个用户同时读写相同的数据，他们看到的结果也是正确且一致的。</p>
+<p>持久性 (Durability)： 持久性是由数据库 (RDBMS) 提供的，而缓存 (KVS) 则作为数据库的一部分镜像。KVS 存储的数据是在内存中的副本，但一旦数据库中的事务提交，数据就会被持久保存。</p>
+<blockquote>
+<p>CAS 操作只能保证单一操作的原子性，但无法在多个并发会话中保证强一致性。 由于数据库和缓存系统中的操作顺序可能不一致，会导致数据不同步。</p>
+<p>在并发场景下：CAS 无法感知其他会话在其读取后对数据的更改。 多个会话同时执行 CAS 操作时，可能导致更新丢失或顺序混乱，如本例中 S2 的更新被 S1 覆盖。</p>
+<p>Q 租约用于写操作，确保某一时刻只有一个会话能够修改目标键值。如果某个键值已有 Q 租约，其他会话（如 S1）会被要求退避（back off）或中止操作。</p>
+</blockquote>
+<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/RDBMS_KVS_OPER.png" alt="img"></p>
+<h1 id="Invalidate"><a href="#Invalidate" class="headerlink" title="Invalidate"></a>Invalidate</h1><h2 id="What-is-Snapshot-Isolation"><a href="#What-is-Snapshot-Isolation" class="headerlink" title="What is Snapshot Isolation?"></a>What is Snapshot Isolation?</h2><p>Snapshot isolation is a multi-version concurrency control mechanism commonly used in RDBMS to allow concurrent transactions to execute efficiently. It guarantees:</p>
+<ol>
+<li><strong>Consistent Snapshot</strong>: All reads in a transaction observe the same consistent state of the database, as it existed at the transaction’s start.</li>
+<li><strong>Conflict Detection</strong>: A transaction can only commit if its updates do not conflict with updates made by other transactions since its snapshot was taken.</li>
+</ol>
+<h3 id="The-Problem"><a href="#The-Problem" class="headerlink" title="The Problem"></a>The Problem</h3><p>Snapshot isolation can cause a race condition between a write session (S1) and a read session (S2) when KVS is involved. The issue unfolds as follows:</p>
+<ol>
+<li><p><strong>Write Session (S1)</strong>:</p>
+<ul>
+<li><p>S1 modifies the RDBMS and triggers a delete operation in the KVS to invalidate outdated key-value pairs.</p>
+</li>
+<li><p>S1 commits the transaction after completing its changes in the RDBMS.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Read Session (S2)</strong>:</p>
+<ul>
+<li><p>S2 starts after S1’s delete operation in the KVS. It observes a <strong>KVS miss</strong> for a key-value pair because S1 has invalidated it.</p>
+</li>
+<li><p>S2 queries the RDBMS to recompute the key-value pair. However, because snapshot isolation allows S2 to read an <strong>older snapshot of the database</strong>, it retrieves outdated (stale) data.</p>
+</li>
+<li><p>S2 inserts this <strong>stale data</strong> back into the KVS before S1 commits its changes to the RDBMS.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Inconsistency</strong>:</p>
+<ul>
+<li>After both sessions complete, the KVS contains a stale key-value pair inconsistent with the RDBMS, leading to incorrect results for future reads.</li>
+</ul>
+</li>
+</ol>
+<h3 id="Solution"><a href="#Solution" class="headerlink" title="Solution"></a>Solution</h3><p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/invalidate_tbl.png" alt="img"></p>
+<p>I Lease (Inhibit Lease):</p>
+<ul>
+<li>Used by <strong>read sessions</strong> (e.g., S2).</li>
+<li>When a read session observes a <strong>KVS miss</strong>, it requests an I lease for the key (<code>k_j</code>) from the KVS server.</li>
+<li>The I lease allows the read session to query the RDBMS, compute a value, and insert the computed key-value pair into the KVS.</li>
+<li>If a Q lease is already in place, the I lease is denied, and the read session is told to <strong>back off</strong> and retry later.</li>
+</ul>
+<p>Q Lease (Quarantine Lease):</p>
+<ul>
+<li>Used by <strong>write sessions</strong> (e.g., S1).</li>
+<li>When a write session plans to invalidate a key in the KVS, it requests a Q lease for the key (<code>k_j</code>).</li>
+<li>The Q lease prevents other sessions (including those holding I leases) from modifying or inserting the key in the KVS.</li>
+<li>Multiple Q leases can be granted for the same key since deleting a key is idempotent (doesn’t create conflicts).</li>
+</ul>
+<h1 id="Optimization"><a href="#Optimization" class="headerlink" title="Optimization"></a>Optimization</h1><h2 id="The-Problem-1"><a href="#The-Problem-1" class="headerlink" title="The Problem"></a>The Problem</h2><ul>
+<li>In the original scenario, <strong>write sessions (e.g., S1)</strong> immediately delete key-value pairs in the KVS as soon as they acquire a Q lease (e.g., Step 1.3 in Figure 3).</li>
+<li>This can cause <strong>read sessions (e.g., S2)</strong> to encounter KVS misses, triggering redundant operations like querying the RDBMS, recalculating values, and reinserting them into the KVS.</li>
+</ul>
+<h2 id="The-Proposed-Optimization"><a href="#The-Proposed-Optimization" class="headerlink" title="The Proposed Optimization"></a>The Proposed Optimization</h2><p><strong>Deferring Key Deletion Until Write Commit</strong></p>
+<ol>
+<li><p><strong>Key Changes</strong>:</p>
+<ul>
+<li><p>Instead of deleting the key immediately in Step 1.3, the write session (S1) holds the Q lease and <strong>defers the deletion</strong> until the write session commits (Step 1.5).</p>
+</li>
+<li><p>While S1 is mid-flight, the invalidated key-value pair remains in the KVS for other read sessions (S2) to observe.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Handling KVS Hits</strong>:</p>
+<ul>
+<li><p>Read sessions like S2 that encounter a <strong>KVS hit</strong> consume the “stale” key-value pair, treating it as valid.</p>
+</li>
+<li><p>This is acceptable because S2’s actions can be <strong>serialized to occur before</strong> S1, which is still in progress and has not yet committed its RDBMS changes.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Handling Write Aborts</strong>:</p>
+<ul>
+<li><p>If a write session (S1) encounters an exception and aborts, the Q lease is released without deleting the key.</p>
+</li>
+<li><p>The current key-value pair in the KVS remains valid and accessible to other sessions.</p>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="Implementation-Details"><a href="#Implementation-Details" class="headerlink" title="Implementation Details"></a>Implementation Details</h2><ol>
+<li><p><strong>Versioning Concept</strong>:</p>
+<ul>
+<li><p>The optimization can be conceptualized as maintaining a <strong>temporary version</strong> of the key-value pair for use by all sessions except the one currently invalidating it (S1).</p>
+</li>
+<li><p>Once S1 commits, the temporary version is removed.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Abort Command</strong>:</p>
+<ul>
+<li><p>If a write session (S1) aborts due to constraints or exceptions, an <strong>abort command</strong> releases all Q leases held by S1 without deleting the key-value pair.</p>
+</li>
+<li><p>Without this command, Q leases would expire naturally after a timeout, during which no other session could modify or access the key.</p>
+</li>
+</ul>
+</li>
+</ol>
+<p><strong>Re-Arrangement Window</strong>:</p>
+<ul>
+<li>With this optimization, S2 and S1 can be <strong>re-arranged</strong> in a serializable schedule where S2 logically occurs before S1.</li>
+<li>Without the optimization, the re-arrangement window shrinks to zero because S2 would have already queried the RDBMS for stale data, violating consistency.</li>
+</ul>
+<h1 id="Refresh-and-Incremental-Update"><a href="#Refresh-and-Incremental-Update" class="headerlink" title="Refresh and Incremental Update"></a>Refresh and Incremental Update</h1><h2 id="Key-Issues-with-Compare-and-Swap-CAS"><a href="#Key-Issues-with-Compare-and-Swap-CAS" class="headerlink" title="Key Issues with Compare-and-Swap (CAS)"></a>Key Issues with Compare-and-Swap (CAS)</h2><ul>
+<li><p><strong>CAS Limitation</strong>:</p>
+<ul>
+<li>CAS alone cannot ensure strong consistency. It provides atomic updates to a single key-value pair but does not coordinate these updates with RDBMS transactions.</li>
+</ul>
+</li>
+<li><p><strong>Example (Figure 2)</strong>:</p>
+<ul>
+<li><p>KVS writes can occur either:</p>
+<ol>
+<li><p><strong>Prior to</strong> the RDBMS transaction, or</p>
+</li>
+<li><p><strong>As part of</strong> the RDBMS transaction.</p>
+</li>
+</ol>
+</li>
+<li><p><strong>Problem</strong>: If the RDBMS transaction aborts, the KVS will retain the modified key-value pair, potentially exposing <strong>dirty reads</strong> to other sessions.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Figure 6 (Dirty Read Problem)</strong>:</p>
+<ul>
+<li>Write session S1 modifies a key-value pair in KVS.</li>
+<li>S1’s transaction later aborts, but the intermediate KVS value is consumed by a read session S2 before the rollback, leading to inconsistencies.</li>
+</ul>
+</li>
+<li><p><strong>Developer Responsibility</strong>:</p>
+<ul>
+<li>Without additional mechanisms, developers must implement complex logic to restore KVS key-value pairs to their original values when RDBMS transactions abort.</li>
+</ul>
+</li>
+</ul>
+<h2 id="Race-Conditions-with-Incremental-Updates-δ-Operations"><a href="#Race-Conditions-with-Incremental-Updates-δ-Operations" class="headerlink" title="Race Conditions with Incremental Updates (δ Operations)"></a>Race Conditions with Incremental Updates (δ Operations)</h2><ul>
+<li><p><strong>Figure 7 (Snapshot Isolation with δ Operations)</strong>:</p>
+</li>
+<li><ul>
+<li>Write session S1 updates the RDBMS and KVS using an incremental update (e.g., appending to a value).</li>
+<li>Concurrently, read session S2 queries the RDBMS and overwrites the key-value pair in the KVS.</li>
+<li><strong>Result</strong>: The KVS reflects inconsistent state, as S2’s overwrite may invalidate S1’s incremental change.</li>
+</ul>
+</li>
+<li><p><strong>Figure 8 (Reordering KVS Operations)</strong>:</p>
+</li>
+<li><ul>
+<li>Delaying KVS updates until after the RDBMS transaction doesn’t solve the problem.</li>
+</ul>
+</li>
+<li><p><strong>Example in Figure 8</strong>:</p>
+</li>
+<li><ul>
+<li>S1 appends a change to a value based on its RDBMS view.</li>
+<li>S2 modifies the RDBMS during S1’s execution, which S1 unknowingly incorporates into its KVS update.</li>
+<li><strong>Problem</strong>: S2’s modifications are reflected twice in the KVS, introducing inconsistencies.</li>
+</ul>
+</li>
+</ul>
+<h2 id="Solution-1"><a href="#Solution-1" class="headerlink" title="Solution"></a>Solution</h2><p><strong>Key Concepts in the Solution</strong></p>
+<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/refresh_tbl.png" alt="img"></p>
+<ol>
+<li><p><strong>Q Leases for Write Sessions</strong>:</p>
+<ul>
+<li><p>A <strong>Q lease</strong> must be obtained for each key-value pair that a session intends to update.</p>
+</li>
+<li><p>This prevents race conditions by locking the key-value pair until the session completes its operations.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Steps for Write Sessions</strong>:</p>
+<ul>
+<li><p><strong>Step 1</strong>: Obtain Q leases for the keys to be updated before committing the RDBMS transaction. This can happen:</p>
+<ul>
+<li><p>Before starting the RDBMS transaction.</p>
+</li>
+<li><p>As part of the RDBMS transaction.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Step 2</strong>: Write the updated key-value pairs to the KVS after committing the RDBMS transaction.</p>
+</li>
+<li><p><strong>Step 3</strong>: Release the Q leases once the KVS is updated.</p>
+</li>
+<li><p><strong>Automatic Cleanup</strong>: If a Q lease expires, the KVS deletes the associated key-value pair to avoid stale data.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Command Design for Write Operations</strong>:</p>
+<ul>
+<li><p><strong>QaRead (Quarantine-and-Read)</strong>:</p>
+<ul>
+<li><p>Acquires a Q lease on the referenced key and reads its value from the KVS.</p>
+</li>
+<li><p>If a Q lease for the same key is already held by another session, the requesting session receives an <strong>abort message</strong>, must roll back its RDBMS transaction, release all leases, back off, and retry later.</p>
+</li>
+<li><p>If no value exists in the KVS (a <strong>KVS miss</strong>), the application can:</p>
+<ul>
+<li>Skip updating the key, or</li>
+<li>Query the RDBMS, compute a new value, and insert it using <strong>SaR</strong> (below).</li>
+</ul>
+</li>
+<li><p>If a <strong>QaRead lease</strong> encounters an <strong>I lease</strong> held by a read session, it invalidates the I lease to prevent race conditions.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>SaR (Swap-and-Release)</strong>:</p>
+<ul>
+<li>Updates the value of a key in the KVS with the new value and releases the Q lease.</li>
+<li>If the new value is <code>null</code>, the Q lease is simply released without updating the KVS.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="Handling-Race-Conditions"><a href="#Handling-Race-Conditions" class="headerlink" title="Handling Race Conditions"></a>Handling Race Conditions</h2><ol>
+<li><p><strong>Q Leases for Concurrent Write Sessions</strong>:</p>
+<ul>
+<li><p>If two write sessions request Q leases for the same key, the KVS resolves the conflict by:</p>
+<ul>
+<li>Aborting one session.</li>
+<li>Ensuring the aborted session retries later, serializing its updates after the session holding the Q lease.</li>
+</ul>
+</li>
+<li><p>This guarantees a valid serial schedule in the RDBMS and KVS.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Read Sessions and I Leases</strong>:</p>
+<ul>
+<li><p>Read sessions use <strong>I leases</strong> to avoid race conditions when querying the KVS.</p>
+</li>
+<li><p>If a write session issues a <strong>QaRead</strong> that encounters an existing <strong>I lease</strong>, the <strong>I lease</strong> is invalidated to ensure the KVS reflects the latest updates from the RDBMS.</p>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="Integration-with-Two-Phase-Locking"><a href="#Integration-with-Two-Phase-Locking" class="headerlink" title="Integration with Two-Phase Locking"></a>Integration with Two-Phase Locking</h2><ul>
+<li><p>The Q lease mechanism resembles <strong>two-phase locking</strong>:</p>
+<ol>
+<li><p><strong>Growing Phase</strong>: The session acquires all necessary Q leases using <strong>QaRead</strong> before committing its RDBMS transaction.</p>
+</li>
+<li><p><strong>Shrinking Phase</strong>: The session releases all Q leases using <strong>SaR</strong> after committing its RDBMS transaction.</p>
+</li>
+</ol>
+</li>
+<li><p>Flexibility:</p>
+<ul>
+<li>A session can issue <strong>QaRead</strong> commands either before starting the RDBMS transaction or as part of the transaction.</li>
+</ul>
+</li>
+</ul>
+<h2 id="Key-Concepts-of-Incremental-Updates"><a href="#Key-Concepts-of-Incremental-Updates" class="headerlink" title="Key Concepts of Incremental Updates"></a>Key Concepts of Incremental Updates</h2><ol>
+<li><p><strong>Incremental Update Command: IQ-δ</strong>:</p>
+<ul>
+<li><p><strong>Purpose</strong>: Allows a write session to perform an incremental update, such as appending data to an existing key-value pair.</p>
+</li>
+<li><p><strong>Syntax</strong>: <code>IQ-δ(ki, δi)</code></p>
+<ul>
+<li><code>ki</code>: The key to be updated.</li>
+<li><code>δi</code>: The incremental change to apply (e.g., the value to append).</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>Similarities to QaRead</strong>:</p>
+<ul>
+<li><p><strong>Q Lease Requirement</strong>: Before issuing the <code>IQ-δ</code> command, the session must obtain a <strong>Q lease</strong> for the key <code>ki</code> to ensure exclusive access.</p>
+</li>
+<li><p><strong>Abort on Conflict</strong>:</p>
+<ul>
+<li><p>If another session already holds a Q lease on the same key (<code>ki</code>), the <strong>KVS returns an abort message</strong>.</p>
+</li>
+<li><p>The write session must:</p>
+<ol>
+<li><p>Release all its leases.</p>
+</li>
+<li><p>Abort its ongoing RDBMS transaction (if any).</p>
+</li>
+<li><p>Retry the operation later.</p>
+</li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h1 id="优化关键点总结"><a href="#优化关键点总结" class="headerlink" title="优化关键点总结"></a>优化关键点总结</h1><ol>
+<li><p><strong>保留旧版本（Older Version）</strong>：</p>
+<ul>
+<li><p>当写会话（S1）更新某键值对 (<code>ki-vi</code>) 时，KVS 暂时保留该键值对的旧版本 (<code>ki-vi_old</code>)，直到 S1 提交。</p>
+</li>
+<li><p>这避免了读会话在写会话更新期间遇到 <strong>KVS miss</strong>。</p>
+</li>
+</ul>
+</li>
+<li><p>写会话的更新视图：</p>
+<ul>
+<li><p>写会话（S1）在更新期间必须能够看到自己的修改结果（<code>ki-vi_new</code>）。</p>
+</li>
+<li><p>KVS 确保为 S1 提供其最新的更新视图。</p>
+</li>
+</ul>
+</li>
+</ol>
+<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>Why is it acceptable for invalidate to delete cache entries?</strong></p>
+<p>Consistency Assurance: The cache entry being invalidated represents stale data that is no longer consistent with the current state of the RDBMS. Deleting it prevents read sessions from accessing outdated information.</p>
+<p><strong>How is a lease different than a lock?</strong> </p>
+<ul>
+<li><strong>Lease</strong>: Has a fixed lifetime and expires automatically after a certain duration. This makes leases useful in distributed systems where failures or delays could otherwise cause indefinite blocking.</li>
+<li><strong>Lock</strong>: Typically remains active until explicitly released, which can lead to deadlocks or indefinite resource contention if not managed properly.</li>
+</ul>
+<p><strong>True or False: IQ leases require changes to the RDBMS software.</strong></p>
+<p>False:</p>
+<p>IQ leases do not require changes to the RDBMS software.</p>
+<p>Instead, they extend the functionality of the Key-Value Store (KVS) by introducing new lease-based commands (e.g., <code>QaRead</code> and <code>SaR</code>) to coordinate operations between the KVS and the RDBMS. This design leverages existing RDBMS features without altering its underlying implementation.</p>
+<p><strong>What factors does CAMP consider when selecting a victim?</strong></p>
+<p>H(p) &#x3D; L + size(p) &#x2F; cost(p)</p>
+<p><strong>What is the definition of cost? Provide an example.</strong></p>
+<ul>
+<li><strong>Computation Time</strong>: The time required to regenerate or recompute the data if it is evicted from memory.</li>
+<li><strong>Access Latency</strong>: The time it would take to fetch the data from disk or another slower storage tier.</li>
+<li><strong>Importance</strong>: The priority or weight assigned to the data based on how frequently or critically it is used.</li>
+</ul>
+<p><strong>How does CAMP insert a key-value pair in memory?</strong></p>
+<p>When a new key-value pair p needs to be inserted into memory, CAMP performs the following steps:</p>
+<p><strong>1. Check Cache Capacity</strong></p>
+<ul>
+<li>If there is <strong>enough memory</strong> to store the new key-value pair:</li>
+<li><ul>
+<li>The pair is inserted directly into the appropriate <strong>priority group</strong> based on its cost-to-size ratio.</li>
+<li>L is not updated.</li>
+</ul>
+</li>
+<li>If the cache is <strong>full</strong>:</li>
+<li><ul>
+<li>CAMP selects one or more key-value pairs to <strong>evict</strong> based on their H(p) values.</li>
+<li>It removes the pair(s) with the <strong>lowest H(p)</strong> values until there is sufficient space for the new pair.</li>
+</ul>
+</li>
+</ul>
+<p><strong>2. Insert the New Pair</strong></p>
+<ul>
+<li>The new key-value pair p is added to the cache, and its H(p) value is computed and recorded.</li>
+<li>The pair is placed in the appropriate priority queue based on its cost-to-size ratio.</li>
+</ul>
+<p><strong>With BG, what is the definition of Service Level Agreement, SLA?</strong></p>
+<p>SLA, e.g., 95% of requests to observe a response time equal to or faster than 100 msec with at most 0.1% of requests observing unpredictable data for 10 minutes.</p>
+<p><strong>Name one reason why a system may produce unpredictable data?</strong></p>
+<p>Eventual consistency. Or multiple threads are updating the same data item.</p>
+<p>Reference: <a target="_blank" rel="noopener" href="https://dl.acm.org/doi/abs/10.1145/2663165.2663318">https://dl.acm.org/doi/abs/10.1145/2663165.2663318</a></p>
 
       
     </div>
@@ -3796,7 +4194,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/08/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/IQ/">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/13/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/HRPS%20Background/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -3810,7 +4208,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/08/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/IQ/" class="post-title-link" itemprop="url">IQ</a>
+            <a href="/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/13/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/HRPS%20Background/" class="post-title-link" itemprop="url">HRPS Background</a>
         </h2>
 
         <div class="post-meta">
@@ -3820,14 +4218,14 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2024-11-08 00:00:00" itemprop="dateCreated datePublished" datetime="2024-11-08T00:00:00-08:00">2024-11-08</time>
+              <time title="创建时间：2024-09-13 00:00:00" itemprop="dateCreated datePublished" datetime="2024-09-13T00:00:00-07:00">2024-09-13</time>
             </span>
               <span class="post-meta-item">
                 <span class="post-meta-item-icon">
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-05-31 21:00:45" itemprop="dateModified" datetime="2025-05-31T21:00:45-07:00">2025-05-31</time>
+                <time title="修改时间：2025-05-31 21:00:34" itemprop="dateModified" datetime="2025-05-31T21:00:34-07:00">2025-05-31</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -3850,531 +4248,21 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="What-is-the-IQ-Framework"><a href="#What-is-the-IQ-Framework" class="headerlink" title="What is the IQ Framework?"></a>What is the IQ Framework?</h1><p>The IQ framework is a solution designed for Cache-Augmented SQL (CASQL) systems, which combine relational databases (RDBMS) and key-value stores (KVS) to boost performance by caching database query results. However, CASQL systems often face challenges related to stale data and race conditions. The IQ framework ensures strong consistency while maintaining high performance.</p>
-<h1 id="Challenges-in-CASQL-Systems"><a href="#Challenges-in-CASQL-Systems" class="headerlink" title="Challenges in CASQL Systems"></a>Challenges in CASQL Systems</h1><ol>
-<li><p><strong>Stale Data in Cache</strong>:</p>
+          <p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/index_and_page.png" alt="img"></p>
+<p>Each page consits of the header, the record space and a pointer array. Each slot in this array points to a record within the page.</p>
+<p>A record is located by providing its page address and the slot number. The combination is called RID.</p>
+<p>Life Cycle of a record:</p>
+<p>Insert: Find an empty space to put it and set a slot at the very end of the page to point to it.</p>
+<p>Delete: Remove the record and reclaim this space, set its slot number to null. When there are too many garbage slots, the system will drop the index structure, do reorganization on this disk page by removing all null slots, and reconstruct the index structure from scratch.</p>
+<p>Non-clustered Index: the data of the disk page is independent of the bucket or leaf node of index.</p>
+<p>Clustered Index: the data of the disk page resides within the bucket or leaf node of index.</p>
+<p>Hash Index: the item in buckets is not ordered by the attribute value of index.</p>
+<p>B+Tree Index: the item in leaf nodes is ordered by the attribute value of index.</p>
 <ul>
-<li><p>Cached data in the KVS can become outdated if updates to the RDBMS are not properly synchronized.</p>
-</li>
-<li><p>For example, if a record in the database is modified, but the corresponding cache entry isn’t updated, subsequent reads might return incorrect values.</p>
-</li>
+<li>Primary Index: the data in the disk page is ordered.</li>
+<li>Secondary Index: the data in the disk page is not ordered.</li>
 </ul>
-</li>
-<li><p><strong>Concurrency Issues</strong>:</p>
-<ul>
-<li><p>Multiple sessions accessing and modifying the same key in KVS concurrently can lead to inconsistent results.</p>
-</li>
-<li><p>Example:</p>
-<ul>
-<li>One session updates a value while another session modifies it based on outdated data.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p><strong>RDBMS and Cache Coordination</strong>:</p>
-<ul>
-<li>While RDBMS ensures transactional consistency, KVS often lacks this capability, making it difficult to synchronize their states.</li>
-</ul>
-</li>
-</ol>
-<h1 id="Key-Features-of-the-IQ-Framework"><a href="#Key-Features-of-the-IQ-Framework" class="headerlink" title="Key Features of the IQ Framework"></a>Key Features of the IQ Framework</h1><ol>
-<li><strong>Lease Mechanism: Inhibit (I) and Quarantine (Q)</strong>:<ol>
-<li><strong>I Lease</strong> (for reads):<ol>
-<li>Ensures that only one session can query the RDBMS for a cache miss and update the KVS.</li>
-<li>Other sessions attempting to read the same key must “back off” and wait.</li>
-</ol>
-</li>
-<li><strong>Q Lease</strong> (for writes):<ol>
-<li>Required for modifying, deleting, or incrementally updating keys in the KVS.</li>
-<li>If an I lease exists, the Q lease invalidates it to ensure the write operation’s integrity.</li>
-<li>The KVS ignores I’s write operation because this I lease is no longer valid.</li>
-</ol>
-</li>
-</ol>
-</li>
-<li><strong>Lease Expiry</strong>:<ol>
-<li>A lease for a key has a fixed life time and is granted to one KVS connection (thread) at a time.</li>
-<li>Expired leases are automatically released, ensuring system availability.</li>
-<li>The finite life time enables the KVS to release the lease and continue processing operations in the presence of node failures hosting the application.</li>
-</ol>
-</li>
-<li><strong>Session-based Model</strong>:<ol>
-<li>The framework operates through sessions, similar to the <strong>two-phase locking protocol</strong>.</li>
-<li>Leases can be acquired either before or during an RDBMS transaction, providing flexibility.</li>
-</ol>
-</li>
-</ol>
-<h2 id="Implementing-ACID-Properties"><a href="#Implementing-ACID-Properties" class="headerlink" title="Implementing ACID Properties"></a>Implementing ACID Properties</h2><p>原子性 (Atomicity)： IQ 框架确保事务的操作同时在数据库 (RDBMS) 和缓存 (KVS) 中执行。也就是说，操作不会只在数据库中完成而没有更新缓存。这种设计假设 KVS 中的数据是 RDBMS 数据的一部分，因此如果遇到问题，可以直接删除 KVS 中的数据来保持一致。</p>
-<p>一致性 (Consistency)： IQ 框架保证事务在数据库和缓存中的数据状态从一个有效状态变为另一个有效状态。如果数据库的事务回滚 (abort)，那么缓存中的操作也不会被应用，确保不会留下无效的缓存数据。</p>
-<p>隔离性 (Isolation)： 即使有多个会话 (session) 同时执行，IQ 框架也让每个会话看起来像是独立执行的，避免了并发问题。例如，即使两个用户同时读写相同的数据，他们看到的结果也是正确且一致的。</p>
-<p>持久性 (Durability)： 持久性是由数据库 (RDBMS) 提供的，而缓存 (KVS) 则作为数据库的一部分镜像。KVS 存储的数据是在内存中的副本，但一旦数据库中的事务提交，数据就会被持久保存。</p>
-<blockquote>
-<p>CAS 操作只能保证单一操作的原子性，但无法在多个并发会话中保证强一致性。 由于数据库和缓存系统中的操作顺序可能不一致，会导致数据不同步。</p>
-<p>在并发场景下：CAS 无法感知其他会话在其读取后对数据的更改。 多个会话同时执行 CAS 操作时，可能导致更新丢失或顺序混乱，如本例中 S2 的更新被 S1 覆盖。</p>
-<p>Q 租约用于写操作，确保某一时刻只有一个会话能够修改目标键值。如果某个键值已有 Q 租约，其他会话（如 S1）会被要求退避（back off）或中止操作。</p>
-</blockquote>
-<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/RDBMS_KVS_OPER.png" alt="img"></p>
-<h1 id="Invalidate"><a href="#Invalidate" class="headerlink" title="Invalidate"></a>Invalidate</h1><h2 id="What-is-Snapshot-Isolation"><a href="#What-is-Snapshot-Isolation" class="headerlink" title="What is Snapshot Isolation?"></a>What is Snapshot Isolation?</h2><p>Snapshot isolation is a multi-version concurrency control mechanism commonly used in RDBMS to allow concurrent transactions to execute efficiently. It guarantees:</p>
-<ol>
-<li><strong>Consistent Snapshot</strong>: All reads in a transaction observe the same consistent state of the database, as it existed at the transaction’s start.</li>
-<li><strong>Conflict Detection</strong>: A transaction can only commit if its updates do not conflict with updates made by other transactions since its snapshot was taken.</li>
-</ol>
-<h3 id="The-Problem"><a href="#The-Problem" class="headerlink" title="The Problem"></a>The Problem</h3><p>Snapshot isolation can cause a race condition between a write session (S1) and a read session (S2) when KVS is involved. The issue unfolds as follows:</p>
-<ol>
-<li><p><strong>Write Session (S1)</strong>:</p>
-<ul>
-<li><p>S1 modifies the RDBMS and triggers a delete operation in the KVS to invalidate outdated key-value pairs.</p>
-</li>
-<li><p>S1 commits the transaction after completing its changes in the RDBMS.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Read Session (S2)</strong>:</p>
-<ul>
-<li><p>S2 starts after S1’s delete operation in the KVS. It observes a <strong>KVS miss</strong> for a key-value pair because S1 has invalidated it.</p>
-</li>
-<li><p>S2 queries the RDBMS to recompute the key-value pair. However, because snapshot isolation allows S2 to read an <strong>older snapshot of the database</strong>, it retrieves outdated (stale) data.</p>
-</li>
-<li><p>S2 inserts this <strong>stale data</strong> back into the KVS before S1 commits its changes to the RDBMS.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Inconsistency</strong>:</p>
-<ul>
-<li>After both sessions complete, the KVS contains a stale key-value pair inconsistent with the RDBMS, leading to incorrect results for future reads.</li>
-</ul>
-</li>
-</ol>
-<h3 id="Solution"><a href="#Solution" class="headerlink" title="Solution"></a>Solution</h3><p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/invalidate_tbl.png" alt="img"></p>
-<p>I Lease (Inhibit Lease):</p>
-<ul>
-<li>Used by <strong>read sessions</strong> (e.g., S2).</li>
-<li>When a read session observes a <strong>KVS miss</strong>, it requests an I lease for the key (<code>k_j</code>) from the KVS server.</li>
-<li>The I lease allows the read session to query the RDBMS, compute a value, and insert the computed key-value pair into the KVS.</li>
-<li>If a Q lease is already in place, the I lease is denied, and the read session is told to <strong>back off</strong> and retry later.</li>
-</ul>
-<p>Q Lease (Quarantine Lease):</p>
-<ul>
-<li>Used by <strong>write sessions</strong> (e.g., S1).</li>
-<li>When a write session plans to invalidate a key in the KVS, it requests a Q lease for the key (<code>k_j</code>).</li>
-<li>The Q lease prevents other sessions (including those holding I leases) from modifying or inserting the key in the KVS.</li>
-<li>Multiple Q leases can be granted for the same key since deleting a key is idempotent (doesn’t create conflicts).</li>
-</ul>
-<h1 id="Optimization"><a href="#Optimization" class="headerlink" title="Optimization"></a>Optimization</h1><h2 id="The-Problem-1"><a href="#The-Problem-1" class="headerlink" title="The Problem"></a>The Problem</h2><ul>
-<li>In the original scenario, <strong>write sessions (e.g., S1)</strong> immediately delete key-value pairs in the KVS as soon as they acquire a Q lease (e.g., Step 1.3 in Figure 3).</li>
-<li>This can cause <strong>read sessions (e.g., S2)</strong> to encounter KVS misses, triggering redundant operations like querying the RDBMS, recalculating values, and reinserting them into the KVS.</li>
-</ul>
-<h2 id="The-Proposed-Optimization"><a href="#The-Proposed-Optimization" class="headerlink" title="The Proposed Optimization"></a>The Proposed Optimization</h2><p><strong>Deferring Key Deletion Until Write Commit</strong></p>
-<ol>
-<li><p><strong>Key Changes</strong>:</p>
-<ul>
-<li><p>Instead of deleting the key immediately in Step 1.3, the write session (S1) holds the Q lease and <strong>defers the deletion</strong> until the write session commits (Step 1.5).</p>
-</li>
-<li><p>While S1 is mid-flight, the invalidated key-value pair remains in the KVS for other read sessions (S2) to observe.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Handling KVS Hits</strong>:</p>
-<ul>
-<li><p>Read sessions like S2 that encounter a <strong>KVS hit</strong> consume the “stale” key-value pair, treating it as valid.</p>
-</li>
-<li><p>This is acceptable because S2’s actions can be <strong>serialized to occur before</strong> S1, which is still in progress and has not yet committed its RDBMS changes.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Handling Write Aborts</strong>:</p>
-<ul>
-<li><p>If a write session (S1) encounters an exception and aborts, the Q lease is released without deleting the key.</p>
-</li>
-<li><p>The current key-value pair in the KVS remains valid and accessible to other sessions.</p>
-</li>
-</ul>
-</li>
-</ol>
-<h2 id="Implementation-Details"><a href="#Implementation-Details" class="headerlink" title="Implementation Details"></a>Implementation Details</h2><ol>
-<li><p><strong>Versioning Concept</strong>:</p>
-<ul>
-<li><p>The optimization can be conceptualized as maintaining a <strong>temporary version</strong> of the key-value pair for use by all sessions except the one currently invalidating it (S1).</p>
-</li>
-<li><p>Once S1 commits, the temporary version is removed.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Abort Command</strong>:</p>
-<ul>
-<li><p>If a write session (S1) aborts due to constraints or exceptions, an <strong>abort command</strong> releases all Q leases held by S1 without deleting the key-value pair.</p>
-</li>
-<li><p>Without this command, Q leases would expire naturally after a timeout, during which no other session could modify or access the key.</p>
-</li>
-</ul>
-</li>
-</ol>
-<p><strong>Re-Arrangement Window</strong>:</p>
-<ul>
-<li>With this optimization, S2 and S1 can be <strong>re-arranged</strong> in a serializable schedule where S2 logically occurs before S1.</li>
-<li>Without the optimization, the re-arrangement window shrinks to zero because S2 would have already queried the RDBMS for stale data, violating consistency.</li>
-</ul>
-<h1 id="Refresh-and-Incremental-Update"><a href="#Refresh-and-Incremental-Update" class="headerlink" title="Refresh and Incremental Update"></a>Refresh and Incremental Update</h1><h2 id="Key-Issues-with-Compare-and-Swap-CAS"><a href="#Key-Issues-with-Compare-and-Swap-CAS" class="headerlink" title="Key Issues with Compare-and-Swap (CAS)"></a>Key Issues with Compare-and-Swap (CAS)</h2><ul>
-<li><p><strong>CAS Limitation</strong>:</p>
-<ul>
-<li>CAS alone cannot ensure strong consistency. It provides atomic updates to a single key-value pair but does not coordinate these updates with RDBMS transactions.</li>
-</ul>
-</li>
-<li><p><strong>Example (Figure 2)</strong>:</p>
-<ul>
-<li><p>KVS writes can occur either:</p>
-<ol>
-<li><p><strong>Prior to</strong> the RDBMS transaction, or</p>
-</li>
-<li><p><strong>As part of</strong> the RDBMS transaction.</p>
-</li>
-</ol>
-</li>
-<li><p><strong>Problem</strong>: If the RDBMS transaction aborts, the KVS will retain the modified key-value pair, potentially exposing <strong>dirty reads</strong> to other sessions.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Figure 6 (Dirty Read Problem)</strong>:</p>
-<ul>
-<li>Write session S1 modifies a key-value pair in KVS.</li>
-<li>S1’s transaction later aborts, but the intermediate KVS value is consumed by a read session S2 before the rollback, leading to inconsistencies.</li>
-</ul>
-</li>
-<li><p><strong>Developer Responsibility</strong>:</p>
-<ul>
-<li>Without additional mechanisms, developers must implement complex logic to restore KVS key-value pairs to their original values when RDBMS transactions abort.</li>
-</ul>
-</li>
-</ul>
-<h2 id="Race-Conditions-with-Incremental-Updates-δ-Operations"><a href="#Race-Conditions-with-Incremental-Updates-δ-Operations" class="headerlink" title="Race Conditions with Incremental Updates (δ Operations)"></a>Race Conditions with Incremental Updates (δ Operations)</h2><ul>
-<li><p><strong>Figure 7 (Snapshot Isolation with δ Operations)</strong>:</p>
-</li>
-<li><ul>
-<li>Write session S1 updates the RDBMS and KVS using an incremental update (e.g., appending to a value).</li>
-<li>Concurrently, read session S2 queries the RDBMS and overwrites the key-value pair in the KVS.</li>
-<li><strong>Result</strong>: The KVS reflects inconsistent state, as S2’s overwrite may invalidate S1’s incremental change.</li>
-</ul>
-</li>
-<li><p><strong>Figure 8 (Reordering KVS Operations)</strong>:</p>
-</li>
-<li><ul>
-<li>Delaying KVS updates until after the RDBMS transaction doesn’t solve the problem.</li>
-</ul>
-</li>
-<li><p><strong>Example in Figure 8</strong>:</p>
-</li>
-<li><ul>
-<li>S1 appends a change to a value based on its RDBMS view.</li>
-<li>S2 modifies the RDBMS during S1’s execution, which S1 unknowingly incorporates into its KVS update.</li>
-<li><strong>Problem</strong>: S2’s modifications are reflected twice in the KVS, introducing inconsistencies.</li>
-</ul>
-</li>
-</ul>
-<h2 id="Solution-1"><a href="#Solution-1" class="headerlink" title="Solution"></a>Solution</h2><p><strong>Key Concepts in the Solution</strong></p>
-<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/refresh_tbl.png" alt="img"></p>
-<ol>
-<li><p><strong>Q Leases for Write Sessions</strong>:</p>
-<ul>
-<li><p>A <strong>Q lease</strong> must be obtained for each key-value pair that a session intends to update.</p>
-</li>
-<li><p>This prevents race conditions by locking the key-value pair until the session completes its operations.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Steps for Write Sessions</strong>:</p>
-<ul>
-<li><p><strong>Step 1</strong>: Obtain Q leases for the keys to be updated before committing the RDBMS transaction. This can happen:</p>
-<ul>
-<li><p>Before starting the RDBMS transaction.</p>
-</li>
-<li><p>As part of the RDBMS transaction.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Step 2</strong>: Write the updated key-value pairs to the KVS after committing the RDBMS transaction.</p>
-</li>
-<li><p><strong>Step 3</strong>: Release the Q leases once the KVS is updated.</p>
-</li>
-<li><p><strong>Automatic Cleanup</strong>: If a Q lease expires, the KVS deletes the associated key-value pair to avoid stale data.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Command Design for Write Operations</strong>:</p>
-<ul>
-<li><p><strong>QaRead (Quarantine-and-Read)</strong>:</p>
-<ul>
-<li><p>Acquires a Q lease on the referenced key and reads its value from the KVS.</p>
-</li>
-<li><p>If a Q lease for the same key is already held by another session, the requesting session receives an <strong>abort message</strong>, must roll back its RDBMS transaction, release all leases, back off, and retry later.</p>
-</li>
-<li><p>If no value exists in the KVS (a <strong>KVS miss</strong>), the application can:</p>
-<ul>
-<li>Skip updating the key, or</li>
-<li>Query the RDBMS, compute a new value, and insert it using <strong>SaR</strong> (below).</li>
-</ul>
-</li>
-<li><p>If a <strong>QaRead lease</strong> encounters an <strong>I lease</strong> held by a read session, it invalidates the I lease to prevent race conditions.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>SaR (Swap-and-Release)</strong>:</p>
-<ul>
-<li>Updates the value of a key in the KVS with the new value and releases the Q lease.</li>
-<li>If the new value is <code>null</code>, the Q lease is simply released without updating the KVS.</li>
-</ul>
-</li>
-</ul>
-</li>
-</ol>
-<h2 id="Handling-Race-Conditions"><a href="#Handling-Race-Conditions" class="headerlink" title="Handling Race Conditions"></a>Handling Race Conditions</h2><ol>
-<li><p><strong>Q Leases for Concurrent Write Sessions</strong>:</p>
-<ul>
-<li><p>If two write sessions request Q leases for the same key, the KVS resolves the conflict by:</p>
-<ul>
-<li>Aborting one session.</li>
-<li>Ensuring the aborted session retries later, serializing its updates after the session holding the Q lease.</li>
-</ul>
-</li>
-<li><p>This guarantees a valid serial schedule in the RDBMS and KVS.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Read Sessions and I Leases</strong>:</p>
-<ul>
-<li><p>Read sessions use <strong>I leases</strong> to avoid race conditions when querying the KVS.</p>
-</li>
-<li><p>If a write session issues a <strong>QaRead</strong> that encounters an existing <strong>I lease</strong>, the <strong>I lease</strong> is invalidated to ensure the KVS reflects the latest updates from the RDBMS.</p>
-</li>
-</ul>
-</li>
-</ol>
-<h2 id="Integration-with-Two-Phase-Locking"><a href="#Integration-with-Two-Phase-Locking" class="headerlink" title="Integration with Two-Phase Locking"></a>Integration with Two-Phase Locking</h2><ul>
-<li><p>The Q lease mechanism resembles <strong>two-phase locking</strong>:</p>
-<ol>
-<li><p><strong>Growing Phase</strong>: The session acquires all necessary Q leases using <strong>QaRead</strong> before committing its RDBMS transaction.</p>
-</li>
-<li><p><strong>Shrinking Phase</strong>: The session releases all Q leases using <strong>SaR</strong> after committing its RDBMS transaction.</p>
-</li>
-</ol>
-</li>
-<li><p>Flexibility:</p>
-<ul>
-<li>A session can issue <strong>QaRead</strong> commands either before starting the RDBMS transaction or as part of the transaction.</li>
-</ul>
-</li>
-</ul>
-<h2 id="Key-Concepts-of-Incremental-Updates"><a href="#Key-Concepts-of-Incremental-Updates" class="headerlink" title="Key Concepts of Incremental Updates"></a>Key Concepts of Incremental Updates</h2><ol>
-<li><p><strong>Incremental Update Command: IQ-δ</strong>:</p>
-<ul>
-<li><p><strong>Purpose</strong>: Allows a write session to perform an incremental update, such as appending data to an existing key-value pair.</p>
-</li>
-<li><p><strong>Syntax</strong>: <code>IQ-δ(ki, δi)</code></p>
-<ul>
-<li><code>ki</code>: The key to be updated.</li>
-<li><code>δi</code>: The incremental change to apply (e.g., the value to append).</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p><strong>Similarities to QaRead</strong>:</p>
-<ul>
-<li><p><strong>Q Lease Requirement</strong>: Before issuing the <code>IQ-δ</code> command, the session must obtain a <strong>Q lease</strong> for the key <code>ki</code> to ensure exclusive access.</p>
-</li>
-<li><p><strong>Abort on Conflict</strong>:</p>
-<ul>
-<li><p>If another session already holds a Q lease on the same key (<code>ki</code>), the <strong>KVS returns an abort message</strong>.</p>
-</li>
-<li><p>The write session must:</p>
-<ol>
-<li><p>Release all its leases.</p>
-</li>
-<li><p>Abort its ongoing RDBMS transaction (if any).</p>
-</li>
-<li><p>Retry the operation later.</p>
-</li>
-</ol>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ol>
-<h1 id="优化关键点总结"><a href="#优化关键点总结" class="headerlink" title="优化关键点总结"></a>优化关键点总结</h1><ol>
-<li><p><strong>保留旧版本（Older Version）</strong>：</p>
-<ul>
-<li><p>当写会话（S1）更新某键值对 (<code>ki-vi</code>) 时，KVS 暂时保留该键值对的旧版本 (<code>ki-vi_old</code>)，直到 S1 提交。</p>
-</li>
-<li><p>这避免了读会话在写会话更新期间遇到 <strong>KVS miss</strong>。</p>
-</li>
-</ul>
-</li>
-<li><p>写会话的更新视图：</p>
-<ul>
-<li><p>写会话（S1）在更新期间必须能够看到自己的修改结果（<code>ki-vi_new</code>）。</p>
-</li>
-<li><p>KVS 确保为 S1 提供其最新的更新视图。</p>
-</li>
-</ul>
-</li>
-</ol>
-<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>Why is it acceptable for invalidate to delete cache entries?</strong></p>
-<p>Consistency Assurance: The cache entry being invalidated represents stale data that is no longer consistent with the current state of the RDBMS. Deleting it prevents read sessions from accessing outdated information.</p>
-<p><strong>How is a lease different than a lock?</strong> </p>
-<ul>
-<li><strong>Lease</strong>: Has a fixed lifetime and expires automatically after a certain duration. This makes leases useful in distributed systems where failures or delays could otherwise cause indefinite blocking.</li>
-<li><strong>Lock</strong>: Typically remains active until explicitly released, which can lead to deadlocks or indefinite resource contention if not managed properly.</li>
-</ul>
-<p><strong>True or False: IQ leases require changes to the RDBMS software.</strong></p>
-<p>False:</p>
-<p>IQ leases do not require changes to the RDBMS software.</p>
-<p>Instead, they extend the functionality of the Key-Value Store (KVS) by introducing new lease-based commands (e.g., <code>QaRead</code> and <code>SaR</code>) to coordinate operations between the KVS and the RDBMS. This design leverages existing RDBMS features without altering its underlying implementation.</p>
-<p><strong>What factors does CAMP consider when selecting a victim?</strong></p>
-<p>H(p) &#x3D; L + size(p) &#x2F; cost(p)</p>
-<p><strong>What is the definition of cost? Provide an example.</strong></p>
-<ul>
-<li><strong>Computation Time</strong>: The time required to regenerate or recompute the data if it is evicted from memory.</li>
-<li><strong>Access Latency</strong>: The time it would take to fetch the data from disk or another slower storage tier.</li>
-<li><strong>Importance</strong>: The priority or weight assigned to the data based on how frequently or critically it is used.</li>
-</ul>
-<p><strong>How does CAMP insert a key-value pair in memory?</strong></p>
-<p>When a new key-value pair p needs to be inserted into memory, CAMP performs the following steps:</p>
-<p><strong>1. Check Cache Capacity</strong></p>
-<ul>
-<li>If there is <strong>enough memory</strong> to store the new key-value pair:</li>
-<li><ul>
-<li>The pair is inserted directly into the appropriate <strong>priority group</strong> based on its cost-to-size ratio.</li>
-<li>L is not updated.</li>
-</ul>
-</li>
-<li>If the cache is <strong>full</strong>:</li>
-<li><ul>
-<li>CAMP selects one or more key-value pairs to <strong>evict</strong> based on their H(p) values.</li>
-<li>It removes the pair(s) with the <strong>lowest H(p)</strong> values until there is sufficient space for the new pair.</li>
-</ul>
-</li>
-</ul>
-<p><strong>2. Insert the New Pair</strong></p>
-<ul>
-<li>The new key-value pair p is added to the cache, and its H(p) value is computed and recorded.</li>
-<li>The pair is placed in the appropriate priority queue based on its cost-to-size ratio.</li>
-</ul>
-<p><strong>With BG, what is the definition of Service Level Agreement, SLA?</strong></p>
-<p>SLA, e.g., 95% of requests to observe a response time equal to or faster than 100 msec with at most 0.1% of requests observing unpredictable data for 10 minutes.</p>
-<p><strong>Name one reason why a system may produce unpredictable data?</strong></p>
-<p>Eventual consistency. Or multiple threads are updating the same data item.</p>
-<p>Reference: <a target="_blank" rel="noopener" href="https://dl.acm.org/doi/abs/10.1145/2663165.2663318">https://dl.acm.org/doi/abs/10.1145/2663165.2663318</a></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/10/11/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/OCC%20%E5%92%8C%20MVCC/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Yihang Wei">
-      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="EthanWeee">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/10/11/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/OCC%20%E5%92%8C%20MVCC/" class="post-title-link" itemprop="url">OCC 和 MVCC</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-10-11 00:00:00" itemprop="dateCreated datePublished" datetime="2024-10-11T00:00:00-07:00">2024-10-11</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-05-31 01:18:09" itemprop="dateModified" datetime="2025-05-31T01:18:09-07:00">2025-05-31</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">数据库系统</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="Time-Stamp-Based-Protocols"><a href="#Time-Stamp-Based-Protocols" class="headerlink" title="Time-Stamp Based Protocols"></a>Time-Stamp Based Protocols</h1><p>Suppose transaction Ti issues read(Q):</p>
-<ul>
-<li>If TS(Ti) &lt; W-TimeStamp(Q), then Ti needs to read the value of Q which was already overwritten. Hence the read request is rejected and Ti is rolled back.</li>
-<li>If TS(Ti) &gt;&#x3D; W-TimeStamp(Q), then the read operation is executed and the R-timeStamp(Q) is set to the maximum of R-TimeStamp(Q) and TS(Ti).</li>
-</ul>
-<p>Suppose transaction Ti issues write(Q):</p>
-<ul>
-<li>If TS(Ti) &lt; R-TimeStamp(Q), then this implies that some transaction has already consumed the value of Q and Ti should have produced a value before that transaction read it. Thus, the write request is rejected and Ti is rolled back.</li>
-<li>If TS(Ti) &lt; W-TimeStamp(Q), then Ti is trying to write an obsolete value of Q. Hence reject Ti’s request and roll it back. &#x2F; Ignore this write operation. (Tomas’s Write Rule)</li>
-<li>Otherwise, execute the write(Q) operation and update W-TimeStamp(Q) to TS(Ti).</li>
-</ul>
-<h1 id="OCC"><a href="#OCC" class="headerlink" title="OCC"></a>OCC</h1><p>Each transaction Ti has three phases:</p>
-<ul>
-<li>Read phase: reads the value of data items and copies its contents to variables local to Ti. All writes are performed on the temporary local variables.</li>
-<li>Validation phase: Ti determines whether the local variables whose values have been overwritten can be copied to the database. If not, then abort. Otherwise, proceed to Write phase.</li>
-<li><ul>
-<li>When validating transaction Tj, for all transactions Ti with TS(Ti) &lt; TS(Tj), one of the following must hold:</li>
-<li><ul>
-<li>Finish(Ti) &lt; Start(Tj), OR</li>
-<li>Set of data items written by Ti does not intersect with the set of data items read by Tj, and Ti completes its write phase before Tj starts its validation phase.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>Write phase: The values stored in local variables overwrite the value of the data items in the database.</li>
-</ul>
-<p>A transaction has three time stamps:</p>
-<ul>
-<li>Start(Ti): When Ti started its execution.</li>
-<li>Validation(Ti): When Ti finished its read phase and started its validation.</li>
-<li>Finish(Ti): Done with the write phase.</li>
-</ul>
-<h1 id="MVCC"><a href="#MVCC" class="headerlink" title="MVCC"></a>MVCC</h1><p>Assume that transaction Ti issues either a read(Q) or a write(Q) operation.</p>
-<p>Let Qk denote the version of Q whose write timestamp is the largest write timestamp less than TS(Ti), i.e., W-TimeStamp(Qk) &lt; TS(Ti).</p>
-<ul>
-<li>If Ti issues a Read(Q), then return the value of Qk.</li>
-<li>If Ti issues a write(Q), and TS(Ti) &lt; R-TimeStamp(Qk), then Ti is rolled back.</li>
-<li>Otherwise, a new version of Qk is created.</li>
-</ul>
+<p>Reference: <a target="_blank" rel="noopener" href="https://www.vldb.org/conf/1990/P481.PDF">https://www.vldb.org/conf/1990/P481.PDF</a></p>
 
       
     </div>
@@ -4580,6 +4468,118 @@
 </li>
 <li><p><a target="_blank" rel="noopener" href="https://dl.acm.org/doi/pdf/10.1145/3448016.3457297">https://dl.acm.org/doi/pdf/10.1145/3448016.3457297</a></p>
 </li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/10/11/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/OCC%20%E5%92%8C%20MVCC/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/10/11/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/OCC%20%E5%92%8C%20MVCC/" class="post-title-link" itemprop="url">OCC 和 MVCC</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-10-11 00:00:00" itemprop="dateCreated datePublished" datetime="2024-10-11T00:00:00-07:00">2024-10-11</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-05-31 01:18:09" itemprop="dateModified" datetime="2025-05-31T01:18:09-07:00">2025-05-31</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">数据库系统</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="Time-Stamp-Based-Protocols"><a href="#Time-Stamp-Based-Protocols" class="headerlink" title="Time-Stamp Based Protocols"></a>Time-Stamp Based Protocols</h1><p>Suppose transaction Ti issues read(Q):</p>
+<ul>
+<li>If TS(Ti) &lt; W-TimeStamp(Q), then Ti needs to read the value of Q which was already overwritten. Hence the read request is rejected and Ti is rolled back.</li>
+<li>If TS(Ti) &gt;&#x3D; W-TimeStamp(Q), then the read operation is executed and the R-timeStamp(Q) is set to the maximum of R-TimeStamp(Q) and TS(Ti).</li>
+</ul>
+<p>Suppose transaction Ti issues write(Q):</p>
+<ul>
+<li>If TS(Ti) &lt; R-TimeStamp(Q), then this implies that some transaction has already consumed the value of Q and Ti should have produced a value before that transaction read it. Thus, the write request is rejected and Ti is rolled back.</li>
+<li>If TS(Ti) &lt; W-TimeStamp(Q), then Ti is trying to write an obsolete value of Q. Hence reject Ti’s request and roll it back. &#x2F; Ignore this write operation. (Tomas’s Write Rule)</li>
+<li>Otherwise, execute the write(Q) operation and update W-TimeStamp(Q) to TS(Ti).</li>
+</ul>
+<h1 id="OCC"><a href="#OCC" class="headerlink" title="OCC"></a>OCC</h1><p>Each transaction Ti has three phases:</p>
+<ul>
+<li>Read phase: reads the value of data items and copies its contents to variables local to Ti. All writes are performed on the temporary local variables.</li>
+<li>Validation phase: Ti determines whether the local variables whose values have been overwritten can be copied to the database. If not, then abort. Otherwise, proceed to Write phase.</li>
+<li><ul>
+<li>When validating transaction Tj, for all transactions Ti with TS(Ti) &lt; TS(Tj), one of the following must hold:</li>
+<li><ul>
+<li>Finish(Ti) &lt; Start(Tj), OR</li>
+<li>Set of data items written by Ti does not intersect with the set of data items read by Tj, and Ti completes its write phase before Tj starts its validation phase.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Write phase: The values stored in local variables overwrite the value of the data items in the database.</li>
+</ul>
+<p>A transaction has three time stamps:</p>
+<ul>
+<li>Start(Ti): When Ti started its execution.</li>
+<li>Validation(Ti): When Ti finished its read phase and started its validation.</li>
+<li>Finish(Ti): Done with the write phase.</li>
+</ul>
+<h1 id="MVCC"><a href="#MVCC" class="headerlink" title="MVCC"></a>MVCC</h1><p>Assume that transaction Ti issues either a read(Q) or a write(Q) operation.</p>
+<p>Let Qk denote the version of Q whose write timestamp is the largest write timestamp less than TS(Ti), i.e., W-TimeStamp(Qk) &lt; TS(Ti).</p>
+<ul>
+<li>If Ti issues a Read(Q), then return the value of Qk.</li>
+<li>If Ti issues a write(Q), and TS(Ti) &lt; R-TimeStamp(Qk), then Ti is rolled back.</li>
+<li>Otherwise, a new version of Qk is created.</li>
 </ul>
 
       
@@ -5239,473 +5239,6 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/20/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/OLAP%20%E7%B4%A2%E5%BC%95/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Yihang Wei">
-      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="EthanWeee">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/20/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/OLAP%20%E7%B4%A2%E5%BC%95/" class="post-title-link" itemprop="url">OLAP 索引</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2025-01-20 00:00:00" itemprop="dateCreated datePublished" datetime="2025-01-20T00:00:00-08:00">2025-01-20</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-06-06 21:47:43" itemprop="dateModified" datetime="2025-06-06T21:47:43-07:00">2025-06-06</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/" itemprop="url" rel="index"><span itemprop="name">高级数据存储</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="Data-Skipping"><a href="#Data-Skipping" class="headerlink" title="Data Skipping"></a>Data Skipping</h1><p>我们可以利用辅助数据结构标识表中哪些部分可以跳过扫描，避免对每一行（tuple）都做判断。</p>
-<p><strong>OLAP 场景下为什么要用 Data Skipping？</strong></p>
-<p>在 OLAP 场景中，查询往往是扫描大量历史数据，筛选满足某种复杂条件的子集，典型例子如数据仓库的多维分析、报表查询等。此时：</p>
-<ol>
-<li><strong>表非常大</strong>：可能有数十亿、上百亿行，逐行检查每个行是否满足条件，代价非常高。</li>
-<li><strong>查询通常按若干列做过滤</strong>：比如 <code>WHERE 年份 = 2024 AND 地区 = &#39;北京&#39;</code>，而且常常只要少量数据就够了（高选择性场景）。</li>
-<li><strong>批量扫描 vs. 随机读取</strong>：读整个表，会触发大量 I&#x2F;O；如果能一眼就知道哪些数据页根本不用读，就能省下大量 I&#x2F;O 时间。</li>
-</ol>
-<p>因此，Data Skipping 的核心思路，就是通过在数据块或分区级别维护一些<strong>辅助信息</strong>，让查询在执行过滤时能够判断“某个数据块（比如一个文件区块、一个数据页、一个段&#x2F;partition）肯定不包含满足过滤条件的行，就直接跳过，不去读取和解析该块中的每一行”，从而大幅减少 I&#x2F;O，以及后续的行级计算。</p>
-<p>常见的 Data Skipping 技术主要有以下几类：</p>
-<ol>
-<li><strong>Zone Map &#x2F; Min-Max 索引</strong><ul>
-<li>每个数据块（block 或 segment）存一对最小值和最大值，例如按时间分块后，记录该块中时间列的 [min_timestamp, max_timestamp]。</li>
-<li>查询时，如果查询条件为 <code>timestamp BETWEEN &#39;2024-01-01&#39; AND &#39;2024-03-01&#39;</code>，当某个块的最大时间都早于 ‘2024-01-01’，或者最小时间都晚于 ‘2024-03-01’，就可以完全跳过该块。</li>
-<li>优点：实现简单、维护开销低；适用于列值分布相对平缓的场景。</li>
-<li>缺点：如果一个块里 min–max 范围很宽（分布倾斜或块太大），就容易出现“区间重叠”，跳不过去，效率下降。</li>
-</ul>
-</li>
-<li><strong>位图索引（Bitmap Index）</strong><ul>
-<li>针对低基数的列（如性别、地区、状态等），为每个可能的离散取值维护一个位图（bitset）。</li>
-<li>每个数据块也可以维护该位图的摘要（比如每 N 行分一个小位图），查询时快速根据位图判断该数据段中是否存在某个值，若不存在就跳过。</li>
-<li>优点：在基数较低、数据倾斜度不高时，效果很好；位图操作位运算开销低。</li>
-<li>缺点：对于高基数列，位图会很大，且维护成本高。</li>
-</ul>
-</li>
-<li><strong>布隆过滤器（Bloom Filter）</strong><ul>
-<li>保存每个数据页中的列值集合的 Bloom Filter，当查询时先检查 Bloom Filter 是否可能包含该值，若 Bloom Filter 结果为不可能存在，则跳过整个页。</li>
-<li>优点：Bloom Filter 占用空间小，查询时布尔判断开销低。</li>
-<li>缺点：存在误报率（false-positive），即有时候 Bloom Filter 误判可能存在，需要再回退到读页；但绝不会误判真正存在而跳过，保证正确性。</li>
-</ul>
-</li>
-<li><strong>Skip List／Skip Table 结构</strong><ul>
-<li>某些列可以对数据块按值范围做多级跳跃索引，比如最外层根据范围将整个表划分为若干区域，里层再分页索引。</li>
-<li>OLAP 引擎（如 Apache Parquet、ORC）通常在文件格式层面（列存格式）会同时维护多层次的自底向上的统计信息（Statistics）。</li>
-<li>Query Planner 就会根据统计信息决定哪些 Row Group（行组）或 Stride（步长）可以跳过。</li>
-</ul>
-</li>
-<li><strong>分区表（Partitioning）</strong><ul>
-<li>将大表水平拆分成多个分区（按时间、地区、业务线等），在查询时如果过滤条件里包含分区键（如 date），可以直接分区剪裁，跳过不相关分区。</li>
-<li>其实分区本质也是一种粗粒度的 Data Skipping，跳过整个分区文件。</li>
-</ul>
-</li>
-</ol>
-<p><strong>设计 Data Skipping 时的关键考虑点</strong></p>
-<p><strong>1. 谓词选择性</strong></p>
-<ul>
-<li><p><strong>低选择性场景</strong></p>
-<p>比如查询 <code>WHERE gender = &#39;M&#39;</code>，如果全表大约一半行都是 <code>gender=&#39;M&#39;</code>，则满足谓词的行很多，跳过就算跳掉了另一半行，也意味着还要扫描一半行，节省有限。</p>
-</li>
-<li><p><strong>高选择性场景</strong></p>
-<p>比如查询 <code>WHERE customer_id = 123456789</code>，或 <code>WHERE event_date = &#39;2025-06-01&#39; AND region = &#39;北京&#39;</code>，只会有极少量行符合条件。此时如果辅助结构能识别掉绝大多数数据块，就能极大节省 I&#x2F;O。</p>
-</li>
-</ul>
-<p><strong>2. 列值分布</strong></p>
-<ul>
-<li>如果某列的值高度偏斜，例如某个列绝大多数行都是同一个值，其余值极少，Zone Map 或基于统计的跳过就不太准。<ul>
-<li>举例：某列几乎全是 ‘A’，只有很少行是 ‘B’，若文件切分并不按照该列聚簇，那么即便大多数块里都是 ‘A’，但每块的最小值&#x2F;最大值同样会显示为 ‘A’，所有块看起来都可能包含 ‘B’，无法跳过。</li>
-</ul>
-</li>
-<li>因此，一般会结合<strong>物理排序（clustering）或分桶（bucketing）</strong>：<ul>
-<li>在生成文件时先按该列做排序&#x2F;分桶，这样相同值会被写到同一数据块里；</li>
-<li>有了同一数据块里只有一个值的特性，块级统计就变得非常有效。</li>
-</ul>
-</li>
-</ul>
-<h1 id="Bitmap-Indexes"><a href="#Bitmap-Indexes" class="headerlink" title="Bitmap Indexes"></a>Bitmap Indexes</h1><p><strong>位图索引</strong>为某个属性（列）的每个不同取值，都存储一份单独的位图，位图中的第 <em>i</em> 位对应了表中第 <em>i</em> 条记录。</p>
-<p>对于下表的原始数据：</p>
-<table>
-<thead>
-<tr>
-<th>order_id</th>
-<th>paid</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>1</td>
-<td>Y</td>
-</tr>
-<tr>
-<td>2</td>
-<td>Y</td>
-</tr>
-<tr>
-<td>3</td>
-<td>Y</td>
-</tr>
-<tr>
-<td>4</td>
-<td>N</td>
-</tr>
-</tbody></table>
-<p>压缩后的数据如下：</p>
-<table>
-  <thead>
-    <tr>
-      <th>order_id</th>
-      <th colspan="2">paid</th>
-    </tr>
-    <tr>
-      <td></td>
-      <td>Y</td>
-      <td>N</td>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>1</td>
-      <td>1</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <td>2</td>
-      <td>1</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <td>3</td>
-      <td>1</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <td>4</td>
-      <td>0</td>
-      <td>1</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>对于多列多值的组合过滤，Bitmap 索引支持高效的按位与（AND）、或（OR）、非（NOT）等位运算。</p>
-<p>如果把整个表的行数记为 <em>N</em>，那么一个属性值对应的位图长度就是 <em>N</em> 位。当表非常大（数千万、上亿行），单张位图也会变得很大。为避免一次性分配庞大、连续的内存块，常见做法是分段（segment&#x2F;chunk）：把总行数 <em>N</em> 划分成若干个固定大小的块（例如每块 1 百万行），那么位图也相应地分成若干个子段，每个子段只需要维护该区间内的位。查询时只需要扫描与目标区间重叠的位段。</p>
-<p>思考：</p>
-<p>为什么使用 Bitmap？</p>
-<ol>
-<li><p><strong>空间利用率较高</strong></p>
-<p>位图本质上是一个位数组，对于低基数或中等基数的列，位图能精确记录行与属性值的映射，且只需 1 位&#x2F;行。</p>
-</li>
-<li><p><strong>位运算速度快，适合多条件混合过滤</strong></p>
-<p>多列过滤条件时，只要获取每个条件对应的位图，对它们做位与&#x2F;或&#x2F;非等操作，就能快速算出满足所有条件的行集合。</p>
-</li>
-</ol>
-<p>为什么位图索引适合压缩？</p>
-<ul>
-<li>如果某个取值非常稀疏地分布在整个表中，那么位图中绝大多数位都是 0，只有少数位置是 1。或者，若有些连续行都满足该取值，又会出现连续的 1 序列。利用这种长串 0 或长串 1 可用<strong>压缩算法</strong>（如 Run-Length Encoding、WAH、Roaring Bitmap 等）进一步缩小存储空间。</li>
-<li>现代 OLAP 引擎（例如 Apache Druid、ClickHouse、Presto 等）在底层都会选择一些成熟的压缩位图实现，这些实现不仅压缩率高，而且能够在压缩态下做位运算，避免了每次查询都需要先把整个位图解压到内存。</li>
-</ul>
-<h1 id="常见的四种编码技术"><a href="#常见的四种编码技术" class="headerlink" title="常见的四种编码技术"></a>常见的四种编码技术</h1><p>位图索引常见的四种编码技术：等值编码（Equality Encoding）、区间编码（Range Encoding）、分层编码（Hierarchical Encoding）和位切片编码（Bit-sliced Encoding）。</p>
-<ol>
-<li><p><strong>等值编码</strong></p>
-<p>为某一列（属性）中的每个<strong>唯一取值</strong>都维护一份独立的位图。也就是说，如果该列有 m 个不同取值，则总共有 m 个位图，每份位图长度为表的总行数 N。这种编码形式上类似 One-Hot 独热编码。具体示例可参考之前的两张表。</p>
-<p>优点：直观简单并且等值查询高效。</p>
-<p>缺点：占用大量空间。</p>
-</li>
-<li><p><strong>区间编码</strong></p>
-<p>与等值编码不同，不为每个<strong>单一取值</strong>都建一份位图，而是按照若干有意义的区间（interval）来划分，每个区间对应一份位图。</p>
-<p>举例：以一个数值列 age 为例，表中 age 范围在 0–100 岁之间，可以把区间划分为 [0–17]、[18–30]、[31–50]、[51–70]、[71–100]。</p>
-<p>为每个区间建一份位图：</p>
-<ul>
-<li>Bitmap_0_17：标记哪些行的 age 落在 0–17 之间；</li>
-<li>Bitmap_18_30：标记哪些行的 age 落在 18–30 之间；</li>
-<li>以此类推。</li>
-</ul>
-<p>优点：适合范围查询并且比等值编码更节省空间。</p>
-<p>缺点：区间的粒度需要权衡。划分的区间越细，能更精准地匹配查询，但要维护的位图份数越多；划分区间越粗，则位图份数越少，但位图对应的行集合范围更大，查询时跳过的效率会下降。</p>
-</li>
-<li><p><strong>分层编码</strong></p>
-<p>通过构建<strong>树形层次结构</strong>（hierarchy），在不同层级对值或值范围做<strong>分段统计&#x2F;位图标识</strong>，用于快速识别那些整个子树&#x2F;子范围内没有数据的情况。</p>
-<p>通常从较粗的范围到较细的范围构建多层位图：</p>
-<ol>
-<li>第一层（根层）：记录整个列的全部可能值范围，并标注哪些子范围是非空（或者空）。</li>
-<li>第二层：把根层范围继续细分为若干更小区间，分别维护各自的标识。</li>
-<li>依次向下，直到最底层是单个取值或某个可接受的最小分区。</li>
-</ol>
-<p>以一列 zipcode（邮政编码）为例，取值范围是 00000–99999，总计 100,000 个可能值。如果直接对每个具体的 5 位数字都建一份位图，太耗空间。改用分层编码：</p>
-<ol>
-<li><strong>第一层</strong>：只看邮编的第一位，共 10 种可能（0、1、2、…、9），<ul>
-<li>构建 10 个顶层位图，分别标记表中哪些行的 zipcode 第一位是 0、哪些行的第一位是 1，以此类推。</li>
-</ul>
-</li>
-<li><strong>第二层</strong>：假设在第一层为前缀 &#x3D; 3（假设查询潜在目标值的前缀为 3）的情况下，第二层把 zipcode 的前两位 30 ～ 39 这 10 个前缀，各自再建位图；</li>
-<li><strong>第三层</strong>：再细分为 300 ～ 309 等前缀，递归向下，直到精确到具体 5 位。</li>
-</ol>
-<p>优点：快速剪裁空范围且适用于高基数&#x2F;稀疏分布的列。</p>
-<p>缺点：存储与维护复杂度更高。需要为每层维护对应的位图，并保持各层之间的一致性。</p>
-</li>
-<li><p><strong>位切片编码</strong></p>
-<p>不是将每个取值或每个区间映射到一份位图，而是针对某个<strong>数值列的二进制表示</strong>，维护<strong>按位的位置拆分的一组位图</strong>。</p>
-<p>假设有一个 8 位的整数列，如下：</p>
-<table>
-<thead>
-<tr>
-<th><strong>行号</strong></th>
-<th>value（原始值）</th>
-<th><strong>value（二进制）</strong></th>
-<th><strong>Bit_0</strong></th>
-<th><strong>Bit_1</strong></th>
-<th><strong>Bit_2</strong></th>
-<th><strong>Bit_3</strong></th>
-<th><strong>Bit_4</strong></th>
-<th><strong>Bit_5</strong></th>
-<th><strong>Bit_6</strong></th>
-<th><strong>Bit_7</strong></th>
-</tr>
-</thead>
-<tbody><tr>
-<td>1</td>
-<td>5</td>
-<td>00000101</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-<tr>
-<td>2</td>
-<td>18</td>
-<td>00010010</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-<tr>
-<td>3</td>
-<td>7</td>
-<td>00000111</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-<tr>
-<td>4</td>
-<td>25</td>
-<td>00011001</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-</tbody></table>
-<p>上表中，Bit_0 代表的是最低位，Bit_7 代表最高位。</p>
-<p>位切片编码中，如果要基于上表中的数据进行如下条件过滤：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> tbl <span class="keyword">WHERE</span> <span class="keyword">value</span> <span class="operator">&gt;</span> <span class="number">17</span>;</span><br></pre></td></tr></table></figure>
-
-<p>我们先将 17 转换成二进制：10001，并在位切片编码过的位图索引中搜索并过滤：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">10100000</span><br><span class="line">01001000</span><br><span class="line">11100000</span><br><span class="line">10011000</span><br><span class="line">--------</span><br><span class="line">10001000 # 17</span><br></pre></td></tr></table></figure>
-
-<p>我们先找出 17 的最高位是 Bit_4，并得出表中 4 行的这一位以及更高位中只有第 2 和第 4 行是和 17 至少一样大，因此可以快速过滤掉第 1 和第 3 行。</p>
-<p>优点：</p>
-<ol>
-<li><strong>支持任意数值比较</strong>：当需要执行 WHERE value &gt; K 或 WHERE value BETWEEN L AND R 之类的数值比较时，只需根据 K、L、R 的二进制表现，结合多份 Bit_j 位图做<strong>布尔代数运算</strong>（AND、OR、NOT），就能快速构造出满足条件的行号位图。</li>
-<li><strong>对高基数数值列尤为合适</strong>：与等值编码相比，高基数字段如果直接为每个取值建位图会产生海量位图；而位切片只需按二进制位宽度建 B 份位图，无论具体取值基数多大，都只需 B 份（例如 32 或 64）位图。</li>
-</ol>
-<p>缺点：</p>
-<ol>
-<li><strong>查询时位运算代价较大</strong>：与简单的等值位图（只要读取并返回一份位图）、区间位图（只要读取一份或几份位图）相比，位切片编码在做数值比较或范围查询时，需要对多份位图做组合运算（AND&#x2F;OR&#x2F;NOT），逻辑比较稍复杂，CPU 开销更高。但<strong>总体仍比全表扫描或传统 B+ 树索引的多次随机 I&#x2F;O 要高效得多</strong>，尤其在 OLAP 大规模并行计算场景下，位运算的吞吐量很大。</li>
-</ol>
-</li>
-</ol>
-<h1 id="BitWeaving"><a href="#BitWeaving" class="headerlink" title="BitWeaving"></a>BitWeaving</h1><p>BitWeaving 项目由威斯康星大学 Quickstep 团队提出和实现，旨在在主内存分析型 DBMS 中以“裸机”速度运行全表扫描操作  。</p>
-<p>它利用处理器的位级并行性，将来自多个元组和列的位在单个时钟周期内同时处理，从而将每列的扫描周期降低到低于 1 个周期的级别 。</p>
-<p>为支持复杂谓词评估，BitWeaving 提出了算术框架，将列值编码转换为适合位操作的格式，并生成结果位向量，用于后续布尔组合运算 。</p>
-<p><strong>与传统列式存储的比较</strong></p>
-<ul>
-<li><strong>传统列式存储</strong>：将压缩后或原始列值按值连续存储，为了适配 SIMD 指令集，通常需要将每个值填充到固定边界（如 32 位、64 位），这会造成大量空间浪费，并增加对齐开销 。</li>
-<li><strong>SIMD 扫描</strong>：将多个字典编码值打包到 SIMD 寄存器槽中，利用向量指令并行比较，但依然存在填充浪费和对齐处理两个瓶颈 。</li>
-<li><strong>BitWeaving&#x2F;V</strong>：将每个列值的同一比特位聚集存储，实现完整利用字宽，且通过“早期剪枝”可在满足或不满足条件时跳过后续比特的处理，极大减少处理位数和内存带宽 。</li>
-<li><strong>BitWeaving&#x2F;H</strong>：将编码后的整值按交错方式存储，并在每个值中预留一位结果标记，既可支持快速位级扫描，也可在需要完整重构列值时一次性提取，兼顾扫描和输出需求 。</li>
-</ul>
-<p>BitWeaving 包括两种主要存储布局：</p>
-<ul>
-<li><strong>BitWeaving&#x2F;Vertical</strong>：按位平面（bit-plane）垂直存储，每个比特位平面连续排列，天然支持按位剪枝；</li>
-<li><strong>BitWeaving&#x2F;Horizontal</strong>：按元组水平交错存储，附加一位用于记录谓词结果，便于整值提取和多阶段谓词级联</li>
-</ul>
-<p>以下详细说明 Horizontal 和 Vertical Storage。</p>
-<h2 id="Horizontal-storage"><a href="#Horizontal-storage" class="headerlink" title="Horizontal storage"></a>Horizontal storage</h2><p>把每条记录的全部 k 位 code 串成一块，按记录依次存放。</p>
-<p>在内存中，一个 SIMD 寄存器会同时装入多条记录的全部位，对这些记录做并行比较。</p>
-<p>我们以某个整数类型的字段为例：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">Segment#1:</span><br><span class="line">t0: bits=[0, 0, 1] -&gt; 1</span><br><span class="line">t1: bits=[1, 0, 1] -&gt; 5</span><br><span class="line">t2: bits=[1, 1, 0] -&gt; 6</span><br><span class="line">t3: bits=[0, 0, 1] -&gt; 1</span><br><span class="line">t4: bits=[1, 1, 0] -&gt; 6</span><br><span class="line">t5: bits=[1, 0, 0] -&gt; 4</span><br><span class="line">t6: bits=[0, 0, 0] -&gt; 0</span><br><span class="line">t7: bits=[1, 1, 1] -&gt; 7</span><br><span class="line"></span><br><span class="line">Segment#2:</span><br><span class="line">t8: bits=[1, 0, 0] -&gt; 4</span><br><span class="line">t9: bits=[0, 1, 1] -&gt; 3</span><br></pre></td></tr></table></figure>
-
-<p>以上内容中，t0 到 t9 为行号，bits 为该字段的二进制表示，箭头右边的是原始数据。全部的数据被分成了多个段。</p>
-<p>假设一个处理器 word 只能容纳 8 个 bit 用于并行处理，那么以上代码块中的内容会被表示为如下结构：</p>
-<p><img src="/../../images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_bitweaving_h.drawio.png" alt="img"></p>
-<blockquote>
-<p>[!NOTE]</p>
-<p><strong>Word</strong> 是处理器一次能够自然处理的固定长度数据单元，其长度称为<strong>字长</strong>（word length 或 word size），通常是处理器数据总线宽度的整数倍或分数。字长决定了CPU在单次操作中能读取、写入或传输的数据量，同时影响指令长度、寄存器宽度、寻址能力等关键特性。</p>
-</blockquote>
-<p>如果要处理如下 SQL 指令：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> tbl <span class="keyword">WHERE</span> val <span class="operator">&lt;</span> <span class="number">5</span>;</span><br></pre></td></tr></table></figure>
-
-<p>那么会进行如下 SIMD 计算（以 t0 和 t4 为例）：</p>
-<p><img src="/../../images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_bitweaving_h_cal.drawio.png" alt="img"></p>
-<p>最终，分割符为 1 的就是符合条件的数据。</p>
-<p>但是之后我们需要如何汇总所有的过滤结果来确定要获取哪些数据呢？</p>
-<p>我们可以通过 shift 操作输出所有的过滤结果到一个 bitmap 中，这个 bitmap 的每一位对应表中数据的行号。我们以 Segment#1 为例给出汇总过程：</p>
-<p><img src="/../../images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_bitweaving_h_bitmap.drawio.png" alt="img"></p>
-<p>上图中的位图也被称为 selection vector。</p>
-<p>现在我们汇总得到了哪些数据符合条件以及哪些不符合，那要如何转成实际的下标或者是偏移量呢？</p>
-<p>有两种常见的方法：</p>
-<ol>
-<li><p>迭代扫描</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Integer&gt; sel = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; N; i++) &#123;</span><br><span class="line">  <span class="keyword">if</span> (selectionVector[i] == <span class="number">1</span>) &#123;</span><br><span class="line">    sel.add(i);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>优点</strong>：实现简单，不需要预处理。</p>
-<p><strong>缺点</strong>：每次都要检查 N 位，分支预测失效会有开销；对于高选择率或低选择率都要遍历全阵列。</p>
-</li>
-<li><p>预计算位置表</p>
-<p>把 selection vector（这里是 8 位）转换成十进制数据作为表的 key，而下标数组作为 payload。</p>
-<p><img src="/../../images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_bitweaving_h_pre_tbl.drawio.png" alt="img"></p>
-<p><strong>优点</strong>：避免了每个位的分支判断，大大提高吞吐；字节级批量处理，利用了查表的连续读缓存。</p>
-<p><strong>缺点</strong>：需要额外的 256 条查表开销，及存储这些小列表。</p>
-</li>
-</ol>
-<h2 id="Vertical-storage"><a href="#Vertical-storage" class="headerlink" title="Vertical storage"></a>Vertical storage</h2><p>把所有记录在同一位位置 i 上的 bit 聚到一起，形成一条长长的位向量，然后依次存放各个位向量（从最低位到最高位）。</p>
-<p>在内存中，一个 SIMD 寄存器会拿到同一位向量的一大段数据，一次性对所有记录的该位进行逻辑运算。</p>
-<p>还是用之前的例子，数据如下：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">Segment#1:</span><br><span class="line">t0: bits=[0, 0, 1] -&gt; 1</span><br><span class="line">t1: bits=[1, 0, 1] -&gt; 5</span><br><span class="line">t2: bits=[1, 1, 0] -&gt; 6</span><br><span class="line">t3: bits=[0, 0, 1] -&gt; 1</span><br><span class="line">t4: bits=[1, 1, 0] -&gt; 6</span><br><span class="line">t5: bits=[1, 0, 0] -&gt; 4</span><br><span class="line">t6: bits=[0, 0, 0] -&gt; 0</span><br><span class="line">t7: bits=[1, 1, 1] -&gt; 7</span><br><span class="line"></span><br><span class="line">Segment#2:</span><br><span class="line">t8: bits=[1, 0, 0] -&gt; 4</span><br><span class="line">t9: bits=[0, 1, 1] -&gt; 3</span><br></pre></td></tr></table></figure>
-
-<p>在 Vertical Storage 中，以上数据会被表示为以下结构：</p>
-<p><img src="/../../images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_bitweaving_v.drawio.png" alt="img"></p>
-<p>也就是说，同一 segment 的 bits 数组中的同一下标的数据会被放到一个 word 中处理。</p>
-<p>如果我们要处理如下命令：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> tbl <span class="keyword">WHERE</span> val <span class="operator">=</span> <span class="number">2</span>;</span><br></pre></td></tr></table></figure>
-
-<p>会进行如下计算：</p>
-<p><img src="/../../images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_bitweaving_v_cal.drawio.png" alt="img"></p>
-<p>这里在处理完 col1 之后，我们观察到结果已经全是 0（即没有任何记录同时满足前两位匹配），就可以 <strong>跳过</strong> 第三轮比较（早剪枝），直接得出最终结果全 0。</p>
-<p>优点：</p>
-<ul>
-<li>极高的查询性能：在 OLAP 场景下，Bit Weaving 能在压缩数据上直接进行位运算（如 AND、OR、XOR 等），极大提升聚合、过滤、排序等操作的速度。</li>
-<li>空间效率高：采用位存储和压缩技术，极大节省磁盘和内存空间，同时也减少了 I&#x2F;O 成本。</li>
-<li>良好的向量化和 SIMD 支持：在现代 CPU（如 AVX、SSE）下可充分利用 SIMD 指令集，实现高并发、高吞吐量的位级操作。</li>
-</ul>
-<p>缺点：</p>
-<ul>
-<li>对点查询不友好：相较于 B+ 树等结构，Bit Weaving 在单点查找或小范围查找时效率较低，主要优势在大范围数据扫描和聚合分析中。</li>
-</ul>
-<h1 id="近似位图索引"><a href="#近似位图索引" class="headerlink" title="近似位图索引"></a>近似位图索引</h1><p>传统的位图索引对每一个值都精确地维护一个 bitmap，而近似位图索引只保留粗略信息，牺牲部分准确性（即可能出现 false positives，假阳性），以便在常见查询场景下更快速地过滤大部分不匹配的元组。</p>
-<p>当位图判断某条记录可能匹配时，还需要回到原始数据进行最后一次精确检查，从而消除 false positives。</p>
-<p><strong>两种主流技术</strong></p>
-<ul>
-<li><p><strong>Column Imprints（列印迹）</strong></p>
-<p>将列值按块（如每 64 或 128 个值）划分，对每个块维护一个小位图，位图的每一位对应一个值范围（bucket）。</p>
-<p>查询时只需查块级位图，快速过滤掉整个块都不可能包含目标值的部分；再对剩余块逐条扫描。</p>
-<p><img src="/../../images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_approx_bitmap_col.drawio.png" alt="img"></p>
-<p>或者更通用的方式是：</p>
-<p>在 Column Imprint 中，每个 0 或 1 表示的是缓存行中的信息。具体来说，每一位表示某个直方图区间是否在对应的缓存行中有数据值：</p>
-<ul>
-<li><p>如果缓存行中的某些值落入某个区间，则该区间对应的位被设置为 1；</p>
-</li>
-<li><p>如果缓存行中的数据都不在该区间中，则该区间对应的位为 0。</p>
-</li>
-</ul>
-<p>一个缓存行可以包含多个数据值（例如 64 字节的数据）。Column Imprint 并不记录每个数据值的精确位置，而是粗粒度地表示这些值的分布范围。</p>
-<p>同样用之前的例子，假设缓存行中有三个值：1，8，4。</p>
-<p>这些值会被映射到直方图的不同区间，例如：值 1 属于区间 [1, 2)；值 8 属于区间 [8, 9)；值 4 属于区间 [4, 5)。</p>
-<p>最终的位向量可能是 10010001，其中：第 1 位表示缓存行中有值落入区间 [1, 2)；第 4 位表示缓存行中有值落入区间 [4, 5)；第 8 位表示缓存行中有值落入区间 [8, 9)。</p>
-<p>如果之后要查询如 <code>val BETWEEN 4 AND 8</code> → 对应要检查的 bins 为 B₃…B₇ → mask &#x3D; 00011111：</p>
-<ul>
-<li>位向量 <code>AND mask</code> ≠ 0 → 说明该缓存行<strong>可能</strong>包含符合条件的值 → 需要回表做精确过滤；</li>
-<li>位向量 <code>AND mask</code> &#x3D; 0 → 直接跳过整个缓存行。</li>
-</ul>
-</li>
-<li><p><strong>Column Sketches（列摘要&#x2F;草图）</strong></p>
-<p>用固定长度码（通常只有几位）替代完整位图。每个记录只存一个小码，表示它属于哪几个预定义区间。</p>
-<p>整体流程如下：</p>
-<p>首先根据列的值分布，在直方图中将整个值域划分成若干区间。之后为每个区间分配一个固定长度的二进制码，每条记录的 sketch，就是它所属区间的那个短码。</p>
-<p>假设原数据为 [13, 191, 56, 92, 81, 140, 231, 172]，那么分布直方图和用于映射区间和 compression map 如下：</p>
-<p><img src="/../../images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_approx_bitmap_skch_hist.drawio.png" alt="img"></p>
-<p>map 中的对应关系代表：小于 60 的数据映射到 00 代码，小于 132 大于 60 的数据映射到 01 代码，以此类推。</p>
-<p>因此原数据对应的 sketched column 为：[‘00’, ‘11’, ‘00’, ‘01’, ‘01’, ‘10’, ‘11’, ‘11’]。</p>
-<p>此时，如果我们要执行如下命令：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> tbl <span class="keyword">WHERE</span> val <span class="operator">&lt;</span> <span class="number">90</span>;</span><br></pre></td></tr></table></figure>
-
-<p>首先会确定要在区间 [0, 60] 和 (60, 132] 中找数据，接着对于代码为 00 的数据可直接确定为符合条件，对于代码为 01 的数据则要回表查看实际数据是否小于 90。</p>
-<p>也就是，对于 [‘00’, ‘11’, ‘00’, ‘01’, ‘01’, ‘10’, ‘11’, ‘11’] 中的 01，我们要查看原数据，分别是 92 和 81，92 &gt; 90，因此排除掉 92，保留 81。</p>
-</li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/25/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/OLTP%20%E7%B4%A2%E5%BC%95/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -6200,102 +5733,6 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/04/06/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Managing%20Cold%20Data%20in%20a%20Memory-Optimized%20Database/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Yihang Wei">
-      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="EthanWeee">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/04/06/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Managing%20Cold%20Data%20in%20a%20Memory-Optimized%20Database/" class="post-title-link" itemprop="url">Managing Cold Data in a Memory-Optimized Database</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2025-04-06 00:00:00" itemprop="dateCreated datePublished" datetime="2025-04-06T00:00:00-07:00">2025-04-06</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-05-31 23:04:49" itemprop="dateModified" datetime="2025-05-31T23:04:49-07:00">2025-05-31</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/" itemprop="url" rel="index"><span itemprop="name">高级数据存储</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h1><p>The paper addresses 2 problems:</p>
-<ol>
-<li>How to migrate records to and from the cold store.</li>
-<li>How to read and update records in the cold store in a transactionally consistent manner.</li>
-</ol>
-<p>The paper provides 3 novel ideas and elaborates the proposed approach for the implementation of each idea:</p>
-<ol>
-<li>A unified interface that hides the physical location of a record to higher layer: the collaboration among cold store, access filters, private cache, and update memo.</li>
-<li>Minimizing the overhead caused by accessing secondary storage: each transaction has its own private cache.</li>
-<li>Seamless migration between hot and cold stores: the system performs migration using insert and delete operations in a transaction.</li>
-</ol>
-<p>Analytical and experimental findings: The paper evaluates the performance of Siberia on both the YCSB Benchmark and Multi-step read&#x2F;update workload, showing the following conclusions. With realistic client delay, the throughput loss is only 3%. Even under extreme cold access data rate, the in-memory Siberia machinery results in a low performance loss. When live migration is active, the system’s performance remains stable. The overhead of accessing the memo is expensive, which means that memo cleaning is important for improving performance. For read-only transactions at realistic cold data access rates of 5% and 10%, the performance losses are 7% and 14% respectively, which are acceptable. For update-only transactions, 5% cold data updates lead to 8% throughput loss, 10% cold data update rates lead to 13% throughput loss, which are also acceptable. For the YCSB workload, as the access skew decreases and the memory to database size ratio increases, performance degrades, and read-heavy workloads exhibit lower abort rates for transactions at higher skew rates compared to write-heavy workloads.</p>
-<h1 id="Paper-Strength"><a href="#Paper-Strength" class="headerlink" title="Paper Strength"></a>Paper Strength</h1><ul>
-<li>The paper provides a comprehensive literature review. In the HEKATON STORAGE AND INDEXING section, the paper briefly outlines the index and data storage structure of HEKATON and its read and update operations based on MVCC. In the RELATED WORK section, the paper analyzes how existing database systems handle cold data, explaining that Hyper manages cold data using virtual pages, Stoica et al propose separating hot and cold data into different memory locations. Finally, the paper describes the working principle of Anti-caching and highlights its 2 drawbacks: limited space savings and repeated execution.</li>
-<li>The paper provides a detailed description of the working principles after integrating SIBERIA into HEKATON. It presents the workflow of 2 transactions used during data migration to the cold store. Insert and update operations ensure that data is placed into the hot store to avoid the overhead of checking the cold store. Delete and read operations utilize notices in the update memo to perform concurrency control and conflict detection. Cold store cleaning is also driven by the update memo, which enables the timely removal of records from the cold store that are no longer visible to any active transactions. Furthermore, validation leverages the notices in the update memo as well and computes TsBoundSer to ensure the correctness of serializable transactions, thereby enhancing phantom detection.</li>
-<li>The paper presents the relatively comprehensive experiment. The experiments are based on the YCSB Benchmark and Multi-step read&#x2F;update workload, which allow for testing Siberia’s performance under different workloads. Moreover, the paper evaluates the pure in-memory overhead of Siberia, the overhead of running live migration, and the overhead of the update memo on the path to accessing a cold record. Furthermore, under the YCSB workload, it demonstrates the relationship among workload skew, memory to database size ratios, and workload performance.</li>
-</ul>
-<h1 id="Paper-Weakness"><a href="#Paper-Weakness" class="headerlink" title="Paper Weakness"></a>Paper Weakness</h1><ul>
-<li>The paper does not describe the process of integrating Siberia in HEKATON at the code level, but only mentions integration at the level of data processing and storage mechanisms. It details the cold data migration process and explains how update memo notices in the insert, delete, read, and update operations work in collaboration with HEKATON’s versioning and concurrency control. However, the paper does not address how Siberia is integrated into HEKATON at the code level, such as by identifying core functions, code segments, and the corresponding modifications. This omission makes it difficult for readers to easily re-achieve the Siberia. Therefore, the paper should at least provide an outline of the code modifications.</li>
-<li>In the Synthetic End-to-End Workload section, the paper does not discuss the throughput loss under moderate to high cold data access rates. The paper only presents the throughput loss at 5% and 10% cold data access rates, claiming these are realistic cold data access rates. First, the paper fails to explain which report or literature supports that 5% and 10% are “realistic cold data access rates” in the Read-Only Transactions section. Second, we assume the above data is accurate, but the paper does not describes how the throughput loss changes when cold data access rates exceed 10%. This omission prevents readers from gaining a comprehensive understanding of the performance of handling workload in Siberia. Therefore, the paper should explain how the realistic cold data access rates were determined and describe the changes in throughput loss under moderate to high cold data access rates.</li>
-<li>The paper does not discuss Siberia’s performance limitations or the conditions under which its performance might degenerate, despite the Experiments section showcasing impressive performance. It is possible that such impressive performance comes at the cost of high hardware utilization such as high CPU usage. Alternatively, while integrating Siberia in HEKATON may enhance the handling of hot and cold data, it could potentially compromise some of HEKATON’s original features. Therefore, the paper should clarify the situations under which Siberia’s performance may degenerate.</li>
-</ul>
-<p>Reference: <a target="_blank" rel="noopener" href="https://www.vldb.org/pvldb/vol7/p931-eldawy.pdf">https://www.vldb.org/pvldb/vol7/p931-eldawy.pdf</a></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/02/11/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Orca/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -6393,7 +5830,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/03/18/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20TicToc/">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/20/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/OLAP%20%E7%B4%A2%E5%BC%95/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -6407,7 +5844,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/03/18/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20TicToc/" class="post-title-link" itemprop="url">TicToc</a>
+            <a href="/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/20/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/OLAP%20%E7%B4%A2%E5%BC%95/" class="post-title-link" itemprop="url">OLAP 索引</a>
         </h2>
 
         <div class="post-meta">
@@ -6417,14 +5854,14 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2025-03-18 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-18T00:00:00-07:00">2025-03-18</time>
+              <time title="创建时间：2025-01-20 00:00:00" itemprop="dateCreated datePublished" datetime="2025-01-20T00:00:00-08:00">2025-01-20</time>
             </span>
               <span class="post-meta-item">
                 <span class="post-meta-item-icon">
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-05-31 23:02:32" itemprop="dateModified" datetime="2025-05-31T23:02:32-07:00">2025-05-31</time>
+                <time title="修改时间：2025-06-06 21:47:43" itemprop="dateModified" datetime="2025-06-06T21:47:43-07:00">2025-06-06</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -6447,29 +5884,496 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h1><p>The paper addresses 1 problem:</p>
+          <h1 id="Data-Skipping"><a href="#Data-Skipping" class="headerlink" title="Data Skipping"></a>Data Skipping</h1><p>我们可以利用辅助数据结构标识表中哪些部分可以跳过扫描，避免对每一行（tuple）都做判断。</p>
+<p><strong>OLAP 场景下为什么要用 Data Skipping？</strong></p>
+<p>在 OLAP 场景中，查询往往是扫描大量历史数据，筛选满足某种复杂条件的子集，典型例子如数据仓库的多维分析、报表查询等。此时：</p>
 <ol>
-<li>How to design an efficient concurrency control algorithm to improve scalability of OLTP DBMSs in the multi-core environment?</li>
+<li><strong>表非常大</strong>：可能有数十亿、上百亿行，逐行检查每个行是否满足条件，代价非常高。</li>
+<li><strong>查询通常按若干列做过滤</strong>：比如 <code>WHERE 年份 = 2024 AND 地区 = &#39;北京&#39;</code>，而且常常只要少量数据就够了（高选择性场景）。</li>
+<li><strong>批量扫描 vs. 随机读取</strong>：读整个表，会触发大量 I&#x2F;O；如果能一眼就知道哪些数据页根本不用读，就能省下大量 I&#x2F;O 时间。</li>
 </ol>
-<p>The paper provides 4 novel ideas and elaborates the proposed approach for the implementation of each idea:</p>
+<p>因此，Data Skipping 的核心思路，就是通过在数据块或分区级别维护一些<strong>辅助信息</strong>，让查询在执行过滤时能够判断“某个数据块（比如一个文件区块、一个数据页、一个段&#x2F;partition）肯定不包含满足过滤条件的行，就直接跳过，不去读取和解析该块中的每一行”，从而大幅减少 I&#x2F;O，以及后续的行级计算。</p>
+<p>常见的 Data Skipping 技术主要有以下几类：</p>
 <ol>
-<li>TicToc algorithm: Implemented on top of OCC, it ensures a transaction’s timestamp will be calculated lazily at the commit time based on tuples this transaction process, which will improve the parallelism as well.</li>
-<li>No-wait locking in validation phase: If a transaction fails to acquire a lock for a tuple in the write set, the validation phase will be aborted immediately. TicToc will restarts this phase after a period of time.</li>
-<li>Preemptive aborts: Based on an approximate commit timestamp together with the local rts and wts, it is possible to determine whether to abort a transaction before locking the tuples in its write set.</li>
-<li>Timestamp history: When a read tuple’s local rts is lower than the commit_ts and its wts differs from the latest wts, further inspection of the tuple’s history buffer is conducted to decide whether to start the validation phase.</li>
+<li><strong>Zone Map &#x2F; Min-Max 索引</strong><ul>
+<li>每个数据块（block 或 segment）存一对最小值和最大值，例如按时间分块后，记录该块中时间列的 [min_timestamp, max_timestamp]。</li>
+<li>查询时，如果查询条件为 <code>timestamp BETWEEN &#39;2024-01-01&#39; AND &#39;2024-03-01&#39;</code>，当某个块的最大时间都早于 ‘2024-01-01’，或者最小时间都晚于 ‘2024-03-01’，就可以完全跳过该块。</li>
+<li>优点：实现简单、维护开销低；适用于列值分布相对平缓的场景。</li>
+<li>缺点：如果一个块里 min–max 范围很宽（分布倾斜或块太大），就容易出现“区间重叠”，跳不过去，效率下降。</li>
+</ul>
+</li>
+<li><strong>位图索引（Bitmap Index）</strong><ul>
+<li>针对低基数的列（如性别、地区、状态等），为每个可能的离散取值维护一个位图（bitset）。</li>
+<li>每个数据块也可以维护该位图的摘要（比如每 N 行分一个小位图），查询时快速根据位图判断该数据段中是否存在某个值，若不存在就跳过。</li>
+<li>优点：在基数较低、数据倾斜度不高时，效果很好；位图操作位运算开销低。</li>
+<li>缺点：对于高基数列，位图会很大，且维护成本高。</li>
+</ul>
+</li>
+<li><strong>布隆过滤器（Bloom Filter）</strong><ul>
+<li>保存每个数据页中的列值集合的 Bloom Filter，当查询时先检查 Bloom Filter 是否可能包含该值，若 Bloom Filter 结果为不可能存在，则跳过整个页。</li>
+<li>优点：Bloom Filter 占用空间小，查询时布尔判断开销低。</li>
+<li>缺点：存在误报率（false-positive），即有时候 Bloom Filter 误判可能存在，需要再回退到读页；但绝不会误判真正存在而跳过，保证正确性。</li>
+</ul>
+</li>
+<li><strong>Skip List／Skip Table 结构</strong><ul>
+<li>某些列可以对数据块按值范围做多级跳跃索引，比如最外层根据范围将整个表划分为若干区域，里层再分页索引。</li>
+<li>OLAP 引擎（如 Apache Parquet、ORC）通常在文件格式层面（列存格式）会同时维护多层次的自底向上的统计信息（Statistics）。</li>
+<li>Query Planner 就会根据统计信息决定哪些 Row Group（行组）或 Stride（步长）可以跳过。</li>
+</ul>
+</li>
+<li><strong>分区表（Partitioning）</strong><ul>
+<li>将大表水平拆分成多个分区（按时间、地区、业务线等），在查询时如果过滤条件里包含分区键（如 date），可以直接分区剪裁，跳过不相关分区。</li>
+<li>其实分区本质也是一种粗粒度的 Data Skipping，跳过整个分区文件。</li>
+</ul>
+</li>
 </ol>
-<p>Analytical and experimental findings: The paper compares five algorithms: TicToc, Silo, HEKATON, DL_DETECT, and NO_WAIT. In the TPC-C results, with 4 warehouses, TicToc achieves the highest throughput and a lower abort rate than Silo. As the number of warehouses increases, TicToc’s throughput is eventually surpassed by Silo around 80 warehouses, but its abort rate remains lower than that of Silo. In the YCSB results, when processing read-only transactions, TicToc’s throughput is close to Silo’s and higher than that of the other algorithms; for read-write transactions under medium contention, TicToc maintains throughput similar to SIlo’s while its abort rate is significantly lower than those of Silo, HEKATON, and NO_WAIT; under high contention conditions, TicToc’s throughput far surpasses that of Silo, although its abort rate becomes more close to Silo’s. Tests for optimization indicate that most of the performance improvements come from the no-wait and preemptive aborts. Furthermore, TicToc’s timestamp growth rate is substantially lower than that of TS_ALLOC. When the isolation level is lower, TicToc shows improved throughput and a reduced abort rate, but the degree of these changes is not as pronounced compared to the other algorithms.</p>
+<p><strong>设计 Data Skipping 时的关键考虑点</strong></p>
+<p><strong>1. 谓词选择性</strong></p>
+<ul>
+<li><p><strong>低选择性场景</strong></p>
+<p>比如查询 <code>WHERE gender = &#39;M&#39;</code>，如果全表大约一半行都是 <code>gender=&#39;M&#39;</code>，则满足谓词的行很多，跳过就算跳掉了另一半行，也意味着还要扫描一半行，节省有限。</p>
+</li>
+<li><p><strong>高选择性场景</strong></p>
+<p>比如查询 <code>WHERE customer_id = 123456789</code>，或 <code>WHERE event_date = &#39;2025-06-01&#39; AND region = &#39;北京&#39;</code>，只会有极少量行符合条件。此时如果辅助结构能识别掉绝大多数数据块，就能极大节省 I&#x2F;O。</p>
+</li>
+</ul>
+<p><strong>2. 列值分布</strong></p>
+<ul>
+<li>如果某列的值高度偏斜，例如某个列绝大多数行都是同一个值，其余值极少，Zone Map 或基于统计的跳过就不太准。<ul>
+<li>举例：某列几乎全是 ‘A’，只有很少行是 ‘B’，若文件切分并不按照该列聚簇，那么即便大多数块里都是 ‘A’，但每块的最小值&#x2F;最大值同样会显示为 ‘A’，所有块看起来都可能包含 ‘B’，无法跳过。</li>
+</ul>
+</li>
+<li>因此，一般会结合<strong>物理排序（clustering）或分桶（bucketing）</strong>：<ul>
+<li>在生成文件时先按该列做排序&#x2F;分桶，这样相同值会被写到同一数据块里；</li>
+<li>有了同一数据块里只有一个值的特性，块级统计就变得非常有效。</li>
+</ul>
+</li>
+</ul>
+<h1 id="Bitmap-Indexes"><a href="#Bitmap-Indexes" class="headerlink" title="Bitmap Indexes"></a>Bitmap Indexes</h1><p><strong>位图索引</strong>为某个属性（列）的每个不同取值，都存储一份单独的位图，位图中的第 <em>i</em> 位对应了表中第 <em>i</em> 条记录。</p>
+<p>对于下表的原始数据：</p>
+<table>
+<thead>
+<tr>
+<th>order_id</th>
+<th>paid</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>Y</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Y</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Y</td>
+</tr>
+<tr>
+<td>4</td>
+<td>N</td>
+</tr>
+</tbody></table>
+<p>压缩后的数据如下：</p>
+<table>
+  <thead>
+    <tr>
+      <th>order_id</th>
+      <th colspan="2">paid</th>
+    </tr>
+    <tr>
+      <td></td>
+      <td>Y</td>
+      <td>N</td>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>1</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>1</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>1</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>0</td>
+      <td>1</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>对于多列多值的组合过滤，Bitmap 索引支持高效的按位与（AND）、或（OR）、非（NOT）等位运算。</p>
+<p>如果把整个表的行数记为 <em>N</em>，那么一个属性值对应的位图长度就是 <em>N</em> 位。当表非常大（数千万、上亿行），单张位图也会变得很大。为避免一次性分配庞大、连续的内存块，常见做法是分段（segment&#x2F;chunk）：把总行数 <em>N</em> 划分成若干个固定大小的块（例如每块 1 百万行），那么位图也相应地分成若干个子段，每个子段只需要维护该区间内的位。查询时只需要扫描与目标区间重叠的位段。</p>
+<p>思考：</p>
+<p>为什么使用 Bitmap？</p>
+<ol>
+<li><p><strong>空间利用率较高</strong></p>
+<p>位图本质上是一个位数组，对于低基数或中等基数的列，位图能精确记录行与属性值的映射，且只需 1 位&#x2F;行。</p>
+</li>
+<li><p><strong>位运算速度快，适合多条件混合过滤</strong></p>
+<p>多列过滤条件时，只要获取每个条件对应的位图，对它们做位与&#x2F;或&#x2F;非等操作，就能快速算出满足所有条件的行集合。</p>
+</li>
+</ol>
+<p>为什么位图索引适合压缩？</p>
+<ul>
+<li>如果某个取值非常稀疏地分布在整个表中，那么位图中绝大多数位都是 0，只有少数位置是 1。或者，若有些连续行都满足该取值，又会出现连续的 1 序列。利用这种长串 0 或长串 1 可用<strong>压缩算法</strong>（如 Run-Length Encoding、WAH、Roaring Bitmap 等）进一步缩小存储空间。</li>
+<li>现代 OLAP 引擎（例如 Apache Druid、ClickHouse、Presto 等）在底层都会选择一些成熟的压缩位图实现，这些实现不仅压缩率高，而且能够在压缩态下做位运算，避免了每次查询都需要先把整个位图解压到内存。</li>
+</ul>
+<h1 id="常见的四种编码技术"><a href="#常见的四种编码技术" class="headerlink" title="常见的四种编码技术"></a>常见的四种编码技术</h1><p>位图索引常见的四种编码技术：等值编码（Equality Encoding）、区间编码（Range Encoding）、分层编码（Hierarchical Encoding）和位切片编码（Bit-sliced Encoding）。</p>
+<ol>
+<li><p><strong>等值编码</strong></p>
+<p>为某一列（属性）中的每个<strong>唯一取值</strong>都维护一份独立的位图。也就是说，如果该列有 m 个不同取值，则总共有 m 个位图，每份位图长度为表的总行数 N。这种编码形式上类似 One-Hot 独热编码。具体示例可参考之前的两张表。</p>
+<p>优点：直观简单并且等值查询高效。</p>
+<p>缺点：占用大量空间。</p>
+</li>
+<li><p><strong>区间编码</strong></p>
+<p>与等值编码不同，不为每个<strong>单一取值</strong>都建一份位图，而是按照若干有意义的区间（interval）来划分，每个区间对应一份位图。</p>
+<p>举例：以一个数值列 age 为例，表中 age 范围在 0–100 岁之间，可以把区间划分为 [0–17]、[18–30]、[31–50]、[51–70]、[71–100]。</p>
+<p>为每个区间建一份位图：</p>
+<ul>
+<li>Bitmap_0_17：标记哪些行的 age 落在 0–17 之间；</li>
+<li>Bitmap_18_30：标记哪些行的 age 落在 18–30 之间；</li>
+<li>以此类推。</li>
+</ul>
+<p>优点：适合范围查询并且比等值编码更节省空间。</p>
+<p>缺点：区间的粒度需要权衡。划分的区间越细，能更精准地匹配查询，但要维护的位图份数越多；划分区间越粗，则位图份数越少，但位图对应的行集合范围更大，查询时跳过的效率会下降。</p>
+</li>
+<li><p><strong>分层编码</strong></p>
+<p>通过构建<strong>树形层次结构</strong>（hierarchy），在不同层级对值或值范围做<strong>分段统计&#x2F;位图标识</strong>，用于快速识别那些整个子树&#x2F;子范围内没有数据的情况。</p>
+<p>通常从较粗的范围到较细的范围构建多层位图：</p>
+<ol>
+<li>第一层（根层）：记录整个列的全部可能值范围，并标注哪些子范围是非空（或者空）。</li>
+<li>第二层：把根层范围继续细分为若干更小区间，分别维护各自的标识。</li>
+<li>依次向下，直到最底层是单个取值或某个可接受的最小分区。</li>
+</ol>
+<p>以一列 zipcode（邮政编码）为例，取值范围是 00000–99999，总计 100,000 个可能值。如果直接对每个具体的 5 位数字都建一份位图，太耗空间。改用分层编码：</p>
+<ol>
+<li><strong>第一层</strong>：只看邮编的第一位，共 10 种可能（0、1、2、…、9），<ul>
+<li>构建 10 个顶层位图，分别标记表中哪些行的 zipcode 第一位是 0、哪些行的第一位是 1，以此类推。</li>
+</ul>
+</li>
+<li><strong>第二层</strong>：假设在第一层为前缀 &#x3D; 3（假设查询潜在目标值的前缀为 3）的情况下，第二层把 zipcode 的前两位 30 ～ 39 这 10 个前缀，各自再建位图；</li>
+<li><strong>第三层</strong>：再细分为 300 ～ 309 等前缀，递归向下，直到精确到具体 5 位。</li>
+</ol>
+<p>优点：快速剪裁空范围且适用于高基数&#x2F;稀疏分布的列。</p>
+<p>缺点：存储与维护复杂度更高。需要为每层维护对应的位图，并保持各层之间的一致性。</p>
+</li>
+<li><p><strong>位切片编码</strong></p>
+<p>不是将每个取值或每个区间映射到一份位图，而是针对某个<strong>数值列的二进制表示</strong>，维护<strong>按位的位置拆分的一组位图</strong>。</p>
+<p>假设有一个 8 位的整数列，如下：</p>
+<table>
+<thead>
+<tr>
+<th><strong>行号</strong></th>
+<th>value（原始值）</th>
+<th><strong>value（二进制）</strong></th>
+<th><strong>Bit_0</strong></th>
+<th><strong>Bit_1</strong></th>
+<th><strong>Bit_2</strong></th>
+<th><strong>Bit_3</strong></th>
+<th><strong>Bit_4</strong></th>
+<th><strong>Bit_5</strong></th>
+<th><strong>Bit_6</strong></th>
+<th><strong>Bit_7</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>5</td>
+<td>00000101</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>2</td>
+<td>18</td>
+<td>00010010</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>3</td>
+<td>7</td>
+<td>00000111</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>4</td>
+<td>25</td>
+<td>00011001</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody></table>
+<p>上表中，Bit_0 代表的是最低位，Bit_7 代表最高位。</p>
+<p>位切片编码中，如果要基于上表中的数据进行如下条件过滤：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> tbl <span class="keyword">WHERE</span> <span class="keyword">value</span> <span class="operator">&gt;</span> <span class="number">17</span>;</span><br></pre></td></tr></table></figure>
+
+<p>我们先将 17 转换成二进制：10001，并在位切片编码过的位图索引中搜索并过滤：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">10100000</span><br><span class="line">01001000</span><br><span class="line">11100000</span><br><span class="line">10011000</span><br><span class="line">--------</span><br><span class="line">10001000 # 17</span><br></pre></td></tr></table></figure>
+
+<p>我们先找出 17 的最高位是 Bit_4，并得出表中 4 行的这一位以及更高位中只有第 2 和第 4 行是和 17 至少一样大，因此可以快速过滤掉第 1 和第 3 行。</p>
+<p>优点：</p>
+<ol>
+<li><strong>支持任意数值比较</strong>：当需要执行 WHERE value &gt; K 或 WHERE value BETWEEN L AND R 之类的数值比较时，只需根据 K、L、R 的二进制表现，结合多份 Bit_j 位图做<strong>布尔代数运算</strong>（AND、OR、NOT），就能快速构造出满足条件的行号位图。</li>
+<li><strong>对高基数数值列尤为合适</strong>：与等值编码相比，高基数字段如果直接为每个取值建位图会产生海量位图；而位切片只需按二进制位宽度建 B 份位图，无论具体取值基数多大，都只需 B 份（例如 32 或 64）位图。</li>
+</ol>
+<p>缺点：</p>
+<ol>
+<li><strong>查询时位运算代价较大</strong>：与简单的等值位图（只要读取并返回一份位图）、区间位图（只要读取一份或几份位图）相比，位切片编码在做数值比较或范围查询时，需要对多份位图做组合运算（AND&#x2F;OR&#x2F;NOT），逻辑比较稍复杂，CPU 开销更高。但<strong>总体仍比全表扫描或传统 B+ 树索引的多次随机 I&#x2F;O 要高效得多</strong>，尤其在 OLAP 大规模并行计算场景下，位运算的吞吐量很大。</li>
+</ol>
+</li>
+</ol>
+<h1 id="BitWeaving"><a href="#BitWeaving" class="headerlink" title="BitWeaving"></a>BitWeaving</h1><p>BitWeaving 项目由威斯康星大学 Quickstep 团队提出和实现，旨在在主内存分析型 DBMS 中以“裸机”速度运行全表扫描操作  。</p>
+<p>它利用处理器的位级并行性，将来自多个元组和列的位在单个时钟周期内同时处理，从而将每列的扫描周期降低到低于 1 个周期的级别 。</p>
+<p>为支持复杂谓词评估，BitWeaving 提出了算术框架，将列值编码转换为适合位操作的格式，并生成结果位向量，用于后续布尔组合运算 。</p>
+<p><strong>与传统列式存储的比较</strong></p>
+<ul>
+<li><strong>传统列式存储</strong>：将压缩后或原始列值按值连续存储，为了适配 SIMD 指令集，通常需要将每个值填充到固定边界（如 32 位、64 位），这会造成大量空间浪费，并增加对齐开销 。</li>
+<li><strong>SIMD 扫描</strong>：将多个字典编码值打包到 SIMD 寄存器槽中，利用向量指令并行比较，但依然存在填充浪费和对齐处理两个瓶颈 。</li>
+<li><strong>BitWeaving&#x2F;V</strong>：将每个列值的同一比特位聚集存储，实现完整利用字宽，且通过“早期剪枝”可在满足或不满足条件时跳过后续比特的处理，极大减少处理位数和内存带宽 。</li>
+<li><strong>BitWeaving&#x2F;H</strong>：将编码后的整值按交错方式存储，并在每个值中预留一位结果标记，既可支持快速位级扫描，也可在需要完整重构列值时一次性提取，兼顾扫描和输出需求 。</li>
+</ul>
+<p>BitWeaving 包括两种主要存储布局：</p>
+<ul>
+<li><strong>BitWeaving&#x2F;Vertical</strong>：按位平面（bit-plane）垂直存储，每个比特位平面连续排列，天然支持按位剪枝；</li>
+<li><strong>BitWeaving&#x2F;Horizontal</strong>：按元组水平交错存储，附加一位用于记录谓词结果，便于整值提取和多阶段谓词级联</li>
+</ul>
+<p>以下详细说明 Horizontal 和 Vertical Storage。</p>
+<h2 id="Horizontal-storage"><a href="#Horizontal-storage" class="headerlink" title="Horizontal storage"></a>Horizontal storage</h2><p>把每条记录的全部 k 位 code 串成一块，按记录依次存放。</p>
+<p>在内存中，一个 SIMD 寄存器会同时装入多条记录的全部位，对这些记录做并行比较。</p>
+<p>我们以某个整数类型的字段为例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">Segment#1:</span><br><span class="line">t0: bits=[0, 0, 1] -&gt; 1</span><br><span class="line">t1: bits=[1, 0, 1] -&gt; 5</span><br><span class="line">t2: bits=[1, 1, 0] -&gt; 6</span><br><span class="line">t3: bits=[0, 0, 1] -&gt; 1</span><br><span class="line">t4: bits=[1, 1, 0] -&gt; 6</span><br><span class="line">t5: bits=[1, 0, 0] -&gt; 4</span><br><span class="line">t6: bits=[0, 0, 0] -&gt; 0</span><br><span class="line">t7: bits=[1, 1, 1] -&gt; 7</span><br><span class="line"></span><br><span class="line">Segment#2:</span><br><span class="line">t8: bits=[1, 0, 0] -&gt; 4</span><br><span class="line">t9: bits=[0, 1, 1] -&gt; 3</span><br></pre></td></tr></table></figure>
+
+<p>以上内容中，t0 到 t9 为行号，bits 为该字段的二进制表示，箭头右边的是原始数据。全部的数据被分成了多个段。</p>
+<p>假设一个处理器 word 只能容纳 8 个 bit 用于并行处理，那么以上代码块中的内容会被表示为如下结构：</p>
+<p><img src="/../../images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_bitweaving_h.drawio.png" alt="img"></p>
+<blockquote>
+<p>[!NOTE]</p>
+<p><strong>Word</strong> 是处理器一次能够自然处理的固定长度数据单元，其长度称为<strong>字长</strong>（word length 或 word size），通常是处理器数据总线宽度的整数倍或分数。字长决定了CPU在单次操作中能读取、写入或传输的数据量，同时影响指令长度、寄存器宽度、寻址能力等关键特性。</p>
+</blockquote>
+<p>如果要处理如下 SQL 指令：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> tbl <span class="keyword">WHERE</span> val <span class="operator">&lt;</span> <span class="number">5</span>;</span><br></pre></td></tr></table></figure>
+
+<p>那么会进行如下 SIMD 计算（以 t0 和 t4 为例）：</p>
+<p><img src="/../../images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_bitweaving_h_cal.drawio.png" alt="img"></p>
+<p>最终，分割符为 1 的就是符合条件的数据。</p>
+<p>但是之后我们需要如何汇总所有的过滤结果来确定要获取哪些数据呢？</p>
+<p>我们可以通过 shift 操作输出所有的过滤结果到一个 bitmap 中，这个 bitmap 的每一位对应表中数据的行号。我们以 Segment#1 为例给出汇总过程：</p>
+<p><img src="/../../images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_bitweaving_h_bitmap.drawio.png" alt="img"></p>
+<p>上图中的位图也被称为 selection vector。</p>
+<p>现在我们汇总得到了哪些数据符合条件以及哪些不符合，那要如何转成实际的下标或者是偏移量呢？</p>
+<p>有两种常见的方法：</p>
+<ol>
+<li><p>迭代扫描</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Integer&gt; sel = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; N; i++) &#123;</span><br><span class="line">  <span class="keyword">if</span> (selectionVector[i] == <span class="number">1</span>) &#123;</span><br><span class="line">    sel.add(i);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>优点</strong>：实现简单，不需要预处理。</p>
+<p><strong>缺点</strong>：每次都要检查 N 位，分支预测失效会有开销；对于高选择率或低选择率都要遍历全阵列。</p>
+</li>
+<li><p>预计算位置表</p>
+<p>把 selection vector（这里是 8 位）转换成十进制数据作为表的 key，而下标数组作为 payload。</p>
+<p><img src="/../../images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_bitweaving_h_pre_tbl.drawio.png" alt="img"></p>
+<p><strong>优点</strong>：避免了每个位的分支判断，大大提高吞吐；字节级批量处理，利用了查表的连续读缓存。</p>
+<p><strong>缺点</strong>：需要额外的 256 条查表开销，及存储这些小列表。</p>
+</li>
+</ol>
+<h2 id="Vertical-storage"><a href="#Vertical-storage" class="headerlink" title="Vertical storage"></a>Vertical storage</h2><p>把所有记录在同一位位置 i 上的 bit 聚到一起，形成一条长长的位向量，然后依次存放各个位向量（从最低位到最高位）。</p>
+<p>在内存中，一个 SIMD 寄存器会拿到同一位向量的一大段数据，一次性对所有记录的该位进行逻辑运算。</p>
+<p>还是用之前的例子，数据如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">Segment#1:</span><br><span class="line">t0: bits=[0, 0, 1] -&gt; 1</span><br><span class="line">t1: bits=[1, 0, 1] -&gt; 5</span><br><span class="line">t2: bits=[1, 1, 0] -&gt; 6</span><br><span class="line">t3: bits=[0, 0, 1] -&gt; 1</span><br><span class="line">t4: bits=[1, 1, 0] -&gt; 6</span><br><span class="line">t5: bits=[1, 0, 0] -&gt; 4</span><br><span class="line">t6: bits=[0, 0, 0] -&gt; 0</span><br><span class="line">t7: bits=[1, 1, 1] -&gt; 7</span><br><span class="line"></span><br><span class="line">Segment#2:</span><br><span class="line">t8: bits=[1, 0, 0] -&gt; 4</span><br><span class="line">t9: bits=[0, 1, 1] -&gt; 3</span><br></pre></td></tr></table></figure>
+
+<p>在 Vertical Storage 中，以上数据会被表示为以下结构：</p>
+<p><img src="/../../images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_bitweaving_v.drawio.png" alt="img"></p>
+<p>也就是说，同一 segment 的 bits 数组中的同一下标的数据会被放到一个 word 中处理。</p>
+<p>如果我们要处理如下命令：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> tbl <span class="keyword">WHERE</span> val <span class="operator">=</span> <span class="number">2</span>;</span><br></pre></td></tr></table></figure>
+
+<p>会进行如下计算：</p>
+<p><img src="/../../images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_bitweaving_v_cal.drawio.png" alt="img"></p>
+<p>这里在处理完 col1 之后，我们观察到结果已经全是 0（即没有任何记录同时满足前两位匹配），就可以 <strong>跳过</strong> 第三轮比较（早剪枝），直接得出最终结果全 0。</p>
+<p>优点：</p>
+<ul>
+<li>极高的查询性能：在 OLAP 场景下，Bit Weaving 能在压缩数据上直接进行位运算（如 AND、OR、XOR 等），极大提升聚合、过滤、排序等操作的速度。</li>
+<li>空间效率高：采用位存储和压缩技术，极大节省磁盘和内存空间，同时也减少了 I&#x2F;O 成本。</li>
+<li>良好的向量化和 SIMD 支持：在现代 CPU（如 AVX、SSE）下可充分利用 SIMD 指令集，实现高并发、高吞吐量的位级操作。</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>对点查询不友好：相较于 B+ 树等结构，Bit Weaving 在单点查找或小范围查找时效率较低，主要优势在大范围数据扫描和聚合分析中。</li>
+</ul>
+<h1 id="近似位图索引"><a href="#近似位图索引" class="headerlink" title="近似位图索引"></a>近似位图索引</h1><p>传统的位图索引对每一个值都精确地维护一个 bitmap，而近似位图索引只保留粗略信息，牺牲部分准确性（即可能出现 false positives，假阳性），以便在常见查询场景下更快速地过滤大部分不匹配的元组。</p>
+<p>当位图判断某条记录可能匹配时，还需要回到原始数据进行最后一次精确检查，从而消除 false positives。</p>
+<p><strong>两种主流技术</strong></p>
+<ul>
+<li><p><strong>Column Imprints（列印迹）</strong></p>
+<p>将列值按块（如每 64 或 128 个值）划分，对每个块维护一个小位图，位图的每一位对应一个值范围（bucket）。</p>
+<p>查询时只需查块级位图，快速过滤掉整个块都不可能包含目标值的部分；再对剩余块逐条扫描。</p>
+<p><img src="/../../images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_approx_bitmap_col.drawio.png" alt="img"></p>
+<p>或者更通用的方式是：</p>
+<p>在 Column Imprint 中，每个 0 或 1 表示的是缓存行中的信息。具体来说，每一位表示某个直方图区间是否在对应的缓存行中有数据值：</p>
+<ul>
+<li><p>如果缓存行中的某些值落入某个区间，则该区间对应的位被设置为 1；</p>
+</li>
+<li><p>如果缓存行中的数据都不在该区间中，则该区间对应的位为 0。</p>
+</li>
+</ul>
+<p>一个缓存行可以包含多个数据值（例如 64 字节的数据）。Column Imprint 并不记录每个数据值的精确位置，而是粗粒度地表示这些值的分布范围。</p>
+<p>同样用之前的例子，假设缓存行中有三个值：1，8，4。</p>
+<p>这些值会被映射到直方图的不同区间，例如：值 1 属于区间 [1, 2)；值 8 属于区间 [8, 9)；值 4 属于区间 [4, 5)。</p>
+<p>最终的位向量可能是 10010001，其中：第 1 位表示缓存行中有值落入区间 [1, 2)；第 4 位表示缓存行中有值落入区间 [4, 5)；第 8 位表示缓存行中有值落入区间 [8, 9)。</p>
+<p>如果之后要查询如 <code>val BETWEEN 4 AND 8</code> → 对应要检查的 bins 为 B₃…B₇ → mask &#x3D; 00011111：</p>
+<ul>
+<li>位向量 <code>AND mask</code> ≠ 0 → 说明该缓存行<strong>可能</strong>包含符合条件的值 → 需要回表做精确过滤；</li>
+<li>位向量 <code>AND mask</code> &#x3D; 0 → 直接跳过整个缓存行。</li>
+</ul>
+</li>
+<li><p><strong>Column Sketches（列摘要&#x2F;草图）</strong></p>
+<p>用固定长度码（通常只有几位）替代完整位图。每个记录只存一个小码，表示它属于哪几个预定义区间。</p>
+<p>整体流程如下：</p>
+<p>首先根据列的值分布，在直方图中将整个值域划分成若干区间。之后为每个区间分配一个固定长度的二进制码，每条记录的 sketch，就是它所属区间的那个短码。</p>
+<p>假设原数据为 [13, 191, 56, 92, 81, 140, 231, 172]，那么分布直方图和用于映射区间和 compression map 如下：</p>
+<p><img src="/../../images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_approx_bitmap_skch_hist.drawio.png" alt="img"></p>
+<p>map 中的对应关系代表：小于 60 的数据映射到 00 代码，小于 132 大于 60 的数据映射到 01 代码，以此类推。</p>
+<p>因此原数据对应的 sketched column 为：[‘00’, ‘11’, ‘00’, ‘01’, ‘01’, ‘10’, ‘11’, ‘11’]。</p>
+<p>此时，如果我们要执行如下命令：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> tbl <span class="keyword">WHERE</span> val <span class="operator">&lt;</span> <span class="number">90</span>;</span><br></pre></td></tr></table></figure>
+
+<p>首先会确定要在区间 [0, 60] 和 (60, 132] 中找数据，接着对于代码为 00 的数据可直接确定为符合条件，对于代码为 01 的数据则要回表查看实际数据是否小于 90。</p>
+<p>也就是，对于 [‘00’, ‘11’, ‘00’, ‘01’, ‘01’, ‘10’, ‘11’, ‘11’] 中的 01，我们要查看原数据，分别是 92 和 81，92 &gt; 90，因此排除掉 92，保留 81。</p>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/04/06/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Managing%20Cold%20Data%20in%20a%20Memory-Optimized%20Database/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/04/06/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Managing%20Cold%20Data%20in%20a%20Memory-Optimized%20Database/" class="post-title-link" itemprop="url">Managing Cold Data in a Memory-Optimized Database</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-04-06 00:00:00" itemprop="dateCreated datePublished" datetime="2025-04-06T00:00:00-07:00">2025-04-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-05-31 23:04:49" itemprop="dateModified" datetime="2025-05-31T23:04:49-07:00">2025-05-31</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/" itemprop="url" rel="index"><span itemprop="name">高级数据存储</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h1><p>The paper addresses 2 problems:</p>
+<ol>
+<li>How to migrate records to and from the cold store.</li>
+<li>How to read and update records in the cold store in a transactionally consistent manner.</li>
+</ol>
+<p>The paper provides 3 novel ideas and elaborates the proposed approach for the implementation of each idea:</p>
+<ol>
+<li>A unified interface that hides the physical location of a record to higher layer: the collaboration among cold store, access filters, private cache, and update memo.</li>
+<li>Minimizing the overhead caused by accessing secondary storage: each transaction has its own private cache.</li>
+<li>Seamless migration between hot and cold stores: the system performs migration using insert and delete operations in a transaction.</li>
+</ol>
+<p>Analytical and experimental findings: The paper evaluates the performance of Siberia on both the YCSB Benchmark and Multi-step read&#x2F;update workload, showing the following conclusions. With realistic client delay, the throughput loss is only 3%. Even under extreme cold access data rate, the in-memory Siberia machinery results in a low performance loss. When live migration is active, the system’s performance remains stable. The overhead of accessing the memo is expensive, which means that memo cleaning is important for improving performance. For read-only transactions at realistic cold data access rates of 5% and 10%, the performance losses are 7% and 14% respectively, which are acceptable. For update-only transactions, 5% cold data updates lead to 8% throughput loss, 10% cold data update rates lead to 13% throughput loss, which are also acceptable. For the YCSB workload, as the access skew decreases and the memory to database size ratio increases, performance degrades, and read-heavy workloads exhibit lower abort rates for transactions at higher skew rates compared to write-heavy workloads.</p>
 <h1 id="Paper-Strength"><a href="#Paper-Strength" class="headerlink" title="Paper Strength"></a>Paper Strength</h1><ul>
-<li>The paper provides a clear description of the background knowledge and the problem to be addressed. It elaborates on the weaknesses of the 2PL strategy and highlights that the T&#x2F;O strategy, such as MVCC and OCC, has gradually become mainstream. It then points out that the centralized timestamp allocator and the CPU’s cache coherence protocol in traditional T&#x2F;O algorithms have led to a timestamp allocation bottleneck. Moreover, all the hardware solutions mentioned in the paper fail to perfectly align with the architecture of most modern CPUs, and their performance remains suboptimal even if implemented. Furthermore, the paper briefly describes the execution phases of OCC and introduces 2 optimized approaches based on OCC, that is DTA and Silo, and highlights that both solutions still suffer from scalability bottlenecks. In order to tackle these problems, the paper presents TicToc algorithm.</li>
-<li>The paper provides code, charts, and an example for the core processes of the TicToc algorithm, enabling readers to quickly understand the implementation details and workflow. In Section 3.2, the paper presents pseudocode for the Read Phase, Validation Phase, and Write Phase, which clearly illustrates the design considerations in addressing conflicts in concurrent and parallel scenarios and the decentralized timestamp assignment. In Section 3.6, the paper demonstrates the structure used for storing read and write timestamps and, through pseudocode, effectively presents a solution to the potential overflow problem of the delta attribute. Moreover, in Section 3.3, the paper provides an example of interleaved transaction execution, accompanied by a bar chart, clearly displaying TicToc’s high flexibility and performance in handling concurrency and parallelism challenges.</li>
-<li>The paper presents a comprehensive experiment of TicToc on DBx1000. It assesses TicToc’s performance in both TPC-C and YCSB scenarios, comparing throughput and abort rate under various contention levels and different numbers of warehouses, with Silo, HEKATON, DL_DETECT, and NO_WAIT. The paper also evaluates TicToc optimizations, emphasizing the contributions of the no-wait and pre-abort to performance improvements. Moreover, the paper compares TicToc’s timestamp growth rate and linear timestamp growth rate, and the differences in throughput and abort rate between TicToc and other 4 algorithms under different isolation levels.</li>
+<li>The paper provides a comprehensive literature review. In the HEKATON STORAGE AND INDEXING section, the paper briefly outlines the index and data storage structure of HEKATON and its read and update operations based on MVCC. In the RELATED WORK section, the paper analyzes how existing database systems handle cold data, explaining that Hyper manages cold data using virtual pages, Stoica et al propose separating hot and cold data into different memory locations. Finally, the paper describes the working principle of Anti-caching and highlights its 2 drawbacks: limited space savings and repeated execution.</li>
+<li>The paper provides a detailed description of the working principles after integrating SIBERIA into HEKATON. It presents the workflow of 2 transactions used during data migration to the cold store. Insert and update operations ensure that data is placed into the hot store to avoid the overhead of checking the cold store. Delete and read operations utilize notices in the update memo to perform concurrency control and conflict detection. Cold store cleaning is also driven by the update memo, which enables the timely removal of records from the cold store that are no longer visible to any active transactions. Furthermore, validation leverages the notices in the update memo as well and computes TsBoundSer to ensure the correctness of serializable transactions, thereby enhancing phantom detection.</li>
+<li>The paper presents the relatively comprehensive experiment. The experiments are based on the YCSB Benchmark and Multi-step read&#x2F;update workload, which allow for testing Siberia’s performance under different workloads. Moreover, the paper evaluates the pure in-memory overhead of Siberia, the overhead of running live migration, and the overhead of the update memo on the path to accessing a cold record. Furthermore, under the YCSB workload, it demonstrates the relationship among workload skew, memory to database size ratios, and workload performance.</li>
 </ul>
 <h1 id="Paper-Weakness"><a href="#Paper-Weakness" class="headerlink" title="Paper Weakness"></a>Paper Weakness</h1><ul>
-<li>The paper does not show the process of integrating the TicToc into DBx1000. As a concurrency control algorithm, TicToc must be interfaced with other key components such as transactions, indexes, and logs, which involves a considerable amount of work. However, the paper fails to address this aspect, thereby preventing readers from easily re-achieving the algorithm. Therefore, the paper should at least provide a brief outline of the necessary steps to help readers implement this functionality.</li>
-<li>The paper’s experiments fail to demonstrate the general applicability of the TicToc across a range of databases. The evaluation was conducted only in the DBx1000 environment, thereby only substantiating TicToc’s high performance within DBx1000. But many commercially available databases, such as SQL Server and MySQL etc., exhibit distinct characteristics under varying workloads, which could potentially lead to different performance when using TicToc. However, the paper is entirely silent on this aspect. Therefore, the paper should also incorporate integration and testing of TicToc on these mainstream databases.</li>
-<li>The paper fails to provide code or explanations for certain key concepts in the critical OPTIMIZATIONS section. According to the experimental results, the no-wait and preemptive aborts lead to significant performance improvements. However, the OPTIMIZATIONS section does not present any relevant code. For instance, in the No-Wait Locking in Validation Phase section, the paper does not clarify what thrashing problems mean in the given context, nor does it showcase the code for the no-wait or highlight its modifications relative to the original TicToc implementation. Therefore, the paper should include the optimization code and explanations for concepts.</li>
+<li>The paper does not describe the process of integrating Siberia in HEKATON at the code level, but only mentions integration at the level of data processing and storage mechanisms. It details the cold data migration process and explains how update memo notices in the insert, delete, read, and update operations work in collaboration with HEKATON’s versioning and concurrency control. However, the paper does not address how Siberia is integrated into HEKATON at the code level, such as by identifying core functions, code segments, and the corresponding modifications. This omission makes it difficult for readers to easily re-achieve the Siberia. Therefore, the paper should at least provide an outline of the code modifications.</li>
+<li>In the Synthetic End-to-End Workload section, the paper does not discuss the throughput loss under moderate to high cold data access rates. The paper only presents the throughput loss at 5% and 10% cold data access rates, claiming these are realistic cold data access rates. First, the paper fails to explain which report or literature supports that 5% and 10% are “realistic cold data access rates” in the Read-Only Transactions section. Second, we assume the above data is accurate, but the paper does not describes how the throughput loss changes when cold data access rates exceed 10%. This omission prevents readers from gaining a comprehensive understanding of the performance of handling workload in Siberia. Therefore, the paper should explain how the realistic cold data access rates were determined and describe the changes in throughput loss under moderate to high cold data access rates.</li>
+<li>The paper does not discuss Siberia’s performance limitations or the conditions under which its performance might degenerate, despite the Experiments section showcasing impressive performance. It is possible that such impressive performance comes at the cost of high hardware utilization such as high CPU usage. Alternatively, while integrating Siberia in HEKATON may enhance the handling of hot and cold data, it could potentially compromise some of HEKATON’s original features. Therefore, the paper should clarify the situations under which Siberia’s performance may degenerate.</li>
 </ul>
-<p>Reference: <a target="_blank" rel="noopener" href="https://people.csail.mit.edu/sanchez/papers/2016.tictoc.sigmod.pdf">https://people.csail.mit.edu/sanchez/papers/2016.tictoc.sigmod.pdf</a></p>
+<p>Reference: <a target="_blank" rel="noopener" href="https://www.vldb.org/pvldb/vol7/p931-eldawy.pdf">https://www.vldb.org/pvldb/vol7/p931-eldawy.pdf</a></p>
 
       
     </div>
@@ -6695,6 +6599,102 @@
 <p>缺点：架构更复杂，需要维护多台机器，多副本同步、路由与协调也更困难；跨分区的事务和 JOIN 查询会额外复杂且性能成本更高。</p>
 </li>
 </ol>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/03/18/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20TicToc/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/03/18/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20TicToc/" class="post-title-link" itemprop="url">TicToc</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-03-18 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-18T00:00:00-07:00">2025-03-18</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-05-31 23:02:32" itemprop="dateModified" datetime="2025-05-31T23:02:32-07:00">2025-05-31</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/" itemprop="url" rel="index"><span itemprop="name">高级数据存储</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h1><p>The paper addresses 1 problem:</p>
+<ol>
+<li>How to design an efficient concurrency control algorithm to improve scalability of OLTP DBMSs in the multi-core environment?</li>
+</ol>
+<p>The paper provides 4 novel ideas and elaborates the proposed approach for the implementation of each idea:</p>
+<ol>
+<li>TicToc algorithm: Implemented on top of OCC, it ensures a transaction’s timestamp will be calculated lazily at the commit time based on tuples this transaction process, which will improve the parallelism as well.</li>
+<li>No-wait locking in validation phase: If a transaction fails to acquire a lock for a tuple in the write set, the validation phase will be aborted immediately. TicToc will restarts this phase after a period of time.</li>
+<li>Preemptive aborts: Based on an approximate commit timestamp together with the local rts and wts, it is possible to determine whether to abort a transaction before locking the tuples in its write set.</li>
+<li>Timestamp history: When a read tuple’s local rts is lower than the commit_ts and its wts differs from the latest wts, further inspection of the tuple’s history buffer is conducted to decide whether to start the validation phase.</li>
+</ol>
+<p>Analytical and experimental findings: The paper compares five algorithms: TicToc, Silo, HEKATON, DL_DETECT, and NO_WAIT. In the TPC-C results, with 4 warehouses, TicToc achieves the highest throughput and a lower abort rate than Silo. As the number of warehouses increases, TicToc’s throughput is eventually surpassed by Silo around 80 warehouses, but its abort rate remains lower than that of Silo. In the YCSB results, when processing read-only transactions, TicToc’s throughput is close to Silo’s and higher than that of the other algorithms; for read-write transactions under medium contention, TicToc maintains throughput similar to SIlo’s while its abort rate is significantly lower than those of Silo, HEKATON, and NO_WAIT; under high contention conditions, TicToc’s throughput far surpasses that of Silo, although its abort rate becomes more close to Silo’s. Tests for optimization indicate that most of the performance improvements come from the no-wait and preemptive aborts. Furthermore, TicToc’s timestamp growth rate is substantially lower than that of TS_ALLOC. When the isolation level is lower, TicToc shows improved throughput and a reduced abort rate, but the degree of these changes is not as pronounced compared to the other algorithms.</p>
+<h1 id="Paper-Strength"><a href="#Paper-Strength" class="headerlink" title="Paper Strength"></a>Paper Strength</h1><ul>
+<li>The paper provides a clear description of the background knowledge and the problem to be addressed. It elaborates on the weaknesses of the 2PL strategy and highlights that the T&#x2F;O strategy, such as MVCC and OCC, has gradually become mainstream. It then points out that the centralized timestamp allocator and the CPU’s cache coherence protocol in traditional T&#x2F;O algorithms have led to a timestamp allocation bottleneck. Moreover, all the hardware solutions mentioned in the paper fail to perfectly align with the architecture of most modern CPUs, and their performance remains suboptimal even if implemented. Furthermore, the paper briefly describes the execution phases of OCC and introduces 2 optimized approaches based on OCC, that is DTA and Silo, and highlights that both solutions still suffer from scalability bottlenecks. In order to tackle these problems, the paper presents TicToc algorithm.</li>
+<li>The paper provides code, charts, and an example for the core processes of the TicToc algorithm, enabling readers to quickly understand the implementation details and workflow. In Section 3.2, the paper presents pseudocode for the Read Phase, Validation Phase, and Write Phase, which clearly illustrates the design considerations in addressing conflicts in concurrent and parallel scenarios and the decentralized timestamp assignment. In Section 3.6, the paper demonstrates the structure used for storing read and write timestamps and, through pseudocode, effectively presents a solution to the potential overflow problem of the delta attribute. Moreover, in Section 3.3, the paper provides an example of interleaved transaction execution, accompanied by a bar chart, clearly displaying TicToc’s high flexibility and performance in handling concurrency and parallelism challenges.</li>
+<li>The paper presents a comprehensive experiment of TicToc on DBx1000. It assesses TicToc’s performance in both TPC-C and YCSB scenarios, comparing throughput and abort rate under various contention levels and different numbers of warehouses, with Silo, HEKATON, DL_DETECT, and NO_WAIT. The paper also evaluates TicToc optimizations, emphasizing the contributions of the no-wait and pre-abort to performance improvements. Moreover, the paper compares TicToc’s timestamp growth rate and linear timestamp growth rate, and the differences in throughput and abort rate between TicToc and other 4 algorithms under different isolation levels.</li>
+</ul>
+<h1 id="Paper-Weakness"><a href="#Paper-Weakness" class="headerlink" title="Paper Weakness"></a>Paper Weakness</h1><ul>
+<li>The paper does not show the process of integrating the TicToc into DBx1000. As a concurrency control algorithm, TicToc must be interfaced with other key components such as transactions, indexes, and logs, which involves a considerable amount of work. However, the paper fails to address this aspect, thereby preventing readers from easily re-achieving the algorithm. Therefore, the paper should at least provide a brief outline of the necessary steps to help readers implement this functionality.</li>
+<li>The paper’s experiments fail to demonstrate the general applicability of the TicToc across a range of databases. The evaluation was conducted only in the DBx1000 environment, thereby only substantiating TicToc’s high performance within DBx1000. But many commercially available databases, such as SQL Server and MySQL etc., exhibit distinct characteristics under varying workloads, which could potentially lead to different performance when using TicToc. However, the paper is entirely silent on this aspect. Therefore, the paper should also incorporate integration and testing of TicToc on these mainstream databases.</li>
+<li>The paper fails to provide code or explanations for certain key concepts in the critical OPTIMIZATIONS section. According to the experimental results, the no-wait and preemptive aborts lead to significant performance improvements. However, the OPTIMIZATIONS section does not present any relevant code. For instance, in the No-Wait Locking in Validation Phase section, the paper does not clarify what thrashing problems mean in the given context, nor does it showcase the code for the no-wait or highlight its modifications relative to the original TicToc implementation. Therefore, the paper should include the optimization code and explanations for concepts.</li>
+</ul>
+<p>Reference: <a target="_blank" rel="noopener" href="https://people.csail.mit.edu/sanchez/papers/2016.tictoc.sigmod.pdf">https://people.csail.mit.edu/sanchez/papers/2016.tictoc.sigmod.pdf</a></p>
 
       
     </div>
