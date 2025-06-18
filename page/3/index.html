@@ -1142,6 +1142,128 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/MySQL/2024/10/25/MySQL/MySQL%20%E7%AE%A1%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/MySQL/2024/10/25/MySQL/MySQL%20%E7%AE%A1%E7%90%86/" class="post-title-link" itemprop="url">MySQL 管理</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-10-25 00:00:00" itemprop="dateCreated datePublished" datetime="2024-10-25T00:00:00-07:00">2024-10-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-06-17 22:31:35" itemprop="dateModified" datetime="2025-06-17T22:31:35-07:00">2025-06-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p><code>/usr/local/mysql/bin</code> 目录下提供了多个客户端工具，具体如下：</p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>mysql</td>
+<td>客户端程序，用于连接 MySQL 服务器</td>
+</tr>
+<tr>
+<td>mysqldump</td>
+<td>一个非常实用的 MySQL 数据库备份工具，用于创建一个或多个 MySQL 数据库级别的 SQL 转储文件，包括数据库的表结构和数据。对数据库备份、迁移或恢复非常重要。</td>
+</tr>
+<tr>
+<td>mysqladmin</td>
+<td>mysql 后面加上 admin 就表明这是一个 MySQL 的管理工具，它可以用来执行一些管理操作，比如说创建数据库、删除数据库、查看 MySQL 服务器的状态等。</td>
+</tr>
+<tr>
+<td>mysqlcheck</td>
+<td>mysqlcheck 是 MySQL 提供的一个命令行工具，用于检查、修复、分析和优化数据库表，对数据库的维护和性能优化非常有用。</td>
+</tr>
+<tr>
+<td>mysqlimport</td>
+<td>用于从文本文件中导入数据到数据库表中，非常适合用于批量导入数据。</td>
+</tr>
+<tr>
+<td>mysqlshow</td>
+<td>用于显示 MySQL 数据库服务器中的数据库、表、列等信息。</td>
+</tr>
+<tr>
+<td>mysqlbinlog</td>
+<td>用于查看 MySQL 二进制日志文件的内容，可以用于恢复数据、查看数据变更等。</td>
+</tr>
+</tbody></table>
+<p>MySQL 在每个实例中都预装了四个系统数据库，用于存储元数据、权限及运行时性能统计等信息。<code>information_schema</code> 以视图形式提供数据字典和权限信息的只读访问；mysql 模式包含用户账户、时区、复制配置等必要的系统表；<code>performance_schema</code> 聚焦于运行时性能监控，采用专用存储引擎记录服务器内部执行情况；而 sys 模式则封装了一系列基于 performance_schema 的视图和存储过程，帮助 DBA 和开发人员快速诊断与调优。</p>
+<p>与系统数据库配套，MySQL Server 安装包中还包括多种命令行工具：</p>
+<ul>
+<li><code>mysql</code>：交互式 SQL Shell，支持命令行编辑及脚本化操作，用于执行任意 SQL 语句，并以可读的格式显示结果。</li>
+<li><code>mysqladmin</code>：管理型客户端，可检查服务器状态、创建&#x2F;删除数据库、执行刷新及关闭操作等。</li>
+<li><code>mysqlbinlog</code>：二进制日志处理工具，可查看或导出 binlog、relay log，常用于增量备份与故障恢复。</li>
+<li><code>mysqlshow</code>：快速展示已有数据库、表及字段信息，相当于对 SHOW 系列语句的轻量封装。</li>
+<li><code>mysqldump</code>：生成逻辑备份的主力工具，将库表结构和数据导出为 SQL 脚本或其他格式，用于迁移和恢复<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/en/mysqldump.html?utm_source=chatgpt.com"> </a>。</li>
+<li><code>mysqlimport</code>：将文本文件批量导入到表中，通常与 <code>mysqldump -T</code> 导出的数据配合使用。</li>
+<li><code>mysqlcheck</code>：表维护工具，可检查、修复、优化和分析表，用于日常健康检查与性能优化。</li>
+<li><code>source</code>（MySQL 客户端内置命令）：在 <code>mysql&gt;</code> 提示符下执行指定的 <code>.sql</code> 文件，常用于批量恢复脚本。</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/10/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/BG%20Benchmark/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1640,7 +1762,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/10/11/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/OCC%20%E5%92%8C%20MVCC/">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/MySQL/2024/10/23/MySQL/%E6%97%A5%E5%BF%97/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -1654,7 +1776,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/10/11/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/OCC%20%E5%92%8C%20MVCC/" class="post-title-link" itemprop="url">OCC 和 MVCC</a>
+            <a href="/MySQL/2024/10/23/MySQL/%E6%97%A5%E5%BF%97/" class="post-title-link" itemprop="url">日志</a>
         </h2>
 
         <div class="post-meta">
@@ -1664,14 +1786,14 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2024-10-11 00:00:00" itemprop="dateCreated datePublished" datetime="2024-10-11T00:00:00-07:00">2024-10-11</time>
+              <time title="创建时间：2024-10-23 00:00:00" itemprop="dateCreated datePublished" datetime="2024-10-23T00:00:00-07:00">2024-10-23</time>
             </span>
               <span class="post-meta-item">
                 <span class="post-meta-item-icon">
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-05-31 01:18:09" itemprop="dateModified" datetime="2025-05-31T01:18:09-07:00">2025-05-31</time>
+                <time title="修改时间：2025-06-17 22:29:30" itemprop="dateModified" datetime="2025-06-17T22:29:30-07:00">2025-06-17</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1679,7 +1801,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">数据库系统</span></a>
+                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
                 </span>
             </span>
 
@@ -1694,509 +1816,91 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="Time-Stamp-Based-Protocols"><a href="#Time-Stamp-Based-Protocols" class="headerlink" title="Time-Stamp Based Protocols"></a>Time-Stamp Based Protocols</h1><p>Suppose transaction Ti issues read(Q):</p>
+          <p><strong>错误日志（Error Log）</strong> 用于记录在服务 <strong>启动、运行及停止</strong> 过程中遇到的各种错误信息。该日志功能默认启用，且默认保存在 Linux 系统的 <code>/var/log/mysqld.log</code>（或 <code>/var/log/mysql/error.log</code>）路径下，也可能在 data 目录中以主机名为 .err 后缀的文件方式存在。若想查看或修改该路径，可通过 MySQL 命令：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> VARIABLES <span class="keyword">LIKE</span> <span class="string">&#x27;%log_error%&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>该命令会显示当前 log_error 变量的值，即错误日志所在路径。如果该变量为空，通常默认日志会被输出到 stderr，或由系统服务（如 systemd）转至系统日志（如 <code>/var/log/messages</code> 或由 journalctl 管理）。</p>
+<p><strong>二进制日志（Binary Log）</strong> 会记录所有成功执行的 <strong>DDL</strong>（结构定义语句）和 <strong>DML</strong>（数据操作语句），但不会包含纯查询类语句（如 SELECT、SHOW）。它以 <strong>Event</strong> 形式记录，并且保存每条语句执行的时间戳。默认情况下启用二进制日志，并常用于数据备份以及主从复制场景。</p>
+<p>二进制日志系统包括两类文件：</p>
 <ul>
-<li>If TS(Ti) &lt; W-TimeStamp(Q), then Ti needs to read the value of Q which was already overwritten. Hence the read request is rejected and Ti is rolled back.</li>
-<li>If TS(Ti) &gt;&#x3D; W-TimeStamp(Q), then the read operation is executed and the R-timeStamp(Q) is set to the maximum of R-TimeStamp(Q) and TS(Ti).</li>
+<li><strong>索引文件（.index）</strong>：跟踪所有二进制日志文件的路径；</li>
+<li><strong>日志文件（形如 .00000*）</strong>：具体记录 DDL 与 DML 的事件。</li>
 </ul>
-<p>Suppose transaction Ti issues write(Q):</p>
+<p>日志的记录格式有三种：</p>
 <ul>
-<li>If TS(Ti) &lt; R-TimeStamp(Q), then this implies that some transaction has already consumed the value of Q and Ti should have produced a value before that transaction read it. Thus, the write request is rejected and Ti is rolled back.</li>
-<li>If TS(Ti) &lt; W-TimeStamp(Q), then Ti is trying to write an obsolete value of Q. Hence reject Ti’s request and roll it back. &#x2F; Ignore this write operation. (Tomas’s Write Rule)</li>
-<li>Otherwise, execute the write(Q) operation and update W-TimeStamp(Q) to TS(Ti).</li>
+<li><strong>STATEMENT</strong>：以文本形式记录每条 SQL，并不包含事务上下文、权限或系统状态；</li>
+<li><strong>ROW</strong>：以二进制形式记录行数据的变化（旧值和新值）；</li>
+<li><strong>MIXED</strong>（MySQL 8.0 以上默认）：通常使用 STATEMENT，在涉及非确定性函数（如 <code>NOW()</code>、<code>UUID()</code> 等）时自动切换到 ROW 格式。</li>
 </ul>
-<h1 id="OCC"><a href="#OCC" class="headerlink" title="OCC"></a>OCC</h1><p>Each transaction Ti has three phases:</p>
+<p>针对日志清理，常用命令如下：</p>
 <ul>
-<li>Read phase: reads the value of data items and copies its contents to variables local to Ti. All writes are performed on the temporary local variables.</li>
-<li>Validation phase: Ti determines whether the local variables whose values have been overwritten can be copied to the database. If not, then abort. Otherwise, proceed to Write phase.</li>
-<li><ul>
-<li>When validating transaction Tj, for all transactions Ti with TS(Ti) &lt; TS(Tj), one of the following must hold:</li>
-<li><ul>
-<li>Finish(Ti) &lt; Start(Tj), OR</li>
-<li>Set of data items written by Ti does not intersect with the set of data items read by Tj, and Ti completes its write phase before Tj starts its validation phase.</li>
+<li><code>RESET BINARY LOGS;</code>（或旧版本的 <code>RESET MASTER;</code>）将删除所有二进制日志，并将索引重置，只保留一个新的空日志文件（编号从 .000001 开始）；</li>
+<li><code>PURGE BINARY LOGS TO &#39;binlog.xxx&#39;;</code> 删除指定日志文件之前的所有日志；</li>
+<li><code>PURGE BINARY LOGS BEFORE &#39;YYYY‑MM‑DD hh:mm:ss&#39;;</code> 删除该时间之前生成的所有日志。</li>
 </ul>
-</li>
-</ul>
-</li>
-<li>Write phase: The values stored in local variables overwrite the value of the data items in the database.</li>
-</ul>
-<p>A transaction has three time stamps:</p>
+<p>此外，可以设置系统变量（如 <code>binlog_expire_logs_seconds</code> 或旧版的 <code>expire_logs_days</code>）实现自动清理过期日志，默认保留期为 30 天。</p>
+<p>更多关于 binlog 的信息，可参考：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/rickiyang/p/13841811.html">https://www.cnblogs.com/rickiyang/p/13841811.html</a></p>
+<p><strong>二进制日志（binlog）</strong> 功能可以通过在 <code>my.cnf</code> 或启动参数中设置来进行全面配置，下面是一些常用选项与管理方法：</p>
+<p>启用与路径配置：<code>log‑bin=/home/mysql/binlog/</code></p>
+<p>该参数不仅开启 binlog 功能，还指定日志文件的存放目录。如果不指定路径，MySQL 默认将日志保存在数据目录，并以主机名或 binlog 为基础名生成一系列 <code>.00000*</code> 日志文件。</p>
+<p>文件大小与保留周期：</p>
 <ul>
-<li>Start(Ti): When Ti started its execution.</li>
-<li>Validation(Ti): When Ti finished its read phase and started its validation.</li>
-<li>Finish(Ti): Done with the write phase.</li>
+<li><code>max_binlog_size=104857600</code> 将单个日志文件最大限制为 100 MB。</li>
+<li><code>expire_logs_days=7</code> 设置日志自动保留时限为 7 天，超过该时长的日志文件会被系统定期清理。</li>
 </ul>
-<h1 id="MVCC"><a href="#MVCC" class="headerlink" title="MVCC"></a>MVCC</h1><p>Assume that transaction Ti issues either a read(Q) or a write(Q) operation.</p>
-<p>Let Qk denote the version of Q whose write timestamp is the largest write timestamp less than TS(Ti), i.e., W-TimeStamp(Qk) &lt; TS(Ti).</p>
+<p>过滤数据库：</p>
+<p>可以通过以下参数控制哪些库的更新被记录到 binlog：</p>
 <ul>
-<li>If Ti issues a Read(Q), then return the value of Qk.</li>
-<li>If Ti issues a write(Q), and TS(Ti) &lt; R-TimeStamp(Qk), then Ti is rolled back.</li>
-<li>Otherwise, a new version of Qk is created.</li>
+<li><code>binlog-do-db=db_name</code>：仅记录指定数据库的变更。</li>
+<li><code>binlog-ignore-db=db_name</code>：忽略指定数据库的更新，不写入日志。</li>
 </ul>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/10/04/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/DynamoDB/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Yihang Wei">
-      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="EthanWeee">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/10/04/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/DynamoDB/" class="post-title-link" itemprop="url">DynamoDB</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-10-04 00:00:00" itemprop="dateCreated datePublished" datetime="2024-10-04T00:00:00-07:00">2024-10-04</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-05-31 20:59:45" itemprop="dateModified" datetime="2025-05-31T20:59:45-07:00">2025-05-31</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">数据库系统</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h1><p>Dynamo has the ability of incremental scalability and predictable high performance, but it carries the operational complexity of self-managed large database systems.</p>
-<p>SimpleDB is easy to administrate a cloud service, consistency, and a table-based data model, but it has limitations that tables have a small capacity in terms of storage and of request throughput, and that a unpredictable query and write latency.</p>
-<p>DynamoDB &#x3D; Dynamo + SImpleDB</p>
-<h1 id="Architecture"><a href="#Architecture" class="headerlink" title="Architecture"></a>Architecture</h1><p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/dynamodb_arch.png" alt="img"></p>
+<p>同步策略：</p>
+<p><code>sync_binlog=0</code> 表示不强制让 MySQL 将日志立即同步到磁盘，交由操作系统定期执行。该配置提高性能，但在主机崩溃时可能丢失最后一部分日志；若设为 1，则在每次提交时都 fsync，一致性高但性能略受影响。</p>
+<p>查看当前设置：</p>
+<p>可以执行以下命令确认配置状态：</p>
+<ul>
+<li><code>SHOW BINARY LOGS;</code>：列出当前所有 binlog 文件；</li>
+<li><code>SHOW MASTER STATUS;</code>：查看主服务器正在使用的最新日志名称与位置；</li>
+<li><code>SHOW VARIABLES LIKE &#39;%log_bin%&#39;;</code>：确认二进制日志是否已启用及其路径；</li>
+<li><code>SHOW VARIABLES LIKE &#39;%binlog_format%&#39;;</code>：查看当前记录格式（STATEMENT、ROW 或 MIXED）；</li>
+<li><code>SHOW VARIABLES LIKE &#39;%binlog_expire_logs_seconds%&#39;;</code>：检查自动过期设置（通常是以秒为单位）。</li>
+</ul>
+<p>手动恢复流程：</p>
 <ol>
-<li><strong>DynamoDB Tables and Primary Keys</strong>: A DynamoDB table is a collection of items, each uniquely identified by a primary key. The primary key can be a partition key or a composite key (partition key + sort key).</li>
-<li><strong>Secondary Indexes</strong>: DynamoDB supports secondary indexes, allowing queries using alternate keys in addition to the primary key, enhancing query capabilities.</li>
-<li><strong>Partitions and Replication Groups</strong>: DynamoDB tables are divided into multiple partitions, with each partition managing a contiguous key range. Each partition has multiple replicas across different Availability Zones for high availability and durability. A <strong>Multi-Paxos</strong> consensus is used for leader election within the replication group, and the leader handles writes and strongly consistent reads.</li>
-<li><strong>Write-Ahead Logs and Consistency</strong>: The leader replica generates a write-ahead log for write requests. A write is acknowledged once a quorum of replicas persists the log. DynamoDB supports both strongly consistent and eventually consistent reads.</li>
-<li><strong>Failure Detection and Leader Election</strong>: If the current leader is detected as unhealthy, other replicas initiate a new election. The new leader can only start serving writes or consistent reads after the old leader’s lease expires.</li>
-<li><strong>Autoadmin Service</strong>: The autoadmin service monitors the health of the fleet and partitions, scaling tables and replacing unhealthy replicas or hardware to maintain system stability. It automatically detects and resolves issues, ensuring a stable and healthy infrastructure.</li>
+<li>停止 MySQL 服务；</li>
+<li>利用 mysqlbinlog 工具分析 <code>.00000*</code> 中的日志，确认误操作发生前的起始与结束位置；</li>
+<li>清空当前数据库以准备恢复；</li>
+<li>执行命令：<code>mysqlbinlog --start-position=xxx --stop-position=yyy bin-log.00000x &gt; recover.sql</code>，其中 start-position 为误操作前最近一次安全点，stop-position 为误前最后一条正常语句的位置；</li>
+<li>将导出的 recover.sql 文件导入数据库，恢复指定段的变更。</li>
 </ol>
-<h1 id="Journey-from-provisioned-to-on-demand"><a href="#Journey-from-provisioned-to-on-demand" class="headerlink" title="Journey from provisioned to on-demand"></a>Journey from provisioned to on-demand</h1><ul>
-<li><p><strong>Bursting:</strong> To address the issue of uneven workload distribution across partitions, DynamoDB introduced the concept of <strong>bursting</strong>. Bursting allows an application to utilize unused capacity at the partition level when its provisioned throughput is exhausted, helping to <strong>handle short-term spikes</strong> in workload. DynamoDB retains unused capacity in a partition for <strong>up to 300 seconds</strong>, which can be tapped into when the consumed capacity exceeds the provisioned capacity. This reserved capacity is referred to as <strong>burst capacity</strong>.</p>
-<p><strong>How It Works</strong>: DynamoDB manages throughput using multiple <strong>token buckets</strong>:</p>
+<p><strong>一般查询日志</strong>记录了MySQL 服务器的<strong>所有连接信息</strong>和客户端的<strong>所有操作语句</strong>，默认是不开启的。</p>
+<p><strong>慢查询日志</strong>用于记录执行时间超过 <code>long_query_time</code>（默认 10 秒）并且扫描记录数不少于 <code>min_examined_row_limit</code> 的 SQL 语句，以帮助识别并优化效率低下的查询。注意，这一功能默认处于关闭状态，开启后不包含管理语句（如 ALTER、CREATE INDEX）及未使用索引的查询，除非你通过以下两个系统变量特别配置：</p>
 <ul>
-<li><p><strong>Each partition has two token buckets</strong>: one for allocated capacity and another for burst capacity. <strong>Each storage node has a token bucket</strong> that controls the overall load across partitions hosted on that node.</p>
-</li>
-<li><p>When a read or write request arrives at a storage node, the system first checks the partition’s token bucket. If the allocated capacity has been exhausted, burst capacity can be used, but only if there are available tokens at both the burst token level and the node level.</p>
-</li>
-<li><p><strong>Additional Check for Write Requests</strong>: When using burst capacity for write requests, an additional check is performed to ensure that other replica nodes for the partition also have sufficient capacity. This ensures that the write operation can be completed safely and consistently across all replicas. The leader replica periodically gathers information about the node-level capacity of other members in the replication group to facilitate this process.</p>
-</li>
+<li><code>log_slow_admin_statements</code>：启用后，允许记录管理类语句；</li>
+<li><code>log_queries_not_using_indexes</code>：启用后，记录所有不使用索引的查询（并不限于慢查询）。</li>
 </ul>
-</li>
-<li><p><strong>Adaptive (deprecated):</strong> DynamoDB launched adaptive capacity to better absorb <strong>longlived</strong> spikes that cannot be absorbed by the burst capacity. Adaptive capacity allowed DynamoDB to better absorb workloads that had heavily skewed access patterns across partitions. Adaptive capacity actively monitored the provisioned and consumed capacity of all the tables.</p>
-<ul>
-<li><p>If a table experienced throttling and the table level throughput was not exceeded, then it would automatically increase (boost) the allocated throughput of the partitions of the table using a proportional control algorithm.</p>
-</li>
-<li><p>If the table was consuming more than its provisioned capacity then capacity of the partitions which received the boost would be decreased. The autoadmin system ensured that partitions receiving boost were relocated to an appropriate node that had the capacity to serve the increased throughput.</p>
-</li>
-</ul>
-</li>
-<li><p>GAC, how does it work:</p>
-<ul>
-<li><p><strong>Global Throughput Tracking and Management</strong></p>
-<ul>
-<li><p><strong>Global Token Management</strong>: GAC uses a <strong>token bucket system</strong> to manage the overall throughput (RCUs and WCUs) of a DynamoDB table.</p>
-</li>
-<li><p><strong>Token Buckets</strong>: Each request router maintains a <strong>local token bucket</strong> to handle requests. When tokens are depleted locally, the router requests more tokens from GAC, which manages the global distribution of these tokens across partitions.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Dynamic Token Allocation</strong></p>
-<ul>
-<li><p><strong>Periodic Replenishment</strong>: GAC regularly communicates with the request routers every few seconds to replenish their token buckets. The amount of tokens allocated is based on the overall resource consumption of the table, particularly when certain partitions are experiencing high traffic.</p>
-</li>
-<li><p><strong>Handling Hot Partitions</strong>: When specific partitions become hot, GAC dynamically allocates additional tokens to those partitions.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Capacity Limits and Isolation</strong></p>
-<ul>
-<li><p><strong>Global Throughput Limits</strong>: GAC ensures that the total number of tokens allocated to partitions does not exceed the <strong>provisioned capacity</strong> for the entire table.</p>
-</li>
-<li><p><strong>Node-Level Limits</strong>: Although GAC allocates tokens globally, each partition is subject to the <strong>maximum throughput capacity of its storage node</strong>. This ensures that no single partition can consume more than its node’s allowable resources.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Stateless and Distributed Design</strong></p>
-<ul>
-<li><p><strong>Stateless Operation</strong>: GAC operates in a <strong>stateless manner</strong>, meaning it calculates token allocations in real-time based on incoming client requests. It doesn’t rely on long-term stored states, so GAC servers can be restarted or stopped without affecting the system’s overall operation.</p>
-</li>
-<li><p><strong>Distributed Architecture</strong>: GAC uses a distributed architecture, where multiple GAC instances coordinate using a <strong>hash ring</strong>. This allows GAC to scale horizontally and handle requests from multiple routers efficiently.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Defense-in-Depth with Partition-Level Token Buckets</strong></p>
-<ul>
-<li><p><strong>Partition-Level Control</strong>: Even though GAC manages tokens globally, DynamoDB still retains <strong>partition-level token buckets</strong> for additional protection. These buckets ensure that no single partition consumes excessive resources, offering a secondary layer of isolation and control.</p>
-</li>
-<li><p><strong>Resource Isolation</strong>: Partition-level token buckets prevent any single application or partition from monopolizing the resources of the storage node.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Token Consumption and Replenishment Process</strong></p>
-<ul>
-<li><p>When a request is made, the request router checks its local token bucket for available tokens. If enough tokens are present, the request is processed.</p>
-</li>
-<li><p>If the local tokens are depleted, the request router asks GAC for more tokens.</p>
-</li>
-<li><p>GAC calculates the global consumption of tokens for the table and allocates more tokens to the router based on overall resource usage.</p>
-</li>
-<li><p>Once tokens are used up or expire, the process repeats, with the router requesting new tokens from GAC.</p>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p>Proactive load balancing mechanism</p>
-<ul>
-<li><p>Independent Monitoring: Each storage node independently monitors the total throughput (read&#x2F;write requests) and data size of all the partition replicas it hosts.</p>
-</li>
-<li><p>Threshold Detection: When the throughput or data size of a partition replica approaches or exceeds a predefined threshold of the node’s capacity, that partition replica is flagged as a candidate for migration.</p>
-</li>
-<li><p>Reporting to Autoadmin Service: The storage node reports the list of over-utilized partition replicas to the Autoadmin service, which manages the load balancing process.</p>
-</li>
-<li><p>Automatic Migration: The Autoadmin service finds a new storage node, usually located in a different Availability Zone, that can accommodate the migrating partition replica. This new node must have enough spare capacity to handle the increased load.</p>
-</li>
-<li><p>GAC 和 bursting 都擅长处理 短期或临时的高负载，但如果某个分区长期处于高负载状态（例如一个分区持续有热点键），这些机制可能无法完全消除该分区对特定节点的影响。在这种情况下，自动迁移分区副本是更长期有效的解决方案。</p>
-</li>
-</ul>
-</li>
-<li><p>Even with GAC and partition bursting capacity, DynamoDB tables may still experience throttling if traffic is heavily concentrated on a specific set of items. When the throughput for a partition exceeds a certain threshold, the system splits the partition according to the observed key distribution, rather than simply splitting the key range in the middle. These smaller partitions are typically distributed to different storage nodes. However, some workloads may not benefit from this mechanism, such as:</p>
-<ul>
-<li><p>A partition where traffic is concentrated on a single item.</p>
-</li>
-<li><p>A partition where the key range is accessed sequentially.</p>
-</li>
-</ul>
-</li>
-<li><p>DynamoDB’s <strong>on-demand tables</strong> eliminate the need for customers to manually set throughput. The system automatically adjusts resources based on actual read and write requests, enabling it to quickly adapt to sudden traffic increases. Specifically:</p>
-<ul>
-<li><p>DynamoDB automatically scales up to <strong>twice the previous peak traffic</strong> to handle more requests instantly.</p>
-</li>
-<li><p>If traffic continues to increase, DynamoDB further allocates more resources to prevent throttling and maintain performance.</p>
-</li>
-</ul>
-<p>The scaling mechanism for on-demand tables is achieved through <strong>partition splitting</strong>, where partitions are split based on traffic patterns to ensure each partition has sufficient resources. At the same time, <strong>GAC (Global Admission Control)</strong> monitors the system to prevent any single application from consuming too many resources, maintaining overall system stability.</p>
-</li>
-</ul>
-<p><strong>机制之间的关联总结：</strong></p>
-<ul>
-<li><strong>On-demand tables</strong> 依赖 <strong>GAC</strong> 和 <strong>bursting</strong> 来动态扩展资源，处理流量波动。</li>
-<li><strong>GAC</strong> 管理整个系统的全局资源分配，确保突发和按需扩展时不影响其他应用，同时在必要时与 <strong>proactive load balancing</strong> 机制配合，进行分区迁移。</li>
-<li><strong>Bursting</strong> 提供短期解决方案，而当负载持续增加时，系统会通过 <strong>主动负载平衡</strong> 来长期调整资源分配，防止系统瓶颈。</li>
-</ul>
-<h1 id="Durability-and-correctness"><a href="#Durability-and-correctness" class="headerlink" title="Durability and correctness"></a>Durability and correctness</h1><h2 id="Hardware-failures"><a href="#Hardware-failures" class="headerlink" title="Hardware failures"></a>Hardware failures</h2><p>The write-ahead logs in DynamoDB are crucial for ensuring data durability and crash recovery. Each partition has three replicas that store the write-ahead logs. To enhance durability, the logs are periodically archived to Amazon S3. The unarchived logs typically amount to a few hundred megabytes.</p>
-<p>In large-scale systems, hardware failures such as memory or disk failures are common. When a node fails, all replication groups hosted on that node are reduced to two copies. The process of repairing a storage replica can take several minutes, as it involves copying both the B-tree and the write-ahead logs.</p>
-<p>When the system detects an unhealthy replica, the leader of the replication group adds a log replica to ensure data durability is not compromised. Since only the recent write-ahead logs need to be copied without the B-tree, adding the log replica takes just a few seconds. This quick addition helps restore the affected replication group, ensuring that the most recent writes remain highly durable.</p>
-<h2 id="Silent-data-errors"><a href="#Silent-data-errors" class="headerlink" title="Silent data errors"></a>Silent data errors</h2><p>Hardware failures can cause incorrect data storage: In DynamoDB, errors may occur due to issues with storage media, CPU, or memory, and these errors are often difficult to detect.</p>
-<p>Extensive use of checksums: DynamoDB maintains checksums for every log entry, message, and log file to detect silent errors and ensure data integrity during each data transfer. When messages are transmitted between nodes, checksums verify whether errors occurred during transmission.</p>
-<p>Log archiving and validation: Each log file archived to S3 has a manifest that records details such as the table, partition, and data markers. Before uploading, the archiving agent performs various checks, including checksum validation, verifying that the log belongs to the correct table and partition, and ensuring that there are no gaps in the sequence numbers.</p>
-<p>Multiple replica log archiving: Log archiving agents run on all three replicas. If one agent finds that a log file has already been archived, it downloads the file and compares it with the local write-ahead log to verify data integrity.</p>
-<p>Checksum validation during S3 upload: Every log file and manifest file is uploaded to S3 with a content checksum. S3 verifies this checksum during the upload process to catch any errors in data transmission.</p>
-<h2 id="Continuous-verification"><a href="#Continuous-verification" class="headerlink" title="Continuous verification"></a>Continuous verification</h2><p>Continuous Data Integrity Verification: DynamoDB continuously verifies data at rest to detect silent data errors and bit rot, which can occur due to hardware failures or data corruption. This is a critical defense mechanism for maintaining data reliability.</p>
-<p>Scrub Process: The scrub process is central to detecting unforeseen errors. It checks two main aspects:</p>
-<ul>
-<li><strong>Replica Consistency</strong>: Ensures that all three replicas in a replication group have identical data.</li>
-<li><strong>Archived Log Reconstruction</strong>: Rebuilds an offline replica using archived write-ahead logs from S3 and verifies that it matches the live replica.</li>
-</ul>
-<p>Verification Mechanism: Scrub computes checksums for the live replicas and compares them with those generated from replicas built using archived logs.</p>
-<p>Defense in Depth: This mechanism ensures that live storage replicas and those rebuilt from historical logs remain consistent, providing confidence in the system’s integrity and reliability.</p>
-<h2 id="Backups-and-restores"><a href="#Backups-and-restores" class="headerlink" title="Backups and restores"></a>Backups and restores</h2><p>Backup and Restore Mechanism: DynamoDB supports backup and restore to protect against logical corruption caused by bugs in customer applications. Backups and restores are built using write-ahead logs stored in S3 and do not affect table performance or availability.</p>
-<p>Backup Consistency: Backups are full copies of DynamoDB tables, consistent across multiple partitions to the nearest second, and stored in Amazon S3. Data can be restored to a new DynamoDB table at any time.</p>
-<p>Point-in-Time Restore: DynamoDB supports point-in-time restore, allowing customers to restore a table to any point within the last 35 days. This feature creates periodic snapshots of table partitions and stores them in S3.</p>
-<p>Snapshots and Write-Ahead Logs: For point-in-time restore, DynamoDB identifies the closest snapshots to the requested time, applies the corresponding write-ahead logs, and restores the table to the desired state.</p>
-<h1 id="Availability"><a href="#Availability" class="headerlink" title="Availability"></a>Availability</h1><h2 id="Write-and-consistent-read-availability"><a href="#Write-and-consistent-read-availability" class="headerlink" title="Write and consistent read availability"></a>Write and consistent read availability</h2><p>Write Availability: DynamoDB partition write availability depends on having a healthy leader and a healthy write quorum. A write quorum in DynamoDB requires two out of three replicas across different Availability Zones (AZs) to be healthy.</p>
-<p>Handling Write Quorum Failures: <strong>If one replica becomes unresponsive, the leader adds a log replica, which is the fastest way to meet the quorum requirement and minimize write disruptions caused by an unhealthy quorum.</strong></p>
-<p>Consistent Reads: Consistent reads are served by the leader replica. <strong>If the leader fails, other replicas detect the failure and elect a new leader to minimize disruptions to consistent read availability.</strong></p>
-<p>Impact of Log Replicas: The introduction of log replicas was a significant system change. The use of the formally proven Paxos protocol provided confidence to safely implement this change, increasing system availability. DynamoDB can run millions of Paxos groups with log replicas in a single region.</p>
-<p>Eventually Consistent Reads: Eventually consistent reads can be served by any of the replicas.</p>
-<h2 id="Failure-detection"><a href="#Failure-detection" class="headerlink" title="Failure detection"></a>Failure detection</h2><p>New Leader Waits for Lease Expiry: A newly elected leader must wait for the old leader’s lease to expire before handling traffic, causing a few seconds of disruption where no new writes or consistent reads can be processed.</p>
-<p>Importance of Leader Failure Detection: Quick and robust leader failure detection is crucial for minimizing disruptions. False positives in failure detection can lead to unnecessary leader elections, further disrupting availability.</p>
-<p>Impact of Gray Network Failures: Gray network failures, such as communication issues between nodes or routers, can result in false or missed failure detections. These failures can trigger unnecessary leader elections, causing availability interruptions.</p>
-<p>Improved Failure Detection Algorithm: To address the availability issues caused by gray failures, DynamoDB’s failure detection algorithm was improved. <strong>When a follower attempts to trigger a failover, it first checks with other replicas to see if they can still communicate with the leader. If they report the leader is healthy, the follower cancels the failover attempt.</strong> This change significantly reduced false leader elections and minimized availability disruptions.</p>
-<h2 id="Metadata-availability"><a href="#Metadata-availability" class="headerlink" title="Metadata availability"></a>Metadata availability</h2><p>Metadata Needs for Request Routers: DynamoDB’s request routers require metadata mapping between table primary keys and storage nodes. Initially, this metadata was stored in DynamoDB, and the routers cached it locally. Although the cache hit rate was high, cache misses or cold starts caused metadata lookup traffic spikes, potentially destabilizing the system.</p>
-<p>Caching Challenges: When caches failed or during cold starts, request routers frequently queried the metadata service, putting immense pressure on it and leading to cascading failures in other parts of the system.</p>
-<p>Introduction of MemDS: <strong>To reduce reliance on local caches, DynamoDB introduced MemDS, a distributed in-memory data store for storing and replicating metadata.</strong> MemDS scales horizontally to handle all incoming requests and stores data in a compressed format. It uses a Perkle tree structure, combining Patricia and Merkle tree features for efficient key lookups and range queries.</p>
-<p>Perkle Tree Operations: MemDS supports efficient key lookups, range queries, and special operations like floor (find the largest key ≤ given key) and ceiling (find the smallest key ≥ given key) for metadata retrieval.</p>
-<p>New Partition Map Cache: DynamoDB implemented a new cache on request routers, addressing the issues of bimodal behavior. Even when a cache hit occurs, an asynchronous call is made to MemDS to refresh the cache. This ensures that MemDS consistently handles a steady volume of traffic, preventing reliance on cache hit ratios and avoiding cascading failures when caches become ineffective.</p>
-<p>Partition Membership Updates: DynamoDB storage nodes, the authoritative source of partition membership data, push updates to MemDS. If a request router queries an incorrect storage node due to outdated information, the node provides updated membership data or triggers a new MemDS lookup.</p>
-<h1 id="Programming-Interface"><a href="#Programming-Interface" class="headerlink" title="Programming Interface"></a>Programming Interface</h1><ol>
-<li><p><strong>Key-Value Store</strong></p>
-<p>DynamoDB allows users to create tables that can grow almost indefinitely. Each table is a collection of items, and each item is a collection of attributes. Each item is uniquely identified by a primary key, ensuring uniqueness within the table. DynamoDB provides a simple interface to store or retrieve items from a table or an index.</p>
-</li>
-<li><p><strong>Read and Write Operations</strong></p>
-<p>DynamoDB operates as a key-value store, and the most common operations used by applications involve reading and writing data. These operations include:</p>
-<ul>
-<li><p><strong>GetItem</strong>: Retrieves an item with a given primary key.</p>
-</li>
-<li><p><strong>PutItem</strong>: Inserts a new item or replaces an existing one.</p>
-</li>
-<li><p><strong>UpdateItem</strong>: Updates an existing item, or adds it if it doesn’t exist.</p>
-</li>
-<li><p><strong>DeleteItem</strong>: Deletes an item from the table based on the primary key.</p>
-</li>
-</ul>
-<p>These last three operations (PutItem, UpdateItem, and DeleteItem) are collectively referred to as writes. A write operation can optionally include conditions that must be satisfied for the operation to be executed successfully. For instance, you could specify that a PutItem operation should only succeed if the item doesn’t already exist.</p>
-</li>
-<li><p><strong>Transactional Operations</strong></p>
-<p>DynamoDB supports transactions through two key operations:</p>
-<ul>
-<li><p><strong>TransactGetItems</strong>: Used for reading multiple items atomically. It retrieves the latest versions of items from one or more tables at a single point in time, ensuring consistency. If any conflicting operation is modifying an item that’s being read, the transaction will be rejected.</p>
-</li>
-<li><p><strong>TransactWriteItems</strong>: This is used for performing atomic writes across multiple items and tables. It allows you to create, update, or delete multiple items in one or more tables within a single atomic transaction. This ensures that either all changes happen, or none do. The operation is synchronous and idempotent (meaning it can be retried without causing duplicate effects). TransactWriteItems can include conditions on the current values of the items, and the operation is rejected if these conditions aren’t met.</p>
-</li>
-</ul>
-</li>
-</ol>
-<h1 id="Transactions"><a href="#Transactions" class="headerlink" title="Transactions"></a>Transactions</h1><p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/dynamodb_txn.png" alt="img"></p>
-<p><strong>Request Router (RR)</strong>:</p>
-<ul>
-<li>The <strong>Request Router</strong> is the first major component that handles incoming requests after they pass through the network.</li>
-<li><strong>Authentication and Authorization</strong>: RR typically interacts with an <strong>Authentication System</strong> to ensure that the request is valid and the user has the proper permissions to access or modify the data.</li>
-<li><strong>Routing Requests</strong>: Once a request is authenticated, the RR determines which <strong>Storage Nodes</strong> the request should be forwarded to. It uses the <strong>Metadata System</strong> to map the key(s) involved in the request to the correct storage nodes, as the data is distributed across many nodes.</li>
-<li><strong>Forwarding Requests</strong>: Depending on whether the operation is a simple read&#x2F;write or part of a larger transaction, the RR may route the request directly to storage nodes or to the Transaction Coordinator.</li>
-</ul>
-<p><strong>Transaction Coordinator (TC)</strong>:</p>
-<ul>
-<li>The <strong>Transaction Coordinator</strong> plays a central role in handling transactions that span multiple items or storage nodes.</li>
-<li><strong>Transaction Management</strong>: For requests that involve multiple storage nodes or require consistency (e.g., multi-item writes in a transaction), the RR forwards the request to the TC. The TC is responsible for breaking down the transaction into individual operations and coordinating these operations across the necessary storage nodes.</li>
-<li><strong>Distributed Transaction Execution</strong>: The TC ensures that the operations follow the appropriate protocol (e.g., two-phase commit) to guarantee atomicity and consistency, ensuring that all parts of the transaction are either completed successfully or rolled back.</li>
-<li><strong>Timestamp Assignment and Conflict Resolution</strong>: In a timestamp-based system like DynamoDB, the TC may assign timestamps to ensure the correct ordering of operations and manage any potential conflicts between concurrent transactions.</li>
-</ul>
-<p>In summary:</p>
-<ul>
-<li><strong>Request Router (RR)</strong> handles initial authentication and routing of requests to the appropriate storage nodes or transaction coordinator.</li>
-<li><strong>Transaction Coordinator (TC)</strong> manages distributed transactions, ensuring data consistency and handling multi-node operations.</li>
-</ul>
-<h1 id="Transaction-execution"><a href="#Transaction-execution" class="headerlink" title="Transaction execution"></a>Transaction execution</h1><ol>
-<li><p><strong>Transaction Routing</strong></p>
-<p>All operation requests first reach a set of frontend hosts known as request routers. These routers are responsible for authenticating the requests and routing them to the appropriate storage nodes. Storage nodes are mapped based on key ranges. For transaction management, the routers forward transaction operations to transaction coordinators.</p>
-<p>Transaction coordinators break down the transaction into multiple operations targeting different items and coordinate the execution of these operations across the storage nodes using a distributed protocol.</p>
-</li>
-<li><p><strong>Timestamp Ordering</strong></p>
-<p>Each transaction is assigned a timestamp that defines its logical execution order. Multiple transaction coordinators operate in parallel, and different coordinators assign timestamps to different transactions. As long as transactions execute in the assigned order, serializability is maintained.</p>
-<p>The storage nodes are responsible for ensuring that the operations on the items they manage are executed in the correct order and rejecting transactions that cannot be properly ordered.</p>
-</li>
-<li><p><strong>Write Transaction Protocol</strong></p>
-<p>DynamoDB uses a two-phase commit protocol to ensure that the write operations within a transaction are atomic and executed in the correct order. In the prepare phase, the coordinator prepares all the write operations. If all storage nodes accept the operations, the transaction is committed; otherwise, it is canceled.</p>
-<p>The storage nodes record the timestamp and metadata of each item involved in the transaction to ensure the transaction is handled correctly.</p>
-</li>
-<li><p><strong>Read Transaction Protocol</strong></p>
-<p>Read transactions also use a two-phase protocol, but it differs from the write transaction protocol. DynamoDB designed a two-phase read protocol without write operations to avoid adding latency and costs to reads.</p>
-<p>In the first phase, the coordinator reads all the items involved in the transaction, along with their Log Sequence Numbers (LSN). In the second phase, if the LSN has not changed, the read is successful; otherwise, the read is rejected.</p>
-</li>
-<li><p><strong>Recovery and Fault Tolerance</strong></p>
-<p>If a storage node fails, the leadership role transfers to another storage node within the same replication group, with transaction metadata persistently stored and replicated across the nodes.</p>
-<p>Transaction coordinator failures are more complex. Coordinators maintain a persistent record of each transaction to ensure atomicity and completeness. Recovery managers periodically scan these transaction records, looking for incomplete transactions, and reassign them to new coordinators to resume execution.</p>
-</li>
-</ol>
-<h1 id="Two-phase-commit-2PC"><a href="#Two-phase-commit-2PC" class="headerlink" title="Two-phase commit (2PC)"></a>Two-phase commit (2PC)</h1><ol>
-<li><p><strong>Prepare Phase</strong></p>
-<p>In the prepare phase, the transaction coordinator (TC) is responsible for sending the transaction’s write operations to all the participating storage nodes. The coordinator breaks down the transaction into individual operations targeting specific data items and sends a prepare message to each storage node involved. This message includes:</p>
-<ul>
-<li><p>The transaction’s timestamp.</p>
-</li>
-<li><p>The transaction’s unique identifier (ID).</p>
-</li>
-<li><p>The specific operation to be performed on the data item (such as insert, update, or delete).</p>
-</li>
-</ul>
-<p>Upon receiving the prepare message, each storage node evaluates whether it can accept the transaction. The storage node will accept the transaction’s write operation if all of the following conditions are met:</p>
-<ul>
-<li><p><strong>Preconditions</strong> are satisfied (e.g., a condition might be that the item must exist, or that it has a certain value).</p>
-</li>
-<li><p>The write operation does not violate any <strong>system restrictions</strong> (e.g., exceeding the maximum item size).</p>
-</li>
-<li><p>The transaction’s timestamp is <strong>greater than</strong> the item’s last write timestamp, indicating that this operation is the most recent.</p>
-</li>
-<li><p>There are no <strong>ongoing transactions</strong> attempting to write to the same item.</p>
-</li>
-</ul>
-<p>If all participating storage nodes accept the transaction during the prepare phase, the coordinator moves to the commit phase. If any node rejects the transaction (e.g., due to a failed precondition or timestamp conflict), the transaction is canceled.</p>
-</li>
-<li><p><strong>Commit Phase</strong></p>
-<p>Once the transaction has been accepted by all storage nodes during the prepare phase, the coordinator enters the commit phase. During this phase, the coordinator sends a commit message to all the storage nodes, instructing them to apply the write operations. Each storage node then:</p>
-<ul>
-<li><p>Applies the prepared write operations to the local items.</p>
-</li>
-<li><p>Updates the <strong>timestamp</strong> of the item to reflect the transaction’s timestamp.</p>
-</li>
-<li><p>Updates the timestamps of any items where preconditions were checked, even if no write operation was performed.</p>
-</li>
-</ul>
-<p>If any node rejects the transaction during the prepare phase, the coordinator sends a cancel message to all storage nodes, instructing them to discard any prepared changes. No writes are applied, ensuring atomicity.</p>
-</li>
-</ol>
-<h1 id="Adapting-timestamp-ordering-for-key-value-operations"><a href="#Adapting-timestamp-ordering-for-key-value-operations" class="headerlink" title="Adapting timestamp ordering for key-value operations"></a>Adapting timestamp ordering for key-value operations</h1><ol>
-<li><p><strong>Individual Item Read Operations</strong></p>
-<p>In DynamoDB, even if there is a prepared transaction attempting to read to a particular data item, the system still allows read operations on that item. Specifically:</p>
-<ul>
-<li><p><strong>Bypassing the transaction coordinator</strong>: Non-transactional <code>GetItem</code> operations are routed directly to the storage node responsible for the item, bypassing the transaction coordinator. This avoids potential transaction locks or delays.</p>
-</li>
-<li><p><strong>Returning the latest data immediately</strong>: The storage node immediately returns the latest committed value of the item, regardless of whether a prepared transaction may later update it.</p>
-</li>
-<li><p><strong>Timestamp assignment</strong>: This read operation is assigned a timestamp that is after the last write operation’s timestamp but before the prepared transaction’s commit timestamp. This ensures the read operation is serializable, meaning it is placed between the last completed write and the pending write.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Individual Item Write Operations</strong></p>
-<p>In most cases, DynamoDB allows individual item write operations to be executed immediately, often before prepared transactions:</p>
-<ul>
-<li><p><strong>Directly routed to the storage node</strong>: Non-transactional <code>PutItem</code> and other modification operations are routed directly to the storage node, bypassing the transaction coordinator.</p>
-</li>
-<li><p><strong>Timestamp ordering</strong>: The storage node assigns a timestamp to the write operation that is typically earlier than any prepared transactions (since those have not yet written).</p>
-</li>
-<li><p><strong>Exceptions</strong>: If a prepared transaction includes a condition check on the item (e.g., checking a bank account balance), the system will not allow a new write to bypass the prepared transaction. For example, if a transaction is checking that there are enough funds to withdraw $100, a new transaction cannot make a withdrawal or delete the item during that check.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Delayed Execution of Write Operations</strong></p>
-<p>In certain scenarios, the system can delay write operations instead of rejecting them:</p>
-<ul>
-<li><p><strong>Buffering writes</strong>: If a new write operation conflicts with a prepared transaction’s conditions (e.g., by modifying the item’s state), the storage node can buffer the write operation in a queue until the prepared transaction is complete. This prevents the need to reject the write and require the client to resubmit it.</p>
-</li>
-<li><p><strong>Processing buffered writes after the transaction completes</strong>: Once the prepared transaction completes (committed or canceled), the buffered write can be assigned a new timestamp and executed. Typically, the delay caused by waiting for the transaction to complete is short, so this strategy doesn’t significantly increase latency.</p>
-</li>
-<li><p><strong>Unconditional writes</strong>: If the storage node receives a <code>PutItem</code> or <code>DeleteItem</code> operation without any preconditions, these operations can be executed immediately. They are assigned a timestamp later than any prepared transactions, ensuring the correctness of transactions. If a previously prepared transaction is committed with an earlier timestamp, its write operations will be ignored.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Write Transactions with Older Timestamps</strong></p>
-<p>DynamoDB supports accepting write transactions with older timestamps:</p>
-<ul>
-<li><p><strong>Handling after already committed writes</strong>: If a write transaction with an older timestamp arrives at a storage node where a later write has already been processed, the node can still accept the older transaction and mark it as prepared. If the transaction is eventually committed, its write will be ignored, as the earlier write has already been overwritten by the newer one.</p>
-</li>
-<li><p><strong>Exceptions for partial updates</strong>: This rule applies to full overwrites of data items (like <code>PutItem</code>), but not to partial updates (like <code>UpdateItem</code>). If the last write was a partial update, the operations must be executed in strict timestamp order to ensure correctness.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Multiple Transactions Writing to the Same Item</strong></p>
-<p>DynamoDB allows multiple transactions to simultaneously prepare to write the same data item:</p>
-<ul>
-<li><p><strong>Simultaneous transaction preparation</strong>: For a given item, a series of transactions can enter the prepared state simultaneously, without waiting for the previous transaction to commit. This increases concurrency and allows multiple transactions to proceed in parallel.</p>
-</li>
-<li><p><strong>Order of transaction commits</strong>: If the write operations are full item overwrites (like <code>PutItem</code> or <code>DeleteItem</code>), the transactions can be committed in any order, as long as the last <code>PutItem</code> or <code>DeleteItem</code> operation (with the latest timestamp) is the final one executed.</p>
-</li>
-<li><p><strong>Restrictions for partial updates</strong>: For transactions performing partial updates (like <code>UpdateItem</code>), the transactions must be executed in timestamp order, as the final state of the item depends on the sequence of updates.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Optimized Single-Phase Read Transactions</strong></p>
-<p>DynamoDB introduces optimizations for read transactions, allowing certain read transactions to be completed in a single phase without requiring a two-phase commit protocol:</p>
-<ul>
-<li><p><strong><code>GetItemWithTimestamp</code></strong>: Assuming storage nodes support the <code>GetItemWithTimestamp</code> operation, it allows a read timestamp to be passed as a parameter. This operation returns the latest value of the item, provided its last write timestamp is earlier than the given read timestamp and any prepared transactions have timestamps later than the read timestamp; otherwise, the request is rejected.</p>
-</li>
-<li><p><strong>Single-phase completion of read transactions</strong>: When a read transaction involves multiple items, the transaction coordinator issues <code>GetItemWithTimestamp</code> requests for each item and buffers the returned values. If all storage nodes accept the requests without conflict, the coordinator can return the buffered values to the client, completing the transaction. If any node rejects the request, the read transaction fails.</p>
-</li>
-<li><p><strong>Serialization issues</strong>: This optimization is optimistic but can lead to potential serialization issues. If a storage node later accepts a write with a timestamp earlier than a previously executed read transaction, it may cause the transaction to be non-serializable. To avoid this, storage nodes need to track both the last read and write timestamps for each item. Future write transactions must ensure that their timestamps are later than the last read&#x2F;write timestamps of all the items they modify.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Optimizations for Single-Partition Write Transactions</strong></p>
-<p>DynamoDB further optimizes write transactions that involve multiple items within a single partition, allowing them to be completed in a single phase without a two-phase commit protocol:</p>
-<ul>
-<li><p><strong>Single-partition transaction processing</strong>: If all the items being written in a transaction reside within the same partition (and thus are stored on the same storage node), there is no need for separate prepare and commit phases. The storage node can perform all the necessary precondition checks and immediately execute the write operations.</p>
-</li>
-<li><p><strong>Reduced communication overhead</strong>: This approach significantly reduces the communication overhead between the transaction coordinator and storage nodes, especially in highly concurrent environments, improving system performance.</p>
-</li>
-</ul>
-</li>
-</ol>
-<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>Why does DynmoDB not use the two-phase locking protocol?</strong> </p>
-<p>While two-phase locking is used traditionally to prevent concurrent transactions from reading and writing the same data items, it has drawbacks. Locking <strong>restricts concurrency</strong> and can lead to <strong>deadlocks</strong>. Moreover, it requires <strong>a recovery mechanism</strong> to release locks when an application fails after acquiring locks as part of a transaction but before that transaction commits. To simplify the design and take advantage of low-contention workloads, DynamoDB uses an optimistic concurrency control scheme that avoids locking altogether.</p>
-<p><strong>With DynamoDB, what is the role of a transaction coordinator?</strong></p>
-<ul>
-<li>The <strong>Transaction Coordinator</strong> plays a central role in handling transactions that span multiple items or storage nodes. The TC is responsible for</li>
-<li><ul>
-<li>breaking down the transaction into individual operations and coordinating these operations across the necessary storage nodes.</li>
-<li>ensuring that the operations follow two-phase commit and all parts of the transaction are either completed successfully or rolled back.</li>
-<li>assigning timestamps to ensure the correct ordering of operations and managing any potential conflicts between concurrent transactions.</li>
-</ul>
-</li>
-</ul>
-<p><strong>Is DynamoDB a relational database management system?</strong></p>
-<p>No, DynamoDB is not a relational database management system (RDBMS). It is a NoSQL database, specifically a key-value and document store. Here’s how it differs from an RDBMS:</p>
+<p>日志触发条件的判断顺序如下（MySQL 8.0+）：</p>
 <ol>
-<li><strong>Data Model</strong>: DynamoDB does not use tables with fixed schemas like relational databases. Instead, it stores data as key-value pairs or documents (JSON-like structure). Each item can have different attributes, and there’s no need for predefined schemas.</li>
-<li><strong>Relationships</strong>: Relational databases focus on managing relationships between data (using joins, foreign keys, etc.), while DynamoDB is optimized for storing large amounts of data without complex relationships between the data items.</li>
-<li><strong>Querying</strong>: RDBMSs typically use <strong>SQL</strong> for querying data, which allows for complex joins and aggregations. DynamoDB uses its own API for querying and does not support SQL natively. While it allows querying by primary key and secondary indexes, it doesn’t support joins.</li>
-<li><strong>Consistency and Transactions</strong>: DynamoDB supports <strong>eventual consistency</strong> or <strong>strong consistency</strong> for reads, while traditional relational databases typically ensure strong consistency through ACID transactions. DynamoDB has introduced <strong>transactions</strong>, but they work differently compared to those in relational databases.</li>
-<li><strong>Scalability</strong>: DynamoDB is designed for horizontal scalability across distributed systems, allowing it to handle very large amounts of traffic and data by automatically partitioning data. In contrast, RDBMSs are typically vertically scaled and are not as naturally distributed.</li>
+<li>是不是管理语句，或已启用 <code>log_slow_admin_statements</code>；</li>
+<li>查询执行时间 ≥ long_query_time，或启用 <code>log_queries_not_using_indexes</code> 并且未使用索引；</li>
+<li>扫描的行数 ≥ min_examined_row_limit；</li>
+<li>若启用了该选项，还会受 <code>log_throttle_queries_not_using_indexes</code>（对未用索引查询加速限流）的影响。</li>
 </ol>
-<p><strong>How is DynamoDB’s transaction coordinator different than Gamma’s scheduler?</strong> </p>
-<ul>
-<li>DynamoDB’s transaction coordinator uses Optimistic Concurrency Control (OCC) to manage distributed transactions, ensuring atomicity without 2PC, focusing on scalability and performance in a globally distributed system.</li>
-<li>Gamma’s scheduler, on the other hand, uses the traditional Two-Phase Locking (2PL) protocol to guarantee strong consistency in a distributed environment, prioritizing strict coordination across nodes.</li>
-</ul>
-<p><strong>Name one difference between FoundationDB and DynamoDB?</strong></p>
-<p>FoundationDB: FoundationDB is a multi-model database that offers a core key-value store as its foundation, but it allows you to build other data models (such as documents, graphs, or relational) on top of this key-value layer. It’s highly flexible and provides transactional support for different types of data models via layers.</p>
-<p>DynamoDB: DynamoDB is a NoSQL key-value and document store with a fixed data model designed specifically for highly scalable, distributed environments. It does not offer the flexibility of building different models on top of its architecture and is focused on high-performance operations with automatic scaling.</p>
-<p><strong>What partitioning strategy does FoundationDB use to distribute key-value pairs across its StorageServers?</strong></p>
-<p>FoundationDB uses a range-based partitioning strategy to distribute key-value pairs across its StorageServers.</p>
-<p>Here’s how it works:</p>
+<p>简而言之，慢查询日志只有在 SQL 足够慢或扫描量大时才会记录，且默认不记录管理或索引缺失的语句，除非明确启用相关变量。若需全面监控优化目标，建议根据实际情况调整这三项核心参数。</p>
+<p><strong>重做日志（redo log）</strong> 专门记录已提交事务所做的页面级别修改，以确保在崩溃或异常关机后能够快速恢复数据一致性。与完整行记录不同，redo log 只保存页号（Page ID）和偏移量（Offset）处的数据从旧值到新值的变化，例如在页面 12345 的偏移量 256 位置，将值从 25 修改为 30，既紧凑又高效。这些日志文件通常组成一个循环队列：当当前日志文件写满后，InnoDB 会切换到下一个文件，直到用尽后再回到第一个文件，覆盖最早的日志。</p>
+<p>其工作流程如下：</p>
 <ol>
-<li><strong>Key Ranges</strong>: FoundationDB partitions the key-value pairs by dividing the key space into <strong>contiguous ranges</strong>. Each range of keys is assigned to a specific <strong>StorageServer</strong>.</li>
-<li><strong>Dynamic Splitting</strong>: The key ranges are <strong>dynamically split</strong> and adjusted based on data distribution and load. If a particular range grows too large or becomes a hotspot due to frequent access, FoundationDB will automatically split that range into smaller sub-ranges and distribute them across multiple <strong>StorageServers</strong> to balance the load.</li>
-<li><strong>Data Movement</strong>: When a key range is split or needs to be rebalanced, the corresponding data is migrated from one <strong>StorageServer</strong> to another without manual intervention, ensuring even distribution of data and load across the system.</li>
+<li><strong>事务开始与修改缓冲</strong>：当事务对表中数据进行修改时，InnoDB 先将修改记录写入内存中的 redo log buffer；</li>
+<li><strong>事务提交与刷盘</strong>：提交时，buffer 中的内容根据 <code>innodb_flush_log_at_trx_commit</code> 参数设置，或直接刷入磁盘（值为 1）、或先写入操作系统缓冲区后由系统决定何时落盘（值为 2）、或不强制落盘以提升性能但有丢失风险（值为 0）；</li>
+<li><strong>Checkpoint 协同</strong>：后台 Checkpoint 进程周期性地将内存中的脏数据页同步到表空间文件（<code>*.ibd</code>），并将对应的 redo log 日志标记为可覆写，维持循环日志的持续运作。</li>
 </ol>
-<p><strong>Why do systems such as Nova-LSM separate storage of data from its processing?</strong> </p>
-<ul>
-<li><strong>Independent Scaling</strong>: Storage and processing resources can scale independently to meet varying load demands.</li>
-<li><strong>Resource Optimization</strong>: Storage nodes focus on data persistence and I&#x2F;O performance, while processing nodes handle computation, improving overall resource efficiency.</li>
-<li><strong>Fault Tolerance</strong>: Data remains safe in storage even if processing nodes fail, ensuring high availability.</li>
-</ul>
-<p>Reference: </p>
-<ul>
-<li><a target="_blank" rel="noopener" href="https://www.usenix.org/system/files/atc23-idziorek.pdf">https://www.usenix.org/system/files/atc23-idziorek.pdf</a></li>
-<li><a target="_blank" rel="noopener" href="https://www.usenix.org/system/files/atc22-elhemali.pdf">https://www.usenix.org/system/files/atc22-elhemali.pdf</a></li>
-</ul>
+<p>通过这种设计，InnoDB 能够在最短时间内重做已提交的事务修改，快速恢复数据库到故障发生前的一致状态。</p>
+<p>假设在表空间 <strong>1</strong> 中，对页 <strong>42</strong> 的偏移 <strong>128</strong> 处的某条记录的第 <strong>3</strong> 个字段（如 age）执行更新，将其从 <strong>25</strong> 改为 <strong>30</strong>，则对应的 redo 日志项可示意如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[MLOG_REC_UPDATE_IN_PLACE]</span><br><span class="line">Type:        MLOG_REC_UPDATE_IN_PLACE</span><br><span class="line">Space ID:      1</span><br><span class="line">Page Number:    42</span><br><span class="line">Record Offset:   128</span><br><span class="line">Update Field Count: 1</span><br><span class="line"> └ Field Number:   3</span><br><span class="line">  Field Data Length: 4</span><br><span class="line">  Field Data:    0x0000001E</span><br></pre></td></tr></table></figure>
+
+<p>binlog 和 redo log 的区别如下表：</p>
+<p><img src="/../../images/MySQL/redo_bin_comp.png" alt="img"></p>
+<p><strong>回滚日志（Undo Log）</strong> 用于在事务回滚和多版本并发控制（MVCC）中保存数据修改前的旧值。当事务开始时，InnoDB 会初始化事务上下文；在执行更新、删除等修改操作时，它首先将当前行的原始数据写入 undo log，同时将对应的物理改动记录到内存中的 redo log buffer；如果事务提交，则会将 redo 日志刷新到磁盘，并将该事务所产生的 undo 日志标记为无效，待后台清理；若事务选择回滚，则 InnoDB 会读取 undo log 中的旧值，将数据恢复到修改前的状态，并在回滚完成后清理相关的 redo 日志。这样既保证了未提交事务的可回滚性，也为 MVCC 提供了版本快照支持。</p>
 
       
     </div>
@@ -2215,7 +1919,7 @@
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/2/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><a class="extend next" rel="next" href="/page/4/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <a class="extend prev" rel="prev" href="/page/2/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/7/">7</a><a class="extend next" rel="next" href="/page/4/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -2281,7 +1985,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-count">35</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
