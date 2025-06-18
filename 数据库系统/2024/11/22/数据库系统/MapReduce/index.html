@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN,en">
 <head>
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
@@ -20,17 +20,19 @@
     var CONFIG = {"hostname":"yihangwe.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="Programming ModelInput and Output:  Takes a set of input key&#x2F;value pairs. Produces a set of output key&#x2F;value pairs.  User-Defined Functions:  Map Function: Written by the user. Processes eac">
+  <meta name="description" content=".lang-content {width: 100%;overflow: hidden;}.lang-content:not(:first-child) {display: none;}切换中文  Programming ModelInput and Output:  Takes a set of input key&#x2F;value pairs. Produces a set of outp">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MapReduce">
 <meta property="og:url" content="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/22/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/MapReduce/index.html">
 <meta property="og:site_name" content="EthanWeee">
-<meta property="og:description" content="Programming ModelInput and Output:  Takes a set of input key&#x2F;value pairs. Produces a set of output key&#x2F;value pairs.  User-Defined Functions:  Map Function: Written by the user. Processes eac">
+<meta property="og:description" content=".lang-content {width: 100%;overflow: hidden;}.lang-content:not(:first-child) {display: none;}切换中文  Programming ModelInput and Output:  Takes a set of input key&#x2F;value pairs. Produces a set of outp">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://yihangwe.github.io/images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/mapred_exe_overview.png">
 <meta property="og:image" content="https://yihangwe.github.io/images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/bg_bm_rounding.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/mapred_exe_overview.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/bg_bm_rounding.png">
 <meta property="article:published_time" content="2024-11-22T08:00:00.000Z">
-<meta property="article:modified_time" content="2025-06-01T04:00:57.516Z">
+<meta property="article:modified_time" content="2025-06-18T07:31:28.190Z">
 <meta property="article:author" content="Yihang Wei">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://yihangwe.github.io/images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/mapred_exe_overview.png">
@@ -79,7 +81,7 @@
   </style>
 </noscript>
 
-<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+<!-- hexo injector head_end start --><script>(function() {function calculateHeight(element) {let height = 0;const items = element.children;for (let i = 0; i < items.length; i++) {height += items[i].offsetHeight || 25;const child = items[i].querySelector(".nav-child");if (child && child.style.display !== "none") {height += calculateHeight(child);}}return height;}function generateToc(lang, container) {const content = document.getElementById(lang + "-content");if (!content) return;const headers = Array.from(content.querySelectorAll("h1, h2, h3, h4, h5, h6"));if (headers.length === 0) return;const ol = document.createElement("ol");ol.className = "nav";let currentLevel = 1;let currentOl = ol;let stack = [ol];let counters = [0, 0, 0, 0, 0, 0];headers.forEach((header, index) => {const level = parseInt(header.tagName[1]);counters[level - 1]++;for (let i = level; i < 6; i++) counters[i] = 0;const li = document.createElement("li");li.className = "nav-item nav-level-" + level;if (level === 1 && index === 0) {li.classList.add("active", "active-current");}const link = document.createElement("a");link.className = "nav-link";if (level === 1 && index === 0) link.classList.add("active");link.href = "#" + header.id;const numSpan = document.createElement("span");numSpan.className = "nav-number";numSpan.textContent = counters.slice(0, level).filter(n => n > 0).join(".");const textSpan = document.createElement("span");textSpan.className = "nav-text";textSpan.textContent = header.textContent;link.appendChild(numSpan);link.appendChild(document.createTextNode(" "));link.appendChild(textSpan);li.appendChild(link);if (level > currentLevel) {const newOl = document.createElement("ol");newOl.className = "nav-child";if (currentLevel === 1) {newOl.style.display = "block";stack[currentLevel - 1].lastElementChild.classList.add("active");}stack[currentLevel - 1].lastElementChild.appendChild(newOl);stack[level - 1] = newOl;currentOl = newOl;} else if (level < currentLevel) {currentOl = stack[level - 1];}currentOl.appendChild(li);currentLevel = level;});container.appendChild(ol);setTimeout(() => {const navHeight = calculateHeight(ol);ol.style.setProperty("--height", navHeight + "px");const navChilds = ol.getElementsByClassName("nav-child");Array.from(navChilds).forEach(child => {if (child.style.display === "block") {const childHeight = calculateHeight(child);child.style.setProperty("--height", childHeight + "px");}});}, 0);return ol;}function updateActiveHeading() {const activeLang = document.getElementById("en-content").style.display === "block" ? "en" : "zh";const content = document.getElementById(activeLang + "-content");const toc = document.getElementById(activeLang + "-toc");if (!content || !toc) return;const headers = Array.from(content.querySelectorAll("h1, h2, h3, h4, h5, h6"));const scrollPos = window.scrollY + window.innerHeight / 3;let activeHeader = null;for (let i = headers.length - 1; i >= 0; i--) {const header = headers[i];const headerTop = header.getBoundingClientRect().top + window.scrollY;if (headerTop <= scrollPos) {activeHeader = header;break;}}const links = toc.getElementsByClassName("nav-link");Array.from(links).forEach(link => {link.classList.remove("active");const parentLi = link.parentElement;if (parentLi) {parentLi.classList.remove("active", "active-current");}});if (activeHeader) {const activeLink = toc.querySelector(`a[href="#${activeHeader.id}"]`);if (activeLink) {activeLink.classList.add("active");let parent = activeLink.parentElement;while (parent && parent.classList) {if (parent.classList.contains("nav-item")) {parent.classList.add("active");if (parent.classList.contains("nav-level-1")) {parent.classList.add("active-current");}}parent = parent.parentElement;}}}}function initTippy() {document.querySelectorAll(".refplus-num").forEach((ref) => {if (ref._tippy) {ref._tippy.destroy();}let refid = ref.firstChild.href.replace(location.origin+location.pathname,"");let refel = document.querySelector(refid);if (!refel) return;let refnum = refel.dataset.num;let ref_content = refel.innerText.replace(`[${refnum}]`,"");tippy(ref, {content: ref_content,});});}function initToc() {const originalToc = document.querySelector(".post-toc-wrap");if (!originalToc || !document.getElementById("langToggle")) return;const tocContainer = document.createElement("div");tocContainer.className = "post-toc-wrap sidebar-panel sidebar-panel-active";const enToc = document.createElement("div");enToc.id = "en-toc";enToc.className = "post-toc motion-element";enToc.style.display = "block";const zhToc = document.createElement("div");zhToc.id = "zh-toc";zhToc.className = "post-toc motion-element";zhToc.style.display = "none";generateToc("en", enToc);generateToc("zh", zhToc);tocContainer.appendChild(enToc);tocContainer.appendChild(zhToc);originalToc.parentNode.replaceChild(tocContainer, originalToc);window.addEventListener("scroll", updateActiveHeading);setTimeout(updateActiveHeading, 0);}window.toggleLanguage = function() {const enContent = document.getElementById("en-content");const zhContent = document.getElementById("zh-content");const enToc = document.getElementById("en-toc");const zhToc = document.getElementById("zh-toc");const button = document.getElementById("langToggle");if (!enContent || !zhContent || !enToc || !zhToc || !button) return;const isEnglish = enContent.style.display === "block";enContent.style.display = isEnglish ? "none" : "block";zhContent.style.display = isEnglish ? "block" : "none";enToc.style.display = isEnglish ? "none" : "block";zhToc.style.display = isEnglish ? "block" : "none";button.querySelector(".button-text").textContent = isEnglish ? "Switch to English" : "切换中文";setTimeout(updateActiveHeading, 0);setTimeout(initTippy, 100);};document.addEventListener("DOMContentLoaded", function() {initToc();setTimeout(initTippy, 3000);});})();</script><style>.post-toc { transition: all 0.2s ease-in-out; }.post-toc .nav { padding-left: 0; }.post-toc .nav-child { padding-left: 1em; }.post-toc .nav-item { line-height: 1.8; }.post-toc .nav-link { color: #555; }.post-toc .nav-link:hover { color: #222; }.post-toc .nav-link.active { color: #fc6423; }.post-toc .active > .nav-link { color: #fc6423; }.post-toc .active-current > .nav-link { color: #fc6423; }</style><!-- hexo injector head_end end --><style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
 
 <body itemscope itemtype="http://schema.org/WebPage">
   <div class="container use-motion">
@@ -217,7 +219,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-05-31 21:00:57" itemprop="dateModified" datetime="2025-05-31T21:00:57-07:00">2025-05-31</time>
+                <time title="修改时间：2025-06-18 00:31:28" itemprop="dateModified" datetime="2025-06-18T00:31:28-07:00">2025-06-18</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -240,7 +242,9 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h1 id="Programming-Model"><a href="#Programming-Model" class="headerlink" title="Programming Model"></a>Programming Model</h1><p>Input and Output:</p>
+        <style>.lang-content {width: 100%;overflow: hidden;}.lang-content:not(:first-child) {display: none;}</style><div style="text-align: right; margin: 0 0 20px auto; max-width: 200px;"><button id="langToggle" onclick="toggleLanguage()" class="lang-switch-btn" style="width: 100%;padding: 10px 20px;border-radius: 8px;border: 2px solid #2c3e50;background-color: #fff;cursor: pointer;color: #2c3e50;font-size: 15px;transition: all 0.3s ease;display: flex;align-items: center;justify-content: center;gap: 8px;box-shadow: 0 2px 4px rgba(0,0,0,0.1);"><span class="button-text">切换中文</span></button></div>
+
+<div id="en-content" class="lang-content" style="display: block;"><h1 id="Programming-Model"><a href="#Programming-Model" class="headerlink" title="Programming Model"></a>Programming Model</h1><p>Input and Output:</p>
 <ul>
 <li>Takes a <strong>set of input key&#x2F;value pairs</strong>.</li>
 <li>Produces a <strong>set of output key&#x2F;value pairs</strong>.</li>
@@ -613,11 +617,11 @@
 </li>
 <li><p><strong>Example</strong>:</p>
 <ul>
-<li><p>Input: <code>[ &#123; &quot;symbol&quot;: &quot;amzn&quot;, &quot;price&quot;: 1900 &#125;, &#123; &quot;symbol&quot;: &quot;goog&quot;, &quot;price&quot;: 1120 &#125;, &#123; &quot;symbol&quot;: &quot;fb&quot;, &quot;price&quot;: 180 &#125; ]</code></p>
+<li><p>Input: <code>[ { &quot;symbol&quot;: &quot;amzn&quot;, &quot;price&quot;: 1900 }, { &quot;symbol&quot;: &quot;goog&quot;, &quot;price&quot;: 1120 }, { &quot;symbol&quot;: &quot;fb&quot;, &quot;price&quot;: 180 } ]</code></p>
 </li>
 <li><p>Query: <code>PIVOT sp.price AT sp.symbol FROM today_stock_prices sp;</code></p>
 </li>
-<li><p>Output: <code>&#123; &quot;amzn&quot;: 1900, &quot;goog&quot;: 1120, &quot;fb&quot;: 180 &#125;</code></p>
+<li><p>Output: <code>{ &quot;amzn&quot;: 1900, &quot;goog&quot;: 1120, &quot;fb&quot;: 180 }</code></p>
 </li>
 </ul>
 </li>
@@ -628,11 +632,11 @@
 </li>
 <li><p><strong>Example</strong>:</p>
 <ul>
-<li><p>Input: <code>&#123; &quot;date&quot;: &quot;4/1/2019&quot;, &quot;amzn&quot;: 1900, &quot;goog&quot;: 1120, &quot;fb&quot;: 180 &#125;</code></p>
+<li><p>Input: <code>{ &quot;date&quot;: &quot;4/1/2019&quot;, &quot;amzn&quot;: 1900, &quot;goog&quot;: 1120, &quot;fb&quot;: 180 }</code></p>
 </li>
 <li><p>Query: <code>UNPIVOT c AS price AT sym FROM closing_prices c WHERE sym != &#39;date&#39;;</code></p>
 </li>
-<li><p>Output: <code>[ &#123; &quot;date&quot;: &quot;4/1/2019&quot;, &quot;symbol&quot;: &quot;amzn&quot;, &quot;price&quot;: 1900 &#125;, &#123; &quot;date&quot;: &quot;4/1/2019&quot;, &quot;symbol&quot;: &quot;goog&quot;, &quot;price&quot;: 1120 &#125;, &#123; &quot;date&quot;: &quot;4/1/2019&quot;, &quot;symbol&quot;: &quot;fb&quot;, &quot;price&quot;: 180 &#125; ]</code></p>
+<li><p>Output: <code>[ { &quot;date&quot;: &quot;4/1/2019&quot;, &quot;symbol&quot;: &quot;amzn&quot;, &quot;price&quot;: 1900 }, { &quot;date&quot;: &quot;4/1/2019&quot;, &quot;symbol&quot;: &quot;goog&quot;, &quot;price&quot;: 1120 }, { &quot;date&quot;: &quot;4/1/2019&quot;, &quot;symbol&quot;: &quot;fb&quot;, &quot;price&quot;: 180 } ]</code></p>
 </li>
 </ul>
 </li>
@@ -716,7 +720,82 @@
 </ul>
 </blockquote>
 <p>Reference: <a target="_blank" rel="noopener" href="https://static.googleusercontent.com/media/research.google.com/zh-CN//archive/mapreduce-osdi04.pdf">https://static.googleusercontent.com/media/research.google.com/zh-CN//archive/mapreduce-osdi04.pdf</a></p>
+</div>
 
+<div id="zh-content" class="lang-content" style="display: none;"><p>在海量数据环境下，高效、可靠地进行批处理分析是工程与科研常见的需求。MapReduce 以极简的 <strong>Map&#x2F;Reduce</strong> 双函数模型，把复杂的数据流水线拆解成可并行、可恢复的小任务，并通过数据本地化、任务复制等机制，在上千台机器上实现了高吞吐、强容错的离线计算。</p>
+<h1 id="核心编程模型"><a href="#核心编程模型" class="headerlink" title="核心编程模型"></a>核心编程模型</h1><p>MapReduce 的核心只包含两类用户函数：</p>
+<ul>
+<li><strong>Map</strong> 接收单条输入键&#x2F;值对，输出若干 <em>中间</em> 键&#x2F;值对，可重复键值以支持分组。</li>
+<li><strong>Reduce</strong> 按中间键聚集来自所有 Map 任务的值列表，并将其归并为更小的结果集，通常是一条或零条记录。</li>
+</ul>
+<p>框架负责把同键数据路由给同一个 Reduce，并通过迭代器流式传输，避免内存瓶颈。拆分-归并的模式天然支持可伸缩性：更多机器意味着更多同时执行的 Map&#x2F;Reduce 实例，吞吐随之提升。</p>
+<h1 id="执行流程详解"><a href="#执行流程详解" class="headerlink" title="执行流程详解"></a>执行流程详解</h1><h3 id="1-输入切分与任务启动"><a href="#1-输入切分与任务启动" class="headerlink" title="1. 输入切分与任务启动"></a>1. 输入切分与任务启动</h3><p>MapReduce 库读取位于 GFS 上的原始文件，将其切分成 16 MB~64 MB 的片段；分片大小与 GFS 块一致，以便把计算尽量调度到本地持有副本的节点。随后，用户程序的多份副本在集群中启动，其中一份充当 <strong>Master</strong>，其余为 <strong>Worker</strong>。</p>
+<h3 id="2-Map-阶段"><a href="#2-Map-阶段" class="headerlink" title="2. Map 阶段"></a>2. Map 阶段</h3><p>每个 Map Worker 读取自己的输入片段，执行用户 Map 逻辑，把结果暂存本地磁盘，并按 <strong>partition(key) &#x3D; hash(key) mod R</strong> 分成 R 个桶。分桶元数据同步给 Master，供后续 Reduce 拉取。</p>
+<h3 id="3-Shuffle-与-Sort"><a href="#3-Shuffle-与-Sort" class="headerlink" title="3. Shuffle 与 Sort"></a>3. Shuffle 与 Sort</h3><p>Reduce Worker 通过 RPC 从各 Map 节点抓取属于自身分区的数据，先在内存、后在磁盘进行归并排序，保证同键记录连续。</p>
+<h3 id="4-Reduce-阶段与输出"><a href="#4-Reduce-阶段与输出" class="headerlink" title="4. Reduce 阶段与输出"></a>4. Reduce 阶段与输出</h3><p>Reduce 依次遍历排序后的键分组，将每组〈key, value list〉喂给用户 Reduce 函数；输出最终写入 R 个结果文件，直接存放在 GFS 上以获得副本级高可用。</p>
+<p>下图形象展示了上述个步骤：</p>
+<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/mapred_exe_overview.png" alt="img"></p>
+<h1 id="Master-与容错设计"><a href="#Master-与容错设计" class="headerlink" title="Master 与容错设计"></a>Master 与容错设计</h1><p>Master 跟踪每个 Map&#x2F;Reduce 任务的状态（idle, in-progress, completed）与所属 Worker ID。它定期 ping Worker；若超时则认为节点失效：</p>
+<ul>
+<li><strong>Map</strong> 已完成或进行中任务都被重置为 idle 并重新调度，因为中间文件仅存本地磁盘。</li>
+<li><strong>Reduce</strong> 已完成任务不需重跑，输出已写 GFS；进行中任务可在新数据就绪后继续。</li>
+<li>重新执行的 Map 会把新文件位置广播给所有 Reduce，确保尚未抓取的节点读取正确副本。</li>
+</ul>
+<p>尽管可以通过日志检查点重启 Master，Google 论文的实现简化为“Master 挂了就整体重跑”，实际部署中（Hadoop、Colossus）已演进到多 Master 设计。</p>
+<h1 id="性能优化要诀"><a href="#性能优化要诀" class="headerlink" title="性能优化要诀"></a>性能优化要诀</h1><h3 id="数据本地化"><a href="#数据本地化" class="headerlink" title="数据本地化"></a>数据本地化</h3><p>集群带宽宝贵，优先把 Map 调度到存有数据块副本的机器；若不可用，则选同机架节点，显著减少网络流量。</p>
+<h3 id="任务粒度"><a href="#任务粒度" class="headerlink" title="任务粒度"></a>任务粒度</h3><p>把 M、R 设成远大于机器数，可提升负载均衡与失效恢复速度；Google 大规模作业常用 M≈200 K、R≈5 K 对 2 K 台机器。</p>
+<h3 id="Straggler-与备份任务"><a href="#Straggler-与备份任务" class="headerlink" title="Straggler 与备份任务"></a>Straggler 与备份任务</h3><p>极少数拖慢整体完成时间的 Straggler 会在作业末期触发 <strong>backup execution</strong>：Master 为未完成任务再起一到两个副本，谁先结束便认定成功，仅耗费几个百分点资源，即可大幅压缩尾部延迟。</p>
+<h3 id="Combiner"><a href="#Combiner" class="headerlink" title="Combiner"></a>Combiner</h3><p>当中间键重度重复（如 WordCount）时，可在 Mapper 侧引入与 Reduce 同逻辑的 <strong>Combiner</strong>，先把〈the, 1〉… 合并为〈the, N〉，网络数据量骤减。</p>
+<h3 id="计数器与监控"><a href="#计数器与监控" class="headerlink" title="计数器与监控"></a>计数器与监控</h3><p>框架自带 <strong>Counter</strong> 机制：Worker 在 ping 响应中上报局部计数，Master 聚合并去重后展示在 Web 状态页，便于实时掌握任务进度与异常。</p>
+<h3 id="跳过坏记录"><a href="#跳过坏记录" class="headerlink" title="跳过坏记录"></a>跳过坏记录</h3><p>若某条输入反复触发第三方库 segfault，可启用 “skip bad records”：Worker 在信号处理器内记录崩溃序号；出现多次后 Master 指示下次直接跳过，保障作业整体完成。</p>
+<h1 id="高级机制"><a href="#高级机制" class="headerlink" title="高级机制"></a>高级机制</h1><ul>
+<li><strong>分区函数定制</strong>：默认哈希足以平衡负载，但用户可按 URL 主机等语义自定义，以确保相关数据汇聚同一 Reduce 逻辑。</li>
+<li><strong>输入&#x2F;输出格式</strong>：Hadoop 的 TextInputFormat 保证切分发生在行边界，用户亦可自实现 Reader 以处理数据库等非文件来源。</li>
+<li><strong>本地调试模式</strong>：为降低分布式排障成本，可在单机顺序跑完整作业，或仅重放指定 Map 分片，调试体验与普通程序无异。</li>
+<li><strong>I-lease 与 Thundering Herd</strong>：在高并发缓存场景中，可给首个 KVS 未命中请求颁发 <strong>I-lease</strong>，其他请求退避，避免对后端数据库造成“惊群效应”。</li>
+</ul>
+<h1 id="典型问答回顾"><a href="#典型问答回顾" class="headerlink" title="典型问答回顾"></a>典型问答回顾</h1><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>解答</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>M &#x3D; 10，R &#x3D; 20 时 Mapper 产生文件数？</strong></td>
+<td>10 × 20 &#x3D; 200 个中间文件（每个 Map 对每个 Reduce 一份）。</td>
+</tr>
+<tr>
+<td><strong>为何 Reduce 输出落盘到 GFS？</strong></td>
+<td>GFS 通过三副本提供故障恢复且可横向扩容，适合作业级输出。</td>
+</tr>
+<tr>
+<td><strong>Straggler 的含义与解决？</strong></td>
+<td>极慢任务拖延作业尾期；Master 为其启动备份实例，先完成者胜。</td>
+</tr>
+<tr>
+<td><strong>SQL++ 是否能直接查询无模式 CSV？</strong></td>
+<td>可以；SQL++ 面向半结构化数据，天然支持 CSV 等自描述文件。</td>
+</tr>
+<tr>
+<td><strong>Pivot &#x2F; Unpivot 差异？</strong></td>
+<td>Pivot 把行转列；Unpivot 把列转行，常用于灵活透视表分析。</td>
+</tr>
+<tr>
+<td><strong>BG 计算 SoAR 的必要输入？</strong></td>
+<td>SLA 参数、数据库配置、工作负载与生成器并发度等四大类信息。</td>
+</tr>
+<tr>
+<td><strong>CAMP 精度 4 取整示例 00101001→？</strong></td>
+<td>00101000。<br><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/bg_bm_rounding.png" alt="img"></td>
+</tr>
+<tr>
+<td><strong>Thundering Herd 如何被 I-lease 避免？</strong></td>
+<td>首个 miss 获得 I-lease 访问 DB 并回填缓存，其余请求退避等待缓存命中。</td>
+</tr>
+</tbody></table>
+<p>参考文献：<a target="_blank" rel="noopener" href="https://static.googleusercontent.com/media/research.google.com/zh-CN//archive/mapreduce-osdi04.pdf">https://static.googleusercontent.com/media/research.google.com/zh-CN//archive/mapreduce-osdi04.pdf</a></p>
+</div>
     </div>
 
     
@@ -796,7 +875,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Programming-Model"><span class="nav-number">1.</span> <span class="nav-text">Programming Model</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Implementation"><span class="nav-number">2.</span> <span class="nav-text">Implementation</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Master-Data-Structure"><span class="nav-number">2.1.</span> <span class="nav-text">Master Data Structure</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Fault-Tolerance"><span class="nav-number">2.2.</span> <span class="nav-text">Fault Tolerance</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Locality-%E6%95%B0%E6%8D%AE%E6%9C%AC%E5%9C%B0%E5%8C%96%E4%BC%98%E5%8C%96"><span class="nav-number">2.3.</span> <span class="nav-text">Locality 数据本地化优化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Task-Granularity"><span class="nav-number">2.4.</span> <span class="nav-text">Task Granularity</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Backup-Tasks"><span class="nav-number">2.5.</span> <span class="nav-text">Backup Tasks</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Refinement"><span class="nav-number">3.</span> <span class="nav-text">Refinement</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Questions"><span class="nav-number">4.</span> <span class="nav-text">Questions</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-SLA-Specifications"><span class="nav-number">4.0.1.</span> <span class="nav-text">1. SLA Specifications</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Database-Configuration"><span class="nav-number">4.0.2.</span> <span class="nav-text">2. Database Configuration</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-Workload-Parameters"><span class="nav-number">4.0.3.</span> <span class="nav-text">3. Workload Parameters</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-Environmental-Parameters"><span class="nav-number">4.0.4.</span> <span class="nav-text">4. Environmental Parameters</span></a></li></ol></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Programming-Model"><span class="nav-number">1.</span> <span class="nav-text">Programming Model</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Implementation"><span class="nav-number">2.</span> <span class="nav-text">Implementation</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Master-Data-Structure"><span class="nav-number">2.1.</span> <span class="nav-text">Master Data Structure</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Fault-Tolerance"><span class="nav-number">2.2.</span> <span class="nav-text">Fault Tolerance</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Locality-%E6%95%B0%E6%8D%AE%E6%9C%AC%E5%9C%B0%E5%8C%96%E4%BC%98%E5%8C%96"><span class="nav-number">2.3.</span> <span class="nav-text">Locality 数据本地化优化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Task-Granularity"><span class="nav-number">2.4.</span> <span class="nav-text">Task Granularity</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Backup-Tasks"><span class="nav-number">2.5.</span> <span class="nav-text">Backup Tasks</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Refinement"><span class="nav-number">3.</span> <span class="nav-text">Refinement</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Questions"><span class="nav-number">4.</span> <span class="nav-text">Questions</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-SLA-Specifications"><span class="nav-number">4.0.1.</span> <span class="nav-text">1. SLA Specifications</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Database-Configuration"><span class="nav-number">4.0.2.</span> <span class="nav-text">2. Database Configuration</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-Workload-Parameters"><span class="nav-number">4.0.3.</span> <span class="nav-text">3. Workload Parameters</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-Environmental-Parameters"><span class="nav-number">4.0.4.</span> <span class="nav-text">4. Environmental Parameters</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B"><span class="nav-number">5.</span> <span class="nav-text">核心编程模型</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B%E8%AF%A6%E8%A7%A3"><span class="nav-number">6.</span> <span class="nav-text">执行流程详解</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E8%BE%93%E5%85%A5%E5%88%87%E5%88%86%E4%B8%8E%E4%BB%BB%E5%8A%A1%E5%90%AF%E5%8A%A8"><span class="nav-number">6.0.1.</span> <span class="nav-text">1. 输入切分与任务启动</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Map-%E9%98%B6%E6%AE%B5"><span class="nav-number">6.0.2.</span> <span class="nav-text">2. Map 阶段</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-Shuffle-%E4%B8%8E-Sort"><span class="nav-number">6.0.3.</span> <span class="nav-text">3. Shuffle 与 Sort</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-Reduce-%E9%98%B6%E6%AE%B5%E4%B8%8E%E8%BE%93%E5%87%BA"><span class="nav-number">6.0.4.</span> <span class="nav-text">4. Reduce 阶段与输出</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Master-%E4%B8%8E%E5%AE%B9%E9%94%99%E8%AE%BE%E8%AE%A1"><span class="nav-number">7.</span> <span class="nav-text">Master 与容错设计</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E8%A6%81%E8%AF%80"><span class="nav-number">8.</span> <span class="nav-text">性能优化要诀</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E6%9C%AC%E5%9C%B0%E5%8C%96"><span class="nav-number">8.0.1.</span> <span class="nav-text">数据本地化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%BB%E5%8A%A1%E7%B2%92%E5%BA%A6"><span class="nav-number">8.0.2.</span> <span class="nav-text">任务粒度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Straggler-%E4%B8%8E%E5%A4%87%E4%BB%BD%E4%BB%BB%E5%8A%A1"><span class="nav-number">8.0.3.</span> <span class="nav-text">Straggler 与备份任务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Combiner"><span class="nav-number">8.0.4.</span> <span class="nav-text">Combiner</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%A1%E6%95%B0%E5%99%A8%E4%B8%8E%E7%9B%91%E6%8E%A7"><span class="nav-number">8.0.5.</span> <span class="nav-text">计数器与监控</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B7%B3%E8%BF%87%E5%9D%8F%E8%AE%B0%E5%BD%95"><span class="nav-number">8.0.6.</span> <span class="nav-text">跳过坏记录</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%AB%98%E7%BA%A7%E6%9C%BA%E5%88%B6"><span class="nav-number">9.</span> <span class="nav-text">高级机制</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%B8%E5%9E%8B%E9%97%AE%E7%AD%94%E5%9B%9E%E9%A1%BE"><span class="nav-number">10.</span> <span class="nav-text">典型问答回顾</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -838,6 +917,24 @@
     <footer class="footer">
       <div class="footer-inner">
         
+  <div class="languages">
+    <label class="lang-select-label">
+      <i class="fa fa-language"></i>
+      <span>简体中文</span>
+      <i class="fa fa-angle-up" aria-hidden="true"></i>
+    </label>
+    <select class="lang-select" data-canonical="">
+      
+        <option value="zh-CN" data-href="/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/22/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/MapReduce/" selected="">
+          简体中文
+        </option>
+      
+        <option value="en" data-href="/en/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/22/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/MapReduce/" selected="">
+          English
+        </option>
+      
+    </select>
+  </div>
 
         
 
