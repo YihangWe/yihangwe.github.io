@@ -1173,7 +1173,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-18 22:13:48" itemprop="dateModified" datetime="2025-06-18T22:13:48-07:00">2025-06-18</time>
+                <time title="Modified: 2025-06-18 22:18:27" itemprop="dateModified" datetime="2025-06-18T22:18:27-07:00">2025-06-18</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1357,7 +1357,7 @@
 <p>这里将 <code>/db/ibdata1</code> 和 <code>/dr2/db/ibdata2</code> 两个文件用于组成表空间。若这两个文件位于不同的磁盘上，磁盘的负载可能被平均，因此可以提高数据库的整体性能。同时，两个文件的文件名后都跟了属性，表示文件 ibdata1 的大小为 2000MB，文件 ibdata2 的大小为 2000MB，如果用完了这 2000MB，该文件可以自动增长（autoextend）。</p>
 <p>设置 <code>innodb_data_file_path</code> 参数后，所有基于 InnoDB 存储引擎的表的数据都会记录到该共享表空间中。若设置了参数 <code>innodb_file_per_table</code>，则用户可以将每个基于 InnoDB 存储引擎的表生成一个独立表空间。独立表空间的命名规则为：表名 <code>.ibd</code>。需要注意的是，这些单独的表空间文件仅存储该表的数据、索引和插入缓冲 BITMAP 等信息，其余信息还是存放在默认的表空间中。</p>
 <p>下图展示了 InnoDB 对于文件的存储方式：</p>
-<p><img src="/Users/yihangwei/blog/source/images/MySQL/mysql_tablespace.drawio.png" alt="img"></p>
+<p><img src="/../../images/MySQL/mysql_tablespace.drawio.png" alt="img"></p>
 <h3 id="Redo-日志文件"><a href="#Redo-日志文件" class="headerlink" title="Redo 日志文件"></a>Redo 日志文件</h3><p>在默认情况下，在 InnoDB 存储引擎的数据目录下会有两个名为 <code>ib_logfile0</code> 和 <code>ib_logfile1</code> 的文件。</p>
 <p>当实例或介质失败时，重做日志文件就能派上用场。例如，数据库由于所在主机掉电导致实例失败，InnoDB 存储引擎会使用 Redo 日志恢复到掉电前的时刻，以此来保证数据的完整性。</p>
 <p>每个 InnoDB 存储引擎至少有 1 个 Redo 日志文件组，每个文件组下至少有 2 个 Redo 日志文件，如默认的 <code>ib_logfile0</code> 和 <code>ib_logfile1</code>。为了得到更高的可靠性，用户可以设置多个镜像日志组，将不同的文件组放在不同的磁盘上，以此提高 Redo 日志的高可用性。在日志组中每个 Redo 日志文件的大小一致，并以循环写入的方式运行。InnoDB 存储引擎先写 Redo 日志文件 1，当达到文件的最后时，会切换至 Redo 日志文件 2，再当重做日志文件 2 也被写满时，会再切换到 Redo 日志文件 1 中。</p>
@@ -1378,7 +1378,7 @@
 <p>其次，记录的内容不同。无论用户将二进制日志文件记录的格式设为 STATEMENT 还是 ROW，又或者是 MIXED，其记录的都是关于一个事务的具体操作内容，即该日志是逻辑日志。而 InnoDB 存储引擎的 Redo 日志文件记录的是关于每个页（Page）的更改的物理情况。</p>
 <p>此外，写入的时间也不同，二进制日志文件仅在事务提交前进行提交，即只写磁盘一次，不论这时该事务多大。而在事务进行的过程中，却不断有 Redo 日志条目（redo entry）被写入到 Redo 日志文件中。</p>
 <p>Redo 日志条目的结构如下：</p>
-<p><img src="/Users/yihangwei/blog/source/images/MySQL/mysql_redo_item.drawio.png" alt="img"></p>
+<p><img src="/../../images/MySQL/mysql_redo_item.drawio.png" alt="img"></p>
 <p>上图中 Redo 日志条目是由 4 个部分组成：</p>
 <ul>
 <li><code>redo_log_type</code> 占用 1 字节，表示重做日志的类型。</li>
@@ -1387,7 +1387,7 @@
 <li><code>redo_log_body</code> 表示每个重做日志的数据部分，恢复时需要调用相应的函数进行解析。</li>
 </ul>
 <p>写入重做日志文件的操作不是直接写，而是先写入一个重做日志缓冲中，然后按照一定的条件顺序地写入日志文件。下图是 Redo 日志的写入过程：</p>
-<p><img src="/Users/yihangwei/blog/source/images/MySQL/mysql_redo_sync.drawio.png" alt="img"></p>
+<p><img src="/../../images/MySQL/mysql_redo_sync.drawio.png" alt="img"></p>
 <p>从重做日志缓冲往磁盘写入时是按 512 字节，也就是一个扇区的大小进行写入。因为在传统的磁盘存储设备中，扇区是最小的物理写入单位。当操作系统或数据库系统请求写入数据时，磁盘控制器会确保整个扇区的数据要么被完整地写入，要么在发生故障（如断电）时不进行任何写入。这种机制确保了写入操作的原子性，即不会出现撕裂写（torn write）的情况，因此在重做日志的写入过程中不需要有 doublewrite。</p>
 <p>前面提到了从日志缓冲写入磁盘上的重做日志文件是按一定条件进行的，那这些条件有哪些呢？我们知道在主线程中每秒会将重做日志缓冲写入磁盘的重做日志文件中，不论事务是否已经提交。另一个触发写磁盘的过程是由参数 <code>innodb_flush_log_at_trx_commit</code> 控制，表示在提交操作时，处理重做日志的方式。</p>
 <p>参数 <code>innodb_flush_log_at_trx_commit</code> 的有效值有 0、1、2。</p>

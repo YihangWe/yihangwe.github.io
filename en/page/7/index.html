@@ -434,94 +434,6 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/13/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/HRPS%20Background/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Yihang Wei">
-      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="EthanWeee">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/13/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/HRPS%20Background/" class="post-title-link" itemprop="url">HRPS Background</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2024-09-13 00:00:00" itemprop="dateCreated datePublished" datetime="2024-09-13T00:00:00-07:00">2024-09-13</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-05-31 21:00:34" itemprop="dateModified" datetime="2025-05-31T21:00:34-07:00">2025-05-31</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">数据库系统</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/index_and_page.png" alt="img"></p>
-<p>Each page consits of the header, the record space and a pointer array. Each slot in this array points to a record within the page.</p>
-<p>A record is located by providing its page address and the slot number. The combination is called RID.</p>
-<p>Life Cycle of a record:</p>
-<p>Insert: Find an empty space to put it and set a slot at the very end of the page to point to it.</p>
-<p>Delete: Remove the record and reclaim this space, set its slot number to null. When there are too many garbage slots, the system will drop the index structure, do reorganization on this disk page by removing all null slots, and reconstruct the index structure from scratch.</p>
-<p>Non-clustered Index: the data of the disk page is independent of the bucket or leaf node of index.</p>
-<p>Clustered Index: the data of the disk page resides within the bucket or leaf node of index.</p>
-<p>Hash Index: the item in buckets is not ordered by the attribute value of index.</p>
-<p>B+Tree Index: the item in leaf nodes is ordered by the attribute value of index.</p>
-<ul>
-<li>Primary Index: the data in the disk page is ordered.</li>
-<li>Secondary Index: the data in the disk page is not ordered.</li>
-</ul>
-<p>Reference: <a target="_blank" rel="noopener" href="https://www.vldb.org/conf/1990/P481.PDF">https://www.vldb.org/conf/1990/P481.PDF</a></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
     <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/13/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/HRPS/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -615,6 +527,94 @@
 <li>The system could monitor node performance and dynamically adjust the degree of parallelism and fragment allocation based on current load and node availability.</li>
 <li>Heavier tasks may be directed to more powerful nodes, while smaller or simpler queries could be executed on less powerful nodes.</li>
 </ol>
+<p>Reference: <a target="_blank" rel="noopener" href="https://www.vldb.org/conf/1990/P481.PDF">https://www.vldb.org/conf/1990/P481.PDF</a></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/13/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/HRPS%20Background/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/13/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/HRPS%20Background/" class="post-title-link" itemprop="url">HRPS Background</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2024-09-13 00:00:00" itemprop="dateCreated datePublished" datetime="2024-09-13T00:00:00-07:00">2024-09-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-05-31 21:00:34" itemprop="dateModified" datetime="2025-05-31T21:00:34-07:00">2025-05-31</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">数据库系统</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/index_and_page.png" alt="img"></p>
+<p>Each page consits of the header, the record space and a pointer array. Each slot in this array points to a record within the page.</p>
+<p>A record is located by providing its page address and the slot number. The combination is called RID.</p>
+<p>Life Cycle of a record:</p>
+<p>Insert: Find an empty space to put it and set a slot at the very end of the page to point to it.</p>
+<p>Delete: Remove the record and reclaim this space, set its slot number to null. When there are too many garbage slots, the system will drop the index structure, do reorganization on this disk page by removing all null slots, and reconstruct the index structure from scratch.</p>
+<p>Non-clustered Index: the data of the disk page is independent of the bucket or leaf node of index.</p>
+<p>Clustered Index: the data of the disk page resides within the bucket or leaf node of index.</p>
+<p>Hash Index: the item in buckets is not ordered by the attribute value of index.</p>
+<p>B+Tree Index: the item in leaf nodes is ordered by the attribute value of index.</p>
+<ul>
+<li>Primary Index: the data in the disk page is ordered.</li>
+<li>Secondary Index: the data in the disk page is not ordered.</li>
+</ul>
 <p>Reference: <a target="_blank" rel="noopener" href="https://www.vldb.org/conf/1990/P481.PDF">https://www.vldb.org/conf/1990/P481.PDF</a></p>
 
       
