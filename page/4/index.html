@@ -181,6 +181,626 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/MySQL/2024/10/25/MySQL/MySQL%20%E7%AE%A1%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/MySQL/2024/10/25/MySQL/MySQL%20%E7%AE%A1%E7%90%86/" class="post-title-link" itemprop="url">MySQL 管理</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-10-25 00:00:00" itemprop="dateCreated datePublished" datetime="2024-10-25T00:00:00-07:00">2024-10-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-06-17 22:31:35" itemprop="dateModified" datetime="2025-06-17T22:31:35-07:00">2025-06-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p><code>/usr/local/mysql/bin</code> 目录下提供了多个客户端工具，具体如下：</p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>mysql</td>
+<td>客户端程序，用于连接 MySQL 服务器</td>
+</tr>
+<tr>
+<td>mysqldump</td>
+<td>一个非常实用的 MySQL 数据库备份工具，用于创建一个或多个 MySQL 数据库级别的 SQL 转储文件，包括数据库的表结构和数据。对数据库备份、迁移或恢复非常重要。</td>
+</tr>
+<tr>
+<td>mysqladmin</td>
+<td>mysql 后面加上 admin 就表明这是一个 MySQL 的管理工具，它可以用来执行一些管理操作，比如说创建数据库、删除数据库、查看 MySQL 服务器的状态等。</td>
+</tr>
+<tr>
+<td>mysqlcheck</td>
+<td>mysqlcheck 是 MySQL 提供的一个命令行工具，用于检查、修复、分析和优化数据库表，对数据库的维护和性能优化非常有用。</td>
+</tr>
+<tr>
+<td>mysqlimport</td>
+<td>用于从文本文件中导入数据到数据库表中，非常适合用于批量导入数据。</td>
+</tr>
+<tr>
+<td>mysqlshow</td>
+<td>用于显示 MySQL 数据库服务器中的数据库、表、列等信息。</td>
+</tr>
+<tr>
+<td>mysqlbinlog</td>
+<td>用于查看 MySQL 二进制日志文件的内容，可以用于恢复数据、查看数据变更等。</td>
+</tr>
+</tbody></table>
+<p>MySQL 在每个实例中都预装了四个系统数据库，用于存储元数据、权限及运行时性能统计等信息。<code>information_schema</code> 以视图形式提供数据字典和权限信息的只读访问；mysql 模式包含用户账户、时区、复制配置等必要的系统表；<code>performance_schema</code> 聚焦于运行时性能监控，采用专用存储引擎记录服务器内部执行情况；而 sys 模式则封装了一系列基于 performance_schema 的视图和存储过程，帮助 DBA 和开发人员快速诊断与调优。</p>
+<p>与系统数据库配套，MySQL Server 安装包中还包括多种命令行工具：</p>
+<ul>
+<li><code>mysql</code>：交互式 SQL Shell，支持命令行编辑及脚本化操作，用于执行任意 SQL 语句，并以可读的格式显示结果。</li>
+<li><code>mysqladmin</code>：管理型客户端，可检查服务器状态、创建&#x2F;删除数据库、执行刷新及关闭操作等。</li>
+<li><code>mysqlbinlog</code>：二进制日志处理工具，可查看或导出 binlog、relay log，常用于增量备份与故障恢复。</li>
+<li><code>mysqlshow</code>：快速展示已有数据库、表及字段信息，相当于对 SHOW 系列语句的轻量封装。</li>
+<li><code>mysqldump</code>：生成逻辑备份的主力工具，将库表结构和数据导出为 SQL 脚本或其他格式，用于迁移和恢复<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/en/mysqldump.html?utm_source=chatgpt.com"> </a>。</li>
+<li><code>mysqlimport</code>：将文本文件批量导入到表中，通常与 <code>mysqldump -T</code> 导出的数据配合使用。</li>
+<li><code>mysqlcheck</code>：表维护工具，可检查、修复、优化和分析表，用于日常健康检查与性能优化。</li>
+<li><code>source</code>（MySQL 客户端内置命令）：在 <code>mysql&gt;</code> 提示符下执行指定的 <code>.sql</code> 文件，常用于批量恢复脚本。</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/10/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/BG%20Benchmark/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/10/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/BG%20Benchmark/" class="post-title-link" itemprop="url">BG Benchmark</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-10-25 00:00:00" itemprop="dateCreated datePublished" datetime="2024-10-25T00:00:00-07:00">2024-10-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-05-31 20:59:14" itemprop="dateModified" datetime="2025-05-31T20:59:14-07:00">2025-05-31</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">数据库系统</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="Data-Model-and-Performance-Metrics"><a href="#Data-Model-and-Performance-Metrics" class="headerlink" title="Data Model and Performance Metrics"></a>Data Model and Performance Metrics</h1><ol>
+<li>ER Diagram and Database Design</li>
+</ol>
+<ul>
+<li>ER Diagram (Figure 1.a):Represents entities and relationships in the BG system.<ul>
+<li>Member Entity:<ul>
+<li>Represents users with a registered profile, including a unique ID and a set of adjustable-length string attributes to create records of varying sizes.</li>
+<li>Each user can have up to two images:<ul>
+<li>Thumbnail Image: Small (in KBs), used for displaying in friend lists.</li>
+<li>High-Resolution Image: Larger (hundreds of KBs or MBs), displayed when visiting a user profile.</li>
+<li>Using thumbnails significantly reduces system load compared to larger images.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Friend Relationship:<ul>
+<li>Captures relationships or friend requests between users. An attribute differentiates between invitations and confirmed friendships.</li>
+</ul>
+</li>
+<li>Resource Entity:<ul>
+<li>Represents user-owned items like images, questions, or documents. Resources must belong to a user and can be posted on their profile or another user’s profile.</li>
+</ul>
+</li>
+<li>Manipulation Relationship:<ul>
+<li>Manages comments and restrictions (e.g., only friends can comment on a resource).</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ol start="2">
+<li>BG Workload and SLA (Service-Level Agreement)</li>
+</ol>
+<ul>
+<li><p>Workload: BG supports defining workloads at the granularity of:</p>
+<ul>
+<li>Actions: Single operations like “view profile” or “list friends.”</li>
+<li>Sessions: A sequence of related actions (e.g., browsing a profile, sending a friend request).</li>
+<li>Mixed Workloads: A combination of actions and sessions.</li>
+</ul>
+</li>
+<li><p>Service-Level Agreement (SLA):</p>
+<ul>
+<li>Goal: Ensures the system provides reliable performance under specified conditions.</li>
+<li>Example SLA Requirements: SLA, e.g., 95% of requests to observe a response time equal to or faster than 100 msec with at most 0.1% of requests observing unpredictable data for 10 minutes.</li>
+</ul>
+</li>
+<li><p>Metrics:</p>
+<ul>
+<li><strong>SoAR (Social Action Rating): Measures the highest number of actions per second that meet the SLA.</strong></li>
+<li><strong>Socialites: Measures the maximum number of concurrent threads that meet the SLA, reflecting the system’s multithreading capabilities.</strong></li>
+</ul>
+</li>
+</ul>
+<ol start="3">
+<li>Performance Evaluation Example</li>
+</ol>
+<ul>
+<li>SQL-X System Performance:SQL-X is a relational database with strict ACID compliance.<ul>
+<li>Initially, throughput increases with more threads.</li>
+<li>Beyond a certain threshold (e.g., 4 threads), request queuing causes response times to increase, reducing SLA compliance.</li>
+<li>With 32 threads, 99.94% of requests exceed the 100-millisecond SLA limit, indicating significant performance degradation.</li>
+</ul>
+</li>
+</ul>
+<ol start="4">
+<li>Concurrency and Optimization in BG</li>
+</ol>
+<ul>
+<li><p><strong>Concurrency Management:</strong></p>
+<ul>
+<li><strong>BG prevents two threads from emulating the same user simultaneously to realistically simulate user behavior.</strong></li>
+</ul>
+</li>
+<li><p><strong>Unpredictable Data Handling:</strong></p>
+<ul>
+<li><strong>Definition: Data that is stale, inconsistent, or invalid due to system limitations or race conditions.</strong></li>
+<li><strong>Validation:</strong><ul>
+<li><strong>BG uses offline validation to analyze read and write logs.</strong></li>
+<li><strong>It determines acceptable value ranges for data and flags any reads that fall outside these ranges as unpredictable.</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>If SoAR is zero, the data store fails to meet SLA requirements, even with a single-threaded BGClient issuing requests.</p>
+</blockquote>
+<h1 id="Actions"><a href="#Actions" class="headerlink" title="Actions"></a>Actions</h1><h2 id="Performance-Analysis-of-View-Profile"><a href="#Performance-Analysis-of-View-Profile" class="headerlink" title="Performance Analysis of View Profile"></a>Performance Analysis of View Profile</h2><p>Performance of VP is influenced by whether profile images are included and their sizes.</p>
+<p><strong>Experiment Setup</strong>:</p>
+<ul>
+<li>Profile data tested with:</li>
+<li><ul>
+<li><strong>No images</strong>.</li>
+<li><strong>2 KB thumbnails</strong> combined with profile images of <strong>2 KB, 12 KB, and 500 KB</strong> sizes.</li>
+</ul>
+</li>
+<li>Metrics: SoAR (Social Action Rating) measures the number of VP actions per second that meet the SLA (response time ≤ 100 ms).</li>
+</ul>
+<p><strong>Results</strong>:</p>
+<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/experiment1.png" alt="img"></p>
+<ol>
+<li><p><strong>No Images</strong>:</p>
+<ul>
+<li>MongoDB performed the best, outperforming SQL-X and CASQL by almost 2x.</li>
+</ul>
+</li>
+<li><p><strong>12 KB Images</strong>:</p>
+<ul>
+<li>SQL-X’s SoAR dropped significantly, from thousands of actions per second to only hundreds.</li>
+</ul>
+</li>
+<li><p><strong>500 KB Images</strong>:</p>
+<ul>
+<li><p><strong>SQL-X failed to meet the SLA (SoAR &#x3D; 0) because transmitting large images caused significant delays.</strong></p>
+</li>
+<li><p>MongoDB and CASQL also experienced a decrease in SoAR but performed better than SQL-X.</p>
+</li>
+</ul>
+</li>
+</ol>
+<p><strong>Role of CASQL</strong>:</p>
+<ul>
+<li><p><strong>CASQL outperformed SQL-X due to its caching layer (memcached):</strong></p>
+<ul>
+<li><p>During a warm-up phase, 500,000 requests populate the cache with key-value pairs for member profiles.</p>
+</li>
+<li><p>Most requests are serviced by memcached instead of SQL-X, significantly improving performance with larger images (12 KB and 500 KB).</p>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="Performance-Analysis-of-List-Friends"><a href="#Performance-Analysis-of-List-Friends" class="headerlink" title="Performance Analysis of List Friends"></a><strong>Performance Analysis of List Friends</strong></h2><p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/experiment2.png" alt="img"></p>
+<p><strong>1. SQL-X</strong></p>
+<ul>
+<li><strong>Process</strong>:<ul>
+<li>Joins the <code>Friends</code> table with the <code>Members</code> table to fetch the friend list.</li>
+<li>Friendship between two members is represented as a single record in the <code>Friends</code> table.</li>
+</ul>
+</li>
+<li><strong>Performance</strong>:<ul>
+<li><strong>When ϕ (number of friends) is 1000, SQL-X struggles due to the overhead of joining large tables and fails to meet SLA requirements.</strong></li>
+</ul>
+</li>
+</ul>
+<p><strong>2. CASQL</strong></p>
+<ul>
+<li><strong>Process</strong>:<ul>
+<li>Uses a memcached caching layer to store and retrieve results of the LF action.</li>
+<li>Results are cached as key-value pairs.</li>
+</ul>
+</li>
+<li><strong>Performance</strong>:<ul>
+<li>Outperforms SQL-X when ϕ is 50 or 100 by a small margin (&lt;10% improvement).</li>
+<li><strong>At ϕ&#x3D;1000, memcached’s key-value size limit (1 MB) causes failures, as the data exceeds this limit.</strong></li>
+<li>Adjusting memcached to support larger key-value pairs (e.g., 2 MB for 1000 friends with 2 KB thumbnails) could improve performance.</li>
+</ul>
+</li>
+</ul>
+<p><strong>3. MongoDB</strong></p>
+<ul>
+<li><strong>Process</strong>:<ul>
+<li>Retrieves the <code>confirmedFriends</code> array from the referenced member’s document.</li>
+<li>Can fetch friends’ profile documents one by one or as a batch.</li>
+</ul>
+</li>
+<li><strong>Performance</strong>:<ul>
+<li>Performs no joins, but its SLA compliance is poor for larger friend counts.</li>
+<li>SoAR is zero for ϕ&#x3D;50,100,1000, as it fails to meet the 100 ms response time requirement.</li>
+<li>For smaller friend lists (ϕ&#x3D;10), MongoDB achieves a SoAR of 6 actions per second.</li>
+</ul>
+</li>
+</ul>
+<h2 id="Mix-of-Read-and-Write-Actions"><a href="#Mix-of-Read-and-Write-Actions" class="headerlink" title="Mix of Read and Write Actions"></a><strong>Mix of Read and Write Actions</strong></h2><ul>
+<li><strong>Purpose</strong>: Evaluates the performance of data stores under different ratios of read and write operations.</li>
+<li><strong>Categories</strong>:<ul>
+<li><strong>Read actions</strong>: Include operations like View Profile (VP), List Friends (LF), and View Friend Requests (VFR).</li>
+<li><strong>Write actions</strong>: Modify friendship relationships and invalidate cached key-value pairs (e.g., Invite Friend, Accept Friend Request).</li>
+</ul>
+</li>
+<li><strong>Mix Variations</strong>:<ul>
+<li><strong>Very low writes (0.1%)</strong>: Dominantly read-heavy workloads.</li>
+<li><strong>Low writes (1%)</strong>: Slightly higher frequency of write actions.</li>
+<li><strong>High writes (10%)</strong>: Write-intensive workloads.</li>
+</ul>
+</li>
+</ul>
+<p><strong>Performance Analysis (Mix of Read and Write Actions)</strong></p>
+<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/experiment3.png" alt="img"></p>
+<ul>
+<li><strong>SoAR Comparison</strong>:<ul>
+<li><strong>CASQL</strong> consistently achieves the highest SoAR for all write mixes due to its caching mechanism.</li>
+<li><strong>MongoDB</strong> outperforms <strong>SQL-X</strong> by a factor of 3 across all workloads.</li>
+</ul>
+</li>
+</ul>
+<p><strong>Observations by Write Percentage:</strong></p>
+<ol>
+<li><p><strong>0.1% Writes (Read-Dominant)</strong>:</p>
+<ul>
+<li><p>CASQL significantly outperforms MongoDB due to efficient use of cached key-value pairs.</p>
+</li>
+<li><p>SQL-X lags due to the overhead of processing read actions directly from the RDBMS.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>1% Writes</strong>:</p>
+<ul>
+<li><p>CASQL remains the best performer but shows sensitivity to increasing writes as it invalidates cached data, redirecting more queries to the RDBMS.</p>
+</li>
+<li><p>MongoDB maintains a consistent performance advantage over SQL-X.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>10% Writes (Write-Heavy)</strong>:</p>
+<ul>
+<li><p><strong>CASQL slightly outperforms MongoDB, but the gap narrows due to the higher frequency of cache invalidations.</strong></p>
+</li>
+<li><p>SQL-X continues to struggle with write-heavy workloads due to its lack of caching.</p>
+</li>
+</ul>
+</li>
+</ol>
+<h1 id="Session"><a href="#Session" class="headerlink" title="Session"></a>Session</h1><blockquote>
+<p>Definition: A session is a sequence of actions performed by a socialite (user) in the social network.</p>
+<p>Key Concepts:</p>
+<ol>
+<li>Think Time: Delay between consecutive actions within a session.</li>
+<li>Inter-Arrival Time: Delay between sessions initiated by different socialites.</li>
+</ol>
+</blockquote>
+<p><strong>Key Considerations</strong></p>
+<ol>
+<li><p><strong>Dependencies</strong>:</p>
+<ul>
+<li><p>Some sessions rely on specific database states (e.g., friends or pending requests).</p>
+</li>
+<li><p>For example, if m_i has no friends or pending requests, certain sessions terminate early.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Concurrency Handling</strong>:</p>
+<ul>
+<li><p>BG uses in-memory data structures to simulate database states and prevent conflicts (e.g., multiple threads deleting the same comment).</p>
+</li>
+<li><p>Ensures integrity by managing semaphores and detecting unpredictable data.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Extensibility</strong>:</p>
+<ul>
+<li>BG allows developers to define new sessions by combining different mixes of actions.</li>
+</ul>
+</li>
+</ol>
+<h1 id="Parallelism"><a href="#Parallelism" class="headerlink" title="Parallelism"></a>Parallelism</h1><h2 id="BG’s-Scalable-Benchmarking-Framework"><a href="#BG’s-Scalable-Benchmarking-Framework" class="headerlink" title="BG’s Scalable Benchmarking Framework"></a>BG’s Scalable Benchmarking Framework</h2><p>To address these limitations, BG employs <strong>a shared-nothing architecture</strong> with the following components:</p>
+<p><strong>1. BGCoord (Coordinator)</strong></p>
+<ul>
+<li><strong>Role</strong>: Oversees and coordinates the benchmarking process.</li>
+<li><strong>Responsibilities</strong>:<ul>
+<li><strong>Computes SoAR and Socialites ratings.</strong></li>
+<li><strong>Assigns workloads to BGClients and monitors their progress.</strong></li>
+<li><strong>Aggregates results (e.g., response times, throughput) for visualization.</strong></li>
+</ul>
+</li>
+<li><strong>Process</strong>:<ul>
+<li><strong>Splits the workload among N BGClients.</strong></li>
+<li><strong>Ensures each BGClient works independently to prevent resource contention.</strong></li>
+</ul>
+</li>
+</ul>
+<p><strong>2. BGClient</strong></p>
+<ul>
+<li><strong>Role</strong>: Executes tasks assigned by BGCoord.</li>
+<li><strong>Responsibilities</strong>:<ul>
+<li><strong>Creates a database based on BG specifications.</strong></li>
+<li><strong>Simulates workload actions and computes metrics like unpredictable data volume.</strong></li>
+<li><strong>Periodically reports metrics to BGCoord for aggregation.</strong></li>
+</ul>
+</li>
+</ul>
+<p><strong>3. Visualization Deck</strong></p>
+<ul>
+<li><strong>Role</strong>: Provides a user interface for monitoring and controlling the benchmarking process.</li>
+<li><strong>Features</strong>:<ul>
+<li>Allows users to configure parameters (e.g., SLA, workloads).</li>
+<li>Visualizes the ratings (SoAR, Socialites) and progress of the benchmarking.</li>
+</ul>
+</li>
+</ul>
+<p><strong>Scaling with BGClients</strong></p>
+<ul>
+<li><strong>Fragmentation</strong>:<ul>
+<li><strong>The database is split into N logical fragments, each assigned to a BGClient.</strong></li>
+<li><strong>Each fragment includes unique members, friendships, and resources, ensuring no overlap between BGClients.</strong></li>
+</ul>
+</li>
+<li><strong>Decentralized D-Zipfian Distribution</strong>:<ul>
+<li><strong>Used to balance workloads across nodes with different processing speeds.</strong></li>
+<li><strong>Faster nodes handle larger fragments, ensuring equal workload completion times.</strong></li>
+</ul>
+</li>
+</ul>
+<h1 id="Unpredictable-Data"><a href="#Unpredictable-Data" class="headerlink" title="Unpredictable Data"></a>Unpredictable Data</h1><p><strong>Definition</strong>: <strong>Data that is stale, inconsistent, or invalid, produced due to race conditions, dirty reads, or eventual consistency.</strong></p>
+<h2 id="BG’s-Validation-Process"><a href="#BG’s-Validation-Process" class="headerlink" title="BG’s Validation Process"></a>BG’s Validation Process</h2><p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/chart1.png" alt="img"></p>
+<h2 id="Validation-Implementation"><a href="#Validation-Implementation" class="headerlink" title="Validation Implementation"></a>Validation Implementation</h2><ol>
+<li><strong>Log Generation</strong>:<ul>
+<li><strong>BG generates read log records (observed values) and write log records (new or delta values).</strong></li>
+</ul>
+</li>
+<li><strong>Offline Validation</strong>:<ul>
+<li><strong>For each read log entry:</strong><ul>
+<li><strong>BG computes a range of valid values using overlapping write logs.</strong></li>
+<li><strong>If the observed value is outside this range, it is flagged as unpredictable.</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="Impact-of-Time-to-Live-TTL-on-Unpredictable-Data"><a href="#Impact-of-Time-to-Live-TTL-on-Unpredictable-Data" class="headerlink" title="Impact of Time-to-Live (TTL) on Unpredictable Data"></a>Impact of Time-to-Live (TTL) on Unpredictable Data</h2><p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/chart2.png" alt="img"></p>
+<p><strong>Results</strong>:</p>
+<ol>
+<li><p><strong>Higher TTL Increases Stale Data</strong>:</p>
+<ul>
+<li><p>A higher TTL (e.g., 120 seconds) results in more stale key-value pairs, increasing the percentage of unpredictable data.</p>
+</li>
+<li><p>For T&#x3D;100T &#x3D; 100T&#x3D;100, unpredictable data is:</p>
+<ul>
+<li>~79.8% with TTL &#x3D; 30 seconds.</li>
+<li>~98.15% with TTL &#x3D; 120 seconds.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>Performance Trade-off</strong>:</p>
+<ul>
+<li><p><strong>A higher TTL improves performance (fewer cache invalidations) but increases stale data.</strong></p>
+</li>
+<li><p><strong>Lower TTL reduces stale data but impacts cache performance.</strong></p>
+</li>
+</ul>
+</li>
+</ol>
+<h1 id="Heuristic-Search-for-Rating"><a href="#Heuristic-Search-for-Rating" class="headerlink" title="Heuristic Search for Rating"></a>Heuristic Search for Rating</h1><p><strong>Why Use Heuristic Search?</strong></p>
+<ul>
+<li>Exhaustive search starting from T&#x3D;1 to the maximum T is time-consuming.</li>
+<li>MongoDB with T&#x3D;1000 and Δ&#x3D;10 minutes would take 7 days for exhaustive testing.</li>
+</ul>
+<p><strong>Steps in Heuristic Search</strong>:</p>
+<ol>
+<li><p><strong>Doubling Strategy</strong>:</p>
+<ul>
+<li><p><strong>Start with T&#x3D;1, double T after each successful experiment.</strong></p>
+</li>
+<li><p><strong>Stop when SLA fails, narrowing down T to an interval.</strong></p>
+</li>
+</ul>
+</li>
+<li><p><strong>Binary Search</strong>:</p>
+<ul>
+<li><p><strong>Identify the T corresponding to max throughput within the interval.</strong></p>
+</li>
+<li><p><strong>Used for both SoAR (peak throughput) and Socialites (maximum concurrent threads).</strong></p>
+</li>
+</ul>
+</li>
+</ol>
+<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>What system metrics does BG quantify?</strong></p>
+<p><strong>SoAR (Social Action Rating):</strong></p>
+<ul>
+<li>The highest throughput (actions per second) that satisfies a given SLA, ensuring at least α% of requests meet the response time β, with at most τ% of requests observing unpredictable data.</li>
+</ul>
+<p><strong>Socialites Rating:</strong></p>
+<ul>
+<li>The maximum number of simultaneous threads (or users) that a data store can support while still meeting the SLA requirements.</li>
+</ul>
+<p><strong>Throughput</strong>:</p>
+<ul>
+<li>Total number of completed actions per unit of time.</li>
+</ul>
+<p><strong>Response Time:</strong></p>
+<ul>
+<li>Average or percentile-based latency for each action.</li>
+</ul>
+<p><strong>Unpredictable Data:</strong></p>
+<ul>
+<li>The percentage of actions that observe stale, inconsistent, or invalid data during execution.</li>
+</ul>
+<p><strong>How does BG scale to generate a large number of requests?</strong></p>
+<p>BG employs <strong>a shared-nothing architecture</strong> with the following mechanisms to scale effectively:</p>
+<ol>
+<li><p><strong>Partitioning Members and Resources:</strong></p>
+<ul>
+<li><p>BGCoord <strong>partitions</strong> the database into <strong>logical fragments</strong>, each containing <strong>a unique subset</strong> of members, their resources, and relationships.</p>
+</li>
+<li><p>These fragments are assigned to individual BGClients.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Multiple BGClients:</strong></p>
+<ul>
+<li><p>Each BGClient operates <strong>independently</strong>, generating workloads for its assigned logical fragment.</p>
+</li>
+<li><p>By running <strong>multiple</strong> BGClients <strong>in parallel</strong> across different nodes, BG can scale horizontally to handle millions of requests.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>D-Zipfian Distribution:</strong></p>
+<ul>
+<li><p>To ensure realistic and scalable workloads, BG uses a decentralized Zipfian distribution (D-Zipfian) that <strong>dynamically assigns</strong> requests to BGClients based on node performance.</p>
+</li>
+<li><p>Faster nodes receive a larger share of the logical fragments, ensuring even workload distribution.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Concurrency Control:</strong></p>
+<ul>
+<li>BG <strong>prevents simultaneous threads from issuing actions for the same user</strong>, maintaining the integrity of modeled user interactions and avoiding resource contention.</li>
+</ul>
+</li>
+</ol>
+<p><strong>If two modeled users, A and B, are already friends, does BG generate a friend request from A to B?</strong></p>
+<p>No, BG does not generate a friend request from A to B if they are already friends.</p>
+<p>Before generating a friend request, BG <strong>validates</strong> whether the relationship between A and B is pending or already confirmed. For example, in the <code>InviteFrdSession</code>, BG only selects users who have no existing “friend” or “pending” relationship with the requester to receive a new friend request.</p>
+<p>Reference: <a target="_blank" rel="noopener" href="https://www.cidrdb.org/cidr2013/Papers/CIDR13_Paper93.pdf">https://www.cidrdb.org/cidr2013/Papers/CIDR13_Paper93.pdf</a></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
     <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/MySQL/2024/10/23/MySQL/%E6%97%A5%E5%BF%97/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -618,242 +1238,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/MySQL/2024/10/12/MySQL/%E8%A7%86%E5%9B%BE/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Yihang Wei">
-      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="EthanWeee">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/MySQL/2024/10/12/MySQL/%E8%A7%86%E5%9B%BE/" class="post-title-link" itemprop="url">视图</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-10-12 00:00:00" itemprop="dateCreated datePublished" datetime="2024-10-12T00:00:00-07:00">2024-10-12</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-06-17 22:09:09" itemprop="dateModified" datetime="2025-06-17T22:09:09-07:00">2025-06-17</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>在 MySQL 数据库中，视图（View）是一个命名的虚表，它由一个 SQL 查询来定义，可以当做表使用。与持久表（permanent table）不同的是，视图中的数据没有实际的物理存储。也就是说视图中的数据并不在数据库中实际存在，行和列的数据来自定义视图的查询中使用的表，在使用视图时动态生成的。</p>
-<p>视图只保存了查询的 SQL 逻辑，不保存查询结果。</p>
-<h2 id="视图的作用"><a href="#视图的作用" class="headerlink" title="视图的作用"></a>视图的作用</h2><p>视图在数据库中发挥着重要的作用。视图的主要用途之一是被用做一个抽象装置，特别是对于一些应用程序，程序本身不需要关心基表（base table）的结构，只需要按照视图定义来取数据或更新数据；因此，视图同时在一定程度上起到一个安全层的作用。</p>
-<p>MySQL 数据库 DBA 的一个常用的命令是 SHOW TABLES，该命令会显示出当前数据库下所有的表。但因为视图是虚表，同样被作为表显示出来。若用户只想查看当前架构下的基表，可以通过 information_schema 架构下的 TABLES 表来查询，并搜索表类型为 BASE TABLE 的表。</p>
-<p>要想查看视图的一些元数据（meta data），可以访问 information_schema 架构下的 VIEWS 表，该表给出了视图的详细信息，包括视图定义者（definer）、定义内容、是否是可更新视图、字符集等。</p>
-<p>创建：<code>create [or replace] view 视图名称 as select 语句 [with cascaded | local check option];</code></p>
-<p>查询：</p>
-<ul>
-<li>查看创建视图的语句：<code>show create view 视图名称;</code></li>
-<li>查看视图数据：<code>select * from 视图名称...;</code></li>
-</ul>
-<p>修改：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> [<span class="keyword">or</span> replace] <span class="keyword">view</span> 视图名称 <span class="keyword">as</span> <span class="keyword">select</span> 语句 [<span class="keyword">with</span> <span class="keyword">cascaded</span> <span class="operator">|</span> <span class="keyword">local</span> <span class="keyword">check</span> option];</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">view</span> 视图名称 <span class="keyword">as</span> <span class="keyword">select</span> 语句 [<span class="keyword">with</span> <span class="keyword">cascaded</span> <span class="operator">|</span> <span class="keyword">local</span> <span class="keyword">check</span> option];</span><br><span class="line"># 实际上数据行是被插入了基表当中</span><br><span class="line"><span class="keyword">insert into</span> 视图名称 <span class="keyword">values</span>(col1, col2, ...); </span><br></pre></td></tr></table></figure>
-
-<p>删除：<code>drop view [if exist] 视图名称;</code></p>
-<h2 id="视图的检查选项"><a href="#视图的检查选项" class="headerlink" title="视图的检查选项"></a>视图的检查选项</h2><p>当时用 <code>with check option</code> 子句创建视图时，MySQL 会通过视图检查正在更改的每一行，以使其符合视图的定义。MySQL 允许基于一个视图创建另一个视图，还会依赖视图中的规则以保持一致性。MySQL 提供了两个选项确定检查范围：cascaded 和 local，默认值为 cascaded。</p>
-<h2 id="视图的更新"><a href="#视图的更新" class="headerlink" title="视图的更新"></a>视图的更新</h2><p>要使视图可更新，视图中的行与基础表中的行之间必须存在一对一的关系。</p>
-<p>如果视图包含以下任何一项，该视图不可更新：</p>
-<ul>
-<li>聚合函数或窗口函数：<code>sum()</code>，<code>min()</code>，<code>max()</code>，<code>count()</code>；</li>
-<li><code>distinct</code>；</li>
-<li><code>group by</code>；</li>
-<li><code>having</code>；</li>
-<li><code>union</code> 或 <code>union all</code>。</li>
-</ul>
-<p>视图可以简化用户对数据的理解，以及简化操作。</p>
-<p>通过视图，用户只能查询和修改他们所能见到的数据。</p>
-<p>视图帮助用户屏蔽真实表结构变化带来的影响。</p>
-<h2 id="物化视图"><a href="#物化视图" class="headerlink" title="物化视图"></a>物化视图</h2><p>Oracle 数据库支持物化视图——该视图不是基于基表的虚表，而是根据基表实际存在的实表，即物化视图的数据存储在非易失的存储设备上。物化视图可用于预先计算并保存多表的连接（JOIN）或聚集（GROUP BY）等耗时较多的 SQL 操作结果。这样，在执行复杂查询时，就可以避免进行这些时耗的操作，从而快速得到结果。物化视图的好处是对于一些复杂的统计类查询能直接给出结果。在 Microsoft SQL Server 数据库中，称这种视图为索引视图。</p>
-<p>在 Oracle 数据库中，物化视图的创建方式包括以下两种：</p>
-<ul>
-<li><code>BUILD IMMEDIATE</code></li>
-<li><code>BUILD DEFERRED</code></li>
-</ul>
-<p><code>BUILD IMMEDIATE</code> 是默认的创建方式，在创建物化视图的时候就生成数据，而 <code>BUILD DEFERRED</code> 则在创建物化视图时不生成数据，以后根据需要再生成数据。</p>
-<p>查询重写是指当对物化视图的基表进行查询时，数据库会自动判断能否通过查询物化视图来直接得到最终的结果，如果可以，则避免了聚集或连接等这类较为复杂的 SQL 操作，直接从已经计算好的物化视图中得到所需的数据。</p>
-<p>物化视图的刷新是指当基表发生了 DML 操作后，物化视图何时采用哪种方式和基表进行同步。刷新模式有两种：</p>
-<ul>
-<li><code>ON DEMAND</code></li>
-<li><code>ON COMMIT</code></li>
-</ul>
-<p><code>ON DEMAND</code> 意味着物化视图在用户需要的时候进行刷新，ON COMMIT 意味着物化视图在对基表的 DML 操作提交的同时进行刷新。</p>
-<p>而刷新的方法有四种：</p>
-<ul>
-<li><code>FAST</code></li>
-<li><code>COMPLETE</code></li>
-<li><code>FORCE</code></li>
-<li><code>NEVER</code></li>
-</ul>
-<p>FAST 刷新采用增量刷新，只刷新自上次刷新以来进行的修改。COMPLETE 刷新是对整个物化视图进行完全的刷新。如果选择 FORCE 方式，则数据库在刷新时会去判断是否可以进行快速刷新，如果可以，则采用 FAST 方式，否则采用 COMPLETE 的方式。NEVER 是指物化视图不进行任何刷新。</p>
-<p><strong>MySQL 数据库本身并不支持物化视图</strong>，换句话说，MySQL 数据库中的视图总是虚拟的。但是用户可以通过一些机制来实现物化视图的功能。例如要创建一个 ON DEMAND 的物化视图还是比较简单的，用户只需定时把数据导入到另一张表。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/10/11/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/OCC%20%E5%92%8C%20MVCC/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Yihang Wei">
-      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="EthanWeee">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/10/11/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/OCC%20%E5%92%8C%20MVCC/" class="post-title-link" itemprop="url">OCC 和 MVCC</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-10-11 00:00:00" itemprop="dateCreated datePublished" datetime="2024-10-11T00:00:00-07:00">2024-10-11</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-05-31 01:18:09" itemprop="dateModified" datetime="2025-05-31T01:18:09-07:00">2025-05-31</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">数据库系统</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="Time-Stamp-Based-Protocols"><a href="#Time-Stamp-Based-Protocols" class="headerlink" title="Time-Stamp Based Protocols"></a>Time-Stamp Based Protocols</h1><p>Suppose transaction Ti issues read(Q):</p>
-<ul>
-<li>If TS(Ti) &lt; W-TimeStamp(Q), then Ti needs to read the value of Q which was already overwritten. Hence the read request is rejected and Ti is rolled back.</li>
-<li>If TS(Ti) &gt;&#x3D; W-TimeStamp(Q), then the read operation is executed and the R-timeStamp(Q) is set to the maximum of R-TimeStamp(Q) and TS(Ti).</li>
-</ul>
-<p>Suppose transaction Ti issues write(Q):</p>
-<ul>
-<li>If TS(Ti) &lt; R-TimeStamp(Q), then this implies that some transaction has already consumed the value of Q and Ti should have produced a value before that transaction read it. Thus, the write request is rejected and Ti is rolled back.</li>
-<li>If TS(Ti) &lt; W-TimeStamp(Q), then Ti is trying to write an obsolete value of Q. Hence reject Ti’s request and roll it back. &#x2F; Ignore this write operation. (Tomas’s Write Rule)</li>
-<li>Otherwise, execute the write(Q) operation and update W-TimeStamp(Q) to TS(Ti).</li>
-</ul>
-<h1 id="OCC"><a href="#OCC" class="headerlink" title="OCC"></a>OCC</h1><p>Each transaction Ti has three phases:</p>
-<ul>
-<li>Read phase: reads the value of data items and copies its contents to variables local to Ti. All writes are performed on the temporary local variables.</li>
-<li>Validation phase: Ti determines whether the local variables whose values have been overwritten can be copied to the database. If not, then abort. Otherwise, proceed to Write phase.</li>
-<li><ul>
-<li>When validating transaction Tj, for all transactions Ti with TS(Ti) &lt; TS(Tj), one of the following must hold:</li>
-<li><ul>
-<li>Finish(Ti) &lt; Start(Tj), OR</li>
-<li>Set of data items written by Ti does not intersect with the set of data items read by Tj, and Ti completes its write phase before Tj starts its validation phase.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>Write phase: The values stored in local variables overwrite the value of the data items in the database.</li>
-</ul>
-<p>A transaction has three time stamps:</p>
-<ul>
-<li>Start(Ti): When Ti started its execution.</li>
-<li>Validation(Ti): When Ti finished its read phase and started its validation.</li>
-<li>Finish(Ti): Done with the write phase.</li>
-</ul>
-<h1 id="MVCC"><a href="#MVCC" class="headerlink" title="MVCC"></a>MVCC</h1><p>Assume that transaction Ti issues either a read(Q) or a write(Q) operation.</p>
-<p>Let Qk denote the version of Q whose write timestamp is the largest write timestamp less than TS(Ti), i.e., W-TimeStamp(Qk) &lt; TS(Ti).</p>
-<ul>
-<li>If Ti issues a Read(Q), then return the value of Qk.</li>
-<li>If Ti issues a write(Q), and TS(Ti) &lt; R-TimeStamp(Qk), then Ti is rolled back.</li>
-<li>Otherwise, a new version of Qk is created.</li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -923,7 +1307,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-count">38</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
