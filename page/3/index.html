@@ -1142,6 +1142,403 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/MySQL/2024/10/28/MySQL/%E6%96%87%E4%BB%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/MySQL/2024/10/28/MySQL/%E6%96%87%E4%BB%B6/" class="post-title-link" itemprop="url">文件</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-10-28 00:00:00" itemprop="dateCreated datePublished" datetime="2024-10-28T00:00:00-07:00">2024-10-28</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-06-18 22:13:48" itemprop="dateModified" datetime="2025-06-18T22:13:48-07:00">2025-06-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>MySQL 数据库和 InnoDB 存储引擎表的各种类型文件如下：</p>
+<p><strong>参数文件</strong>：告诉 MySQL 实例启动时在哪里可以找到数据库文件，并且指定某些初始化参数，这些参数定义了某种内存结构的大小等设置，还会介绍各种参数的类型。</p>
+<p><strong>日志文件</strong>：用来记录 MySQL 实例对某种条件做出响应时写入的文件，如错误日志文件、二进制日志文件、慢查询日志文件、查询日志文件等。</p>
+<p><strong>socket 文件</strong>：当用 UNIX 域套接字方式进行连接时需要的文件。</p>
+<p><strong>pid 文件</strong>：MySQL 实例的进程 ID 文件。</p>
+<p><strong>MySQL 表结构文件</strong>：用来存放 MySQL 表结构定义文件。</p>
+<p><strong>存储引擎文件</strong>：由于 MySQL 表存储引擎的关系，每个存储引擎都会有自己的文件来保存各种数据。这些存储引擎真正存储了记录和索引等数据。本章主要介绍与 InnoDB 有关的存储引擎文件。</p>
+<h2 id="参数文件"><a href="#参数文件" class="headerlink" title="参数文件"></a>参数文件</h2><p>当 MySQL 实例启动时，数据库会先去读一个配置参数文件，用来寻找数据库的各种文件所在位置以及指定某些初始化参数，这些参数通常定义了某种内存结构有多大等。在默认情况下，MySQL 实例会按照一定的顺序在指定的位置进行读取，用户只需通过命令 mysql –help | grep my.cnf 来寻找即可。</p>
+<p>MySQL 实例可以不需要参数文件，这时所有的参数值取决于编译 MySQL 时指定的默认值和源代码中指定参数的默认值。但是，如果 MySQL 实例在默认的数据库库目录下找不到 mysql 系统数据库，则启动同样会失败。</p>
+<h3 id="参数类型"><a href="#参数类型" class="headerlink" title="参数类型"></a>参数类型</h3><p>MySQL 数据库中的参数可以分为两类：</p>
+<ul>
+<li>动态（dynamic）参数</li>
+<li>静态（static）参数</li>
+</ul>
+<p>动态参数意味着可以在 MySQL 实例运行中进行更改，静态参数说明在整个实例生命周期内都不得进行更改，就好像是只读（read only）的。可以通过 SET 命令对动态参数值进行修改，SET 的语法如下：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SET</span></span><br><span class="line">[<span class="keyword">GLOBAL</span> <span class="operator">|</span> SESSION] system_var_name <span class="operator">=</span> expr</span><br><span class="line"><span class="operator">|</span> [@<span class="variable">@GLOBAL</span>. <span class="operator">|</span> @<span class="variable">@SESSION</span>.] system_var_name <span class="operator">=</span> expr;</span><br></pre></td></tr></table></figure>
+
+<p>这里可以看到 GLOBAL 和 SESSION 关键字，它们表明该参数的修改是基于当前会话还是整个实例的生命周期。有些动态参数只能在会话中进行修改，如 autocommit；而有些参数修改完后，在整个实例生命周期中都会生效，如 <code>binlog_cache_size</code>；而有些参数既可以在会话中又可以在整个实例的生命周期内生效，如 <code>read_buffer_size</code>。</p>
+<p>对变量的全局值进行了修改，在这次的实例生命周期内都有有效，但 MySQL 实例本身并不会对参数文件中的该值进行修改。也就是说，在下次启动时 MySQL 实例还是会读取参数文件。若想在数据库实例下一次启动时该参数还是保留为当前修改的值，那么用户必须去修改参数文件。</p>
+<h2 id="日志文件"><a href="#日志文件" class="headerlink" title="日志文件"></a>日志文件</h2><p>MySQL 中常见的日志文件有：</p>
+<ul>
+<li>错误日志</li>
+<li>二进制日志</li>
+<li>慢查询日志</li>
+<li>查询日志</li>
+</ul>
+<h3 id="错误日志"><a href="#错误日志" class="headerlink" title="错误日志"></a>错误日志</h3><p>错误日志文件对 MySQL 的启动、运行、关闭过程进行了记录。用户在遇到问题时应该首先查看该文件以便定位问题。该文件不仅记录了所有的错误信息，也记录一些警告信息或正确的信息。用户可以通过命令 SHOW VARIABLES LIKE ‘log_error’ 来定位该文件。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[mysql]<span class="operator">&gt;</span> <span class="keyword">show</span> variables <span class="keyword">like</span> <span class="string">&#x27;log_error&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="operator">|</span> Variable_name <span class="operator">|</span> <span class="keyword">Value</span>              <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> <span class="comment">------------- | ------------------ |</span></span><br><span class="line"><span class="operator">|</span> log_error     <span class="operator">|</span> .<span class="operator">/</span>Yihang.local.err <span class="operator">|</span></span><br><span class="line"></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.07</span> sec)</span><br></pre></td></tr></table></figure>
+
+<h3 id="慢查询日志"><a href="#慢查询日志" class="headerlink" title="慢查询日志"></a>慢查询日志</h3><p>慢查询日志（slow log）可帮助用户定位可能存在问题的 SQL 语句，从而进行 SQL 语句层面的优化。例如，可以在 MySQL 启动时设一个阈值，将运行时间超过该值的所有 SQL 语句都记录到慢查询日志文件中。用户每天或每过一段时间对其进行检查，确认是否有 SQL 语句需要进行优化。该阈值可以通过参数 <code>long_query_time</code> 来设置，默认值为 10，代表 10 秒。</p>
+<p>这里有两点需要注意。首先，设置 <code>long_query_time</code> 这个阈值后，MySQL 数据库会记录运行时间<strong>超过</strong>该值的所有 SQL 语句，但运行时间<strong>正好等于</strong> <code>long_query_time</code> 的情况并不会被记录。也就是说，在源代码中判断的是大于 <code>long_query_time</code>，而非大于等于。</p>
+<p>其次，从 MySQL 5.1 开始，<code>long_query_time</code> 开始以<strong>微秒</strong>记录 SQL 语句运行的时间，此前仅用秒为单位记录。而这样可以更精确地记录 SQL 的运行时间。对用户来说，一条 SQL 语句运行 0.5 秒和 0.05 秒是非常不同的，前者可能已经进行了表扫描，后者可能只是进行了索引查找。</p>
+<p>另一个和慢查询日志有关的参数是 <code>log_queries_not_using_indexes</code>，如果运行的 SQL 语句没有使用索引，则 MySQL 同样会将这条 SQL 语句记录到慢查询日志文件。</p>
+<p>MySQL 5.6.5 版本开始新增了一个参数 <code>log_throttle_queries_not_using_indexes</code>，用来表示每分钟允许记录到 slow log 的且未使用索引的 SQL 语句的最大次数。该参数默认值为 0，表示没有限制。在生产环境下，如果有大量未使用索引的查询，此类 SQL 会频繁地被记录到 slow log，从而导致日志文件持续膨胀。</p>
+<p>用户可以通过慢查询日志找出有问题的 SQL 语句并进行优化。然而，随着 MySQL 服务器运行时间的增加，可能会有越来越多的查询被记录到慢查询日志，此时直接阅读日志文件就显得不够直观。MySQL 提供的 mysqldumpslow 工具可以很好地帮助 DBA 对慢查询日志进行汇总和分析。</p>
+<p>MySQL 5.1 开始可以将慢查询的日志记录放入一张表中，这使得用户的查询更加方便和直观。</p>
+<p>InnoSQL 版本加强了对于 SQL 语句的捕获方式。在原版 MySQL 的基础上在 slow log 中增加了对逻辑读取（logical reads）和物理读取（physical reads）的统计。这里的物理读取是指从磁盘进行 IO 读取的次数，逻辑读取包含所有的读取，不管是磁盘还是缓冲池。</p>
+<p>用户可以通过额外的参数 <code>long_query_io</code> 将超过指定逻辑 IO 次数的 SQL 语句记录到 slow log 中。该值默认为 100，即表示对于逻辑读取次数大于 100 的 SQL 语句，记录到 slow log 中。</p>
+<h3 id="查询日志"><a href="#查询日志" class="headerlink" title="查询日志"></a>查询日志</h3><p>查询日志记录了所有对 MySQL 数据库请求的信息，无论这些请求是否得到了正确的执行。默认文件名为：<code>&lt;主机名&gt;.log</code>。</p>
+<h3 id="二进制日志"><a href="#二进制日志" class="headerlink" title="二进制日志"></a>二进制日志</h3><p>二进制日志（binary log）记录了对 MySQL 数据库执行更改的所有操作，但是不包括 SELECT 和 SHOW 这类操作，因为这类操作对数据本身并没有修改。然而，若操作本身并没有导致数据库发生变化，那么该操作可能也会写入二进制日志，但是这种情况只会发生在 <code>binlog_format</code> 参数的值为 ROW 的情况下。</p>
+<p><strong>Statement-Based Logging (SBL)</strong> 下，<strong>所有</strong> DML&#x2F;DDL 语句均写入二进制日志，无论它们是否实际修改了任何行。</p>
+<p><strong>Row-Based Logging (RBL)</strong> 下，只有<strong>真正产生行变更</strong>的事件才写入二进制日志；如果一条语句对零行生效，就<strong>不会</strong>产生相应的行事件。</p>
+<p>如果用户想记录 SELECT 和 SHOW 操作，那只能使用查询日志，而不是二进制日志。此外，二进制日志还包括了执行数据库更改操作的时间等其他额外信息。总的来说，二进制日志主要有以下几种作用：</p>
+<ul>
+<li>恢复（recovery）：某些数据的恢复需要二进制日志，例如，在一个数据库全备文件恢复后，用户可以通过二进制日志进行 point-in-time 的恢复。</li>
+<li>复制（replication）：其原理与恢复类似，通过复制和执行二进制日志使一台远程的 MySQL 数据库（一般称为 slave 或 standby）与一台 MySQL 数据库（一般称为 master 或 primary）进行实时同步。</li>
+<li>审计（audit）：用户可以通过二进制日志中的信息进行审计，判断是否有对数据库进行注入的攻击。</li>
+</ul>
+<p>以下配置文件的参数影响着二进制日志记录的信息和行为：</p>
+<ul>
+<li><code>max_binlog_size</code> </li>
+<li><code>binlog_cache_size</code> </li>
+<li><code>sync_binlog</code> </li>
+<li><code>binlog-do-db</code> </li>
+<li><code>binlog-ignore-db</code> </li>
+<li><code>log-slave-update</code> </li>
+<li><code>binlog_format</code></li>
+</ul>
+<p>参数 <code>max_binlog_size</code> 指定了单个二进制日志文件的最大值，如果超过该值，则产生新的二进制日志文件，后缀名加 1，并记录到 .index 文件。从 MySQL 5.0 开始的默认值为 1073741824，代表 1 G（在之前版本中 <code>max_binlog_size</code> 默认大小为 1.1 G）。</p>
+<p>当使用事务的存储引擎（如 InnoDB 存储引擎）时，所有未提交（uncommitted）的二进制日志会被记录到一个缓冲中去，等该事务提交（committed）时再将缓冲中的二进制日志写入二进制日志文件，而该缓冲的大小由 <code>binlog_cache_size</code> 决定，默认大小为 32K。此外，binlog_cache_size 是基于会话（session）的，也就是说，当一个线程开始一个事务时，MySQL 会自动分配一个大小为 <code>binlog_cache_size</code> 的缓冲，因此该值的设置需要相当小心，不能设置过大。当一个事务的记录大于设置的 <code>binlog_cache_size</code> 时，MySQL 会把缓冲中的日志写入一个临时文件中，因此该值又不能设置得过小。</p>
+<p>在默认情况下，二进制日志并不是在每次写的时候同步到磁盘（用户可以理解为缓冲写）。因此，当数据库所在操作系统发生宕机时，可能会有最后一部分数据没有写入二进制日志文件中，这会给恢复和复制带来问题。参数 <code>sync_binlog=[N]</code> 表示每写缓冲多少次就同步到磁盘。如果将 N 设为 1，即 <code>sync_binlog=1</code> 表示采用同步写磁盘的方式来写二进制日志，这时写操作不再使用操作系统的缓冲来写二进制日志。<code>sync_binlog</code> 的默认值为 0，如果使用 InnoDB 存储引擎进行复制，并且想得到最大的高可用性，建议将该值设为 1。不过该值为 0 时，的确会对数据库的 I&#x2F;O 系统带来一定的影响。</p>
+<p>但是，即使将 sync_binlog 设为 1，还是会有一种情况导致问题的发生。当使用 InnoDB 存储引擎时，在一个事务发出 COMMIT 动作之前，由于 <code>sync_binlog=1</code>，因此会将二进制日志立即写入磁盘。如果这时已经写入了二进制日志，但是提交还没有发生，并且此时发生了宕机，那么在 MySQL 数据库下次启动时，由于 COMMIT 操作并没有发生，这个事务会被回滚。但是二进制日志已经记录了该事务信息，不能被回滚。这个问题可以通过将参数 <code>innodb_support_xa</code> 设为 1 来解决，虽然 <code>innodb_support_xa</code> 与 XA 事务有关，但它同时也确保了二进制日志和 InnoDB 存储引擎数据文件的同步。</p>
+<p>参数 <code>binlog-do-db</code> 和 <code>binlog-ignore-db</code> 表示需要写入或忽略写入哪些库的日志。默认为空，表示需要同步所有库的日志到二进制日志。</p>
+<p>如果当前数据库是复制中的 slave 角色，则它不会将从 master 取得并执行的二进制日志写入自己的二进制日志文件中去。如果需要写入，要设置 <code>log-slave-update</code>。如果需要搭建 master⇒slave⇒slave 架构的复制，则必须设置该参数。</p>
+<p><code>binlog_format</code> 参数十分重要，它影响了记录二进制日志的格式。在 MySQL 5.1 版本之前，没有这个参数，因此所有二进制日志文件的格式都是基于 SQL 语句（statement）级别的。同时，对于复制也有一定要求。例如在主服务器上运行 rand、uuid 等函数，或者使用触发器等操作，这些都可能会导致主从服务器上表中数据的不一致（not sync）。另一个影响是，你会发现 InnoDB 存储引擎的默认事务隔离级别是 REPEATABLE READ。这其实也是因为二进制日志文件格式的关系：如果使用 READ COMMITTED 的事务隔离级别，会出现类似“丢失更新”的现象，从而导致主从数据库上的数据不一致。具体细节如下：</p>
+<p>存在表 t1，定义如下：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE TABLE</span> t1 (</span><br><span class="line">   a <span class="type">int</span>(<span class="number">11</span>) <span class="keyword">DEFAULT</span> <span class="keyword">NULL</span>, </span><br><span class="line">   b <span class="type">int</span>(<span class="number">11</span>) <span class="keyword">DEFAULT</span> <span class="keyword">NULL</span>, </span><br><span class="line">   KEY a (a) </span><br><span class="line">  ) ENGINE<span class="operator">=</span>InnoDB <span class="keyword">DEFAULT</span> CHARSET<span class="operator">=</span>latin1; </span><br><span class="line"><span class="keyword">insert into</span> t1 <span class="keyword">values</span>(<span class="number">10</span>,<span class="number">2</span>),(<span class="number">20</span>,<span class="number">1</span>);</span><br></pre></td></tr></table></figure>
+
+<p>接着开始执行两个事务的写操作：</p>
+<table>
+<thead>
+<tr>
+<th>时序</th>
+<th>事务1</th>
+<th>事务2</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>set session transaction isolation level read committed;</td>
+<td></td>
+</tr>
+<tr>
+<td>2</td>
+<td>set autocommit&#x3D;0;</td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td>UPDATE t1 SET a&#x3D;11 where b&#x3D;2;</td>
+<td></td>
+</tr>
+<tr>
+<td>4</td>
+<td></td>
+<td>set session transaction isolation level read committed;</td>
+</tr>
+<tr>
+<td>5</td>
+<td></td>
+<td>set autocommit&#x3D;0;</td>
+</tr>
+<tr>
+<td>6</td>
+<td></td>
+<td>UPDATE t1 SET b&#x3D;2 where b&#x3D;1;</td>
+</tr>
+<tr>
+<td>7</td>
+<td></td>
+<td>COMMIT;</td>
+</tr>
+<tr>
+<td>8</td>
+<td>COMMIT;</td>
+<td></td>
+</tr>
+</tbody></table>
+<p>以上两个事务执行之后，数据库里面的记录会变成（11，2）和（20，2）。</p>
+<p>因为事务的隔离级别是 read committed，所以，事务 1 在更新时，只会对 b &#x3D; 2 这行加上行级锁，不会影响到事务 2 对 b &#x3D; 1 这行的写操作。</p>
+<p>以上两个事务执行完成之后，会在 binlog 中记录两条记录，因为事务 2 先提交，所以 <code>UPDATE t1 SET b=2 where b=1;</code> 会被优先记录，然后再记录 <code>UPDATE t1 SET a=11 where b=2;</code>。</p>
+<p>binlog 同步到备从库之后，SQL语句回放时，会先执行 <code>UPDATE t1 SET b=2 where b=1;</code>，再执行 <code>UPDATE t1 SET a=11 where b=2;</code>。</p>
+<p>这时候，数据库中的数据就会变成（11，2）和（11，2）。这就导致主库和备库的数据不一致了！！！</p>
+<p>为了避免这种问题的发生，MySQL 就把数据库的默认隔离级别设置成了 Repeatable Read。</p>
+<p>因为 Repetable Read 下，MySQL 在更新数据的时候不仅对更新的行加行级锁，还会增加 gap lock。同样是上面的例子，在事务 2 执行的时候，因为事务 1 增加了 gap lock，就会导致事务执行被卡住，需要等事务 1 提交或者回滚后才能继续执行。</p>
+<p>除了设置默认的隔离级别外，MySQL 还在当使用 STATEMENT 格式的 binlog 的情况下，禁止设置 READ COMMITTED 作为事务隔离级别。</p>
+<p>MySQL 5.1 开始引入了 <code>binlog_format</code> 参数，该参数可设的值有：STATEMENT、ROW 和 MIXED。</p>
+<p>(1) STATEMENT 格式：二进制日志文件记录的是日志的逻辑 SQL 语句。</p>
+<p>(2) ROW 格式下，二进制日志记录的不再是简单的 SQL 语句了，而是记录表的行更改情况。同时，对上述提及的 STATEMENT 格式下复制的问题予以解决。从 MySQL 5.1 版本开始，如果设置了 <code>binlog_format</code> 为 ROW，可以将 InnoDB 的事务隔离级别设为 READ COMMITTED，以获得更好的并发性。</p>
+<p>(3) MIXED 格式下，MySQL 默认采用 STATEMENT 格式进行二进制日志文件的记录，但是在一些情况下会使用 ROW 格式，可能的情况有：</p>
+<ul>
+<li>使用了 <code>UUID()</code>、<code>USER()</code>、<code>CURRENT_USER()</code>、<code>FOUND_ROWS()</code>、<code>ROW_COUNT()</code> 等不确定函数。</li>
+<li>使用了 INSERT DELAY 语句。</li>
+<li>使用了用户定义函数（UDF）。</li>
+<li>使用了临时表（temporary table）。</li>
+</ul>
+<p><code>binlog_format</code> 是动态参数，因此可以在数据库运行环境下进行更改。当然，也可以将全局的 <code>binlog_format</code> 设置为想要的格式，不过通常这个操作会带来问题，运行时要确保更改后不会对复制带来影响。在通常情况下，我们将参数 <code>binlog_format</code> 设置为 ROW，这可以为数据库的恢复和复制带来更好的可靠性。但是不能忽略的一点是，这会带来二进制文件大小的增加，有些语句下的 ROW 格式可能需要更大的容量。也就是说将参数 <code>binlog_format</code> 设置为 ROW，会对磁盘空间要求有一定的增加。而由于复制是采用传输二进制日志方式实现的，因此复制的网络开销也有所增加。</p>
+<p>二进制日志文件的文件格式为二进制（好像有点废话），不能像错误日志文件、慢查询日志文件那样用 cat、head、tail 等命令来看查看。要查看二进制日志文件的内容，必须通过 MySQL 提供的工具 mysqlbinlog。</p>
+<p>示例：</p>
+<p>执行的 SQL 为：<code>UPDATE users SET age = age + 1 WHERE id = 100;</code></p>
+<p><code>binlog_format=STATEMENT</code> 时的 binlog 输出（可读）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># at 234</span><br><span class="line">#240523 15:00:01 server id 1 end_log_pos 345 Query  thread_id=7 exec_time=0 error_code=0</span><br><span class="line">SET TIMESTAMP=1716495601/*!*/;</span><br><span class="line">UPDATE users SET age = age + 1 WHERE id = 100/*!*/;</span><br></pre></td></tr></table></figure>
+
+<p><code>binlog_format=ROW</code> 时的 binlog 输出（不可读）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># at 456</span><br><span class="line">#240523 15:00:02 server id 1 end_log_pos 567 Table_map: `test`.`users` mapped to number 108</span><br><span class="line"># at 567</span><br><span class="line">#240523 15:00:02 server id 1 end_log_pos 678 Update_rows: table id 108 flags: STMT_END_F</span><br><span class="line">### UPDATE `test`.`users`</span><br><span class="line">### WHERE</span><br><span class="line">###  @1=100 /* id */</span><br><span class="line">###  @2=20 /* age (原值) */</span><br><span class="line">### SET</span><br><span class="line">###  @1=100</span><br><span class="line">###  @2=21 /* age (新值) */</span><br></pre></td></tr></table></figure>
+
+<p>因此，在 ROW 格式下，binlog 中对于一个简单的更新操作记录了整个行额所有字段的更改信息。这也解释了为什么 ROW 格式下的 binlog 对磁盘空间要求有一定的增加。</p>
+<h2 id="套接字文件"><a href="#套接字文件" class="headerlink" title="套接字文件"></a>套接字文件</h2><p>在 UNIX 系统下本地连接 MySQL 可以采用 UNIX 域套接字方式，这种方式需要一个套接字（socket）文件。套接字文件可由参数 socket 控制。一般在 <code>/tmp</code> 目录下，名为 <code>mysql.sock</code>。</p>
+<h2 id="pid-文件"><a href="#pid-文件" class="headerlink" title="pid 文件"></a>pid 文件</h2><p>当 MySQL 实例启动时，会将自己的进程 ID 写入一个文件中——该文件即为 pid 文件并且可由参数 <code>pid_file</code> 控制，默认位于数据库目录下，文件名为主机名 <code>.pid</code>。</p>
+<h2 id="表结构定义文件"><a href="#表结构定义文件" class="headerlink" title="表结构定义文件"></a>表结构定义文件</h2><p>因为 MySQL 插件式存储引擎的体系结构的关系，MySQL 数据的存储是根据表进行的，每个表都会有与之对应的文件。但不论表采用何种存储引擎，MySQL 都有一个以 <code>.frm</code> 为后缀名的文件，这个文件记录了该表的表结构定义。</p>
+<p><code>.frm</code> 还用来存放视图的定义，如用户创建了一个 <code>v_a</code> 视图，那么对应地会产生一个 <code>v_a.frm</code> 文件，用来记录视图的定义。该文件是文本文件，可以直接使用 <code>cat</code> 命令进行查看。</p>
+<h2 id="InnoDB-存储引擎文件"><a href="#InnoDB-存储引擎文件" class="headerlink" title="InnoDB 存储引擎文件"></a>InnoDB 存储引擎文件</h2><p>之前介绍的文件都是 MySQL 数据库本身的文件，和存储引擎无关。除了这些文件外，每个表存储引擎还有其自己独有的文件，包括重做日志文件、表空间文件。</p>
+<h3 id="表空间文件"><a href="#表空间文件" class="headerlink" title="表空间文件"></a>表空间文件</h3><p>InnoDB 采用将存储的数据按表空间（tablespace）进行存放的设计。在默认配置下会有一个初始大小为 10MB，名为 ibdata1 的文件。该文件就是默认的表空间文件（tablespace file），用户可以通过参数 <code>innodb_data_file_path</code> 对其进行设置，格式如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">innodb_data_file_path=datafile_spec1[;datafile_spec2]...</span><br></pre></td></tr></table></figure>
+
+<p>用户可以通过多个文件组成一个表空间，同时制定文件的属性，如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">innodb_data_file_path = /db/ibdata1:2000M;/dr2/db/ibdata2:2000M:autoextend</span><br></pre></td></tr></table></figure>
+
+<p>这里将 <code>/db/ibdata1</code> 和 <code>/dr2/db/ibdata2</code> 两个文件用于组成表空间。若这两个文件位于不同的磁盘上，磁盘的负载可能被平均，因此可以提高数据库的整体性能。同时，两个文件的文件名后都跟了属性，表示文件 ibdata1 的大小为 2000MB，文件 ibdata2 的大小为 2000MB，如果用完了这 2000MB，该文件可以自动增长（autoextend）。</p>
+<p>设置 <code>innodb_data_file_path</code> 参数后，所有基于 InnoDB 存储引擎的表的数据都会记录到该共享表空间中。若设置了参数 <code>innodb_file_per_table</code>，则用户可以将每个基于 InnoDB 存储引擎的表生成一个独立表空间。独立表空间的命名规则为：表名 <code>.ibd</code>。需要注意的是，这些单独的表空间文件仅存储该表的数据、索引和插入缓冲 BITMAP 等信息，其余信息还是存放在默认的表空间中。</p>
+<p>下图展示了 InnoDB 对于文件的存储方式：</p>
+<p><img src="/Users/yihangwei/blog/source/images/MySQL/mysql_tablespace.drawio.png" alt="img"></p>
+<h3 id="Redo-日志文件"><a href="#Redo-日志文件" class="headerlink" title="Redo 日志文件"></a>Redo 日志文件</h3><p>在默认情况下，在 InnoDB 存储引擎的数据目录下会有两个名为 <code>ib_logfile0</code> 和 <code>ib_logfile1</code> 的文件。</p>
+<p>当实例或介质失败时，重做日志文件就能派上用场。例如，数据库由于所在主机掉电导致实例失败，InnoDB 存储引擎会使用 Redo 日志恢复到掉电前的时刻，以此来保证数据的完整性。</p>
+<p>每个 InnoDB 存储引擎至少有 1 个 Redo 日志文件组，每个文件组下至少有 2 个 Redo 日志文件，如默认的 <code>ib_logfile0</code> 和 <code>ib_logfile1</code>。为了得到更高的可靠性，用户可以设置多个镜像日志组，将不同的文件组放在不同的磁盘上，以此提高 Redo 日志的高可用性。在日志组中每个 Redo 日志文件的大小一致，并以循环写入的方式运行。InnoDB 存储引擎先写 Redo 日志文件 1，当达到文件的最后时，会切换至 Redo 日志文件 2，再当重做日志文件 2 也被写满时，会再切换到 Redo 日志文件 1 中。</p>
+<p>下列参数影响着 Redo 日志文件的属性：</p>
+<ul>
+<li><code>innodb_log_file_size</code></li>
+<li><code>innodb_log_files_in_group</code></li>
+<li><code>innodb_mirrored_log_groups</code></li>
+<li><code>innodb_log_group_home_dir</code></li>
+</ul>
+<p>参数 <code>innodb_log_file_size</code> 指定每个 Redo 日志文件的大小。在 InnoDB 1.2.x 版本之前，Redo 日志文件总的大小不得大于等于 4GB，而 1.2.x 版本将该限制扩大为了 512GB。</p>
+<p>参数 <code>innodb_log_files_in_group</code> 指定了日志文件组中 Redo 日志文件的数量，默认为 2。</p>
+<p>参数 <code>innodb_mirrored_log_groups</code> 指定了日志镜像文件组的数量，默认为 1，表示只有一个日志文件组，没有镜像。若磁盘本身已经做了高可用的方案，如磁盘阵列，那么可以不开启 Redo 日志镜像的功能。</p>
+<p>最后，参数 <code>innodb_log_group_home_dir</code> 指定了日志文件组所在路径，默认为 <code>./</code>，表示在 MySQL 数据库的数据目录下。</p>
+<p>Redo 日志文件的大小设置对于 InnoDB 存储引擎的性能有着非常大的影响。一方面 Redo 日志文件不能设置得太大，如果设置得很大，在恢复时可能需要很长的时间；另一方面又不能设置得太小了，否则可能导致一个事务的日志需要多次切换 Redo 日志文件。此外，Redo 日志文件太小会导致频繁地发生 async checkpoint，导致性能的抖动。因为，如果 Redo 日志文件大小超过最大容量则必须将缓冲池中脏页列表（flush list）中的部分脏数据写回磁盘，这时会导致用户线程的阻塞。</p>
+<p>Redo 日志和二进制日志有什么区别？</p>
+<p>首先，二进制日志会记录所有与 MySQL 数据库有关的日志记录，包括 InnoDB、MyISAM、Heap 等其他存储引擎的日志。而 InnoDB 存储引擎的 Redo 日志只记录有关该存储引擎本身的事务日志。</p>
+<p>其次，记录的内容不同。无论用户将二进制日志文件记录的格式设为 STATEMENT 还是 ROW，又或者是 MIXED，其记录的都是关于一个事务的具体操作内容，即该日志是逻辑日志。而 InnoDB 存储引擎的 Redo 日志文件记录的是关于每个页（Page）的更改的物理情况。</p>
+<p>此外，写入的时间也不同，二进制日志文件仅在事务提交前进行提交，即只写磁盘一次，不论这时该事务多大。而在事务进行的过程中，却不断有 Redo 日志条目（redo entry）被写入到 Redo 日志文件中。</p>
+<p>Redo 日志条目的结构如下：</p>
+<p><img src="/Users/yihangwei/blog/source/images/MySQL/mysql_redo_item.drawio.png" alt="img"></p>
+<p>上图中 Redo 日志条目是由 4 个部分组成：</p>
+<ul>
+<li><code>redo_log_type</code> 占用 1 字节，表示重做日志的类型。</li>
+<li><code>space</code> 表示表空间的 ID，但采用压缩的方式，因此占用的空间可能小于 4 字节。</li>
+<li><code>page_no</code> 表示页的偏移量，同样采用压缩的方式。</li>
+<li><code>redo_log_body</code> 表示每个重做日志的数据部分，恢复时需要调用相应的函数进行解析。</li>
+</ul>
+<p>写入重做日志文件的操作不是直接写，而是先写入一个重做日志缓冲中，然后按照一定的条件顺序地写入日志文件。下图是 Redo 日志的写入过程：</p>
+<p><img src="/Users/yihangwei/blog/source/images/MySQL/mysql_redo_sync.drawio.png" alt="img"></p>
+<p>从重做日志缓冲往磁盘写入时是按 512 字节，也就是一个扇区的大小进行写入。因为在传统的磁盘存储设备中，扇区是最小的物理写入单位。当操作系统或数据库系统请求写入数据时，磁盘控制器会确保整个扇区的数据要么被完整地写入，要么在发生故障（如断电）时不进行任何写入。这种机制确保了写入操作的原子性，即不会出现撕裂写（torn write）的情况，因此在重做日志的写入过程中不需要有 doublewrite。</p>
+<p>前面提到了从日志缓冲写入磁盘上的重做日志文件是按一定条件进行的，那这些条件有哪些呢？我们知道在主线程中每秒会将重做日志缓冲写入磁盘的重做日志文件中，不论事务是否已经提交。另一个触发写磁盘的过程是由参数 <code>innodb_flush_log_at_trx_commit</code> 控制，表示在提交操作时，处理重做日志的方式。</p>
+<p>参数 <code>innodb_flush_log_at_trx_commit</code> 的有效值有 0、1、2。</p>
+<p>0 代表当提交事务时，并不将事务的重做日志写入磁盘上的日志文件，而是等待主线程每秒的刷新。1 和 2 不同的地方在于：</p>
+<ul>
+<li>1 表示在执行 commit 时将重做日志缓冲同步写到磁盘，即伴有 fsync 的调用。</li>
+<li>2 表示将重做日志异步写到磁盘，即写到文件系统的缓存中。因此不能完全保证在执行 commit 时肯定会写入重做日志文件，只是有这个动作发生。</li>
+</ul>
+<p>因此为了保证事务的 ACID 中的持久性，<strong>必须将</strong> <strong><code>innodb_flush_log_at_trx_commit</code></strong> <strong>设置为 1</strong>，也就是每当有事务提交，就必须确保事务已经写入重做日志文件。那当数据库因为意外发生宕机时，可以通过重做日志文件恢复，并保证可以恢复已经提交的事务。</p>
+<p>而将重做日志文件设置为 0 或 2，<strong>都有可能发生恢复时部分事务的丢失</strong>。不同之处在于，设置为 2 时，当 MySQL 数据库发生宕机而操作系统及服务器并没有发生宕机时，由于此时未写入磁盘的事务日志保存在文件系统缓存中，当恢复时同样能保证数据不丢失。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/MySQL/2024/10/25/MySQL/MySQL%20%E7%AE%A1%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/MySQL/2024/10/25/MySQL/MySQL%20%E7%AE%A1%E7%90%86/" class="post-title-link" itemprop="url">MySQL 管理</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-10-25 00:00:00" itemprop="dateCreated datePublished" datetime="2024-10-25T00:00:00-07:00">2024-10-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-06-17 22:31:35" itemprop="dateModified" datetime="2025-06-17T22:31:35-07:00">2025-06-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p><code>/usr/local/mysql/bin</code> 目录下提供了多个客户端工具，具体如下：</p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>mysql</td>
+<td>客户端程序，用于连接 MySQL 服务器</td>
+</tr>
+<tr>
+<td>mysqldump</td>
+<td>一个非常实用的 MySQL 数据库备份工具，用于创建一个或多个 MySQL 数据库级别的 SQL 转储文件，包括数据库的表结构和数据。对数据库备份、迁移或恢复非常重要。</td>
+</tr>
+<tr>
+<td>mysqladmin</td>
+<td>mysql 后面加上 admin 就表明这是一个 MySQL 的管理工具，它可以用来执行一些管理操作，比如说创建数据库、删除数据库、查看 MySQL 服务器的状态等。</td>
+</tr>
+<tr>
+<td>mysqlcheck</td>
+<td>mysqlcheck 是 MySQL 提供的一个命令行工具，用于检查、修复、分析和优化数据库表，对数据库的维护和性能优化非常有用。</td>
+</tr>
+<tr>
+<td>mysqlimport</td>
+<td>用于从文本文件中导入数据到数据库表中，非常适合用于批量导入数据。</td>
+</tr>
+<tr>
+<td>mysqlshow</td>
+<td>用于显示 MySQL 数据库服务器中的数据库、表、列等信息。</td>
+</tr>
+<tr>
+<td>mysqlbinlog</td>
+<td>用于查看 MySQL 二进制日志文件的内容，可以用于恢复数据、查看数据变更等。</td>
+</tr>
+</tbody></table>
+<p>MySQL 在每个实例中都预装了四个系统数据库，用于存储元数据、权限及运行时性能统计等信息。<code>information_schema</code> 以视图形式提供数据字典和权限信息的只读访问；mysql 模式包含用户账户、时区、复制配置等必要的系统表；<code>performance_schema</code> 聚焦于运行时性能监控，采用专用存储引擎记录服务器内部执行情况；而 sys 模式则封装了一系列基于 performance_schema 的视图和存储过程，帮助 DBA 和开发人员快速诊断与调优。</p>
+<p>与系统数据库配套，MySQL Server 安装包中还包括多种命令行工具：</p>
+<ul>
+<li><code>mysql</code>：交互式 SQL Shell，支持命令行编辑及脚本化操作，用于执行任意 SQL 语句，并以可读的格式显示结果。</li>
+<li><code>mysqladmin</code>：管理型客户端，可检查服务器状态、创建&#x2F;删除数据库、执行刷新及关闭操作等。</li>
+<li><code>mysqlbinlog</code>：二进制日志处理工具，可查看或导出 binlog、relay log，常用于增量备份与故障恢复。</li>
+<li><code>mysqlshow</code>：快速展示已有数据库、表及字段信息，相当于对 SHOW 系列语句的轻量封装。</li>
+<li><code>mysqldump</code>：生成逻辑备份的主力工具，将库表结构和数据导出为 SQL 脚本或其他格式，用于迁移和恢复<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/en/mysqldump.html?utm_source=chatgpt.com"> </a>。</li>
+<li><code>mysqlimport</code>：将文本文件批量导入到表中，通常与 <code>mysqldump -T</code> 导出的数据配合使用。</li>
+<li><code>mysqlcheck</code>：表维护工具，可检查、修复、优化和分析表，用于日常健康检查与性能优化。</li>
+<li><code>source</code>（MySQL 客户端内置命令）：在 <code>mysql&gt;</code> 提示符下执行指定的 <code>.sql</code> 文件，常用于批量恢复脚本。</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
     <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/10/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/BG%20Benchmark/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1636,290 +2033,10 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/MySQL/2024/10/25/MySQL/MySQL%20%E7%AE%A1%E7%90%86/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Yihang Wei">
-      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="EthanWeee">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/MySQL/2024/10/25/MySQL/MySQL%20%E7%AE%A1%E7%90%86/" class="post-title-link" itemprop="url">MySQL 管理</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-10-25 00:00:00" itemprop="dateCreated datePublished" datetime="2024-10-25T00:00:00-07:00">2024-10-25</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-06-17 22:31:35" itemprop="dateModified" datetime="2025-06-17T22:31:35-07:00">2025-06-17</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p><code>/usr/local/mysql/bin</code> 目录下提供了多个客户端工具，具体如下：</p>
-<table>
-<thead>
-<tr>
-<th>命令</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>mysql</td>
-<td>客户端程序，用于连接 MySQL 服务器</td>
-</tr>
-<tr>
-<td>mysqldump</td>
-<td>一个非常实用的 MySQL 数据库备份工具，用于创建一个或多个 MySQL 数据库级别的 SQL 转储文件，包括数据库的表结构和数据。对数据库备份、迁移或恢复非常重要。</td>
-</tr>
-<tr>
-<td>mysqladmin</td>
-<td>mysql 后面加上 admin 就表明这是一个 MySQL 的管理工具，它可以用来执行一些管理操作，比如说创建数据库、删除数据库、查看 MySQL 服务器的状态等。</td>
-</tr>
-<tr>
-<td>mysqlcheck</td>
-<td>mysqlcheck 是 MySQL 提供的一个命令行工具，用于检查、修复、分析和优化数据库表，对数据库的维护和性能优化非常有用。</td>
-</tr>
-<tr>
-<td>mysqlimport</td>
-<td>用于从文本文件中导入数据到数据库表中，非常适合用于批量导入数据。</td>
-</tr>
-<tr>
-<td>mysqlshow</td>
-<td>用于显示 MySQL 数据库服务器中的数据库、表、列等信息。</td>
-</tr>
-<tr>
-<td>mysqlbinlog</td>
-<td>用于查看 MySQL 二进制日志文件的内容，可以用于恢复数据、查看数据变更等。</td>
-</tr>
-</tbody></table>
-<p>MySQL 在每个实例中都预装了四个系统数据库，用于存储元数据、权限及运行时性能统计等信息。<code>information_schema</code> 以视图形式提供数据字典和权限信息的只读访问；mysql 模式包含用户账户、时区、复制配置等必要的系统表；<code>performance_schema</code> 聚焦于运行时性能监控，采用专用存储引擎记录服务器内部执行情况；而 sys 模式则封装了一系列基于 performance_schema 的视图和存储过程，帮助 DBA 和开发人员快速诊断与调优。</p>
-<p>与系统数据库配套，MySQL Server 安装包中还包括多种命令行工具：</p>
-<ul>
-<li><code>mysql</code>：交互式 SQL Shell，支持命令行编辑及脚本化操作，用于执行任意 SQL 语句，并以可读的格式显示结果。</li>
-<li><code>mysqladmin</code>：管理型客户端，可检查服务器状态、创建&#x2F;删除数据库、执行刷新及关闭操作等。</li>
-<li><code>mysqlbinlog</code>：二进制日志处理工具，可查看或导出 binlog、relay log，常用于增量备份与故障恢复。</li>
-<li><code>mysqlshow</code>：快速展示已有数据库、表及字段信息，相当于对 SHOW 系列语句的轻量封装。</li>
-<li><code>mysqldump</code>：生成逻辑备份的主力工具，将库表结构和数据导出为 SQL 脚本或其他格式，用于迁移和恢复<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/en/mysqldump.html?utm_source=chatgpt.com"> </a>。</li>
-<li><code>mysqlimport</code>：将文本文件批量导入到表中，通常与 <code>mysqldump -T</code> 导出的数据配合使用。</li>
-<li><code>mysqlcheck</code>：表维护工具，可检查、修复、优化和分析表，用于日常健康检查与性能优化。</li>
-<li><code>source</code>（MySQL 客户端内置命令）：在 <code>mysql&gt;</code> 提示符下执行指定的 <code>.sql</code> 文件，常用于批量恢复脚本。</li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/MySQL/2024/10/23/MySQL/%E6%97%A5%E5%BF%97/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Yihang Wei">
-      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="EthanWeee">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/MySQL/2024/10/23/MySQL/%E6%97%A5%E5%BF%97/" class="post-title-link" itemprop="url">日志</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-10-23 00:00:00" itemprop="dateCreated datePublished" datetime="2024-10-23T00:00:00-07:00">2024-10-23</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-06-17 22:29:30" itemprop="dateModified" datetime="2025-06-17T22:29:30-07:00">2025-06-17</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p><strong>错误日志（Error Log）</strong> 用于记录在服务 <strong>启动、运行及停止</strong> 过程中遇到的各种错误信息。该日志功能默认启用，且默认保存在 Linux 系统的 <code>/var/log/mysqld.log</code>（或 <code>/var/log/mysql/error.log</code>）路径下，也可能在 data 目录中以主机名为 .err 后缀的文件方式存在。若想查看或修改该路径，可通过 MySQL 命令：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> VARIABLES <span class="keyword">LIKE</span> <span class="string">&#x27;%log_error%&#x27;</span>;</span><br></pre></td></tr></table></figure>
-
-<p>该命令会显示当前 log_error 变量的值，即错误日志所在路径。如果该变量为空，通常默认日志会被输出到 stderr，或由系统服务（如 systemd）转至系统日志（如 <code>/var/log/messages</code> 或由 journalctl 管理）。</p>
-<p><strong>二进制日志（Binary Log）</strong> 会记录所有成功执行的 <strong>DDL</strong>（结构定义语句）和 <strong>DML</strong>（数据操作语句），但不会包含纯查询类语句（如 SELECT、SHOW）。它以 <strong>Event</strong> 形式记录，并且保存每条语句执行的时间戳。默认情况下启用二进制日志，并常用于数据备份以及主从复制场景。</p>
-<p>二进制日志系统包括两类文件：</p>
-<ul>
-<li><strong>索引文件（.index）</strong>：跟踪所有二进制日志文件的路径；</li>
-<li><strong>日志文件（形如 .00000*）</strong>：具体记录 DDL 与 DML 的事件。</li>
-</ul>
-<p>日志的记录格式有三种：</p>
-<ul>
-<li><strong>STATEMENT</strong>：以文本形式记录每条 SQL，并不包含事务上下文、权限或系统状态；</li>
-<li><strong>ROW</strong>：以二进制形式记录行数据的变化（旧值和新值）；</li>
-<li><strong>MIXED</strong>（MySQL 8.0 以上默认）：通常使用 STATEMENT，在涉及非确定性函数（如 <code>NOW()</code>、<code>UUID()</code> 等）时自动切换到 ROW 格式。</li>
-</ul>
-<p>针对日志清理，常用命令如下：</p>
-<ul>
-<li><code>RESET BINARY LOGS;</code>（或旧版本的 <code>RESET MASTER;</code>）将删除所有二进制日志，并将索引重置，只保留一个新的空日志文件（编号从 .000001 开始）；</li>
-<li><code>PURGE BINARY LOGS TO &#39;binlog.xxx&#39;;</code> 删除指定日志文件之前的所有日志；</li>
-<li><code>PURGE BINARY LOGS BEFORE &#39;YYYY‑MM‑DD hh:mm:ss&#39;;</code> 删除该时间之前生成的所有日志。</li>
-</ul>
-<p>此外，可以设置系统变量（如 <code>binlog_expire_logs_seconds</code> 或旧版的 <code>expire_logs_days</code>）实现自动清理过期日志，默认保留期为 30 天。</p>
-<p>更多关于 binlog 的信息，可参考：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/rickiyang/p/13841811.html">https://www.cnblogs.com/rickiyang/p/13841811.html</a></p>
-<p><strong>二进制日志（binlog）</strong> 功能可以通过在 <code>my.cnf</code> 或启动参数中设置来进行全面配置，下面是一些常用选项与管理方法：</p>
-<p>启用与路径配置：<code>log‑bin=/home/mysql/binlog/</code></p>
-<p>该参数不仅开启 binlog 功能，还指定日志文件的存放目录。如果不指定路径，MySQL 默认将日志保存在数据目录，并以主机名或 binlog 为基础名生成一系列 <code>.00000*</code> 日志文件。</p>
-<p>文件大小与保留周期：</p>
-<ul>
-<li><code>max_binlog_size=104857600</code> 将单个日志文件最大限制为 100 MB。</li>
-<li><code>expire_logs_days=7</code> 设置日志自动保留时限为 7 天，超过该时长的日志文件会被系统定期清理。</li>
-</ul>
-<p>过滤数据库：</p>
-<p>可以通过以下参数控制哪些库的更新被记录到 binlog：</p>
-<ul>
-<li><code>binlog-do-db=db_name</code>：仅记录指定数据库的变更。</li>
-<li><code>binlog-ignore-db=db_name</code>：忽略指定数据库的更新，不写入日志。</li>
-</ul>
-<p>同步策略：</p>
-<p><code>sync_binlog=0</code> 表示不强制让 MySQL 将日志立即同步到磁盘，交由操作系统定期执行。该配置提高性能，但在主机崩溃时可能丢失最后一部分日志；若设为 1，则在每次提交时都 fsync，一致性高但性能略受影响。</p>
-<p>查看当前设置：</p>
-<p>可以执行以下命令确认配置状态：</p>
-<ul>
-<li><code>SHOW BINARY LOGS;</code>：列出当前所有 binlog 文件；</li>
-<li><code>SHOW MASTER STATUS;</code>：查看主服务器正在使用的最新日志名称与位置；</li>
-<li><code>SHOW VARIABLES LIKE &#39;%log_bin%&#39;;</code>：确认二进制日志是否已启用及其路径；</li>
-<li><code>SHOW VARIABLES LIKE &#39;%binlog_format%&#39;;</code>：查看当前记录格式（STATEMENT、ROW 或 MIXED）；</li>
-<li><code>SHOW VARIABLES LIKE &#39;%binlog_expire_logs_seconds%&#39;;</code>：检查自动过期设置（通常是以秒为单位）。</li>
-</ul>
-<p>手动恢复流程：</p>
-<ol>
-<li>停止 MySQL 服务；</li>
-<li>利用 mysqlbinlog 工具分析 <code>.00000*</code> 中的日志，确认误操作发生前的起始与结束位置；</li>
-<li>清空当前数据库以准备恢复；</li>
-<li>执行命令：<code>mysqlbinlog --start-position=xxx --stop-position=yyy bin-log.00000x &gt; recover.sql</code>，其中 start-position 为误操作前最近一次安全点，stop-position 为误前最后一条正常语句的位置；</li>
-<li>将导出的 recover.sql 文件导入数据库，恢复指定段的变更。</li>
-</ol>
-<p><strong>一般查询日志</strong>记录了MySQL 服务器的<strong>所有连接信息</strong>和客户端的<strong>所有操作语句</strong>，默认是不开启的。</p>
-<p><strong>慢查询日志</strong>用于记录执行时间超过 <code>long_query_time</code>（默认 10 秒）并且扫描记录数不少于 <code>min_examined_row_limit</code> 的 SQL 语句，以帮助识别并优化效率低下的查询。注意，这一功能默认处于关闭状态，开启后不包含管理语句（如 ALTER、CREATE INDEX）及未使用索引的查询，除非你通过以下两个系统变量特别配置：</p>
-<ul>
-<li><code>log_slow_admin_statements</code>：启用后，允许记录管理类语句；</li>
-<li><code>log_queries_not_using_indexes</code>：启用后，记录所有不使用索引的查询（并不限于慢查询）。</li>
-</ul>
-<p>日志触发条件的判断顺序如下（MySQL 8.0+）：</p>
-<ol>
-<li>是不是管理语句，或已启用 <code>log_slow_admin_statements</code>；</li>
-<li>查询执行时间 ≥ long_query_time，或启用 <code>log_queries_not_using_indexes</code> 并且未使用索引；</li>
-<li>扫描的行数 ≥ min_examined_row_limit；</li>
-<li>若启用了该选项，还会受 <code>log_throttle_queries_not_using_indexes</code>（对未用索引查询加速限流）的影响。</li>
-</ol>
-<p>简而言之，慢查询日志只有在 SQL 足够慢或扫描量大时才会记录，且默认不记录管理或索引缺失的语句，除非明确启用相关变量。若需全面监控优化目标，建议根据实际情况调整这三项核心参数。</p>
-<p><strong>重做日志（redo log）</strong> 专门记录已提交事务所做的页面级别修改，以确保在崩溃或异常关机后能够快速恢复数据一致性。与完整行记录不同，redo log 只保存页号（Page ID）和偏移量（Offset）处的数据从旧值到新值的变化，例如在页面 12345 的偏移量 256 位置，将值从 25 修改为 30，既紧凑又高效。这些日志文件通常组成一个循环队列：当当前日志文件写满后，InnoDB 会切换到下一个文件，直到用尽后再回到第一个文件，覆盖最早的日志。</p>
-<p>其工作流程如下：</p>
-<ol>
-<li><strong>事务开始与修改缓冲</strong>：当事务对表中数据进行修改时，InnoDB 先将修改记录写入内存中的 redo log buffer；</li>
-<li><strong>事务提交与刷盘</strong>：提交时，buffer 中的内容根据 <code>innodb_flush_log_at_trx_commit</code> 参数设置，或直接刷入磁盘（值为 1）、或先写入操作系统缓冲区后由系统决定何时落盘（值为 2）、或不强制落盘以提升性能但有丢失风险（值为 0）；</li>
-<li><strong>Checkpoint 协同</strong>：后台 Checkpoint 进程周期性地将内存中的脏数据页同步到表空间文件（<code>*.ibd</code>），并将对应的 redo log 日志标记为可覆写，维持循环日志的持续运作。</li>
-</ol>
-<p>通过这种设计，InnoDB 能够在最短时间内重做已提交的事务修改，快速恢复数据库到故障发生前的一致状态。</p>
-<p>假设在表空间 <strong>1</strong> 中，对页 <strong>42</strong> 的偏移 <strong>128</strong> 处的某条记录的第 <strong>3</strong> 个字段（如 age）执行更新，将其从 <strong>25</strong> 改为 <strong>30</strong>，则对应的 redo 日志项可示意如下：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[MLOG_REC_UPDATE_IN_PLACE]</span><br><span class="line">Type:        MLOG_REC_UPDATE_IN_PLACE</span><br><span class="line">Space ID:      1</span><br><span class="line">Page Number:    42</span><br><span class="line">Record Offset:   128</span><br><span class="line">Update Field Count: 1</span><br><span class="line"> └ Field Number:   3</span><br><span class="line">  Field Data Length: 4</span><br><span class="line">  Field Data:    0x0000001E</span><br></pre></td></tr></table></figure>
-
-<p>binlog 和 redo log 的区别如下表：</p>
-<p><img src="/../../images/MySQL/redo_bin_comp.png" alt="img"></p>
-<p><strong>回滚日志（Undo Log）</strong> 用于在事务回滚和多版本并发控制（MVCC）中保存数据修改前的旧值。当事务开始时，InnoDB 会初始化事务上下文；在执行更新、删除等修改操作时，它首先将当前行的原始数据写入 undo log，同时将对应的物理改动记录到内存中的 redo log buffer；如果事务提交，则会将 redo 日志刷新到磁盘，并将该事务所产生的 undo 日志标记为无效，待后台清理；若事务选择回滚，则 InnoDB 会读取 undo log 中的旧值，将数据恢复到修改前的状态，并在回滚完成后清理相关的 redo 日志。这样既保证了未提交事务的可回滚性，也为 MVCC 提供了版本快照支持。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/2/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/7/">7</a><a class="extend next" rel="next" href="/page/4/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <a class="extend prev" rel="prev" href="/page/2/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><a class="extend next" rel="next" href="/page/4/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -1985,7 +2102,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">35</span>
+          <span class="site-state-item-count">36</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
