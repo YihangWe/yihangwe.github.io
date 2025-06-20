@@ -181,6 +181,984 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/MySQL/2024/11/09/MySQL/%E9%94%81/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/MySQL/2024/11/09/MySQL/%E9%94%81/" class="post-title-link" itemprop="url">锁</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2024-11-09 00:00:00" itemprop="dateCreated datePublished" datetime="2024-11-09T00:00:00-08:00">2024-11-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-06-20 14:54:08" itemprop="dateModified" datetime="2025-06-20T14:54:08-07:00">2025-06-20</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>如何在高并发访问下，既充分利用数据库的并发能力，又保证每个用户对数据的读写操作保持一致性呢？为此，数据库系统引入了锁（locking）机制，这也是它与文件系统的一个关键区别。</p>
+<p>而且这里需要澄清，只有当系统真正需要更高锁粒度时，行级锁才会出现开销，而 InnoDB 本身并不依赖锁升级机制，因为单个锁与多个锁的成本是相当的。也就是说，在不需要非常高并发写冲突控制的情况下，InnoDB 不会主动为每一行都添加行锁；只有当真的有并发冲突需要保护同一行时，才会产生行级锁对应的数据结构开销。</p>
+<p>锁是计算机中协调多个进程或线程并发访问某一资源的机制。</p>
+<p>在MySQL中，事务中的锁（行锁、表锁等）会一直保留到事务结束（COMMIT 或 ROLLBACK）。</p>
+<h2 id="lock-与-latch"><a href="#lock-与-latch" class="headerlink" title="lock 与 latch"></a>lock 与 latch</h2><ol>
+<li>Latch（闩锁）<ul>
+<li>也称为轻量级锁或临界区锁，主要用于保护数据库内部的临时数据结构与内存资源，确保多个线程在访问或修改同一份临界资源时不会产生并发安全问题。</li>
+<li>必须保证其持有时间极短：一旦线程完成对临界资源的访问，必须立即释放 latch，否则会严重影响整个系统的并发性能。</li>
+<li>在 InnoDB 存储引擎内部，latch 进一步分为两类：<ul>
+<li>Mutex（互斥量）：最简单的二元互斥锁，用于保护对某个共享资源的独占访问。</li>
+<li>RWLock（读写锁）：允许多个读线程同时进入临界区，但写线程独占，保证读写操作对同一资源的并发正确性。</li>
+</ul>
+</li>
+<li>无死锁检测：由于 latch 的持有时间极短，InnoDB 不会对其进行死锁检测。一旦某线程在短时间内未能获取到 latch，往往是因为有其他线程暂时占用，系统会进行短暂等待或重试，直到拿到 latch 才继续执行。</li>
+</ul>
+</li>
+<li>Lock（事务锁）<ul>
+<li>针对数据库对象（如表、页、行）而设计，由事务进行获取和释放：<ul>
+<li>加锁操作（例如加行锁、页锁）只会在事务提交（COMMIT）或回滚（ROLLBACK）时才被释放（不同的隔离级别下，锁的释放时机可能会有所区别）。</li>
+<li>Lock 的持有时间较长（往往跨越整个事务执行过程），因此对并发冲突的检测和处理必须更完整。</li>
+</ul>
+</li>
+<li>支持死锁检测与处理：当多个事务彼此等待对方持有的锁而陷入循环等待时，InnoDB 会自动检测死锁并选择性地回滚某个事务以打破循环，从而保证系统不会长期阻塞。</li>
+<li>锁级别包括：意向锁（Intention Lock）、行级锁（Record Lock）、间隙锁（Gap Lock）、次序锁（Next-Key Lock）等，它们共同配合以实现更高效、更细粒度的并发控制。</li>
+</ul>
+</li>
+</ol>
+<h2 id="锁问题"><a href="#锁问题" class="headerlink" title="锁问题"></a>锁问题</h2><p>通过锁定机制可以实现事务的隔离性要求，使得事务可以并发地工作。锁提高了并发，但是却会带来潜在的问题。不过好在因为事务隔离性的要求，锁只会带来三种问题，如果可以防止这三种情况的发生，那将不会产生并发异常。</p>
+<h3 id="脏读"><a href="#脏读" class="headerlink" title="脏读"></a>脏读</h3><p>在理解脏读（Dirty Read）之前，需要理解脏数据的概念。但是脏数据和之前所介绍的脏页完全是两种不同的概念。脏页指的是在缓冲池中已经被修改的页，但是还没有刷新到磁盘中，即数据库实例内存中的页和磁盘中的页的数据是不一致的，当然在刷新到磁盘之前，日志也已经被写入到了重做日志文件中。而所谓脏数据是指事务对缓冲池中行记录的修改，并且还没有被提交（commit）。</p>
+<p>对于脏页的读取，是非常正常的。脏页是因为数据库实例内存和磁盘的异步造成的，这并不影响数据的一致性（或者说两者最终会达到一致，即当脏页都刷新到磁盘）。并且因为脏页的刷新是异步的，不影响数据库的可用性，因此可以带来性能的提高。</p>
+<p>脏数据却截然不同，脏数据是指未提交的数据，如果读到脏数据，即一个事务可以读取到另外一个事务中未提交的数据，则显然违反了数据库的隔离性。</p>
+<p>脏读指的就是在不同的事务下，当前事务可以读到另外事务未提交的数据，简单来说就是可以读到脏数据。</p>
+<p>脏读发生的条件是需要事务的隔离级别为 READ UNCOMMITTED，而目前绝大部分的数据库都会至少设置成 READ COMMITTED。InnoDB 存储引擎默认的事务隔离级别为 REPEATABLE READ，Microsoft SQL Server 数据库为 READ COMMITTED，Oracle 数据库同样也是 READ COMMITTED。</p>
+<blockquote>
+<p>[!NOTE]</p>
+<p>为什么 InnoDB 默认采用 RR 隔离级别？</p>
+<p>可参考：<a href="%E6%96%87%E4%BB%B6.md#why_rr">为什么 InnoDB 默认采用 RR 隔离级别？</a></p>
+</blockquote>
+<p>脏读隔离看似毫无用处，但在一些比较特殊的情况下还是可以将事务的隔离级别设置为 READ UNCOMMITTED。例如 replication 环境中的 slave 节点，并且在该 slave 上的查询并不需要特别精确的返回值。</p>
+<h3 id="不可重复读"><a href="#不可重复读" class="headerlink" title="不可重复读"></a>不可重复读</h3><p>不可重复读指在同一个事务（会话）内多次读取同一数据集时，由于另一个事务对该数据集进行了 DML 修改（插入、更新或删除），导致第一次和第二次读取的结果不一致。换句话说，同一事务中对同一行数据执行两次 SELECT 查询，若中间有其他事务提交了修改，使得这两次查询得到不同的数据，就发生了不可重复读。</p>
+<p>大多数数据库（如 Oracle、Microsoft SQL Server、PostgreSQL 等）在默认隔离级别为 READ COMMITTED 时，允许发生不可重复读，因为读取的是已提交数据，一般被认为可接受，不会引起严重一致性问题。</p>
+<p>InnoDB 存储引擎默认隔离级别是 REPEATABLE READ，在该级别下使用 Next-Key Locking（锁定索引记录本身以及其前一个 gap 范围）来防止不可重复读和幻读。</p>
+<ul>
+<li>当事务第一次扫描索引行时，会对这条数据及其相邻的 gap 区间加锁，阻止其他事务在该范围内插入或修改行。</li>
+<li>因此，同一事务的后续读取始终只能看到最初加锁时的“快照”数据，不会因他人提交修改而改变读取结果。</li>
+</ul>
+<p>若将隔离级别设置为 READ COMMITTED，InnoDB 只对具体记录加行锁（Record Lock），不再对 gap 进行加锁，因此允许在两次读取之间对行或 gap 进行插入&#x2F;更新，从而出现不可重复读。</p>
+<h3 id="丢失更新"><a href="#丢失更新" class="headerlink" title="丢失更新"></a>丢失更新</h3><p>丢失更新指的是：当两个事务（或两个并发操作）都希望修改同一行数据时，后提交的那个更新“覆盖”了先提交的更新，导致先前的修改最终没有被保存，从而出现数据不一致。例如：</p>
+<ol>
+<li>事务 T1 将行记录 r 更新为 v1，但是事务 T1 并未提交。</li>
+<li>与此同时，事务 T2 将行记录 r 更新为 v2，事务 T2 未提交。</li>
+<li>事务 T1 提交。</li>
+<li>事务 T2 提交。</li>
+</ol>
+<p>但是，在当前数据库的任何隔离级别下，都不会导致数据库理论意义上的丢失更新问题。这是因为，即使是 READ UNCOMMITTED 的事务隔离级别，对于行的 DML 操作，需要对行或其他粗粒度级别的对象加锁。因此在上述步骤 2) 中，事务 T2 并不能对行记录 r 进行更新操作，其会被阻塞，直到事务 T1 提交。</p>
+<p>虽然数据库能阻止丢失更新问题的产生，但是在生产应用中还有另一个逻辑意义的丢失更新问题，而导致该问题的并不是因为数据库本身的问题。实际上，在所有多用户计算机系统环境下都可能产生这个问题。简单地说来，出现下面的情况时，就会发生丢失更新：</p>
+<ol>
+<li>事务 T1 查询一行数据，放入本地内存，并显示给一个终端用户 User1。</li>
+<li>事务 T2 也查询该行数据，并将取得的数据显示给终端用户 User2。</li>
+<li>User1 修改该行记录，更新数据库并提交。</li>
+<li>User2 修改该行记录，更新数据库并提交。</li>
+</ol>
+<p>显然，这个过程中用户 User1 的修改更新操作丢失了，而这可能会导致一个恐怖的结果。设想银行发生丢失更新现象，例如一个用户账号中有 10000 元人民币，他用两个网上银行的客户端分别进行转账操作。第一次转账 9000 人民币，因为网络和数据的关系，这时需要等待。但是这时用户操作另一个网上银行客户端，转账 1 元，如果最终两个转账都成功了，用户的帐号余额是 9999 人民币，第一次转的 9000 人民币并没有得到更新，但是在转账的另一个账户却会收到这 9000 元，这导致的结果就是钱变多，而账不平。</p>
+<p>这里需要澄清的是，以上银行问题的发生和数据库无关，而是业务逻辑的问题。</p>
+<p>也就是说，如果我们直接写 <code>UPDATE account SET cash = cash - 9000 WHERE user = pUser;</code>，那么 InnoDB 会对满足 <code>user = pUser</code> 的那一行加 X 锁，保证同时不会有别的事务也在修改它。但在很多业务里，我们并不能“直接更新”——往往要先读余额（SELECT），做业务判断（比如余额是否足够、是否与外部系统交互等），然后再走 UPDATE。<strong>在你只使用普通的</strong> <strong>SELECT …</strong> <strong>而没有加锁（FOR UPDATE）时，数据库不会对这条记录加行级排他锁</strong>，这时别的事务就可能同时也读到同一个旧余额，然后各自计算完毕后分别执行 UPDATE，造成后面那笔更新把前面那笔更新覆盖——这才是真正的丢失更新。</p>
+<p>要避免丢失更新发生，需要让事务在这种情况下的操作变成串行化，而不是并行的操作。即在上述四个步骤的 1) 中，对用户读取的记录加上一个排他 X 锁。同样，在步骤 2) 的操作过程中，用户同样也需要加一个排他 X 锁。通过这种方式，步骤 2) 就必须等待 1) 和 3) 完成，最后完成步骤 4)。</p>
+<h2 id="InnoDB-存储引擎中的锁"><a href="#InnoDB-存储引擎中的锁" class="headerlink" title="InnoDB 存储引擎中的锁"></a>InnoDB 存储引擎中的锁</h2><h3 id="锁的类型"><a href="#锁的类型" class="headerlink" title="锁的类型"></a>锁的类型</h3><p><strong>按照兼容性可分为：</strong></p>
+<ul>
+<li>共享锁（S Lock），允许事务读一行数据。</li>
+<li>排他锁（X Lock），允许事务删除或更新一行数据。</li>
+</ul>
+<p>如果一个事务 T1 已经获得了 r 行的共享锁，那么另外的事务 T2 可以立即获得 r 行的共享锁，因为读取并没有改变 r 行的数据，称这种情况为锁兼容（Lock Compatible）。但若有其他的事务 T3 想获得 r 行的排他锁，则其必须等待事务 T1、T2 释放 r 行上的共享锁──这种情况称为锁不兼容。</p>
+<p>下表显示了共享锁和排他锁的兼容性：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>S</th>
+<th>X</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>S</td>
+<td>兼容</td>
+<td>冲突</td>
+</tr>
+<tr>
+<td>X</td>
+<td>冲突</td>
+<td>冲突</td>
+</tr>
+</tbody></table>
+<p>此外，InnoDB 存储引擎支持多粒度锁定，这种锁定允许事务在行级上的锁和表级上的锁同时存在。为了支持在不同粒度上进行加锁操作，InnoDB 存储引擎支持一种额外的锁方式，称之为意向锁（Intention Lock）。意向锁是将锁定的对象分为多层次，意向锁意味着事务希望在更细粒度（fine granularity）上进行加锁。</p>
+<p>若将上锁的对象看成一棵树，那么对最下层的对象上锁，也就是对最细粒度的对象进行上锁，那么首先需要对粗粒度的对象上锁。如下图，如果需要对页上的记录 r 进行 X 锁，那么首先需要对数据库 A、表、页上意向锁 IX，最后对记录 r 上 X 锁。若其中任何一个部分导致等待，那么该操作需要等待粗粒度锁的完成。比如说，在对记录 r 加 X 锁之前，已经有事务对该表进行了 S 表锁，那么表上已存在 S 锁，之后事务需要对记录 r 在表上加上 IX，由于不兼容，所以该事务需要等待表锁操作的完成。</p>
+<p>InnoDB 存储引擎支持意向锁的设计比较简练，其意向锁即为表级别的锁。设计目的主要是为了在一个事务中揭示下一行将被请求的锁类型。其支持两种意向锁：</p>
+<ol>
+<li>意向共享锁（IS Lock）：事务想要获得一张表中某几行的共享锁；</li>
+<li>意向排他锁（IX Lock）：事务想要获得一张表中某几行的排他锁。</li>
+</ol>
+<p>由于 InnoDB 存储引擎支持的是行级别的锁，因此意向锁其实不会阻塞除全表扫描以外的任何请求。下表展示了表级意向锁与行级锁的兼容性：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>IS</th>
+<th>IX</th>
+<th>S</th>
+<th>X</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>IS</strong></td>
+<td>兼容</td>
+<td>兼容</td>
+<td>兼容</td>
+<td>不兼容</td>
+</tr>
+<tr>
+<td><strong>IX</strong></td>
+<td>兼容</td>
+<td>兼容</td>
+<td>不兼容</td>
+<td>不兼容</td>
+</tr>
+<tr>
+<td><strong>S</strong></td>
+<td>兼容</td>
+<td>不兼容</td>
+<td>兼容</td>
+<td>不兼容</td>
+</tr>
+<tr>
+<td><strong>X</strong></td>
+<td>不兼容</td>
+<td>不兼容</td>
+<td>不兼容</td>
+<td>不兼容</td>
+</tr>
+</tbody></table>
+<p>在 InnoDB 1.0 版本之前，用户只能通过命令 <code>SHOW FULL PROCESSLIST</code>、<code>SHOW ENGINE INNODB STATUS</code> 等来查看当前数据库中锁的请求，然后再判断事务锁的情况。</p>
+<p>从 InnoDB 1.0 开始，在 <code>INFORMATION_SCHEMA</code> 架构下添加了表 <code>INNODB_TRX</code>、<code>INNODB_LOCKS</code>、<code>INNODB_LOCK_WAITS</code>。通过这三张表，用户可以更简单地监控当前事务并分析可能存在的锁问题。</p>
+<p>下表是对于表 INNODB_TRX 的定义：</p>
+<table>
+<thead>
+<tr>
+<th>字段名</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>trx_id</code></td>
+<td>InnoDB 存储引擎内部唯一的事务 ID</td>
+</tr>
+<tr>
+<td><code>trx_state</code></td>
+<td>当前事务的状态</td>
+</tr>
+<tr>
+<td><code>trx_started</code></td>
+<td>事务的开始时间</td>
+</tr>
+<tr>
+<td><code>trx_requested_lock_id</code></td>
+<td>等待事务的锁 ID。如 <code>trx_state</code> 的状态为 <code>LOCK WAIT</code>，那么该值代表当前的事务等待之前事务占用锁资源的 ID。若 <code>trx_state</code> 不是 <code>LOCK WAIT</code>，则该值为 <code>NULL</code>。</td>
+</tr>
+<tr>
+<td><code>trx_wait_started</code></td>
+<td>事务等待开始的时间</td>
+</tr>
+<tr>
+<td><code>trx_weight</code></td>
+<td>事务的权重，反映了一个事务修改和锁住的行数。在 InnoDB 存储引擎中，当发生死锁需要回滚时，InnoDB 存储引擎会选择该值最小的进行回滚。</td>
+</tr>
+<tr>
+<td><code>trx_mysql_thread_id</code></td>
+<td>MySQL 中的线程 ID，<code>SHOW PROCESSLIST</code> 显示的结果</td>
+</tr>
+<tr>
+<td><code>trx_query</code></td>
+<td>事务运行的 SQL 语句</td>
+</tr>
+</tbody></table>
+<p>下表是对于 INNODB_LOCKS 的定义：</p>
+<table>
+<thead>
+<tr>
+<th>字段名</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>lock_id</code></td>
+<td>锁的 ID</td>
+</tr>
+<tr>
+<td><code>lock_trx_id</code></td>
+<td>事务 ID</td>
+</tr>
+<tr>
+<td><code>lock_mode</code></td>
+<td>锁的模式</td>
+</tr>
+<tr>
+<td><code>lock_type</code></td>
+<td>锁的类型（表锁还是行锁）</td>
+</tr>
+<tr>
+<td><code>lock_table</code></td>
+<td>要加锁的表</td>
+</tr>
+<tr>
+<td><code>lock_index</code></td>
+<td>锁定的索引</td>
+</tr>
+<tr>
+<td><code>lock_space</code></td>
+<td>锁对象所在的 space id</td>
+</tr>
+<tr>
+<td><code>lock_page</code></td>
+<td>事务锁定页的数量；若是表锁，则该值为 <code>NULL</code></td>
+</tr>
+<tr>
+<td><code>lock_rec</code></td>
+<td>事务锁定行的数量；若是表锁，则该值为 <code>NULL</code></td>
+</tr>
+<tr>
+<td><code>lock_data</code></td>
+<td>事务锁定记录的主键值；若是表锁，则该值为 <code>NULL</code></td>
+</tr>
+</tbody></table>
+<p>另外需要特别注意的是，在查看 <code>INNODB_LOCKS</code> 的内容时，<code>lock_data</code> 这个值并非是可信的值。例如当用户运行一个范围查找时， <code>lock_data</code> 可能只返回第一行的主键值。与此同时，如果当前资源被锁住了，若锁住的页因为 InnoDB 存储引擎缓冲池的容量，导致该页从缓冲池中被刷出，则在查看 <code>INNODB_LOCKS</code> 表时，该值同样会显示为 NULL，即 InnoDB 存储引擎不会从磁盘进行再一次的查找。</p>
+<p>在通过表 <code>INNODB_LOCKS</code> 查看了每张表上锁的情况后，用户就可以来判断由此引发的等待情况了。当事务较小时，用户就可以人为地、直观地进行判断。但是当事务量非常大，其中锁和等待也时常发生，这个时候就不会这么容易判断。但是通过表 <code>INNODB_LOCK_WAITS</code> ，可以很直观地反映当前事务的等待。表 <code>INNODB_LOCK_WAITS</code> 的结构如下表。</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>说明</th>
+<th>字段</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>requesting_trx_id</code></td>
+<td>申请锁资源的事务 ID</td>
+<td><code>blocking_trx_id</code></td>
+<td>阻塞的事务 ID</td>
+</tr>
+<tr>
+<td><code>requesting_lock_id</code></td>
+<td>申请的锁的 ID</td>
+<td><code>blocking_lock_id</code></td>
+<td>阻塞的锁的 ID</td>
+</tr>
+</tbody></table>
+<p>总的来说，用户可以结合 <code>INNODB_TRX</code>、<code>INNODB_LOCKS</code>、<code>INNODB_LOCK_WAITS</code> 三张表进一步查询。比如：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">  r.trx_id      <span class="keyword">AS</span> waiting_trx_id,</span><br><span class="line">  r.trx_mysql_thread_id <span class="keyword">AS</span> waiting_thread,</span><br><span class="line">  r.trx_query     <span class="keyword">AS</span> waiting_query,</span><br><span class="line">  b.trx_id      <span class="keyword">AS</span> blocking_trx_id,</span><br><span class="line">  b.trx_mysql_thread_id <span class="keyword">AS</span> blocking_thread,</span><br><span class="line">  b.trx_query     <span class="keyword">AS</span> blocking_query</span><br><span class="line"><span class="keyword">FROM</span> information_schema.innodb_lock_waits w</span><br><span class="line"><span class="keyword">INNER</span> <span class="keyword">JOIN</span> information_schema.innodb_trx b</span><br><span class="line">  <span class="keyword">ON</span> b.trx_id <span class="operator">=</span> w.blocking_trx_id</span><br><span class="line"><span class="keyword">INNER</span> <span class="keyword">JOIN</span> information_schema.innodb_trx r</span><br><span class="line">  <span class="keyword">ON</span> r.trx_id <span class="operator">=</span> w.requesting_trx_id\G</span><br><span class="line"><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span> <span class="number">1.</span> <span class="type">row</span> <span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span></span><br><span class="line">waiting_trx_id:    <span class="number">73122</span>F</span><br><span class="line">waiting_thread:    <span class="number">471719</span></span><br><span class="line">waiting_query:    <span class="keyword">NULL</span></span><br><span class="line">blocking_trx_id:   <span class="number">7311</span>FC</span><br><span class="line">blocking_thread:   <span class="number">471718</span></span><br><span class="line">blocking_query:    <span class="keyword">NULL</span></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+
+<p><strong>按照锁的粒度可分为：</strong></p>
+<p><strong>全局锁</strong>：对整个数据库实例加锁，实例处于只读状态。</p>
+<p>使用场景：进行整个数据库的逻辑备份，对所有的表进行锁定，从而获取一致性视图，保证数据完整性（DDL，DML 语句被阻塞，DQL 正常运行）。</p>
+<p>步骤：</p>
+<ol>
+<li>加锁：<code>flush tables with read lock;</code></li>
+<li>数据备份：<code>mysqldump -h192.168.200.202 -uroot -p1234 db01 &gt; db01.sql</code></li>
+<li>解锁：<code>unlock tables;</code></li>
+</ol>
+<p>产生的问题：</p>
+<p>如果在主库上备份，备份期间不能执行插入、更新等操作，<strong>业务基本上停摆</strong>。</p>
+<p>如果在从库上备份，备份期间从库不能执行主库同步过来的二进制日志，导致<strong>主从延迟</strong>。</p>
+<p>解决方法：</p>
+<p>备份时，加上参数 -single-transaction 来完成不加锁的一致性数据备份（快照读取）：<code>mysqldump -single-transaction -h192.168.200.202 -uroot -p1234 db01 &gt; db01.sql</code></p>
+<p><strong>表级锁</strong>：开销小，加锁快；锁定力度大，发生锁冲突概率高，并发度最低；不会出现死锁。</p>
+<p>表**共享-**读锁：当表被 READ 锁定时，其他会话只能获取该表的 READ 锁，不能获取 WRITE 锁。READ 锁的会话可以进行读取操作（SELECT），但不能进行写入操作（INSERT、UPDATE、DELETE 等）。同时，加了 READ 锁的会话可以与其他 READ 锁并发读取表数据，但不能有写入操作。</p>
+<p>表**独占-**写锁：当表被 WRITE 锁定时，其他所有会话都不能对该表进行任何操作（无论是读还是写），只有当前会话可以进行读写操作。写锁是独占锁，一旦被某个会话持有，其他会话都必须等待该锁被释放。</p>
+<p>使用语法：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lock tables table_name1, table_name2 read<span class="operator">/</span>write;</span><br><span class="line">unlock tables <span class="operator">/</span> 客户端断开连接;</span><br></pre></td></tr></table></figure>
+
+<p>当客户端与 MySQL 服务器断开连接时，MySQL 会自动释放当前会话持有的所有表锁。这是为了防止锁永远保持不释放的情况，因为锁定表的会话已经断开，不再能主动解锁。</p>
+<p><strong>元数据锁（meta data lock，MDL）</strong></p>
+<p>元数据是控制表结构、表逻辑相关的信息。加锁过程由系统自动控制，无需显式使用。</p>
+<p>当我们执行诸如 CREATE TABLE、DROP TABLE、ALTER TABLE 等 DDL（数据定义语言）语句时，MySQL 需要对表的元数据进行修改。在这些情况下，MDL 锁可以防止其他事务同时进行操作，确保结构修改的安全性。</p>
+<p>当我们执行 SELECT、INSERT、UPDATE、DELETE 等 DML（数据操作语言）语句时，MySQL 也会申请 MDL 锁以保护表结构，防止在读取或写入数据的过程中表结构发生改变。</p>
+<p>MDL 锁的类型：</p>
+<p>MDL 共享锁（MDL Shared Lock）：</p>
+<ul>
+<li>当事务对表进行读取（如 SELECT）或普通的数据操作（如 INSERT、UPDATE）时，会申请 MDL 共享锁。</li>
+<li>共享锁之间是兼容的，即多个事务可以同时持有 MDL 共享锁，这样可以允许多个事务同时读写表中的数据。</li>
+</ul>
+<p>MDL 排他锁（MDL Exclusive Lock）：</p>
+<ul>
+<li>当事务要对表进行结构修改（如 ALTER TABLE）时，会申请 MDL 排他锁。</li>
+<li>MDL 排他锁与其他所有类型的锁都不兼容。因此，在表结构被修改期间，其他事务将被阻塞，直到持有排他锁的事务提交或回滚。</li>
+</ul>
+<p>查看 MDL：<code>select * from performance_schema.metadata_locks;</code></p>
+<table>
+<thead>
+<tr>
+<th>SQL 语句</th>
+<th>锁类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>lock tables xxx read &#x2F; write</td>
+<td>shared_read_only &#x2F; shared_no_read_write</td>
+<td></td>
+</tr>
+<tr>
+<td>select, select … lock in share mode</td>
+<td>shared_read</td>
+<td>与 shared_read, shared_write 兼容，与 exclusive 互斥</td>
+</tr>
+<tr>
+<td>insert, update, delete, select … for update</td>
+<td>shared_write</td>
+<td>与 shared_read, shared_write 兼容，与 exclusive 互斥</td>
+</tr>
+<tr>
+<td>alter table …</td>
+<td>exclusive</td>
+<td>与其他 MDL 都互斥</td>
+</tr>
+</tbody></table>
+<p><strong>意向锁</strong></p>
+<p>意向锁的出现是为了支持 InnoDB 的多粒度锁，它的主要作用是用来<strong>协调表级锁和行级锁之间的关系</strong>，从而提升锁定机制的性能和效率。它的核心用途是为了在表级别加锁时能够快速判断是否存在冲突，防止误加表级锁而导致锁冲突或死锁。</p>
+<p><strong>意向锁本质</strong>：只是用于标识即将进行的锁操作。它主要用于快速判断是否可以对表或表中某些行施加其他类型的锁。</p>
+<p>我们需要加表锁时，需要判断表中有没有数据行被锁定，以确定是否能加锁成功。</p>
+<p>之前没有意向锁，我们就得遍历表中所有数据行来判断有没有行锁；有了意向锁这个表级锁之后，我们直接判断意向锁是否存在便可知表中是否有数据行被锁定。</p>
+<p>有了意向锁之后，要执行的事务 A 在申请行锁（写锁）之前，数据库会自动先给事务 A 申请表的<strong>意向排他锁</strong>。当事务 B 去申请表的互斥锁时就会失败，因为表上有意向排他锁之后事务 B 申请表的互斥锁时会被阻塞。</p>
+<ol>
+<li>意向共享锁（IS）：由语句 <code>select ... lock in share mode;</code> 添加。</li>
+</ol>
+<ul>
+<li>当一个事务打算对表中的某些行加共享锁（S 锁）时，它会在表级别加一个意向共享锁（IS 锁）。</li>
+<li>意向共享锁之间是兼容的，可以允许多个事务同时对表中不同的行加共享锁。</li>
+</ul>
+<ol>
+<li>意向排他锁（IX）：由 insert，update，delete，<code>select … for update;</code> 添加。</li>
+</ol>
+<ul>
+<li>当一个事务打算对表中的某些行加排他锁（X 锁）时，它会在表级别加一个意向排他锁（IX 锁）。</li>
+<li>意向排他锁之间也是兼容的，允许多个事务同时对表中不同的行加排他锁或共享锁。</li>
+</ul>
+<p>查看：<code>select * from performace_schema.data_locks;</code></p>
+<p>下表中的 S 和 X 指的是表级锁，<strong>意向锁不会与行级的读写锁互斥！！！</strong></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>X 锁</th>
+<th>S 锁</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>IS 锁</strong></td>
+<td>不兼容</td>
+<td>兼容</td>
+</tr>
+<tr>
+<td><strong>IX 锁</strong></td>
+<td>不兼容</td>
+<td>不兼容</td>
+</tr>
+</tbody></table>
+<p>意向锁的使用场景</p>
+<ol>
+<li>行级锁与表级锁的兼容性检测：<ul>
+<li>当一个事务需要对表中的某些行加锁时，它会先在表级别加上相应的意向锁（IS 或 IX）。</li>
+<li>这样，当其他事务尝试获取表级锁（例如 <code>LOCK TABLES</code>）时，只需要检查表级别的意向锁状态，就可以知道是否可以安全地进行加锁操作。</li>
+</ul>
+</li>
+<li>防止死锁：<ul>
+<li>通过使用意向锁，可以有效防止死锁的发生。例如，如果两个事务同时尝试对表的不同部分加锁，如果没有意向锁的机制，可能会导致相互等待，最终陷入死锁。</li>
+<li>意向锁通过明确锁的意图，可以提前检测到潜在的冲突，从而避免死锁情况的出现。</li>
+</ul>
+</li>
+</ol>
+<p><strong>行级锁</strong>：开销大，加锁慢；锁定粒度小，发生锁冲突概率低，并发度高；会出现死锁。通过对索引中叶子节点的索引项加锁来实现。</p>
+<p>行级锁的具体实现包含：记录锁，间隙锁和邻键锁。</p>
+<p>记录锁（record lock）：锁定单个行的锁，防止其它事务对此进行 update 和 delete，在 Read committed、Repeatable read 隔离级别下都支持。</p>
+<p><img src="/../../images/MySQL/mysql_locking_rec.drawio.png" alt="img"></p>
+<ul>
+<li>共享锁（S）：允许一个事务读一行，阻止其它事务获得相同数据集的排他锁。</li>
+<li>排他锁（X）：允许获取排他锁的事务更新数据，阻止其它事务获得相同数据集的共享锁和排他锁。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>SQL</th>
+<th>行锁类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>insert</td>
+<td>X</td>
+<td>自动加锁</td>
+</tr>
+<tr>
+<td>update</td>
+<td>X</td>
+<td>自动加锁</td>
+</tr>
+<tr>
+<td>delete</td>
+<td>X</td>
+<td>自动加锁</td>
+</tr>
+<tr>
+<td>select （正常）</td>
+<td>不加任何锁</td>
+<td></td>
+</tr>
+<tr>
+<td>select … lock in share mode</td>
+<td>S</td>
+<td>需要手动在select之后加lock in share mode</td>
+</tr>
+<tr>
+<td>select … for update</td>
+<td>X</td>
+<td>需要手动在select之后添加for update</td>
+</tr>
+</tbody></table>
+<p>间隙锁（gap lock）：锁定索引记录间隙（不含该记录），确保索引记录间隙不变，防止其它事务在这个间隙进行插入操作以产生幻读，在 Repeatable read 隔离级别下支持。间隙锁可共存，一个事务采用的间隙锁不会阻止另一个事务在同一间隙上采用间隙锁。</p>
+<p><img src="/../../images/MySQL/mysql_locking_gap.drawio.png" alt="img"></p>
+<p>以 <code>SELECT * FROM employees WHERE age BETWEEN 25 AND 30 FOR UPDATE;</code> 为例：</p>
+<p>InnoDB 会对二级索引 age 的叶子节点加锁，包括：</p>
+<ul>
+<li>范围内存在的所有索引项（记录锁）。</li>
+<li>范围内不存在记录的“间隙”部分（间隙锁）。</li>
+</ul>
+<p>随后，对这些索引项所指向的聚簇索引中的行数据加锁。</p>
+<p>也就是说这种情况下，二级索引和聚簇索引的多个节点都会被加锁，以避免幻读和保证一致性。</p>
+<p>除了上述例子的一致性锁定读之外，UPDATE 和 DELETE 在查询非唯一索引时也会使用间隙锁。</p>
+<p>间隙锁可能带来的问题</p>
+<ol>
+<li>降低并发性能：间隙锁锁住的是一个范围，而不是具体的行，因此可能导致较多事务被阻塞。例如，一个简单的范围查询可能锁住比预期更多的行或区间。</li>
+<li>死锁风险增加：由于间隙锁锁定的范围较广，在高并发场景下，多个事务可能会竞争相邻的间隙，导致死锁。</li>
+<li>仅适用于索引字段：间隙锁只能作用于有索引的字段。如果字段没有索引，在 InnoDB 下会退化为表锁，从而进一步降低性能。</li>
+</ol>
+<p>临键锁（next-key lock）：行锁和间隙锁的组合，同时锁住数据以及数据前面的间隙（左开右闭区间），在 Repeatable read 隔离级别下支持。该锁用于解决幻读问题。</p>
+<p><img src="/../../images/MySQL/mysql_locking_nxt_key.drawio.png" alt="img"></p>
+<p>当查询的索引是针对唯一属性列时，临键锁会退化为记录锁，因为没必要锁一个区间，所有该字段的值都是唯一值。</p>
+<p>此外，对于非唯一索引，如果查询的数据存在，那么 InnoDB 还会对该索引中的下一个区间加间隙锁。</p>
+<p>假设我们创建一个表：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE TABLE</span> z ( a <span class="type">INT</span>, b <span class="type">INT</span>, <span class="keyword">PRIMARY KEY</span>(a), KEY(b) );</span><br></pre></td></tr></table></figure>
+
+<p>表 z 的列 b 是辅助索引，若在会话 A 中执行下面的 SQL 语句：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSERT INTO</span> z <span class="keyword">SELECT</span> <span class="number">1</span>,<span class="number">1</span>;</span><br><span class="line"><span class="keyword">INSERT INTO</span> z <span class="keyword">SELECT</span> <span class="number">3</span>,<span class="number">1</span>;</span><br><span class="line"><span class="keyword">INSERT INTO</span> z <span class="keyword">SELECT</span> <span class="number">5</span>,<span class="number">3</span>;</span><br><span class="line"><span class="keyword">INSERT INTO</span> z <span class="keyword">SELECT</span> <span class="number">7</span>,<span class="number">6</span>;</span><br><span class="line"><span class="keyword">INSERT INTO</span> z <span class="keyword">SELECT</span> <span class="number">10</span>,<span class="number">8</span>;</span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> z <span class="keyword">WHERE</span> b<span class="operator">=</span><span class="number">3</span> <span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br></pre></td></tr></table></figure>
+
+<p>很明显，这时 SQL 语句通过索引列 b 进行查询，因此其使用传统的 Next-Key Locking 技术加锁，并且由于有两个索引，其需要分别进行锁定。对于聚集索引，其仅对列 a 等于 5 的索引加上 Record Lock。而对于辅助索引，其加上的是 Next-Key Lock，锁定的范围是 <code>(1, 3)</code>，特别需要注意的是，InnoDB 存储引擎还会对辅助索引下一个键值</p>
+<p>加上 gap lock，即还有一个辅助索引范围为 <code>(3, 6)</code> 的锁。因此，若在新会话 B 中执行下面的 SQL 语句，都会被阻塞：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> z <span class="keyword">WHERE</span> a <span class="operator">=</span> <span class="number">5</span> LOCK <span class="keyword">IN</span> SHARE MODE;</span><br><span class="line"><span class="keyword">INSERT INTO</span> z <span class="keyword">SELECT</span> <span class="number">4</span>,<span class="number">2</span>;</span><br><span class="line"><span class="keyword">INSERT INTO</span> z <span class="keyword">SELECT</span> <span class="number">6</span>,<span class="number">5</span>;</span><br></pre></td></tr></table></figure>
+
+<p>第一个 SQL 语句不能执行，因为在会话 A 中执行的 SQL 语句已经对聚集索引中列 a &#x3D; 5 的值加上 X 锁，因此执行会被阻塞。第二个 SQL 语句，主键插入 4，没有问题，但是插入的辅助索引值 2 在锁定的范围 <code>(1, 3)</code> 中，因此执行同样会被阻塞。第三个 SQL 语句，插入的主键 6 没有被锁定，5 也不在范围 <code>(1, 3)</code> 之间。但插入的值 5 在另一个锁定的范围 <code>(3, 6)</code> 中，故同样需要等待。而下面的 SQL 语句，不会被阻塞，可以立即执行：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSERT INTO</span> z <span class="keyword">SELECT</span> <span class="number">8</span>,<span class="number">6</span>;</span><br><span class="line"><span class="keyword">INSERT INTO</span> z <span class="keyword">SELECT</span> <span class="number">2</span>,<span class="number">0</span>;</span><br><span class="line"><span class="keyword">INSERT INTO</span> z <span class="keyword">SELECT</span> <span class="number">6</span>,<span class="number">7</span>;</span><br></pre></td></tr></table></figure>
+
+<p>从上面的例子中可以看到，Gap Lock 的作用是为了阻止多个事务将记录插入到同一范围内，而这会导致 Phantom Problem 问题的产生。例如在上面的例子中，会话 A 中用户已经锁定了 b &#x3D; 3 的记录。若此时没有 Gap Lock 锁定 <code>(3, 6)</code>，那么用户可以插入索引 b 列为 3 的记录，这会导致会话 A 中的用户再次执行同样查询时会返回不同的记录，即导致 Phantom Problem 问题的产生。</p>
+<p>用户可以通过以下两种方式来显式地关闭 Gap Lock：</p>
+<ul>
+<li>将事务的隔离级别设置为 READ COMMITTED</li>
+<li>将参数 <code>innodb_locks_unsafe_for_binlog</code> 设置为 1</li>
+</ul>
+<p>在上述的配置下，除了外键约束和唯一性检查依然需要的 Gap Lock，其余情况仅使用 Record Lock 进行锁定。但需要牢记的是，上述设置破坏了事务的隔离性，并且对于 replication，可能会导致主从数据的不一致。此外，从性能上来看，READ COMMITTED 也不会优于默认的事务隔离级别 READ REPEATABLE。</p>
+<p>在 InnoDB 存储引擎中，对于 INSERT 的操作，其会检查插入记录的下一条记录是否被锁定，若已经被锁定，则不允许查询。对于上面的例子，会话 A 已经锁定了表 z 中 b &#x3D; 3 的记录，即已经锁定了 <code>(1, 3)</code> 的范围，这时若在其他会话中进行如下的插入同样会导致阻塞：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSERT INTO</span> z <span class="keyword">SELECT</span> <span class="number">2</span>,<span class="number">2</span>;</span><br></pre></td></tr></table></figure>
+
+<p>因为在辅助索引列 b 上插入值为 2 的记录时，会监测到下一个记录 3 已经被索引。而将插入修改为如下的值，可以立即执行：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSERT INTO</span> z <span class="keyword">SELECT</span> <span class="number">2</span>,<span class="number">0</span>;</span><br></pre></td></tr></table></figure>
+
+<p>需要注意的是，对于唯一键值的锁定，Next-Key Lock 降级为 Record Lock 仅存在于查询所有的唯一索引列。若唯一索引由多个列组成，而查询仅是查找多个唯一索引列中的其中一个，那么查询其实是 range 类型查询，而不是 point 类型查询，故 InnoDB 存储引擎依然使用 Next-Key Lock 进行锁定。</p>
+<p>InnoDB 存储引擎默认的事务隔离级别是 REPEATABLE READ，在该隔离级别下，其采用 Next-Key Locking 的方式来加锁。而在事务隔离级别 READ COMMITTED 下，其仅采用 Record Lock。</p>
+<p>此外，用户可以通过 InnoDB 存储引擎的 Next-Key Locking 机制在应用层面实现唯一性的检查。例如：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> <span class="keyword">table</span> <span class="keyword">WHERE</span> col <span class="operator">=</span> xxx LOCK <span class="keyword">IN</span> SHARE MODE;</span><br><span class="line"></span><br><span class="line">If <span class="keyword">not</span> found <span class="keyword">any</span> <span class="type">row</span>:</span><br><span class="line">  # <span class="keyword">unique</span> <span class="keyword">for</span> <span class="keyword">insert</span> <span class="keyword">value</span></span><br><span class="line">  <span class="keyword">INSERT INTO</span> <span class="keyword">table</span> <span class="keyword">VALUES</span> (...);</span><br></pre></td></tr></table></figure>
+
+<p>如果用户通过索引查询一个值，并对该值加上一个 SLock，那么即使查询的值不存在，其锁定的也是一个范围。因此若没有返回任何行，那么新插入的值一定是唯一的。或许有读者会疑问：如果在进行第一步 <code>SELECT … LOCK IN SHARE MODE</code> 操作时，有多个事务并发操作，那么这种唯一性检查机制是否存在问题？其实并不会，因为这时会导致死锁，只有一个事务的插入操作会成功，而其余的事务会抛出死锁错误。如下表所示：</p>
+<table>
+<thead>
+<tr>
+<th><strong>时间</strong></th>
+<th><strong>会话 A</strong></th>
+<th><strong>会话 B</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>BEGIN</td>
+<td></td>
+</tr>
+<tr>
+<td>2</td>
+<td>SELECT * FROM z WHERE b&#x3D;4 LOCK IN SHARE MODE;</td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td></td>
+<td>SELECT * FROM z WHERE b&#x3D;4 LOCK IN SHARE MODE;</td>
+</tr>
+<tr>
+<td>4</td>
+<td>INSERT INTO z SELECT 4,4; # 阻塞</td>
+<td></td>
+</tr>
+<tr>
+<td>5</td>
+<td></td>
+<td>INSERT INTO z SELECT 4,4; ERROR 1213 (40001): Deadlock found when trying to get lock; try restarting transaction # 抛出死锁异常，并打破死锁</td>
+</tr>
+<tr>
+<td>6</td>
+<td># INSERT 插入成功</td>
+<td></td>
+</tr>
+</tbody></table>
+<p><strong>插入意向锁</strong></p>
+<p>插入意向锁是间隙粒度的锁，精细到单个索引页里某两个值之间的区间，用于标识事务计划在某个索引间隙内插入数据而加设的锁。它并不锁定具体已存在的行，而是将要插入的位置所在的间隙临时锁定为计划插入，从而允许多个事务在同一间隙内并发插入不同的记录。也就是说，插入意向锁仅表示意向，不直接阻塞其他事务对同一间隙的插入，只要插入位置互不冲突即可并发执行。 </p>
+<p>它介于行级（Record Lock，锁已存在行）和页&#x2F;表级（锁整页或整表）之间，用来协调多个事务同时往同一个区间插入新行，而不去阻塞彼此。该锁的设计初衷是<strong>提高并发插入能力</strong>，减少因行锁或表级锁而产生的阻塞。</p>
+<p>当执行 INSERT 语句时，InnoDB 会先定位插入值在聚集索引（或唯一索引）中的正确位置。在真正写入新行之前，InnoDB 会对该插入间隙加上插入意向锁，以表明本事务计划在此间隙插入数据。只有当此时该间隙已经被其他事务以 Gap Lock 形式范围锁定（如执行范围扫描加锁）时，才能导致当前插入意向锁请求被阻塞。否则，插入意向锁之间互不冲突。</p>
+<p>获得插入意向锁后，InnoDB 会继续在实际要插入的新行位置加行级写锁，确保后续写操作的原子性与一致性。在插入完成并提交后，这条新插入行上的行锁保持至事务结束，然后随着事务提交释放；插入意向锁在加行锁后也会被释放，不会持续阻塞。</p>
+<p>任何普通的 INSERT 操作（包括单行插入和多行插入），在执行前都会对目标插入点所在的索引空隙加一个插入意向锁，表明当前事务打算在此处插入新行，但不会阻塞同一区间的其他插入操作。</p>
+<p>InnoDB 在 REPEATABLE READ 隔离级别下，针对不同类型的索引检索与扫描操作采取了不同的锁策略：</p>
+<ul>
+<li>执行的范围扫描（如 <code>SELECT … FOR UPDATE</code>、UPDATE、DELETE 等）会使用 Next-Key 锁，它相当于给索引记录加上行锁（Record Lock），同时对该记录之前的空隙加上间隙锁，从而禁止并发事务在此间隙插入幻行。</li>
+<li>当对唯一索引进行等值查询（unique index + … WHERE key &#x3D; value）时，如果能精确匹配到某条已存在记录，InnoDB 会直接对该记录加行级锁（Record Lock），而不再对前置间隙加锁（即不使用 Gap Lock）。这种唯一索引 + 等值匹配的情况被 InnoDB 自动优化为仅行锁，以减少锁级别和冲突。</li>
+<li>InnoDB 的行锁是加在索引记录上的，如果某条查询完全不经过索引（例如全表扫描、非索引列条件），InnoDB 会退化为给整张表加表级锁。</li>
+<li>当在 唯一索引上执行等值查询，但该值在表中不存在（即要锁定某个不存在的记录）时，InnoDB 会对对应索引位置的空隙加上间隙锁，防止其他事务在该位置插入新行。</li>
+<li>在非唯一索引上执行等值查询（ordinary index + WHERE key &#x3D; value）时，InnoDB 会先沿索引向右遍历查找匹配行；若查到的最后一个值仍不满足等值条件，Next-Key 锁会退化为仅加间隙锁，而不是继续对某条不存在的记录加行锁。</li>
+<li>在唯一索引上执行范围查询（<code>WHERE key BETWEEN a AND b</code> 或 <code>WHERE key &gt; a</code> 等），InnoDB 访问到第一个不满足条件的值后就停止，这也保证了越界位置的间隙锁效果——只锁定真正满足条件的记录之前的空隙，避免后续出现新的幻行。</li>
+</ul>
+<p>按照加锁机制可分为：</p>
+<p><strong>乐观锁</strong></p>
+<p>乐观锁假设冲突在系统中出现的频率较低，因此在数据库事务执行过程中，不会频繁地去锁定资源。相反，它在提交更新的时候才检查是否有其他事务已经修改了数据。</p>
+<p>可以通过在数据表中使用版本号或时间戳来实现，每次读取记录时，同时获取版本号或时间戳，更新时检查版本号或时间戳是否发生变化。</p>
+<p>如果没有变化，则执行更新并增加版本号或更新时间戳；如果检测到冲突（即版本号或时间戳与之前读取的不同），则拒绝更新。</p>
+<p><strong>悲观锁</strong></p>
+<p>悲观锁假设冲突是常见的，因此在数据处理过程中，它会主动锁定数据，防止其他事务进行修改。</p>
+<p>可以直接使用数据库的锁机制，如行锁或表锁，来锁定被访问的数据。常见的实现是 <code>SELECT FOR UPDATE</code> 语句，它在读取数据时就加上了锁，直到当前事务提交或回滚后才释放。</p>
+<p><strong>解决库存超买问题</strong></p>
+<p>乐观锁</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> inventory <span class="keyword">SET</span> count <span class="operator">=</span> count <span class="operator">-</span> <span class="number">1</span>, version <span class="operator">=</span> version <span class="operator">+</span> <span class="number">1</span> <span class="keyword">WHERE</span> product_id <span class="operator">=</span> <span class="number">1</span> <span class="keyword">AND</span> version <span class="operator">=</span> current_version;</span><br></pre></td></tr></table></figure>
+
+<p>因此乐观锁通过不断递增的版本号来控制并发事务。</p>
+<p>悲观锁</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">START</span> TRANSACTION;</span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> inventory <span class="keyword">WHERE</span> product_id <span class="operator">=</span> <span class="number">1</span> <span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br><span class="line"><span class="keyword">UPDATE</span> inventory <span class="keyword">SET</span> count <span class="operator">=</span> count <span class="operator">-</span> <span class="number">1</span> <span class="keyword">WHERE</span> product_id <span class="operator">=</span> <span class="number">1</span>;</span><br><span class="line"><span class="keyword">COMMIT</span>;</span><br></pre></td></tr></table></figure>
+
+<p>由此可见，悲观锁会在事务开始时直接锁定库存记录，直到事务结束。</p>
+<h3 id="一致性非锁定读"><a href="#一致性非锁定读" class="headerlink" title="一致性非锁定读"></a>一致性非锁定读</h3><p>一致性非锁定读是一种利用多版本并发控制（MVCC）的读取方式。当事务执行普通的 SELECT 语句时，即使另一事务正在对同一行进行 UPDATE 或 DELETE，读取操作也不会被阻塞。</p>
+<p>InnoDB 会为每条记录在 undo 段中保存历史版本。当读取请求到来时，若目标行正被加锁或已被修改，InnoDB 会取用该行的快照数据（历史版本）而非等待当前锁的释放，从而实现非锁定地读取一致性数据。</p>
+<p>每次对行执行更新或删除时，InnoDB 会将修改前的行数据写入 undo 段，形成一个快照版本。一个行记录可能拥有多个历史版本，每个版本对应不同时间点的值。通过在事务启动时或者读取时确定一个合适的版本，InnoDB 能保证读取到符合隔离级别要求的“旧数据”或“最新已提交数据”，而不去抢占当前正在被写锁定的行。</p>
+<p>由于读取操作无需等待行级锁释放，InnoDB 的并发性能大幅提升。读操作不会阻塞写操作，写操作也不会过度影响其它读事务。</p>
+<p>在大多数情况下，事务仅需访问行快照，即可保证数据一致性，无须引入额外锁，从而避免死锁与锁等待带来的性能开销。</p>
+<p>**READ COMMITTED：**每次读取都会取当前最新的“已提交”快照。若在同一事务中连续执行两次相同查询，第二次查询可能看到其他事务已提交的更新。</p>
+<p>**REPEATABLE READ（InnoDB 默认）：**事务启动后即确定一个读取视图（snapshot），所有后续读取都基于该视图中的版本。无论其他事务如何提交，当前事务看到的行数据都是事务开始时的一致快照。</p>
+<h3 id="一致性锁定读"><a href="#一致性锁定读" class="headerlink" title="一致性锁定读"></a>一致性锁定读</h3><p>在 InnoDB 默认的 REPEATABLE READ 隔离级别下，普通的 SELECT 都是非锁定的一致性读，通过 MVCC 机制读取快照而不会阻塞或等待行锁。但在某些业务场景中，用户需要显式地对读取到的数据加锁，以强制保证数据逻辑上的一致性，此时就需要使用“一致性锁定读”。</p>
+<p>InnoDB 支持对 SELECT 语句加锁的两种方式：</p>
+<ul>
+<li><code>SELECT … FOR UPDATE</code></li>
+<li><code>SELECT … LOCK IN SHARE MODE</code></li>
+</ul>
+<p>其中：</p>
+<ul>
+<li><code>SELECT … FOR UPDATE</code><ul>
+<li>会对检索到的每一行记录加上排他锁。</li>
+<li>一旦某行被 X 锁锁定，其他事务既不能对该行加 X 锁，也不能加 S 锁，必须等该事务提交或回滚后才可访问。</li>
+</ul>
+</li>
+<li><code>SELECT … LOCK IN SHARE MODE</code><ul>
+<li>会对检索到的每一行记录加上共享锁。</li>
+<li>其他事务可以对该行继续加共享锁（并发读取），但若尝试加排他锁就会被阻塞，直到 S 锁释放。</li>
+</ul>
+</li>
+</ul>
+<p><code>SELECT … FOR UPDATE</code>&#x2F;<code>LOCK IN SHARE MODE</code> 必须在显式事务内执行，也就是在执行之前要先执行：</p>
+<ul>
+<li><code>BEGIN</code> 或 <code>START TRANSACTION</code></li>
+<li>或者将会话设置为 <code>SET AUTOCOMMIT=0</code>，然后执行 <code>SELECT … FOR UPDATE</code>／<code>SELECT … LOCK IN SHARE MODE</code>。</li>
+</ul>
+<p>只有在事务结束后（提交或回滚），这些行锁才会被释放，其他事务才能继续操作这些行。</p>
+<p>对于一致性非锁定读，就算目标行正在被 X 锁锁定，InnoDB 依然能通过读取行的历史快照来返回结果，不会阻塞。</p>
+<h3 id="自增长与锁"><a href="#自增长与锁" class="headerlink" title="自增长与锁"></a>自增长与锁</h3><p>自增长在数据库中是非常常见的一种属性。在 InnoDB 存储引擎的内存结构中，每个含有自增长值的表都有一个自增长计数器（auto-increment counter）。当对含有自增长计数器的表进行插入操作时，这个计数器会被初始化，执行如下语句来得到计数器的值：</p>
+<p>插入操作会依据这个自增长计数器的值加 1 赋予自增列。这个实现方式称做 AUTO-INC Locking。这种锁其实是采用一种特殊的表锁机制，为了提高插入的性能，锁不是在一个事务完成后才释放，而是在完成对自增长值插入的 SQL 语句后立即释放。</p>
+<p>虽然 AUTO-INC Locking 从一定程度上提高了并发插入的效率，但还是存在一些性能上的问题。首先，对于有自增长值的列的并发插入性能较差，事务必须等待前一个插入的完成（虽然不用等待整个事务的结束）。其次，对于 <code>INSERT … SELECT</code> 的大数据量插入，会影响插入的性能，因为此时另一个事务中的插入会被阻塞。</p>
+<p>从 MySQL 5.1.22 版本开始，InnoDB 存储引擎中提供了一种轻量级互斥量的自增长实现机制，这种机制大大提高了自增长值插入的性能。并且从该版本开始，InnoDB 存储引擎提供了一个参数 <code>innodb_autoinc_lock_mode</code> 来控制自增长的模式，该参数的默认值为 1。</p>
+<p>下表对插入操作进行分类：</p>
+<table>
+<thead>
+<tr>
+<th>插入类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>insert-like</code></td>
+<td>insert-like 指所有的插入语句，如 <code>INSERT</code>、<code>REPLACE</code>、<code>INSERT … SELECT</code>、<code>REPLACE … SELECT</code>、<code>LOAD DATA</code> 等</td>
+</tr>
+<tr>
+<td><code>simple inserts</code></td>
+<td>simple inserts 指能在插入前就确定插入行数的语句。这些语句包括 <code>INSERT</code>、<code>REPLACE</code> 等。需要注意的是：simple inserts 不包含 <code>INSERT … ON DUPLICATE KEY UPDATE</code> 这类 SQL 语句</td>
+</tr>
+<tr>
+<td><code>bulk inserts</code></td>
+<td>bulk inserts 指在插入前不能确定插入行数的语句，如 <code>INSERT … SELECT</code>、<code>REPLACE … SELECT</code>、<code>LOAD DATA</code></td>
+</tr>
+<tr>
+<td><code>mixed-mode inserts</code></td>
+<td>mixed-mode inserts 指插入中有一部分的值是自增的，有一部分是确定的。如：<br><code>INSERT INTO t1 (c1,c2) VALUES (1,&#39;a&#39;), (NULL,&#39;b&#39;), (5,&#39;c&#39;), (NULL,&#39;d&#39;);</code><br>也可以指 <code>INSERT … ON DUPLICATE KEY UPDATE</code> 这类 SQL 语句</td>
+</tr>
+</tbody></table>
+<p><code>innodb_autoinc_lock_mode</code> 有三个有效值可供设定，具体如下：</p>
+<table>
+<thead>
+<tr>
+<th>innodb_autoinc_lock_mode</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>这是 MySQL 5.1.22 版本之前自增长的实现方式，即通过表锁的 AUTO-INC Locking 方式。因为有了新的自增长实现方式，0 这个选项不应该是新版用户的首选项。</td>
+</tr>
+<tr>
+<td>1</td>
+<td>这是该参数的默认值。• 对于 “simple inserts” （简单插入），该值会用互斥量（mutex）去对内存中的计数器进行累加操作。• 对于 “bulk inserts” （批量插入），还是使用传统锁的 AUTO-INC Locking 方式。在这种配置下，如果不考虑回滚操作，对于自增值的增长还是连续的。并且在这种方式下，statement-based 方式的 replication 还是能很好地工作。• 需要注意的是，如果已经使用 AUTO-INC Locking 方式产生自增长值，而这时需要再进行 “simple inserts” 的操作时，还是需要等待 AUTO-INC Locking 的释放。</td>
+</tr>
+<tr>
+<td>2</td>
+<td>在这个模式下，对于所有 “insert-like” 自增长值的产生都是通过互斥量，而不是 AUTO-INC Locking 的方式。显然，这会带来一定的问题，因为并发插入的存在，在每次插入时，自增值的值不保证是连续的。此外，最重要的是，基于 Statement-Based Replication 会出现问题。因此，使用该模式，任何时候都应该使用 row-based replication。这样才能保证最大的并发性能及 replication 主从数据的一致。</td>
+</tr>
+</tbody></table>
+<p>此外，还需要特别注意的是，在 InnoDB 存储引擎中自增长的实现和 MyISAM 不同。MyISAM 存储引擎是表锁设计，自增长不考虑并发插入的问题。因此在 master 上用 InnoDB 存储引擎，在 slave 上用 MyISAM 存储引擎的 replication 架构下，用户必须考虑这种情况。</p>
+<p>上表中，并发插入问题指的是在高并发场景下，用互斥量（mutex）保护自增计数器时会出现的两类问题：</p>
+<ol>
+<li>ID 分配成为串行瓶颈<ul>
+<li>互斥量会让每个插入请求都要轮流抢一次锁，才能执行 <code>counter++</code> 并分配一个自增值。这在并发插入很高时，会频繁争抢同一个互斥量，造成吞吐下降。</li>
+</ul>
+</li>
+<li>自增 ID 不连续或乱序<ul>
+<li>互斥量模式下，插入时就分配 ID。如果某个事务分配到 ID 后回滚，这个号就空了，导致跳号更明显。</li>
+<li>并发事务各自抢到互斥量分配 ID，但可能是后抢到的人先真正写入、先提交，最终物理插入顺序与 ID 逻辑顺序并不一致。</li>
+</ul>
+</li>
+</ol>
+<p>在 InnoDB 存储引擎中，如果要让某个列使用 <code>AUTO_INCREMENT</code> 功能，必须满足两个条件：</p>
+<ol>
+<li>该列要有索引；</li>
+<li>在对应索引中，它必须是最左边（第一列）。</li>
+</ol>
+<p>如果把自增列放在联合索引但不是第一个字段，或者根本没给它建立索引，InnoDB 会报错并拒绝插入；而 MyISAM 在相同情况下则不会报异常。</p>
+<h3 id="外键和锁"><a href="#外键和锁" class="headerlink" title="外键和锁"></a>外键和锁</h3><p>InnoDB 在创建外键时，如果外键列上没有显式索引，会自动为该列创建一个索引，以避免全表扫描带来的锁争用。<br>当对子表执行插入或更新外键列（即要引用父表某条记录）时，InnoDB 必须先查询父表确保对应的主键（或唯一键）存在。</p>
+<p>但简单的 一致性非锁定读（普通 SELECT）并不能保证在事务并发环境中数据的一致性——可能会出现脏写或幻读情形。</p>
+<p>因此，InnoDB 在查询父表时会使用 <code>SELECT … LOCK IN SHARE MODE</code>，对父表所查的行加一个 S 锁（共享锁）。这样做有两个作用：</p>
+<ol>
+<li>防止父表被并发事务删除或更新：如果父表对应行已被其他事务加了 X 锁（排他锁），子事务在 <code>LOCK IN SHARE MODE</code> 时就会阻塞，直到父锁释放为止。</li>
+<li>保证外键引用时数据不会不一致：只有拿到父表的 S 锁，才能证明此父键在本事务内是稳固存在的、不被其他事务删除或修改。</li>
+</ol>
+<p>如果此时父表相应行已经被别的事务用 <code>SELECT … FOR UPDATE</code> 或 UPDATE&#x2F;DELETE 加上了 X 锁，子表的外键检查就必须等这一 X 锁释放后才能继续。</p>
+<p>也就是说，外键引用操作会被刻意设计成主动等待父表可读且稳固的状态，从而避免插入不存在的父记录或引用已改&#x2F;已删的数据。</p>
+<h2 id="阻塞"><a href="#阻塞" class="headerlink" title="阻塞"></a>阻塞</h2><p>因为不同锁之间的兼容性关系，在有些时刻一个事务中的锁需要等待另一个事务中的锁释放它所占用的资源，这就是阻塞。阻塞并不是一件坏事，其是为了确保事务可以并发且正常地运行。</p>
+<p>在 InnoDB 存储引擎中，参数 <code>innodb_lock_wait_timeout</code> 用来控制等待的时间（默认是 50 秒），<code>innodb_rollback_on_timeout</code> 用来设定是否在等待超时时对进行中的事务进行回滚操作（默认为 OFF，代表不回滚）。参数 <code>innodb_lock_wait_timeout</code> 是动态的，可以在 MySQL 数据库运行时进行调整：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SET</span> @<span class="variable">@innodb_lock_wait_timeout</span><span class="operator">=</span><span class="number">60</span>;</span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+
+<p>而 <code>innodb_rollback_on_timeout</code> 是静态的，不可在启动时进行修改，如：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SET</span> @<span class="variable">@innodb_rollback_on_timeout</span><span class="operator">=</span><span class="keyword">on</span>;</span><br><span class="line">ERROR <span class="number">1238</span> (HY000): Variable <span class="string">&#x27;innodb_rollback_on_timeout&#x27;</span> <span class="keyword">is</span> a read <span class="keyword">only</span> variable</span><br></pre></td></tr></table></figure>
+
+<p>当发生超时，MySQL 数据库会抛出一个 1205 的错误，如：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">BEGIN</span>;</span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> t <span class="keyword">WHERE</span> a <span class="operator">=</span> <span class="number">1</span> <span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br><span class="line">ERROR <span class="number">1205</span> (HY000): Lock wait timeout exceeded; try restarting transaction</span><br></pre></td></tr></table></figure>
+
+<p>需要注意的是，在默认情况下 InnoDB 不会回滚超时引发的错误异常，其实 InnoDB 在大部分情况下都不会对异常进行回滚。</p>
+<h2 id="死锁"><a href="#死锁" class="headerlink" title="死锁"></a>死锁</h2><h3 id="死锁的概念"><a href="#死锁的概念" class="headerlink" title="死锁的概念"></a>死锁的概念</h3><p>死锁是指两个或两个以上的事务在执行过程中，因争夺锁资源而造成的一种互相等待的现象。若无外力作用，事务都将无法推进下去。解决死锁问题最简单的方式是不 要有等待，将任何的等待都转化为回滚，并且事务重新开始。毫无疑问，这的确可以避免死锁问题的产生。然而在线上环境中，这可能导致并发性能的下降，甚至任何一个事务都不能进行。而这所带来的问题远比死锁问题更为严重，因为这很难被发现并且浪费资源。</p>
+<p>解决死锁问题最简单的一种方法是超时，即当两个事务互相等待时，当一个等待时间超过设置的某一阈值时，其中一个事务进行回滚，另一个等待的事务就能继续进行。在 InnoDB 存储引擎中，参数 <code>innodb_lock_wait_timeout</code> 用来设置超时时间。</p>
+<p>超时机制虽然简单，但是其仅通过超时后对事务进行回滚的方式来处理，或者说其是根据 FIFO 的顺序选择回滚对象。但被超时的事务所占权重比较大，如事务操作更新了很多行，占用了较多的 undo log，这时采用 FIFO 的方式，就显得不合适了，因为回滚这个事务的时间相对另一个事务所占用的时间可能会很多。</p>
+<p>因此，除了超时机制，目前数据库还普遍采用 wait-for graph（等待图）的方式来进行死锁检测。较之超时的解决方案，这是一种更为主动的死锁检测方式。InnoDB 存储引擎也采用的这种方式。wait-for graph 要求数据库保存以下两种信息：</p>
+<ul>
+<li>锁的信息链表 </li>
+<li>事务等待链表</li>
+</ul>
+<p>通过上述链表可以构造出一张图，而在这个图中若存在回路，就代表存在死锁，因此资源间相互发生等待。在 wait-for graph 中，事务为图中的节点。而在图中，事务 T1 指向 T2 边的定义为：事务 T1 等待事务 T2 所占用的资源，也就是事务之间在等待相同的资源，而事务 T1 发生在事务 T2 的后面。</p>
+<p>假设当前事务和锁的状态如下图：</p>
+<p><img src="/../../images/MySQL/mysql_locking_trx_lock.drawio.png" alt="img"></p>
+<p>在 Transaction Wait Lists 中可以看到共有 4 个事务 t1、t2、t3、t4，故在 wait-for graph 中应有 4 个节点。而事务 t2 对 row1 占用 X 锁，事务 t1 对 row2 占用 S 锁。事务 t1 需要等待事务 t2 对 row1 的资源，因此在 wait-for graph 中有条边从节点 t1 指向节点 t2。事务 t2 需要等待事务 t1、t4 所占用的 row2 对象，故而存在节点 t2 到节点 t1、t4 的边。同样，存在节点 t3 到节点 t1、t2、t4 的边，因此最终的 wait-for graph 如下图：</p>
+<p><img src="/../../images/MySQL/mysql_locking_wait_graph.drawio.png" alt="img"></p>
+<p>可以发现存在回路 <code>(t1, t2)</code>，因此存在死锁。通过上述的介绍，可以发现 wait-for graph 是一种较为主动的死锁检测机制，在每个事务请求锁并发生等待时都会判断是否存在回路，若存在则有死锁。通常来说，InnoDB 存储引擎选择回滚 undo 量最小的事务。</p>
+<p>wait-for graph 的死锁检测通常采用深度优先的算法实现，在 InnoDB 1.2 版本之前，都是采用递归方式实现。而从 1.2 版本开始，对 wait-for graph 的死锁检测进行了优化，将递归用非递归的方式实现，从而进一步提高了 InnoDB 存储引擎的性能。</p>
+<p><strong>死锁示例</strong></p>
+<p>如果程序是串行的，那么不可能发生死锁。死锁只存在于并发的情况，而数据库本身就是一个并发运行的程序，因此可能会发生死锁。下表的操作演示了死锁的一种经典的情况，即 A 等待 B， B 在等待 A，这种死锁问题被称为 AB-BA 死锁。</p>
+<table>
+<thead>
+<tr>
+<th>时间</th>
+<th>会话 A</th>
+<th>会话 B</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>BEGIN;</td>
+<td></td>
+</tr>
+<tr>
+<td>2</td>
+<td>mysql&gt; SELECT * FROM t WHERE a &#x3D; 1 FOR UPDATE;<br />******** 1 row ******** a: 1 1 row in set (0.00 sec)</td>
+<td>BEGIN</td>
+</tr>
+<tr>
+<td>3</td>
+<td></td>
+<td>mysql&gt; SELECT * FROM t WHERE a &#x3D; 2 FOR UPDATE;<br /> ******** 1 row ******** a: 2 1 row in set (0.00 sec)</td>
+</tr>
+<tr>
+<td>4</td>
+<td>mysql&gt; SELECT * FROM t WHERE a &#x3D; 2 FOR UPDATE; # 等待</td>
+<td></td>
+</tr>
+<tr>
+<td>5</td>
+<td></td>
+<td>mysql&gt; SELECT * FROM t WHERE a &#x3D; 1 FOR UPDATE;<br /> ERROR 1213 (40001): Deadlock found when trying to get lock; try restarting transaction</td>
+</tr>
+</tbody></table>
+<p>在上述操作中，会话 B 中的事务抛出了 1213 这个错误提示，即表示事务发生了死锁。死锁的原因是会话 A 和 B 的资源在互相等待。大多数的死锁 InnoDB 存储引擎本身可以侦测到，不需要人为干预。但是在上面的例子中，在会话 B 中的事务抛出死锁异常后，会话 A 中马上得到了记录 2 的这个资源，这其实是因为会话 B 中的事务发生了回滚，否则会话 A 中的事务是不可能得到该资源的。之前说过 InnoDB 存储引擎并不会回滚大部分的异常，但死锁除外。发现死锁后，InnoDB 存储引擎会马上回滚一个事务，这一点需要注意。因此如果在应用程序中捕获了 1213 这个错误，其实并不需要对其进行额外回滚。</p>
+<p>此外还有另一种死锁，即当前事务持有了待插入记录的下一个记录的 X 锁，但是在等待队列中存在一个 S 锁的请求，则可能会发生死锁。来看一个例子，首先根据如下代码创建测试表 t，并导入一些数据：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE TABLE</span> t (</span><br><span class="line">  a <span class="type">INT</span> <span class="keyword">PRIMARY KEY</span></span><br><span class="line">) ENGINE<span class="operator">=</span>InnoDB;</span><br><span class="line"><span class="keyword">INSERT INTO</span> t <span class="keyword">VALUES</span> (<span class="number">1</span>), (<span class="number">2</span>), (<span class="number">4</span>), (<span class="number">5</span>);</span><br></pre></td></tr></table></figure>
+
+<p>下面演示两会话（会话 A 和会话 B）并发执行时发生死锁的过程：</p>
+<table>
+<thead>
+<tr>
+<th>时间</th>
+<th>会话 A</th>
+<th>会话 B</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td><code>BEGIN;</code></td>
+<td></td>
+</tr>
+<tr>
+<td>2</td>
+<td></td>
+<td><code>BEGIN;</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>SELECT * FROM t WHERE a = 4 FOR UPDATE;</code></td>
+<td></td>
+</tr>
+<tr>
+<td>4</td>
+<td></td>
+<td><code>SELECT * FROM t WHERE a &lt;= 4 LOCK IN SHARE MODE;</code><br>– 等待</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>INSERT INTO t VALUES (3);</code><br><code>ERROR 1213 (40001): Deadlock found when trying to get lock; try restarting transaction</code></td>
+<td></td>
+</tr>
+<tr>
+<td>6</td>
+<td></td>
+<td>– 事务获得锁，正常运行</td>
+</tr>
+</tbody></table>
+<p>事务 A 在时间点 3：</p>
+<p>执行 <code>SELECT * FROM t WHERE a = 4 FOR UPDATE;</code></p>
+<p>这条语句会对主键值 a&#x3D;4 的记录加 X 锁。到此时刻，事务 A 持有对记录 (a&#x3D;4) 的 X 锁，且锁保持不释放（事务尚未提交或回滚）。</p>
+<p>事务 B 在时间点 4：</p>
+<p>执行 <code>SELECT * FROM t WHERE a &lt;= 4 LOCK IN SHARE MODE;</code></p>
+<p>由于条件 a &lt;&#x3D; 4 会匹配到主键值 1, 2, 4 三条记录，因此事务 B 需要对这些记录的索引范围（Range）加 S 锁。其中，对 (a&#x3D;4) 那条记录上的 S 锁请求会因为事务 A 已经持有该行的 X 锁而被阻塞，导致事务 B 进入等待队列。</p>
+<p>事务 A 在时间点 5：</p>
+<p>执行 <code>INSERT INTO t VALUES (3);</code></p>
+<p>插入新行 a&#x3D;3 时，InnoDB 需要在索引（聚簇索引）上为记录 3 所在位置加上插入意向锁（Gap Lock &#x2F; Next-key Lock）。由于 InnoDB 的聚簇索引按主键值顺序存储，此时 a&#x3D;3 属于介于 a&#x3D;2 与 a&#x3D;4 之间的间隙。</p>
+<p>然而，事务 B 已在索引范围上对 (a &lt;&#x3D; 4) 加了 S 锁，并且正等待获取 (a&#x3D;4) 上的 S 锁。换句话说，此时索引上存在：</p>
+<ul>
+<li>事务 A：已对 a&#x3D;4 加了 X 锁，还需要对间隙 <code>(2, 4)</code> 加插入意向 X 锁，才能插入 a&#x3D;3。</li>
+<li>事务 B：已对间隙 <code>(2, 4)</code>（更准确地说是对 a &lt;&#x3D; 4 范围）请求 S 锁，其中包括 (a&#x3D;2)、(a&#x3D;4) 以及它们之间的间隙。</li>
+</ul>
+<p><strong>为何形成死锁？</strong></p>
+<ul>
+<li>事务 B 正在等待 (a &#x3D; 4) 上的 S 锁，而当事务 A 在时间点 5 尝试插入 a&#x3D;3 时，InnoDB 会先对 (a &#x3D; 3) 的插入位置加 X 锁（Gap Lock 或 Next-key Lock）。由于事务 B 已对 (a &lt;&#x3D; 4) 这个范围中的间隙（包括 (2, 4)）持有 S 锁请求（还未获得，但已在等待队列中），所以此时：<ul>
+<li>事务 A 需要等到 Gap Lock 获得，而 Gap Lock 又受限于事务 B 已在其上排队的 S 锁；</li>
+<li>同时，事务 B 需要等到 (a &#x3D; 4) 上的 S 锁释放，而 (a &#x3D; 4) 由事务 A 持有 X 锁；</li>
+</ul>
+</li>
+<li>这样就形成循环等待：<ul>
+<li>事务 A 等待事务 B 在间隙 <code>(2, 4)</code> 上的 S 锁释放（因为事务 B 在关键范围上排队），</li>
+<li>事务 B 等待事务 A 释放 (a &#x3D; 4) 上的 X 锁。</li>
+</ul>
+</li>
+</ul>
+<p>由于两者互相等待、谁都无法前进一步，InnoDB 判定为死锁。</p>
+<p><strong>InnoDB 如何选择回滚？</strong></p>
+<p>在常见的 AB-BA 死锁（即会话 A 等待会话 B 持有的资源，同时会话 B 等待会话 A 持有的资源）场景中，InnoDB 会回滚产生的事务中undo log 使用量最小的那个，以尽量减少回滚开销。</p>
+<p>然而本例中的死锁类型不同：它属于插入意向锁与共享锁（Gap Lock&#x2F;S 锁）之间的循环等待。此时应回滚哪一个事务呢？</p>
+<ul>
+<li>事务 A：已持有 (a&#x3D;4) 的 X 锁，而正在尝试插入 a&#x3D;3（需要对间隙 <code>(2, 4)</code> 加 X 锁），此时这一步才触发死锁检测；</li>
+<li>事务 B：已在时间点 4 提出对 a &lt;&#x3D; 4 范围的 S 锁请求，但尚未获得该锁，处于等待状态。</li>
+</ul>
+<p>InnoDB 在检测到此时的死锁后，会回滚 undo log 记录量最大的事务。对比：</p>
+<ul>
+<li>事务 A：已读取并锁定了整行 a&#x3D;4，其 undo log 可能包含对索引与行锁记录的修改；</li>
+<li>事务 B：尚未真正获取任何锁（仅在等待）；其 undo log 体积更小。</li>
+</ul>
+<p><strong>排查死锁的简单流程</strong></p>
+<ol>
+<li>查看死锁日志 <code>show engine innodb status;</code></li>
+<li>找出死锁对应的 SQL</li>
+<li>分析这些 SQL 的加锁情况</li>
+<li>模拟死锁的发生过程</li>
+<li>分析死锁日志</li>
+<li>分析死锁结果</li>
+</ol>
+<h2 id="锁升级"><a href="#锁升级" class="headerlink" title="锁升级"></a>锁升级</h2><p>锁升级（Lock Escalation）是指将当前锁的粒度降低。举例来说，数据库可以把一个表的 1000 个行锁升级为一个页锁，或者将页锁升级为表锁。如果在数据库的设计中认为锁是一种稀有资源，而且想避免锁的开销，那么数据库中会频繁出现锁升级现象。</p>
+<p>Microsoft SQL Server 数据库的设计认为锁是一种稀有的资源，在适合的时候会自动地将行、键或分项锁升级为更粗粒度的表级锁。这种升级保护了系统资源，防止系统使用太多的内存来维护锁，在一定程度上提高了效率。</p>
+<p>在 Microsoft SQL Server 数据库中，由于锁是一种稀有的资源，因此锁升级会带来一定的效率提高。但是锁升级带来的一个问题却是因为锁粒度的降低而导致并发性能的降低。</p>
+<p>InnoDB 存储引擎不存在锁升级的问题。因为其不是根据每个记录来产生行锁，相反，其根据每个事务访问的每个页对锁进行管理的，采用的是位图的方式。因此不管一个事务锁住页中一个记录还是多个记录，其开销通常都是一致的。</p>
+<p>也就是说，在 InnoDB 中，每当一个事务要对某个页内的若干行加锁时，会在该页对应的 lock 对象（<code>lock_rec_t</code>）后面附加一个<strong>位图（bitmap）</strong>，用来表示该页内哪些行被锁住了。每条记录在页内有一个唯一的 <code>heap_no</code> 编号，对应到位图中的一个比特位。当事务锁定某行时，就将该行对应 <code>heap_no</code> 的位图位置置为 1。多个行的锁请求会共用同一个 lock 对象，通过设置不同的 bit 来记录多个行锁。该方式极大地减少了内存开销，避免了行级锁的逐个对象管理及锁升级问题。</p>
+<p>假设一张表有 3,000,000 个数据页，每个页大约有 100 条记录，那么总共有 300,000,000 条记录。若有一个事务执行全表更新的 SQL 语句，则需要对所有记录加 X 锁。若根据每行记录产生锁对象进行加锁，并且每个锁占用 10 字节，则仅对锁管理就需要差不多 3 GB 的内存。而 InnoDB 存储引擎根据页进行加锁，并采用位图方式，假设每个页存储的锁信息占用 30 个字节，则锁对象仅需 90 MB 的内存。由此可见两者对于锁资源开销的差距之大。</p>
+<h2 id="B-树索引中的锁"><a href="#B-树索引中的锁" class="headerlink" title="B+ 树索引中的锁"></a>B+ 树索引中的锁</h2><p>在 InnoDB 源码层面，B+ 树锁通常包含两种基本类型：</p>
+<ul>
+<li><strong>索引锁（Index Lock）</strong>：对应代码中的 <code>dict_index-&gt;lock</code>，用于保护整个 B+ 树索引结构，主要在结构修改（SMO）时使用。</li>
+<li><strong>页锁（Page Lock）</strong>：对应 B+ 树中各数据页的锁变量，用于并发访问控制。非叶子节点页与叶子节点页都可以加锁。</li>
+</ul>
+<p>在 MySQL 5.6 版本中：</p>
+<ol>
+<li><strong>查询（SELECT）请求</strong><ul>
+<li>首先对 B+ 树索引加一个共享锁（S LOCK），随后仅在找到目标叶子节点后，对该叶子页再次加 S LOCK，然后释放索引锁。</li>
+</ul>
+</li>
+<li><strong>修改（UPDATE&#x2F;DELETE&#x2F;INSERT）请求</strong><ul>
+<li>若仅修改叶子页数据：先对索引加 S LOCK，再在找到叶子页后对该叶子页加排它锁（X LOCK），然后释放索引锁。</li>
+<li>若修改触发了结构变化（SMO）：<ol>
+<li>对整个 B+ 树索引升级为 X LOCK；</li>
+<li>执行 <code>btr_cur_search_to_nth_level</code> 定位页面；</li>
+<li>在必要时对父节点直到根节点都施加 X LOCK，防止并发干扰。</li>
+</ol>
+</li>
+<li><strong>非叶子节点并不显式加锁</strong>，这导致在 SMO 过程中，查询操作可能被阻塞，产生性能抖动。</li>
+</ul>
+</li>
+</ol>
+<p>从 MySQL 8.0 开始，引入了更细化的锁机制：</p>
+<ol>
+<li><strong>SX 锁（Shared eXclusive Intent Lock）</strong><ul>
+<li>在可能发生结构修改时，用于表示预期会写入该分支但尚未真正改动，不会与 S LOCK 冲突，但会与 X LOCK 和其它 SX LOCK 冲突。</li>
+</ul>
+</li>
+<li><strong>非叶子节点页锁</strong><ul>
+<li>不再只锁叶子页，而对查找路径上所有非叶子节点页先后加锁（先父后子），实现所谓的锁耦合（Latch Coupling），从而缩小锁范围。</li>
+</ul>
+</li>
+</ol>
+<p><strong>B+ 树遍历锁机制：从根到叶</strong></p>
+<p>下面以 MySQL 8.0+ 的机制为例，详细描述锁如何从根节点一路向下传递到叶子节点。</p>
+<p>这里提前说明，索引锁和根节点的页锁不是一个东西。</p>
+<p><strong>读操作</strong></p>
+<ol>
+<li>申请索引级共享锁（S LOCK on dict_index）<ul>
+<li>客户端提交 <code>SELECT … FROM table WHERE key = … FOR UPDATE</code>&#x2F;<code>LOCK IN SHARE MODE</code> 时，InnoDB 会先对目标表的聚簇索引（<code>dict_index</code> 对象）加一个共享锁（S LOCK），用来保证当前索引结构不会被并发的结构修改操作破坏。</li>
+</ul>
+</li>
+<li>从根节点开始逐级查找<ul>
+<li>根节点会被先加页级 S LOCK。一旦对根页加锁成功，InnoDB 才继续往下访问子节点。</li>
+<li>InnoDB 根据查询条件计算散列，然后通过 <code>btr_cur_search_to_nth_level()</code> 在根节点页中查找下一级页面指针。</li>
+</ul>
+</li>
+<li>加锁子节点并逐步下降<ul>
+<li>当从根节点读取到下一层节点的页号后，会释放根节点的 S LOCK，然后对该子节点页加 S LOCK，确保在当前事务继续寻找下一级时，不会遭到并发页分裂或合并等结构修改。</li>
+<li>重复上述过程：在子节点加锁成功后，再释放父节点的锁，然后对孙子节点加 S LOCK……如此递归，直到叶子节点。</li>
+<li>这种先子后父的锁耦合方式，保证了在任何时刻只有当前路径上的一部分节点被锁住，避免一次性锁定整棵树，提升并发性能。</li>
+</ul>
+</li>
+<li>在叶子节点加锁并释放索引锁<ul>
+<li>当定位到叶子节点后，对叶子页加上 S LOCK，并同时在页内搜索目标记录。若是 <code>FOR UPDATE</code>，则将对该记录使用 X LOCK（通过行锁实现）；若是 <code>LOCK IN SHARE MODE</code>，则使用 S LOCK。</li>
+<li>此时可以释放最初的索引级共享锁（<code>dict_index-&gt;lock</code>），因为页锁已足以保证后续读取过程中不被结构修改破坏。</li>
+</ul>
+</li>
+</ol>
+<p><strong>写操作</strong></p>
+<ol>
+<li>申请索引级共享锁（S LOCK on <code>dict_index</code>）<ul>
+<li>当执行 <code>UPDATE t SET col=… WHERE key=…</code> 时，InnoDB 依旧首先加索引级 S LOCK，防止在查找路径上结构变化。</li>
+</ul>
+</li>
+<li>递归锁定路径上的非叶子节点<ul>
+<li>执行与读场景相同的路径查找，但依次对每个非叶子节点页加 S LOCK（并在获得子节点锁后立即释放父节点锁），保证当前页不被分裂或重组删除。</li>
+</ul>
+</li>
+<li>在叶子页加 X LOCK<ul>
+<li>定位到叶子页后，加上一个排它锁（X LOCK），并在页内根据 <code>heap_no</code> 对应到位图将该行锁定。此时可释放索引级共享锁（<code>dict_index-&gt;lock</code>）。</li>
+</ul>
+</li>
+<li>执行更新<ul>
+<li>对目标记录进行写操作，如更新列值。若更新值导致插入新记录或页内空间不足，就会触发叶子页分裂，此时需要对分裂路径重新加锁。</li>
+<li>如果触发了页分裂，则会将当前路径上涉及分裂的非叶子节点也升级为 SX LOCK 或 X LOCK，并相应地执行分裂操作。</li>
+</ul>
+</li>
+<li>完成后释放锁<ul>
+<li>事务结束时，InnoDB 会遍历该事务的 <code>trx_locks</code> 链表，逐个释放所有页锁和行锁。</li>
+</ul>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
     <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/08/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/IQ/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2826,281 +3804,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/MySQL/2024/10/28/MySQL/%E6%96%87%E4%BB%B6/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Yihang Wei">
-      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="EthanWeee">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/MySQL/2024/10/28/MySQL/%E6%96%87%E4%BB%B6/" class="post-title-link" itemprop="url">文件</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2024-10-28 00:00:00" itemprop="dateCreated datePublished" datetime="2024-10-28T00:00:00-07:00">2024-10-28</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-18 22:18:27" itemprop="dateModified" datetime="2025-06-18T22:18:27-07:00">2025-06-18</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>MySQL 数据库和 InnoDB 存储引擎表的各种类型文件如下：</p>
-<p><strong>参数文件</strong>：告诉 MySQL 实例启动时在哪里可以找到数据库文件，并且指定某些初始化参数，这些参数定义了某种内存结构的大小等设置，还会介绍各种参数的类型。</p>
-<p><strong>日志文件</strong>：用来记录 MySQL 实例对某种条件做出响应时写入的文件，如错误日志文件、二进制日志文件、慢查询日志文件、查询日志文件等。</p>
-<p><strong>socket 文件</strong>：当用 UNIX 域套接字方式进行连接时需要的文件。</p>
-<p><strong>pid 文件</strong>：MySQL 实例的进程 ID 文件。</p>
-<p><strong>MySQL 表结构文件</strong>：用来存放 MySQL 表结构定义文件。</p>
-<p><strong>存储引擎文件</strong>：由于 MySQL 表存储引擎的关系，每个存储引擎都会有自己的文件来保存各种数据。这些存储引擎真正存储了记录和索引等数据。本章主要介绍与 InnoDB 有关的存储引擎文件。</p>
-<h2 id="参数文件"><a href="#参数文件" class="headerlink" title="参数文件"></a>参数文件</h2><p>当 MySQL 实例启动时，数据库会先去读一个配置参数文件，用来寻找数据库的各种文件所在位置以及指定某些初始化参数，这些参数通常定义了某种内存结构有多大等。在默认情况下，MySQL 实例会按照一定的顺序在指定的位置进行读取，用户只需通过命令 mysql –help | grep my.cnf 来寻找即可。</p>
-<p>MySQL 实例可以不需要参数文件，这时所有的参数值取决于编译 MySQL 时指定的默认值和源代码中指定参数的默认值。但是，如果 MySQL 实例在默认的数据库库目录下找不到 mysql 系统数据库，则启动同样会失败。</p>
-<h3 id="参数类型"><a href="#参数类型" class="headerlink" title="参数类型"></a>参数类型</h3><p>MySQL 数据库中的参数可以分为两类：</p>
-<ul>
-<li>动态（dynamic）参数</li>
-<li>静态（static）参数</li>
-</ul>
-<p>动态参数意味着可以在 MySQL 实例运行中进行更改，静态参数说明在整个实例生命周期内都不得进行更改，就好像是只读（read only）的。可以通过 SET 命令对动态参数值进行修改，SET 的语法如下：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SET</span></span><br><span class="line">[<span class="keyword">GLOBAL</span> <span class="operator">|</span> SESSION] system_var_name <span class="operator">=</span> expr</span><br><span class="line"><span class="operator">|</span> [@<span class="variable">@GLOBAL</span>. <span class="operator">|</span> @<span class="variable">@SESSION</span>.] system_var_name <span class="operator">=</span> expr;</span><br></pre></td></tr></table></figure>
-
-<p>这里可以看到 GLOBAL 和 SESSION 关键字，它们表明该参数的修改是基于当前会话还是整个实例的生命周期。有些动态参数只能在会话中进行修改，如 autocommit；而有些参数修改完后，在整个实例生命周期中都会生效，如 <code>binlog_cache_size</code>；而有些参数既可以在会话中又可以在整个实例的生命周期内生效，如 <code>read_buffer_size</code>。</p>
-<p>对变量的全局值进行了修改，在这次的实例生命周期内都有有效，但 MySQL 实例本身并不会对参数文件中的该值进行修改。也就是说，在下次启动时 MySQL 实例还是会读取参数文件。若想在数据库实例下一次启动时该参数还是保留为当前修改的值，那么用户必须去修改参数文件。</p>
-<h2 id="日志文件"><a href="#日志文件" class="headerlink" title="日志文件"></a>日志文件</h2><p>MySQL 中常见的日志文件有：</p>
-<ul>
-<li>错误日志</li>
-<li>二进制日志</li>
-<li>慢查询日志</li>
-<li>查询日志</li>
-</ul>
-<h3 id="错误日志"><a href="#错误日志" class="headerlink" title="错误日志"></a>错误日志</h3><p>错误日志文件对 MySQL 的启动、运行、关闭过程进行了记录。用户在遇到问题时应该首先查看该文件以便定位问题。该文件不仅记录了所有的错误信息，也记录一些警告信息或正确的信息。用户可以通过命令 SHOW VARIABLES LIKE ‘log_error’ 来定位该文件。</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[mysql]<span class="operator">&gt;</span> <span class="keyword">show</span> variables <span class="keyword">like</span> <span class="string">&#x27;log_error&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="operator">|</span> Variable_name <span class="operator">|</span> <span class="keyword">Value</span>              <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> <span class="comment">------------- | ------------------ |</span></span><br><span class="line"><span class="operator">|</span> log_error     <span class="operator">|</span> .<span class="operator">/</span>Yihang.local.err <span class="operator">|</span></span><br><span class="line"></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.07</span> sec)</span><br></pre></td></tr></table></figure>
-
-<h3 id="慢查询日志"><a href="#慢查询日志" class="headerlink" title="慢查询日志"></a>慢查询日志</h3><p>慢查询日志（slow log）可帮助用户定位可能存在问题的 SQL 语句，从而进行 SQL 语句层面的优化。例如，可以在 MySQL 启动时设一个阈值，将运行时间超过该值的所有 SQL 语句都记录到慢查询日志文件中。用户每天或每过一段时间对其进行检查，确认是否有 SQL 语句需要进行优化。该阈值可以通过参数 <code>long_query_time</code> 来设置，默认值为 10，代表 10 秒。</p>
-<p>这里有两点需要注意。首先，设置 <code>long_query_time</code> 这个阈值后，MySQL 数据库会记录运行时间<strong>超过</strong>该值的所有 SQL 语句，但运行时间<strong>正好等于</strong> <code>long_query_time</code> 的情况并不会被记录。也就是说，在源代码中判断的是大于 <code>long_query_time</code>，而非大于等于。</p>
-<p>其次，从 MySQL 5.1 开始，<code>long_query_time</code> 开始以<strong>微秒</strong>记录 SQL 语句运行的时间，此前仅用秒为单位记录。而这样可以更精确地记录 SQL 的运行时间。对用户来说，一条 SQL 语句运行 0.5 秒和 0.05 秒是非常不同的，前者可能已经进行了表扫描，后者可能只是进行了索引查找。</p>
-<p>另一个和慢查询日志有关的参数是 <code>log_queries_not_using_indexes</code>，如果运行的 SQL 语句没有使用索引，则 MySQL 同样会将这条 SQL 语句记录到慢查询日志文件。</p>
-<p>MySQL 5.6.5 版本开始新增了一个参数 <code>log_throttle_queries_not_using_indexes</code>，用来表示每分钟允许记录到 slow log 的且未使用索引的 SQL 语句的最大次数。该参数默认值为 0，表示没有限制。在生产环境下，如果有大量未使用索引的查询，此类 SQL 会频繁地被记录到 slow log，从而导致日志文件持续膨胀。</p>
-<p>用户可以通过慢查询日志找出有问题的 SQL 语句并进行优化。然而，随着 MySQL 服务器运行时间的增加，可能会有越来越多的查询被记录到慢查询日志，此时直接阅读日志文件就显得不够直观。MySQL 提供的 mysqldumpslow 工具可以很好地帮助 DBA 对慢查询日志进行汇总和分析。</p>
-<p>MySQL 5.1 开始可以将慢查询的日志记录放入一张表中，这使得用户的查询更加方便和直观。</p>
-<p>InnoSQL 版本加强了对于 SQL 语句的捕获方式。在原版 MySQL 的基础上在 slow log 中增加了对逻辑读取（logical reads）和物理读取（physical reads）的统计。这里的物理读取是指从磁盘进行 IO 读取的次数，逻辑读取包含所有的读取，不管是磁盘还是缓冲池。</p>
-<p>用户可以通过额外的参数 <code>long_query_io</code> 将超过指定逻辑 IO 次数的 SQL 语句记录到 slow log 中。该值默认为 100，即表示对于逻辑读取次数大于 100 的 SQL 语句，记录到 slow log 中。</p>
-<h3 id="查询日志"><a href="#查询日志" class="headerlink" title="查询日志"></a>查询日志</h3><p>查询日志记录了所有对 MySQL 数据库请求的信息，无论这些请求是否得到了正确的执行。默认文件名为：<code>&lt;主机名&gt;.log</code>。</p>
-<h3 id="二进制日志"><a href="#二进制日志" class="headerlink" title="二进制日志"></a>二进制日志</h3><p>二进制日志（binary log）记录了对 MySQL 数据库执行更改的所有操作，但是不包括 SELECT 和 SHOW 这类操作，因为这类操作对数据本身并没有修改。然而，若操作本身并没有导致数据库发生变化，那么该操作可能也会写入二进制日志，但是这种情况只会发生在 <code>binlog_format</code> 参数的值为 ROW 的情况下。</p>
-<p><strong>Statement-Based Logging (SBL)</strong> 下，<strong>所有</strong> DML&#x2F;DDL 语句均写入二进制日志，无论它们是否实际修改了任何行。</p>
-<p><strong>Row-Based Logging (RBL)</strong> 下，只有<strong>真正产生行变更</strong>的事件才写入二进制日志；如果一条语句对零行生效，就<strong>不会</strong>产生相应的行事件。</p>
-<p>如果用户想记录 SELECT 和 SHOW 操作，那只能使用查询日志，而不是二进制日志。此外，二进制日志还包括了执行数据库更改操作的时间等其他额外信息。总的来说，二进制日志主要有以下几种作用：</p>
-<ul>
-<li>恢复（recovery）：某些数据的恢复需要二进制日志，例如，在一个数据库全备文件恢复后，用户可以通过二进制日志进行 point-in-time 的恢复。</li>
-<li>复制（replication）：其原理与恢复类似，通过复制和执行二进制日志使一台远程的 MySQL 数据库（一般称为 slave 或 standby）与一台 MySQL 数据库（一般称为 master 或 primary）进行实时同步。</li>
-<li>审计（audit）：用户可以通过二进制日志中的信息进行审计，判断是否有对数据库进行注入的攻击。</li>
-</ul>
-<p>以下配置文件的参数影响着二进制日志记录的信息和行为：</p>
-<ul>
-<li><code>max_binlog_size</code> </li>
-<li><code>binlog_cache_size</code> </li>
-<li><code>sync_binlog</code> </li>
-<li><code>binlog-do-db</code> </li>
-<li><code>binlog-ignore-db</code> </li>
-<li><code>log-slave-update</code> </li>
-<li><code>binlog_format</code></li>
-</ul>
-<p>参数 <code>max_binlog_size</code> 指定了单个二进制日志文件的最大值，如果超过该值，则产生新的二进制日志文件，后缀名加 1，并记录到 .index 文件。从 MySQL 5.0 开始的默认值为 1073741824，代表 1 G（在之前版本中 <code>max_binlog_size</code> 默认大小为 1.1 G）。</p>
-<p>当使用事务的存储引擎（如 InnoDB 存储引擎）时，所有未提交（uncommitted）的二进制日志会被记录到一个缓冲中去，等该事务提交（committed）时再将缓冲中的二进制日志写入二进制日志文件，而该缓冲的大小由 <code>binlog_cache_size</code> 决定，默认大小为 32K。此外，binlog_cache_size 是基于会话（session）的，也就是说，当一个线程开始一个事务时，MySQL 会自动分配一个大小为 <code>binlog_cache_size</code> 的缓冲，因此该值的设置需要相当小心，不能设置过大。当一个事务的记录大于设置的 <code>binlog_cache_size</code> 时，MySQL 会把缓冲中的日志写入一个临时文件中，因此该值又不能设置得过小。</p>
-<p>在默认情况下，二进制日志并不是在每次写的时候同步到磁盘（用户可以理解为缓冲写）。因此，当数据库所在操作系统发生宕机时，可能会有最后一部分数据没有写入二进制日志文件中，这会给恢复和复制带来问题。参数 <code>sync_binlog=[N]</code> 表示每写缓冲多少次就同步到磁盘。如果将 N 设为 1，即 <code>sync_binlog=1</code> 表示采用同步写磁盘的方式来写二进制日志，这时写操作不再使用操作系统的缓冲来写二进制日志。<code>sync_binlog</code> 的默认值为 0，如果使用 InnoDB 存储引擎进行复制，并且想得到最大的高可用性，建议将该值设为 1。不过该值为 0 时，的确会对数据库的 I&#x2F;O 系统带来一定的影响。</p>
-<p>但是，即使将 sync_binlog 设为 1，还是会有一种情况导致问题的发生。当使用 InnoDB 存储引擎时，在一个事务发出 COMMIT 动作之前，由于 <code>sync_binlog=1</code>，因此会将二进制日志立即写入磁盘。如果这时已经写入了二进制日志，但是提交还没有发生，并且此时发生了宕机，那么在 MySQL 数据库下次启动时，由于 COMMIT 操作并没有发生，这个事务会被回滚。但是二进制日志已经记录了该事务信息，不能被回滚。这个问题可以通过将参数 <code>innodb_support_xa</code> 设为 1 来解决，虽然 <code>innodb_support_xa</code> 与 XA 事务有关，但它同时也确保了二进制日志和 InnoDB 存储引擎数据文件的同步。</p>
-<p>参数 <code>binlog-do-db</code> 和 <code>binlog-ignore-db</code> 表示需要写入或忽略写入哪些库的日志。默认为空，表示需要同步所有库的日志到二进制日志。</p>
-<p>如果当前数据库是复制中的 slave 角色，则它不会将从 master 取得并执行的二进制日志写入自己的二进制日志文件中去。如果需要写入，要设置 <code>log-slave-update</code>。如果需要搭建 master⇒slave⇒slave 架构的复制，则必须设置该参数。</p>
-<p><code>binlog_format</code> 参数十分重要，它影响了记录二进制日志的格式。在 MySQL 5.1 版本之前，没有这个参数，因此所有二进制日志文件的格式都是基于 SQL 语句（statement）级别的。同时，对于复制也有一定要求。例如在主服务器上运行 rand、uuid 等函数，或者使用触发器等操作，这些都可能会导致主从服务器上表中数据的不一致（not sync）。另一个影响是，你会发现 InnoDB 存储引擎的默认事务隔离级别是 REPEATABLE READ。这其实也是因为二进制日志文件格式的关系：如果使用 READ COMMITTED 的事务隔离级别，会出现类似“丢失更新”的现象，从而导致主从数据库上的数据不一致。具体细节如下：</p>
-<p>存在表 t1，定义如下：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE TABLE</span> t1 (</span><br><span class="line">   a <span class="type">int</span>(<span class="number">11</span>) <span class="keyword">DEFAULT</span> <span class="keyword">NULL</span>, </span><br><span class="line">   b <span class="type">int</span>(<span class="number">11</span>) <span class="keyword">DEFAULT</span> <span class="keyword">NULL</span>, </span><br><span class="line">   KEY a (a) </span><br><span class="line">  ) ENGINE<span class="operator">=</span>InnoDB <span class="keyword">DEFAULT</span> CHARSET<span class="operator">=</span>latin1; </span><br><span class="line"><span class="keyword">insert into</span> t1 <span class="keyword">values</span>(<span class="number">10</span>,<span class="number">2</span>),(<span class="number">20</span>,<span class="number">1</span>);</span><br></pre></td></tr></table></figure>
-
-<p>接着开始执行两个事务的写操作：</p>
-<table>
-<thead>
-<tr>
-<th>时序</th>
-<th>事务1</th>
-<th>事务2</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>1</td>
-<td>set session transaction isolation level read committed;</td>
-<td></td>
-</tr>
-<tr>
-<td>2</td>
-<td>set autocommit&#x3D;0;</td>
-<td></td>
-</tr>
-<tr>
-<td>3</td>
-<td>UPDATE t1 SET a&#x3D;11 where b&#x3D;2;</td>
-<td></td>
-</tr>
-<tr>
-<td>4</td>
-<td></td>
-<td>set session transaction isolation level read committed;</td>
-</tr>
-<tr>
-<td>5</td>
-<td></td>
-<td>set autocommit&#x3D;0;</td>
-</tr>
-<tr>
-<td>6</td>
-<td></td>
-<td>UPDATE t1 SET b&#x3D;2 where b&#x3D;1;</td>
-</tr>
-<tr>
-<td>7</td>
-<td></td>
-<td>COMMIT;</td>
-</tr>
-<tr>
-<td>8</td>
-<td>COMMIT;</td>
-<td></td>
-</tr>
-</tbody></table>
-<p>以上两个事务执行之后，数据库里面的记录会变成（11，2）和（20，2）。</p>
-<p>因为事务的隔离级别是 read committed，所以，事务 1 在更新时，只会对 b &#x3D; 2 这行加上行级锁，不会影响到事务 2 对 b &#x3D; 1 这行的写操作。</p>
-<p>以上两个事务执行完成之后，会在 binlog 中记录两条记录，因为事务 2 先提交，所以 <code>UPDATE t1 SET b=2 where b=1;</code> 会被优先记录，然后再记录 <code>UPDATE t1 SET a=11 where b=2;</code>。</p>
-<p>binlog 同步到备从库之后，SQL语句回放时，会先执行 <code>UPDATE t1 SET b=2 where b=1;</code>，再执行 <code>UPDATE t1 SET a=11 where b=2;</code>。</p>
-<p>这时候，数据库中的数据就会变成（11，2）和（11，2）。这就导致主库和备库的数据不一致了！！！</p>
-<p>为了避免这种问题的发生，MySQL 就把数据库的默认隔离级别设置成了 Repeatable Read。</p>
-<p>因为 Repetable Read 下，MySQL 在更新数据的时候不仅对更新的行加行级锁，还会增加 gap lock。同样是上面的例子，在事务 2 执行的时候，因为事务 1 增加了 gap lock，就会导致事务执行被卡住，需要等事务 1 提交或者回滚后才能继续执行。</p>
-<p>除了设置默认的隔离级别外，MySQL 还在当使用 STATEMENT 格式的 binlog 的情况下，禁止设置 READ COMMITTED 作为事务隔离级别。</p>
-<p>MySQL 5.1 开始引入了 <code>binlog_format</code> 参数，该参数可设的值有：STATEMENT、ROW 和 MIXED。</p>
-<p>(1) STATEMENT 格式：二进制日志文件记录的是日志的逻辑 SQL 语句。</p>
-<p>(2) ROW 格式下，二进制日志记录的不再是简单的 SQL 语句了，而是记录表的行更改情况。同时，对上述提及的 STATEMENT 格式下复制的问题予以解决。从 MySQL 5.1 版本开始，如果设置了 <code>binlog_format</code> 为 ROW，可以将 InnoDB 的事务隔离级别设为 READ COMMITTED，以获得更好的并发性。</p>
-<p>(3) MIXED 格式下，MySQL 默认采用 STATEMENT 格式进行二进制日志文件的记录，但是在一些情况下会使用 ROW 格式，可能的情况有：</p>
-<ul>
-<li>使用了 <code>UUID()</code>、<code>USER()</code>、<code>CURRENT_USER()</code>、<code>FOUND_ROWS()</code>、<code>ROW_COUNT()</code> 等不确定函数。</li>
-<li>使用了 INSERT DELAY 语句。</li>
-<li>使用了用户定义函数（UDF）。</li>
-<li>使用了临时表（temporary table）。</li>
-</ul>
-<p><code>binlog_format</code> 是动态参数，因此可以在数据库运行环境下进行更改。当然，也可以将全局的 <code>binlog_format</code> 设置为想要的格式，不过通常这个操作会带来问题，运行时要确保更改后不会对复制带来影响。在通常情况下，我们将参数 <code>binlog_format</code> 设置为 ROW，这可以为数据库的恢复和复制带来更好的可靠性。但是不能忽略的一点是，这会带来二进制文件大小的增加，有些语句下的 ROW 格式可能需要更大的容量。也就是说将参数 <code>binlog_format</code> 设置为 ROW，会对磁盘空间要求有一定的增加。而由于复制是采用传输二进制日志方式实现的，因此复制的网络开销也有所增加。</p>
-<p>二进制日志文件的文件格式为二进制（好像有点废话），不能像错误日志文件、慢查询日志文件那样用 cat、head、tail 等命令来看查看。要查看二进制日志文件的内容，必须通过 MySQL 提供的工具 mysqlbinlog。</p>
-<p>示例：</p>
-<p>执行的 SQL 为：<code>UPDATE users SET age = age + 1 WHERE id = 100;</code></p>
-<p><code>binlog_format=STATEMENT</code> 时的 binlog 输出（可读）：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># at 234</span><br><span class="line">#240523 15:00:01 server id 1 end_log_pos 345 Query  thread_id=7 exec_time=0 error_code=0</span><br><span class="line">SET TIMESTAMP=1716495601/*!*/;</span><br><span class="line">UPDATE users SET age = age + 1 WHERE id = 100/*!*/;</span><br></pre></td></tr></table></figure>
-
-<p><code>binlog_format=ROW</code> 时的 binlog 输出（不可读）：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># at 456</span><br><span class="line">#240523 15:00:02 server id 1 end_log_pos 567 Table_map: `test`.`users` mapped to number 108</span><br><span class="line"># at 567</span><br><span class="line">#240523 15:00:02 server id 1 end_log_pos 678 Update_rows: table id 108 flags: STMT_END_F</span><br><span class="line">### UPDATE `test`.`users`</span><br><span class="line">### WHERE</span><br><span class="line">###  @1=100 /* id */</span><br><span class="line">###  @2=20 /* age (原值) */</span><br><span class="line">### SET</span><br><span class="line">###  @1=100</span><br><span class="line">###  @2=21 /* age (新值) */</span><br></pre></td></tr></table></figure>
-
-<p>因此，在 ROW 格式下，binlog 中对于一个简单的更新操作记录了整个行额所有字段的更改信息。这也解释了为什么 ROW 格式下的 binlog 对磁盘空间要求有一定的增加。</p>
-<h2 id="套接字文件"><a href="#套接字文件" class="headerlink" title="套接字文件"></a>套接字文件</h2><p>在 UNIX 系统下本地连接 MySQL 可以采用 UNIX 域套接字方式，这种方式需要一个套接字（socket）文件。套接字文件可由参数 socket 控制。一般在 <code>/tmp</code> 目录下，名为 <code>mysql.sock</code>。</p>
-<h2 id="pid-文件"><a href="#pid-文件" class="headerlink" title="pid 文件"></a>pid 文件</h2><p>当 MySQL 实例启动时，会将自己的进程 ID 写入一个文件中——该文件即为 pid 文件并且可由参数 <code>pid_file</code> 控制，默认位于数据库目录下，文件名为主机名 <code>.pid</code>。</p>
-<h2 id="表结构定义文件"><a href="#表结构定义文件" class="headerlink" title="表结构定义文件"></a>表结构定义文件</h2><p>因为 MySQL 插件式存储引擎的体系结构的关系，MySQL 数据的存储是根据表进行的，每个表都会有与之对应的文件。但不论表采用何种存储引擎，MySQL 都有一个以 <code>.frm</code> 为后缀名的文件，这个文件记录了该表的表结构定义。</p>
-<p><code>.frm</code> 还用来存放视图的定义，如用户创建了一个 <code>v_a</code> 视图，那么对应地会产生一个 <code>v_a.frm</code> 文件，用来记录视图的定义。该文件是文本文件，可以直接使用 <code>cat</code> 命令进行查看。</p>
-<h2 id="InnoDB-存储引擎文件"><a href="#InnoDB-存储引擎文件" class="headerlink" title="InnoDB 存储引擎文件"></a>InnoDB 存储引擎文件</h2><p>之前介绍的文件都是 MySQL 数据库本身的文件，和存储引擎无关。除了这些文件外，每个表存储引擎还有其自己独有的文件，包括重做日志文件、表空间文件。</p>
-<h3 id="表空间文件"><a href="#表空间文件" class="headerlink" title="表空间文件"></a>表空间文件</h3><p>InnoDB 采用将存储的数据按表空间（tablespace）进行存放的设计。在默认配置下会有一个初始大小为 10MB，名为 ibdata1 的文件。该文件就是默认的表空间文件（tablespace file），用户可以通过参数 <code>innodb_data_file_path</code> 对其进行设置，格式如下：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">innodb_data_file_path=datafile_spec1[;datafile_spec2]...</span><br></pre></td></tr></table></figure>
-
-<p>用户可以通过多个文件组成一个表空间，同时制定文件的属性，如：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">innodb_data_file_path = /db/ibdata1:2000M;/dr2/db/ibdata2:2000M:autoextend</span><br></pre></td></tr></table></figure>
-
-<p>这里将 <code>/db/ibdata1</code> 和 <code>/dr2/db/ibdata2</code> 两个文件用于组成表空间。若这两个文件位于不同的磁盘上，磁盘的负载可能被平均，因此可以提高数据库的整体性能。同时，两个文件的文件名后都跟了属性，表示文件 ibdata1 的大小为 2000MB，文件 ibdata2 的大小为 2000MB，如果用完了这 2000MB，该文件可以自动增长（autoextend）。</p>
-<p>设置 <code>innodb_data_file_path</code> 参数后，所有基于 InnoDB 存储引擎的表的数据都会记录到该共享表空间中。若设置了参数 <code>innodb_file_per_table</code>，则用户可以将每个基于 InnoDB 存储引擎的表生成一个独立表空间。独立表空间的命名规则为：表名 <code>.ibd</code>。需要注意的是，这些单独的表空间文件仅存储该表的数据、索引和插入缓冲 BITMAP 等信息，其余信息还是存放在默认的表空间中。</p>
-<p>下图展示了 InnoDB 对于文件的存储方式：</p>
-<p><img src="/../../images/MySQL/mysql_tablespace.drawio.png" alt="img"></p>
-<h3 id="Redo-日志文件"><a href="#Redo-日志文件" class="headerlink" title="Redo 日志文件"></a>Redo 日志文件</h3><p>在默认情况下，在 InnoDB 存储引擎的数据目录下会有两个名为 <code>ib_logfile0</code> 和 <code>ib_logfile1</code> 的文件。</p>
-<p>当实例或介质失败时，重做日志文件就能派上用场。例如，数据库由于所在主机掉电导致实例失败，InnoDB 存储引擎会使用 Redo 日志恢复到掉电前的时刻，以此来保证数据的完整性。</p>
-<p>每个 InnoDB 存储引擎至少有 1 个 Redo 日志文件组，每个文件组下至少有 2 个 Redo 日志文件，如默认的 <code>ib_logfile0</code> 和 <code>ib_logfile1</code>。为了得到更高的可靠性，用户可以设置多个镜像日志组，将不同的文件组放在不同的磁盘上，以此提高 Redo 日志的高可用性。在日志组中每个 Redo 日志文件的大小一致，并以循环写入的方式运行。InnoDB 存储引擎先写 Redo 日志文件 1，当达到文件的最后时，会切换至 Redo 日志文件 2，再当重做日志文件 2 也被写满时，会再切换到 Redo 日志文件 1 中。</p>
-<p>下列参数影响着 Redo 日志文件的属性：</p>
-<ul>
-<li><code>innodb_log_file_size</code></li>
-<li><code>innodb_log_files_in_group</code></li>
-<li><code>innodb_mirrored_log_groups</code></li>
-<li><code>innodb_log_group_home_dir</code></li>
-</ul>
-<p>参数 <code>innodb_log_file_size</code> 指定每个 Redo 日志文件的大小。在 InnoDB 1.2.x 版本之前，Redo 日志文件总的大小不得大于等于 4GB，而 1.2.x 版本将该限制扩大为了 512GB。</p>
-<p>参数 <code>innodb_log_files_in_group</code> 指定了日志文件组中 Redo 日志文件的数量，默认为 2。</p>
-<p>参数 <code>innodb_mirrored_log_groups</code> 指定了日志镜像文件组的数量，默认为 1，表示只有一个日志文件组，没有镜像。若磁盘本身已经做了高可用的方案，如磁盘阵列，那么可以不开启 Redo 日志镜像的功能。</p>
-<p>最后，参数 <code>innodb_log_group_home_dir</code> 指定了日志文件组所在路径，默认为 <code>./</code>，表示在 MySQL 数据库的数据目录下。</p>
-<p>Redo 日志文件的大小设置对于 InnoDB 存储引擎的性能有着非常大的影响。一方面 Redo 日志文件不能设置得太大，如果设置得很大，在恢复时可能需要很长的时间；另一方面又不能设置得太小了，否则可能导致一个事务的日志需要多次切换 Redo 日志文件。此外，Redo 日志文件太小会导致频繁地发生 async checkpoint，导致性能的抖动。因为，如果 Redo 日志文件大小超过最大容量则必须将缓冲池中脏页列表（flush list）中的部分脏数据写回磁盘，这时会导致用户线程的阻塞。</p>
-<p>Redo 日志和二进制日志有什么区别？</p>
-<p>首先，二进制日志会记录所有与 MySQL 数据库有关的日志记录，包括 InnoDB、MyISAM、Heap 等其他存储引擎的日志。而 InnoDB 存储引擎的 Redo 日志只记录有关该存储引擎本身的事务日志。</p>
-<p>其次，记录的内容不同。无论用户将二进制日志文件记录的格式设为 STATEMENT 还是 ROW，又或者是 MIXED，其记录的都是关于一个事务的具体操作内容，即该日志是逻辑日志。而 InnoDB 存储引擎的 Redo 日志文件记录的是关于每个页（Page）的更改的物理情况。</p>
-<p>此外，写入的时间也不同，二进制日志文件仅在事务提交前进行提交，即只写磁盘一次，不论这时该事务多大。而在事务进行的过程中，却不断有 Redo 日志条目（redo entry）被写入到 Redo 日志文件中。</p>
-<p>Redo 日志条目的结构如下：</p>
-<p><img src="/../../images/MySQL/mysql_redo_item.drawio.png" alt="img"></p>
-<p>上图中 Redo 日志条目是由 4 个部分组成：</p>
-<ul>
-<li><code>redo_log_type</code> 占用 1 字节，表示重做日志的类型。</li>
-<li><code>space</code> 表示表空间的 ID，但采用压缩的方式，因此占用的空间可能小于 4 字节。</li>
-<li><code>page_no</code> 表示页的偏移量，同样采用压缩的方式。</li>
-<li><code>redo_log_body</code> 表示每个重做日志的数据部分，恢复时需要调用相应的函数进行解析。</li>
-</ul>
-<p>写入重做日志文件的操作不是直接写，而是先写入一个重做日志缓冲中，然后按照一定的条件顺序地写入日志文件。下图是 Redo 日志的写入过程：</p>
-<p><img src="/../../images/MySQL/mysql_redo_sync.drawio.png" alt="img"></p>
-<p>从重做日志缓冲往磁盘写入时是按 512 字节，也就是一个扇区的大小进行写入。因为在传统的磁盘存储设备中，扇区是最小的物理写入单位。当操作系统或数据库系统请求写入数据时，磁盘控制器会确保整个扇区的数据要么被完整地写入，要么在发生故障（如断电）时不进行任何写入。这种机制确保了写入操作的原子性，即不会出现撕裂写（torn write）的情况，因此在重做日志的写入过程中不需要有 doublewrite。</p>
-<p>前面提到了从日志缓冲写入磁盘上的重做日志文件是按一定条件进行的，那这些条件有哪些呢？我们知道在主线程中每秒会将重做日志缓冲写入磁盘的重做日志文件中，不论事务是否已经提交。另一个触发写磁盘的过程是由参数 <code>innodb_flush_log_at_trx_commit</code> 控制，表示在提交操作时，处理重做日志的方式。</p>
-<p>参数 <code>innodb_flush_log_at_trx_commit</code> 的有效值有 0、1、2。</p>
-<p>0 代表当提交事务时，并不将事务的重做日志写入磁盘上的日志文件，而是等待主线程每秒的刷新。1 和 2 不同的地方在于：</p>
-<ul>
-<li>1 表示在执行 commit 时将重做日志缓冲同步写到磁盘，即伴有 fsync 的调用。</li>
-<li>2 表示将重做日志异步写到磁盘，即写到文件系统的缓存中。因此不能完全保证在执行 commit 时肯定会写入重做日志文件，只是有这个动作发生。</li>
-</ul>
-<p>因此为了保证事务的 ACID 中的持久性，<strong>必须将</strong> <strong><code>innodb_flush_log_at_trx_commit</code></strong> <strong>设置为 1</strong>，也就是每当有事务提交，就必须确保事务已经写入重做日志文件。那当数据库因为意外发生宕机时，可以通过重做日志文件恢复，并保证可以恢复已经提交的事务。</p>
-<p>而将重做日志文件设置为 0 或 2，<strong>都有可能发生恢复时部分事务的丢失</strong>。不同之处在于，设置为 2 时，当 MySQL 数据库发生宕机而操作系统及服务器并没有发生宕机时，由于此时未写入磁盘的事务日志保存在文件系统缓存中，当恢复时同样能保证数据不丢失。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -3170,7 +3873,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">38</span>
+          <span class="site-state-item-count">39</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
