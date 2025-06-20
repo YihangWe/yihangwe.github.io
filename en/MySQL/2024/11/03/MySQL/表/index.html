@@ -38,7 +38,7 @@
 <meta property="og:image" content="https://yihangwe.github.io/images/MySQL/mysql_table_rec_bound.drawio.png">
 <meta property="og:image" content="https://yihangwe.github.io/images/MySQL/mysql_table_named_file.drawio.png">
 <meta property="article:published_time" content="2024-11-03T07:00:00.000Z">
-<meta property="article:modified_time" content="2025-06-20T00:40:04.713Z">
+<meta property="article:modified_time" content="2025-06-20T22:13:58.896Z">
 <meta property="article:author" content="Yihang Wei">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://yihangwe.github.io/images/MySQL/mysql_table_storage.drawio.png">
@@ -225,7 +225,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-19 17:40:04" itemprop="dateModified" datetime="2025-06-19T17:40:04-07:00">2025-06-19</time>
+                <time title="Modified: 2025-06-20 15:13:58" itemprop="dateModified" datetime="2025-06-20T15:13:58-07:00">2025-06-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -267,11 +267,7 @@
 <h3 id="区"><a href="#区" class="headerlink" title="区"></a>区</h3><p>段由一个或多个区组成，区通常为 64 个连续的页，也就是总共 <strong>1MB</strong> 的数据。<strong>为了保证页的连续性，InnoDB 存储引擎会一次从磁盘申请 4 ~ 5 个区</strong>。连续的256个数据区为一个数据区组。使用区而非单独的页进行数据分配可优化磁盘操作，<strong>减少索引时磁盘寻道时间</strong>，特别是在大量数据进行读写时。</p>
 <p>但是，这里还有这样一个问题：在用户启用了参数 <code>innodb_file_per_table</code> 后，创建的表默认大小是 <strong>96KB</strong>。区中是 64 个连续的页，创建的表的大小至少是 1MB 才对啊？</p>
 <p>其实是因为有时我们可能只是创建一个很小的表，只插入一条或几条数据，此时 <strong>直接分配 1MB 区块是很浪费的</strong>，所以在每个段开始时，先最多用 <strong>32 个页大小的碎片页（fragment page）</strong> 来存放<strong>数据（也就是数据页）</strong>；在使用完这些页之后才是 64 个连续页的申请。</p>
-<h3 id="页"><a href="#页" class="headerlink" title="页"></a>页</h3><p>页是 InnoDB 存储数据的基本单元，标准大小为 16 KB，索引树上的一个节点就是一个页，也就意味着数据库每次读写都是以 16 KB 为单位的，即一次最少从磁盘中读取 16KB 的数据到内存，一次最少写入 16KB 的数据到磁盘。可参考：</p>
-<ul>
-<li><a target="_blank" rel="noopener" href="https://juejin.cn/post/6974225353371975693">https://juejin.cn/post/6974225353371975693</a></li>
-<li><a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/1229902">https://developer.aliyun.com/article/1229902</a></li>
-</ul>
+<h3 id="页"><a href="#页" class="headerlink" title="页"></a>页</h3><p>页是 InnoDB 存储数据的基本单元，标准大小为 16 KB，索引树上的一个节点就是一个页，也就意味着数据库每次读写都是以 16 KB 为单位的，即一次最少从磁盘中读取 16KB 的数据到内存，一次最少写入 16KB 的数据到磁盘。</p>
 <p>在 InnoDB 存储引擎中，常见的页类型有：</p>
 <ul>
 <li>数据页（B-tree Node）</li>

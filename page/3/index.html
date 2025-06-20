@@ -212,7 +212,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-06-20 14:54:08" itemprop="dateModified" datetime="2025-06-20T14:54:08-07:00">2025-06-20</time>
+                <time title="修改时间：2025-06-20 15:26:04" itemprop="dateModified" datetime="2025-06-20T15:26:04-07:00">2025-06-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -270,8 +270,7 @@
 <p>脏读发生的条件是需要事务的隔离级别为 READ UNCOMMITTED，而目前绝大部分的数据库都会至少设置成 READ COMMITTED。InnoDB 存储引擎默认的事务隔离级别为 REPEATABLE READ，Microsoft SQL Server 数据库为 READ COMMITTED，Oracle 数据库同样也是 READ COMMITTED。</p>
 <blockquote>
 <p>[!NOTE]</p>
-<p>为什么 InnoDB 默认采用 RR 隔离级别？</p>
-<p>可参考：<a href="%E6%96%87%E4%BB%B6.md#why_rr">为什么 InnoDB 默认采用 RR 隔离级别？</a></p>
+<p>关于 InnoDB 默认采用 RR 隔离级别的原因可参考：<a href="/MySQL/2024/10/28/MySQL/%E6%96%87%E4%BB%B6/#why_rr">为什么 InnoDB 默认采用 RR 隔离级别？</a></p>
 </blockquote>
 <p>脏读隔离看似毫无用处，但在一些比较特殊的情况下还是可以将事务的隔离级别设置为 READ UNCOMMITTED。例如 replication 环境中的 slave 节点，并且在该 slave 上的查询并不需要特别精确的返回值。</p>
 <h3 id="不可重复读"><a href="#不可重复读" class="headerlink" title="不可重复读"></a>不可重复读</h3><p>不可重复读指在同一个事务（会话）内多次读取同一数据集时，由于另一个事务对该数据集进行了 DML 修改（插入、更新或删除），导致第一次和第二次读取的结果不一致。换句话说，同一事务中对同一行数据执行两次 SELECT 查询，若中间有其他事务提交了修改，使得这两次查询得到不同的数据，就发生了不可重复读。</p>
@@ -1140,6 +1139,7 @@
 </ul>
 </li>
 </ol>
+<p>这部分的具体内容可参考：<a href="/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/25/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/OLTP%20%E7%B4%A2%E5%BC%95/">OLTP 索引</a></p>
 
       
     </div>
@@ -1676,7 +1676,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-06-19 17:40:04" itemprop="dateModified" datetime="2025-06-19T17:40:04-07:00">2025-06-19</time>
+                <time title="修改时间：2025-06-20 15:13:58" itemprop="dateModified" datetime="2025-06-20T15:13:58-07:00">2025-06-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1718,11 +1718,7 @@
 <h3 id="区"><a href="#区" class="headerlink" title="区"></a>区</h3><p>段由一个或多个区组成，区通常为 64 个连续的页，也就是总共 <strong>1MB</strong> 的数据。<strong>为了保证页的连续性，InnoDB 存储引擎会一次从磁盘申请 4 ~ 5 个区</strong>。连续的256个数据区为一个数据区组。使用区而非单独的页进行数据分配可优化磁盘操作，<strong>减少索引时磁盘寻道时间</strong>，特别是在大量数据进行读写时。</p>
 <p>但是，这里还有这样一个问题：在用户启用了参数 <code>innodb_file_per_table</code> 后，创建的表默认大小是 <strong>96KB</strong>。区中是 64 个连续的页，创建的表的大小至少是 1MB 才对啊？</p>
 <p>其实是因为有时我们可能只是创建一个很小的表，只插入一条或几条数据，此时 <strong>直接分配 1MB 区块是很浪费的</strong>，所以在每个段开始时，先最多用 <strong>32 个页大小的碎片页（fragment page）</strong> 来存放<strong>数据（也就是数据页）</strong>；在使用完这些页之后才是 64 个连续页的申请。</p>
-<h3 id="页"><a href="#页" class="headerlink" title="页"></a>页</h3><p>页是 InnoDB 存储数据的基本单元，标准大小为 16 KB，索引树上的一个节点就是一个页，也就意味着数据库每次读写都是以 16 KB 为单位的，即一次最少从磁盘中读取 16KB 的数据到内存，一次最少写入 16KB 的数据到磁盘。可参考：</p>
-<ul>
-<li><a target="_blank" rel="noopener" href="https://juejin.cn/post/6974225353371975693">https://juejin.cn/post/6974225353371975693</a></li>
-<li><a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/1229902">https://developer.aliyun.com/article/1229902</a></li>
-</ul>
+<h3 id="页"><a href="#页" class="headerlink" title="页"></a>页</h3><p>页是 InnoDB 存储数据的基本单元，标准大小为 16 KB，索引树上的一个节点就是一个页，也就意味着数据库每次读写都是以 16 KB 为单位的，即一次最少从磁盘中读取 16KB 的数据到内存，一次最少写入 16KB 的数据到磁盘。</p>
 <p>在 InnoDB 存储引擎中，常见的页类型有：</p>
 <ul>
 <li>数据页（B-tree Node）</li>
