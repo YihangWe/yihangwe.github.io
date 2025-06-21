@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-CN,en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yihangwe.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="错误日志（Error Log） 用于记录在服务 启动、运行及停止 过程中遇到的各种错误信息。该日志功能默认启用，且默认保存在 Linux 系统的 &#x2F;var&#x2F;log&#x2F;mysqld.log（或 &#x2F;var&#x2F;log&#x2F;mysql&#x2F;error.log）路径下，也可能在 data 目录中以主机名为 .err 后缀的文件方式存在。若想查看或修改该路径，可通过 MySQL 命令： 1SHOW VARIABLES L">
+<meta property="og:type" content="article">
+<meta property="og:title" content="日志">
+<meta property="og:url" content="https://yihangwe.github.io/en/undefined/MySQL/2024/10/23/MySQL/%E6%97%A5%E5%BF%97/index.html">
+<meta property="og:site_name" content="EthanWeee">
+<meta property="og:description" content="错误日志（Error Log） 用于记录在服务 启动、运行及停止 过程中遇到的各种错误信息。该日志功能默认启用，且默认保存在 Linux 系统的 &#x2F;var&#x2F;log&#x2F;mysqld.log（或 &#x2F;var&#x2F;log&#x2F;mysql&#x2F;error.log）路径下，也可能在 data 目录中以主机名为 .err 后缀的文件方式存在。若想查看或修改该路径，可通过 MySQL 命令： 1SHOW VARIABLES L">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://yihangwe.github.io/images/MySQL/redo_bin_comp.png">
+<meta property="article:published_time" content="2024-10-23T07:00:00.000Z">
+<meta property="article:modified_time" content="2025-06-18T05:29:30.255Z">
+<meta property="article:author" content="Yihang Wei">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yihangwe.github.io/images/MySQL/redo_bin_comp.png">
+
+<link rel="canonical" href="https://yihangwe.github.io/en/undefined/MySQL/2024/10/23/MySQL/%E6%97%A5%E5%BF%97/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>日志 | EthanWeee</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<!-- hexo injector head_end start --><script>(function() {function calculateHeight(element) {let height = 0;const items = element.children;for (let i = 0; i < items.length; i++) {height += items[i].offsetHeight || 25;const child = items[i].querySelector(".nav-child");if (child && child.style.display !== "none") {height += calculateHeight(child);}}return height;}function generateToc(lang, container) {const content = document.getElementById(lang + "-content");if (!content) return;const headers = Array.from(content.querySelectorAll("h1, h2, h3, h4, h5, h6"));if (headers.length === 0) return;const ol = document.createElement("ol");ol.className = "nav";let currentLevel = 1;let currentOl = ol;let stack = [ol];let counters = [0, 0, 0, 0, 0, 0];headers.forEach((header, index) => {const level = parseInt(header.tagName[1]);counters[level - 1]++;for (let i = level; i < 6; i++) counters[i] = 0;const li = document.createElement("li");li.className = "nav-item nav-level-" + level;if (level === 1 && index === 0) {li.classList.add("active", "active-current");}const link = document.createElement("a");link.className = "nav-link";if (level === 1 && index === 0) link.classList.add("active");link.href = "#" + header.id;const numSpan = document.createElement("span");numSpan.className = "nav-number";numSpan.textContent = counters.slice(0, level).filter(n => n > 0).join(".");const textSpan = document.createElement("span");textSpan.className = "nav-text";textSpan.textContent = header.textContent;link.appendChild(numSpan);link.appendChild(document.createTextNode(" "));link.appendChild(textSpan);li.appendChild(link);if (level > currentLevel) {const newOl = document.createElement("ol");newOl.className = "nav-child";if (currentLevel === 1) {newOl.style.display = "block";stack[currentLevel - 1].lastElementChild.classList.add("active");}stack[currentLevel - 1].lastElementChild.appendChild(newOl);stack[level - 1] = newOl;currentOl = newOl;} else if (level < currentLevel) {currentOl = stack[level - 1];}currentOl.appendChild(li);currentLevel = level;});container.appendChild(ol);setTimeout(() => {const navHeight = calculateHeight(ol);ol.style.setProperty("--height", navHeight + "px");const navChilds = ol.getElementsByClassName("nav-child");Array.from(navChilds).forEach(child => {if (child.style.display === "block") {const childHeight = calculateHeight(child);child.style.setProperty("--height", childHeight + "px");}});}, 0);return ol;}function updateActiveHeading() {const activeLang = document.getElementById("en-content").style.display === "block" ? "en" : "zh";const content = document.getElementById(activeLang + "-content");const toc = document.getElementById(activeLang + "-toc");if (!content || !toc) return;const headers = Array.from(content.querySelectorAll("h1, h2, h3, h4, h5, h6"));const scrollPos = window.scrollY + window.innerHeight / 3;let activeHeader = null;for (let i = headers.length - 1; i >= 0; i--) {const header = headers[i];const headerTop = header.getBoundingClientRect().top + window.scrollY;if (headerTop <= scrollPos) {activeHeader = header;break;}}const links = toc.getElementsByClassName("nav-link");Array.from(links).forEach(link => {link.classList.remove("active");const parentLi = link.parentElement;if (parentLi) {parentLi.classList.remove("active", "active-current");}});if (activeHeader) {const activeLink = toc.querySelector(`a[href="#${activeHeader.id}"]`);if (activeLink) {activeLink.classList.add("active");let parent = activeLink.parentElement;while (parent && parent.classList) {if (parent.classList.contains("nav-item")) {parent.classList.add("active");if (parent.classList.contains("nav-level-1")) {parent.classList.add("active-current");}}parent = parent.parentElement;}}}}function initTippy() {document.querySelectorAll(".refplus-num").forEach((ref) => {if (ref._tippy) {ref._tippy.destroy();}let refid = ref.firstChild.href.replace(location.origin+location.pathname,"");let refel = document.querySelector(refid);if (!refel) return;let refnum = refel.dataset.num;let ref_content = refel.innerText.replace(`[${refnum}]`,"");tippy(ref, {content: ref_content,});});}function initToc() {const originalToc = document.querySelector(".post-toc-wrap");if (!originalToc || !document.getElementById("langToggle")) return;const tocContainer = document.createElement("div");tocContainer.className = "post-toc-wrap sidebar-panel sidebar-panel-active";const enToc = document.createElement("div");enToc.id = "en-toc";enToc.className = "post-toc motion-element";enToc.style.display = "block";const zhToc = document.createElement("div");zhToc.id = "zh-toc";zhToc.className = "post-toc motion-element";zhToc.style.display = "none";generateToc("en", enToc);generateToc("zh", zhToc);tocContainer.appendChild(enToc);tocContainer.appendChild(zhToc);originalToc.parentNode.replaceChild(tocContainer, originalToc);window.addEventListener("scroll", updateActiveHeading);setTimeout(updateActiveHeading, 0);}window.toggleLanguage = function() {const enContent = document.getElementById("en-content");const zhContent = document.getElementById("zh-content");const enToc = document.getElementById("en-toc");const zhToc = document.getElementById("zh-toc");const button = document.getElementById("langToggle");if (!enContent || !zhContent || !enToc || !zhToc || !button) return;const isEnglish = enContent.style.display === "block";enContent.style.display = isEnglish ? "none" : "block";zhContent.style.display = isEnglish ? "block" : "none";enToc.style.display = isEnglish ? "none" : "block";zhToc.style.display = isEnglish ? "block" : "none";button.querySelector(".button-text").textContent = isEnglish ? "Switch to English" : "切换中文";setTimeout(updateActiveHeading, 0);setTimeout(initTippy, 100);};document.addEventListener("DOMContentLoaded", function() {initToc();setTimeout(initTippy, 3000);});})();</script><style>.post-toc { transition: all 0.2s ease-in-out; }.post-toc .nav { padding-left: 0; }.post-toc .nav-child { padding-left: 1em; }.post-toc .nav-item { line-height: 1.8; }.post-toc .nav-link { color: #555; }.post-toc .nav-link:hover { color: #222; }.post-toc .nav-link.active { color: #fc6423; }.post-toc .active > .nav-link { color: #fc6423; }.post-toc .active-current > .nav-link { color: #fc6423; }</style><!-- hexo injector head_end end --><style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">EthanWeee</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/MySQL/2024/10/23/MySQL/%E6%97%A5%E5%BF%97/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          日志
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2024-10-23 00:00:00" itemprop="dateCreated datePublished" datetime="2024-10-23T00:00:00-07:00">2024-10-23</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-06-17 22:29:30" itemprop="dateModified" datetime="2025-06-17T22:29:30-07:00">2025-06-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>错误日志（Error Log）</strong> 用于记录在服务 <strong>启动、运行及停止</strong> 过程中遇到的各种错误信息。该日志功能默认启用，且默认保存在 Linux 系统的 <code>/var/log/mysqld.log</code>（或 <code>/var/log/mysql/error.log</code>）路径下，也可能在 data 目录中以主机名为 .err 后缀的文件方式存在。若想查看或修改该路径，可通过 MySQL 命令：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> VARIABLES <span class="keyword">LIKE</span> <span class="string">&#x27;%log_error%&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>该命令会显示当前 log_error 变量的值，即错误日志所在路径。如果该变量为空，通常默认日志会被输出到 stderr，或由系统服务（如 systemd）转至系统日志（如 <code>/var/log/messages</code> 或由 journalctl 管理）。</p>
+<p><strong>二进制日志（Binary Log）</strong> 会记录所有成功执行的 <strong>DDL</strong>（结构定义语句）和 <strong>DML</strong>（数据操作语句），但不会包含纯查询类语句（如 SELECT、SHOW）。它以 <strong>Event</strong> 形式记录，并且保存每条语句执行的时间戳。默认情况下启用二进制日志，并常用于数据备份以及主从复制场景。</p>
+<p>二进制日志系统包括两类文件：</p>
+<ul>
+<li><strong>索引文件（.index）</strong>：跟踪所有二进制日志文件的路径；</li>
+<li><strong>日志文件（形如 .00000*）</strong>：具体记录 DDL 与 DML 的事件。</li>
+</ul>
+<p>日志的记录格式有三种：</p>
+<ul>
+<li><strong>STATEMENT</strong>：以文本形式记录每条 SQL，并不包含事务上下文、权限或系统状态；</li>
+<li><strong>ROW</strong>：以二进制形式记录行数据的变化（旧值和新值）；</li>
+<li><strong>MIXED</strong>（MySQL 8.0 以上默认）：通常使用 STATEMENT，在涉及非确定性函数（如 <code>NOW()</code>、<code>UUID()</code> 等）时自动切换到 ROW 格式。</li>
+</ul>
+<p>针对日志清理，常用命令如下：</p>
+<ul>
+<li><code>RESET BINARY LOGS;</code>（或旧版本的 <code>RESET MASTER;</code>）将删除所有二进制日志，并将索引重置，只保留一个新的空日志文件（编号从 .000001 开始）；</li>
+<li><code>PURGE BINARY LOGS TO &#39;binlog.xxx&#39;;</code> 删除指定日志文件之前的所有日志；</li>
+<li><code>PURGE BINARY LOGS BEFORE &#39;YYYY‑MM‑DD hh:mm:ss&#39;;</code> 删除该时间之前生成的所有日志。</li>
+</ul>
+<p>此外，可以设置系统变量（如 <code>binlog_expire_logs_seconds</code> 或旧版的 <code>expire_logs_days</code>）实现自动清理过期日志，默认保留期为 30 天。</p>
+<p>更多关于 binlog 的信息，可参考：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/rickiyang/p/13841811.html">https://www.cnblogs.com/rickiyang/p/13841811.html</a></p>
+<p><strong>二进制日志（binlog）</strong> 功能可以通过在 <code>my.cnf</code> 或启动参数中设置来进行全面配置，下面是一些常用选项与管理方法：</p>
+<p>启用与路径配置：<code>log‑bin=/home/mysql/binlog/</code></p>
+<p>该参数不仅开启 binlog 功能，还指定日志文件的存放目录。如果不指定路径，MySQL 默认将日志保存在数据目录，并以主机名或 binlog 为基础名生成一系列 <code>.00000*</code> 日志文件。</p>
+<p>文件大小与保留周期：</p>
+<ul>
+<li><code>max_binlog_size=104857600</code> 将单个日志文件最大限制为 100 MB。</li>
+<li><code>expire_logs_days=7</code> 设置日志自动保留时限为 7 天，超过该时长的日志文件会被系统定期清理。</li>
+</ul>
+<p>过滤数据库：</p>
+<p>可以通过以下参数控制哪些库的更新被记录到 binlog：</p>
+<ul>
+<li><code>binlog-do-db=db_name</code>：仅记录指定数据库的变更。</li>
+<li><code>binlog-ignore-db=db_name</code>：忽略指定数据库的更新，不写入日志。</li>
+</ul>
+<p>同步策略：</p>
+<p><code>sync_binlog=0</code> 表示不强制让 MySQL 将日志立即同步到磁盘，交由操作系统定期执行。该配置提高性能，但在主机崩溃时可能丢失最后一部分日志；若设为 1，则在每次提交时都 fsync，一致性高但性能略受影响。</p>
+<p>查看当前设置：</p>
+<p>可以执行以下命令确认配置状态：</p>
+<ul>
+<li><code>SHOW BINARY LOGS;</code>：列出当前所有 binlog 文件；</li>
+<li><code>SHOW MASTER STATUS;</code>：查看主服务器正在使用的最新日志名称与位置；</li>
+<li><code>SHOW VARIABLES LIKE &#39;%log_bin%&#39;;</code>：确认二进制日志是否已启用及其路径；</li>
+<li><code>SHOW VARIABLES LIKE &#39;%binlog_format%&#39;;</code>：查看当前记录格式（STATEMENT、ROW 或 MIXED）；</li>
+<li><code>SHOW VARIABLES LIKE &#39;%binlog_expire_logs_seconds%&#39;;</code>：检查自动过期设置（通常是以秒为单位）。</li>
+</ul>
+<p>手动恢复流程：</p>
+<ol>
+<li>停止 MySQL 服务；</li>
+<li>利用 mysqlbinlog 工具分析 <code>.00000*</code> 中的日志，确认误操作发生前的起始与结束位置；</li>
+<li>清空当前数据库以准备恢复；</li>
+<li>执行命令：<code>mysqlbinlog --start-position=xxx --stop-position=yyy bin-log.00000x &gt; recover.sql</code>，其中 start-position 为误操作前最近一次安全点，stop-position 为误前最后一条正常语句的位置；</li>
+<li>将导出的 recover.sql 文件导入数据库，恢复指定段的变更。</li>
+</ol>
+<p><strong>一般查询日志</strong>记录了MySQL 服务器的<strong>所有连接信息</strong>和客户端的<strong>所有操作语句</strong>，默认是不开启的。</p>
+<p><strong>慢查询日志</strong>用于记录执行时间超过 <code>long_query_time</code>（默认 10 秒）并且扫描记录数不少于 <code>min_examined_row_limit</code> 的 SQL 语句，以帮助识别并优化效率低下的查询。注意，这一功能默认处于关闭状态，开启后不包含管理语句（如 ALTER、CREATE INDEX）及未使用索引的查询，除非你通过以下两个系统变量特别配置：</p>
+<ul>
+<li><code>log_slow_admin_statements</code>：启用后，允许记录管理类语句；</li>
+<li><code>log_queries_not_using_indexes</code>：启用后，记录所有不使用索引的查询（并不限于慢查询）。</li>
+</ul>
+<p>日志触发条件的判断顺序如下（MySQL 8.0+）：</p>
+<ol>
+<li>是不是管理语句，或已启用 <code>log_slow_admin_statements</code>；</li>
+<li>查询执行时间 ≥ long_query_time，或启用 <code>log_queries_not_using_indexes</code> 并且未使用索引；</li>
+<li>扫描的行数 ≥ min_examined_row_limit；</li>
+<li>若启用了该选项，还会受 <code>log_throttle_queries_not_using_indexes</code>（对未用索引查询加速限流）的影响。</li>
+</ol>
+<p>简而言之，慢查询日志只有在 SQL 足够慢或扫描量大时才会记录，且默认不记录管理或索引缺失的语句，除非明确启用相关变量。若需全面监控优化目标，建议根据实际情况调整这三项核心参数。</p>
+<p><strong>重做日志（redo log）</strong> 专门记录已提交事务所做的页面级别修改，以确保在崩溃或异常关机后能够快速恢复数据一致性。与完整行记录不同，redo log 只保存页号（Page ID）和偏移量（Offset）处的数据从旧值到新值的变化，例如在页面 12345 的偏移量 256 位置，将值从 25 修改为 30，既紧凑又高效。这些日志文件通常组成一个循环队列：当当前日志文件写满后，InnoDB 会切换到下一个文件，直到用尽后再回到第一个文件，覆盖最早的日志。</p>
+<p>其工作流程如下：</p>
+<ol>
+<li><strong>事务开始与修改缓冲</strong>：当事务对表中数据进行修改时，InnoDB 先将修改记录写入内存中的 redo log buffer；</li>
+<li><strong>事务提交与刷盘</strong>：提交时，buffer 中的内容根据 <code>innodb_flush_log_at_trx_commit</code> 参数设置，或直接刷入磁盘（值为 1）、或先写入操作系统缓冲区后由系统决定何时落盘（值为 2）、或不强制落盘以提升性能但有丢失风险（值为 0）；</li>
+<li><strong>Checkpoint 协同</strong>：后台 Checkpoint 进程周期性地将内存中的脏数据页同步到表空间文件（<code>*.ibd</code>），并将对应的 redo log 日志标记为可覆写，维持循环日志的持续运作。</li>
+</ol>
+<p>通过这种设计，InnoDB 能够在最短时间内重做已提交的事务修改，快速恢复数据库到故障发生前的一致状态。</p>
+<p>假设在表空间 <strong>1</strong> 中，对页 <strong>42</strong> 的偏移 <strong>128</strong> 处的某条记录的第 <strong>3</strong> 个字段（如 age）执行更新，将其从 <strong>25</strong> 改为 <strong>30</strong>，则对应的 redo 日志项可示意如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[MLOG_REC_UPDATE_IN_PLACE]</span><br><span class="line">Type:        MLOG_REC_UPDATE_IN_PLACE</span><br><span class="line">Space ID:      1</span><br><span class="line">Page Number:    42</span><br><span class="line">Record Offset:   128</span><br><span class="line">Update Field Count: 1</span><br><span class="line"> └ Field Number:   3</span><br><span class="line">  Field Data Length: 4</span><br><span class="line">  Field Data:    0x0000001E</span><br></pre></td></tr></table></figure>
+
+<p>binlog 和 redo log 的区别如下表：</p>
+<p><img src="/../../images/MySQL/redo_bin_comp.png" alt="img"></p>
+<p><strong>回滚日志（Undo Log）</strong> 用于在事务回滚和多版本并发控制（MVCC）中保存数据修改前的旧值。当事务开始时，InnoDB 会初始化事务上下文；在执行更新、删除等修改操作时，它首先将当前行的原始数据写入 undo log，同时将对应的物理改动记录到内存中的 redo log buffer；如果事务提交，则会将 redo 日志刷新到磁盘，并将该事务所产生的 undo 日志标记为无效，待后台清理；若事务选择回滚，则 InnoDB 会读取 undo log 中的旧值，将数据恢复到修改前的状态，并在回滚完成后清理相关的 redo 日志。这样既保证了未提交事务的可回滚性，也为 MVCC 提供了版本快照支持。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/undefined/MySQL/2024/10/20/MySQL/%E8%A7%A6%E5%8F%91%E5%99%A8/" rel="prev" title="触发器">
+      <i class="fa fa-chevron-left"></i> 触发器
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/undefined/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/10/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/BG%20Benchmark/" rel="next" title="BG Benchmark">
+      BG Benchmark <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Yihang Wei</p>
+  <div class="site-description" itemprop="description">聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">39</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="languages">
+    <label class="lang-select-label">
+      <i class="fa fa-language"></i>
+      <span>English</span>
+      <i class="fa fa-angle-up" aria-hidden="true"></i>
+    </label>
+    <select class="lang-select" data-canonical="">
+      
+        <option value="zh-CN" data-href="/undefined/MySQL/2024/10/23/MySQL/%E6%97%A5%E5%BF%97/" selected="">
+          简体中文
+        </option>
+      
+        <option value="en" data-href="/en/undefined/MySQL/2024/10/23/MySQL/%E6%97%A5%E5%BF%97/" selected="">
+          English
+        </option>
+      
+    </select>
+  </div>
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yihang Wei</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '50%',
+  right: '32px',
+  left: 'unset',
+  time: '0.5s',
+  mixColor: '#fff',
+  backgroundColor: '#fff',
+  buttonColorDark: '#100f2c',
+  buttonColorLight: '#fff',
+  saveInCookies: true,
+  label: '明暗',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+</body>
+</html>

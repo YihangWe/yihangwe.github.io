@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="zh-CN,en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yihangwe.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Greedy Dual Size (GDS) algorithmKey Concepts:  Variable Size and Cost: Unlike simple algorithms that treat all objects equally, GDS takes into account: Size of the object (size(p)): Larger objects tak">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CAMP">
+<meta property="og:url" content="https://yihangwe.github.io/undefined/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/CAMP/index.html">
+<meta property="og:site_name" content="EthanWeee">
+<meta property="og:description" content="Greedy Dual Size (GDS) algorithmKey Concepts:  Variable Size and Cost: Unlike simple algorithms that treat all objects equally, GDS takes into account: Size of the object (size(p)): Larger objects tak">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yihangwe.github.io/images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/chart3.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/bg_bm_rounding.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/chart4.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/chart5.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/chart6.png">
+<meta property="article:published_time" content="2024-11-01T07:00:00.000Z">
+<meta property="article:modified_time" content="2025-06-01T03:59:33.953Z">
+<meta property="article:author" content="Yihang Wei">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yihangwe.github.io/images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/chart3.png">
+
+<link rel="canonical" href="https://yihangwe.github.io/undefined/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/CAMP/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>CAMP | EthanWeee</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<!-- hexo injector head_end start --><script>(function() {function calculateHeight(element) {let height = 0;const items = element.children;for (let i = 0; i < items.length; i++) {height += items[i].offsetHeight || 25;const child = items[i].querySelector(".nav-child");if (child && child.style.display !== "none") {height += calculateHeight(child);}}return height;}function generateToc(lang, container) {const content = document.getElementById(lang + "-content");if (!content) return;const headers = Array.from(content.querySelectorAll("h1, h2, h3, h4, h5, h6"));if (headers.length === 0) return;const ol = document.createElement("ol");ol.className = "nav";let currentLevel = 1;let currentOl = ol;let stack = [ol];let counters = [0, 0, 0, 0, 0, 0];headers.forEach((header, index) => {const level = parseInt(header.tagName[1]);counters[level - 1]++;for (let i = level; i < 6; i++) counters[i] = 0;const li = document.createElement("li");li.className = "nav-item nav-level-" + level;if (level === 1 && index === 0) {li.classList.add("active", "active-current");}const link = document.createElement("a");link.className = "nav-link";if (level === 1 && index === 0) link.classList.add("active");link.href = "#" + header.id;const numSpan = document.createElement("span");numSpan.className = "nav-number";numSpan.textContent = counters.slice(0, level).filter(n => n > 0).join(".");const textSpan = document.createElement("span");textSpan.className = "nav-text";textSpan.textContent = header.textContent;link.appendChild(numSpan);link.appendChild(document.createTextNode(" "));link.appendChild(textSpan);li.appendChild(link);if (level > currentLevel) {const newOl = document.createElement("ol");newOl.className = "nav-child";if (currentLevel === 1) {newOl.style.display = "block";stack[currentLevel - 1].lastElementChild.classList.add("active");}stack[currentLevel - 1].lastElementChild.appendChild(newOl);stack[level - 1] = newOl;currentOl = newOl;} else if (level < currentLevel) {currentOl = stack[level - 1];}currentOl.appendChild(li);currentLevel = level;});container.appendChild(ol);setTimeout(() => {const navHeight = calculateHeight(ol);ol.style.setProperty("--height", navHeight + "px");const navChilds = ol.getElementsByClassName("nav-child");Array.from(navChilds).forEach(child => {if (child.style.display === "block") {const childHeight = calculateHeight(child);child.style.setProperty("--height", childHeight + "px");}});}, 0);return ol;}function updateActiveHeading() {const activeLang = document.getElementById("en-content").style.display === "block" ? "en" : "zh";const content = document.getElementById(activeLang + "-content");const toc = document.getElementById(activeLang + "-toc");if (!content || !toc) return;const headers = Array.from(content.querySelectorAll("h1, h2, h3, h4, h5, h6"));const scrollPos = window.scrollY + window.innerHeight / 3;let activeHeader = null;for (let i = headers.length - 1; i >= 0; i--) {const header = headers[i];const headerTop = header.getBoundingClientRect().top + window.scrollY;if (headerTop <= scrollPos) {activeHeader = header;break;}}const links = toc.getElementsByClassName("nav-link");Array.from(links).forEach(link => {link.classList.remove("active");const parentLi = link.parentElement;if (parentLi) {parentLi.classList.remove("active", "active-current");}});if (activeHeader) {const activeLink = toc.querySelector(`a[href="#${activeHeader.id}"]`);if (activeLink) {activeLink.classList.add("active");let parent = activeLink.parentElement;while (parent && parent.classList) {if (parent.classList.contains("nav-item")) {parent.classList.add("active");if (parent.classList.contains("nav-level-1")) {parent.classList.add("active-current");}}parent = parent.parentElement;}}}}function initTippy() {document.querySelectorAll(".refplus-num").forEach((ref) => {if (ref._tippy) {ref._tippy.destroy();}let refid = ref.firstChild.href.replace(location.origin+location.pathname,"");let refel = document.querySelector(refid);if (!refel) return;let refnum = refel.dataset.num;let ref_content = refel.innerText.replace(`[${refnum}]`,"");tippy(ref, {content: ref_content,});});}function initToc() {const originalToc = document.querySelector(".post-toc-wrap");if (!originalToc || !document.getElementById("langToggle")) return;const tocContainer = document.createElement("div");tocContainer.className = "post-toc-wrap sidebar-panel sidebar-panel-active";const enToc = document.createElement("div");enToc.id = "en-toc";enToc.className = "post-toc motion-element";enToc.style.display = "block";const zhToc = document.createElement("div");zhToc.id = "zh-toc";zhToc.className = "post-toc motion-element";zhToc.style.display = "none";generateToc("en", enToc);generateToc("zh", zhToc);tocContainer.appendChild(enToc);tocContainer.appendChild(zhToc);originalToc.parentNode.replaceChild(tocContainer, originalToc);window.addEventListener("scroll", updateActiveHeading);setTimeout(updateActiveHeading, 0);}window.toggleLanguage = function() {const enContent = document.getElementById("en-content");const zhContent = document.getElementById("zh-content");const enToc = document.getElementById("en-toc");const zhToc = document.getElementById("zh-toc");const button = document.getElementById("langToggle");if (!enContent || !zhContent || !enToc || !zhToc || !button) return;const isEnglish = enContent.style.display === "block";enContent.style.display = isEnglish ? "none" : "block";zhContent.style.display = isEnglish ? "block" : "none";enToc.style.display = isEnglish ? "none" : "block";zhToc.style.display = isEnglish ? "block" : "none";button.querySelector(".button-text").textContent = isEnglish ? "Switch to English" : "切换中文";setTimeout(updateActiveHeading, 0);setTimeout(initTippy, 100);};document.addEventListener("DOMContentLoaded", function() {initToc();setTimeout(initTippy, 3000);});})();</script><style>.post-toc { transition: all 0.2s ease-in-out; }.post-toc .nav { padding-left: 0; }.post-toc .nav-child { padding-left: 1em; }.post-toc .nav-item { line-height: 1.8; }.post-toc .nav-link { color: #555; }.post-toc .nav-link:hover { color: #222; }.post-toc .nav-link.active { color: #fc6423; }.post-toc .active > .nav-link { color: #fc6423; }.post-toc .active-current > .nav-link { color: #fc6423; }</style><!-- hexo injector head_end end --><style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">EthanWeee</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/CAMP/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          CAMP
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-11-01 00:00:00" itemprop="dateCreated datePublished" datetime="2024-11-01T00:00:00-07:00">2024-11-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-05-31 20:59:33" itemprop="dateModified" datetime="2025-05-31T20:59:33-07:00">2025-05-31</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">数据库系统</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Greedy-Dual-Size-GDS-algorithm"><a href="#Greedy-Dual-Size-GDS-algorithm" class="headerlink" title="Greedy Dual Size (GDS) algorithm"></a>Greedy Dual Size (GDS) algorithm</h1><p>Key Concepts:</p>
+<ol>
+<li><strong>Variable Size and Cost</strong>:<ul>
+<li>Unlike simple algorithms that treat all objects equally, GDS takes into account:<ul>
+<li><strong>Size of the object</strong> (<code>size(p)</code>): Larger objects take up more space in memory.</li>
+<li><strong>Cost of the object</strong> (<code>cost(p)</code>): This can represent factors like time to retrieve the object, computational effort, or other resource usage.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>Score H(p)</strong>:<ul>
+<li>Each key-value pair ppp in the cache is assigned a score H(p). This score reflects the <strong>benefit of keeping the object</strong> in memory and is calculated using:<ul>
+<li>A <strong>global parameter L</strong>, which adjusts dynamically based on cache state.</li>
+<li>The <strong>size(p)</strong> of the object.</li>
+<li>The <strong>cost(p)</strong> associated with the object.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>Eviction Strategy</strong>:<ul>
+<li>When the cache is full, and a new object needs to be added, GDS removes the object with the <strong>lowest score H(p)</strong>. This process continues until there is enough space for the new object.</li>
+</ul>
+</li>
+</ol>
+<h2 id="Proposition-1"><a href="#Proposition-1" class="headerlink" title="Proposition 1"></a>Proposition 1</h2><p><strong>L is non-decreasing over time.</strong></p>
+<ul>
+<li>The global parameter L, which reflects the minimum priority H(p) among all key-value pairs in the KVS, will either stay the same or increase with each operation. This ensures stability and helps prioritize eviction decisions consistently.</li>
+</ul>
+<p>For any key-value pair ppp in the KVS, the relationship holds:</p>
+<p><strong>L ≤ H(p) ≤ L + cost(p) &#x2F; size(p)</strong></p>
+<ul>
+<li>H(p), the priority of p, always lies between the global minimum L and L + cost(p) &#x2F; size(p), ensuring H(p) reflects both its retrieval cost and size relative to other elements.</li>
+</ul>
+<p><strong>Intuition Behind Proposition 1:</strong></p>
+<ul>
+<li>As L increases over time (reflecting the minimum H(p)), less recently used or less “valuable” pairs become increasingly likely to be evicted. This ensures that newer and higher-priority pairs stay in the KVS longer.</li>
+</ul>
+<p><strong>Key Insights from Proposition 1:</strong></p>
+<ol>
+<li><strong>Delayed Eviction:</strong><ul>
+<li>When p is requested again while in memory, its H(p) increases to L + cost(p) &#x2F; size(p), delaying its eviction.</li>
+</ul>
+</li>
+<li><strong>Impact of Cost-to-Size Ratio:</strong><ul>
+<li>Pairs with higher cost(p) &#x2F; size(p) stay longer in the KVS. For example, if one pair’s ratio is c times another’s, it will stay approximately c times longer.</li>
+</ul>
+</li>
+</ol>
+<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/chart3.png" alt="img"></p>
+<h2 id="Key-Points-in-the-Diagram"><a href="#Key-Points-in-the-Diagram" class="headerlink" title="Key Points in the Diagram"></a>Key Points in the Diagram</h2><ol>
+<li><strong>Cost-to-Size Ratios</strong>:<ol>
+<li>Key-value pairs are grouped into <strong>queues</strong> according to their cost-to-size ratio.</li>
+<li>Each queue corresponds to a specific cost-to-size ratio.</li>
+</ol>
+</li>
+<li><strong>Grouping by Ratio</strong>:<ol>
+<li>Within each queue, key-value pairs are managed using the <strong>Least Recently Used (LRU)</strong> strategy.</li>
+</ol>
+</li>
+<li><strong>Priority Management</strong>:<ol>
+<li>The <strong>priority (H-value)</strong> of a key-value pair is based on: <strong>H(p) &#x3D; L + cost(p) &#x2F; size(p)</strong><ol>
+<li>L: The global non-decreasing variable.</li>
+<li>cost(p) &#x2F; size(p): The cost-to-size ratio of the key-value pair.</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><strong>Efficient Eviction</strong>:<ol>
+<li>CAMP maintains a <strong>heap</strong> that points to the <strong>head of each queue</strong>, storing the minimum H(p) from every queue.</li>
+<li>To identify the next key-value pair for eviction:<ol>
+<li><strong>The algorithm checks the heap to find the queue with the smallest H(p).</strong></li>
+<li><strong>It then evicts the key-value pair at the front of that queue (i.e., the least recently used pair in that cost-to-size group).</strong></li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<h2 id="Rounding-in-CAMP"><a href="#Rounding-in-CAMP" class="headerlink" title="Rounding in CAMP"></a>Rounding in CAMP</h2><p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/bg_bm_rounding.png" alt="img"></p>
+<ol>
+<li><strong>Purpose</strong>: To improve performance, CAMP <strong>reduces the number of LRU queues</strong> by grouping key-value pairs with <strong>similar cost-to-size ratios</strong> into the same queue.</li>
+<li><strong>Key Idea</strong>: Preserve the most significant bits proportional to the value’s size.</li>
+</ol>
+<h2 id="Proposition-2-Explanation-of-Rounding-and-Distinct-Values"><a href="#Proposition-2-Explanation-of-Rounding-and-Distinct-Values" class="headerlink" title="Proposition 2: Explanation of Rounding and Distinct Values"></a>Proposition 2: Explanation of Rounding and Distinct Values</h2><h3 id="Implications"><a href="#Implications" class="headerlink" title="Implications"></a>Implications</h3><ol>
+<li><p><strong>Trade-Off Between Precision and Efficiency</strong>:</p>
+<ul>
+<li><p>A higher p preserves more precision but increases the number of distinct values (and thus computational complexity).</p>
+</li>
+<li><p>Lower p reduces the number of distinct values, making CAMP more efficient but less precise.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Rounding Efficiency</strong>:</p>
+<ul>
+<li>By limiting the number of distinct values, CAMP minimizes the number of LRU queues, reducing overhead while still approximating GDS closely.</li>
+</ul>
+</li>
+</ol>
+<h2 id="Proposition-3-Competitive-Ratio-of-CAMP"><a href="#Proposition-3-Competitive-Ratio-of-CAMP" class="headerlink" title="Proposition 3: Competitive Ratio of CAMP"></a>Proposition 3: Competitive Ratio of CAMP</h2><h3 id="Practical-Implications"><a href="#Practical-Implications" class="headerlink" title="Practical Implications"></a>Practical Implications</h3><ol>
+<li><p><strong>Precision ppp</strong>:</p>
+<ul>
+<li><p>The smaller the ϵ (higher ppp), the closer CAMP approximates GDS.</p>
+</li>
+<li><p>For sufficiently large p, CAMP performs nearly as well as GDS.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Trade-off</strong>:</p>
+<ul>
+<li>Higher p increases precision but also increases the number of distinct cost-to-size ratios and computational overhead.</li>
+</ul>
+</li>
+</ol>
+<h3 id="CAMP’s-Improvement-Over-GDS"><a href="#CAMP’s-Improvement-Over-GDS" class="headerlink" title="CAMP’s Improvement Over GDS:"></a>CAMP’s Improvement Over GDS:</h3><ol>
+<li><strong>Approximation:</strong> CAMP simplifies H(p) by <strong>rounding</strong> the cost-to-size ratio, reducing the precision but making the algorithm more efficient.</li>
+<li><strong>Grouping:</strong> Key-value pairs are <strong>grouped</strong> by similar cost-to-size ratios, reducing the number of queues and simplifying priority management.</li>
+<li><strong>Tie-Breaking:</strong> CAMP uses <strong>LRU within each group</strong> to determine the eviction order, making it computationally cheaper.</li>
+</ol>
+<h3 id="Figure-4-Heap-Node-Visits"><a href="#Figure-4-Heap-Node-Visits" class="headerlink" title="Figure 4: Heap Node Visits"></a>Figure 4: Heap Node Visits</h3><p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/chart4.png" alt="img"></p>
+<p>This figure compares the number of heap node visits for GDS and CAMP as a function of cache size:</p>
+<ol>
+<li><p><strong>GDS</strong>:</p>
+<ul>
+<li><p><strong>Heap size equals the total number of key-value pairs in the cache.</strong></p>
+</li>
+<li><p>Every heap update (insertion, deletion, or priority change) requires visiting O(log⁡n) nodes, where n is the number of cache entries.</p>
+</li>
+<li><p>As cache size increases, GDS’s overhead grows significantly.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>CAMP</strong>:</p>
+<ul>
+<li><p><strong>Heap size equals the number of non-empty LRU queues, which is much smaller than the total number of cache entries.</strong></p>
+</li>
+<li><p>Heap updates occur only when:</p>
+<ul>
+<li><p>The priority of the head of an LRU queue changes.</p>
+</li>
+<li><p>A new LRU queue is created.</p>
+</li>
+</ul>
+</li>
+<li><p>As cache size increases, the number of non-empty LRU queues remains relatively constant, resulting in fewer heap updates.</p>
+</li>
+</ul>
+</li>
+</ol>
+<h1 id="Evaluation"><a href="#Evaluation" class="headerlink" title="Evaluation"></a>Evaluation</h1><p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/chart5.png" alt="img"></p>
+<p><strong>(a) Cost-Miss Ratio vs Precision</strong></p>
+<ul>
+<li><strong>横轴</strong>：精度（Precision），从低到高。</li>
+<li><strong>纵轴</strong>：成本未命中比（Cost-Miss Ratio）。</li>
+<li><strong>结果</strong>：<ul>
+<li>不同的缓存大小比（0.01、0.1 和 0.3）在较低精度下表现一致。</li>
+<li>提高精度后，成本未命中比没有显著变化。</li>
+<li>说明即使使用较低精度，CAMP 的成本未命中比也能接近 GDS（标准实现）。</li>
+</ul>
+</li>
+</ul>
+<p><strong>(b) LRU Queues vs Precision</strong></p>
+<ul>
+<li><strong>横轴</strong>：精度（Precision）。</li>
+<li><strong>纵轴</strong>：CAMP 维护的非空 LRU 队列数量。</li>
+<li><strong>结果</strong>：<ul>
+<li><strong>低精度</strong>（1-5）：CAMP 维持稳定的少量 LRU 队列（约 5 个）。</li>
+<li><strong>高精度</strong>（&gt;10）：队列数增加，尤其是在较大的缓存大小比（如 1.0）下。</li>
+<li><strong>结论</strong>：<ul>
+<li>在较低精度下，CAMP 能保持较低的计算开销，同时维持高效的队列管理。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>(c) Cost-Miss Ratio vs Cache Size Ratio</strong></p>
+<ul>
+<li><strong>横轴</strong>：缓存大小比（Cache Size Ratio），即缓存大小与 trace 文件中唯一键值对总大小的比值。</li>
+<li><strong>纵轴</strong>：成本未命中比（Cost-Miss Ratio）。</li>
+<li><strong>结果</strong>：<ul>
+<li><strong>CAMP</strong>：<ul>
+<li>在所有缓存大小下，成本未命中比最低。</li>
+<li>说明 CAMP 在高成本键值对管理上更具效率。</li>
+</ul>
+</li>
+<li><strong>Pooled LRU</strong>：<ul>
+<li>在较小缓存下表现稍差，但随着缓存增加，接近 CAMP。</li>
+</ul>
+</li>
+<li><strong>LRU</strong>：<ul>
+<li>成本未命中比始终最高。</li>
+</ul>
+</li>
+<li><strong>结论</strong>：<ul>
+<li>CAMP 优于 LRU 和 Pooled LRU，尤其是在小缓存下。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>(d) Miss Rate vs Cache Size Ratio</strong></p>
+<ul>
+<li><strong>横轴</strong>：缓存大小比（Cache Size Ratio）。</li>
+<li><strong>纵轴</strong>：未命中率（Miss Rate）。</li>
+<li><strong>结果</strong>：<ul>
+<li><strong>CAMP</strong>：<ul>
+<li>未命中率显著低于 LRU 和 Pooled LRU，尤其在小缓存下表现最优。</li>
+</ul>
+</li>
+<li><strong>Pooled LRU</strong>：<ul>
+<li>未命中率随着缓存增大而下降，但始终高于 CAMP。</li>
+<li>最低成本池（cheapest pool）未命中率接近 100%，次低成本池未命中率达到 65%。</li>
+</ul>
+</li>
+<li><strong>LRU</strong>：<ul>
+<li>始终高于 CAMP 和 Pooled LRU。</li>
+</ul>
+</li>
+<li><strong>结论</strong>：<ul>
+<li>CAMP 在多种缓存大小下都保持较低的未命中率，且比 Pooled LRU 更均衡。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="CAMP-的适应能力：访问模式变化的分析"><a href="#CAMP-的适应能力：访问模式变化的分析" class="headerlink" title="CAMP 的适应能力：访问模式变化的分析"></a>CAMP 的适应能力：访问模式变化的分析</h1><p>实验设置：</p>
+<ul>
+<li>使用 10 个不同的 trace 文件，每个文件包含 400 万个键值对引用。</li>
+<li>每个 trace 文件（如 TF1、TF2 等）中的请求在其结束后不会再被引用，模拟访问模式的突然变化。</li>
+<li>访问模式具有倾斜分布（如 Zipf 分布），每个 trace 文件中的高成本对象可能在下一次访问中完全无效。</li>
+</ul>
+<p>目标：</p>
+<ul>
+<li>比较 <strong>CAMP</strong>、<strong>Pooled LRU</strong> 和 <strong>LRU</strong> 在不同缓存大小下对访问模式突变的适应能力。</li>
+<li>评估三种算法在突然变化后清除旧的高成本键值对的效率，以及对总体性能（如成本未命中比和未命中率）的影响。</li>
+</ul>
+<p>不同算法的行为分析</p>
+<ol>
+<li><p><strong>LRU</strong>：</p>
+<ul>
+<li><p>按最近使用排序，当新请求的总大小超过缓存大小时清除旧数据。</p>
+</li>
+<li><p>当缓存大小比为 1 时，清除 TF1 数据的时间点对应于 TF3 开始请求的第一个键值对。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Pooled LRU</strong>：</p>
+<ul>
+<li><p>将键值对按成本分组，每组分配固定比例的缓存空间。</p>
+</li>
+<li><p>高成本池占据 99% 的缓存空间，因此在每个新 trace 开始时会突然清除一批旧数据。</p>
+</li>
+<li><p>对于缓存大小比 2&#x2F;3 或更高的情况，直到 TF4（约 800 万请求后）才会清除所有 TF1 数据。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>CAMP</strong>：</p>
+<ul>
+<li><p>对每个成本-大小比维护 LRU 队列，这些队列的大小可以动态调整。</p>
+</li>
+<li><p><strong>优先淘汰较低优先级的数据，但高成本数据即使来自旧 trace，也具有一定保留优先级。</strong></p>
+</li>
+<li><p><strong>当新数据的总大小超过缓存时，旧 trace 的高成本数据才会被逐步清除。</strong></p>
+</li>
+</ul>
+</li>
+</ol>
+<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/chart6.png" alt="img"></p>
+<p><strong>图 6c：缓存比 0.25（小缓存）</strong></p>
+<ol>
+<li><p><strong>LRU</strong>：</p>
+<ul>
+<li><p>清除最快，仅需 <strong>2.1 万次请求</strong> 即完全清除 Trace 1 的所有键值对。</p>
+</li>
+<li><p>由于 LRU 优先淘汰最久未使用的数据，小缓存下表现最佳。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Pooled LRU</strong>：</p>
+<ul>
+<li><p>清除速度较慢，需要 <strong>13.1 万次请求</strong>。</p>
+</li>
+<li><p>原因：Pooled LRU 按成本对键值对分组，高成本池占用较多缓存空间，导致清除滞后。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>CAMP</strong>：</p>
+<ul>
+<li><p>初期清除速度比 Pooled LRU 更快，但最后完全清除所有键值对需到 <strong>TF3 结束（770 万次请求）</strong>。</p>
+</li>
+<li><p>然而，这些未被清除的 Trace 1 数据仅占缓存的 <strong>2%</strong>，说明 CAMP 优先保留了高成本键值对。</p>
+</li>
+</ul>
+</li>
+</ol>
+<p><strong>图 6d：缓存比 0.75（大缓存）</strong></p>
+<ol>
+<li><p><strong>LRU</strong>：</p>
+<ul>
+<li><p>同样清除最快，几乎在 Trace 2 开始时就清除掉大部分 Trace 1 的数据。</p>
+</li>
+<li><p>说明即使缓存较大，LRU 仍然倾向淘汰旧数据。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Pooled LRU</strong>：</p>
+<ul>
+<li><p>清除延迟显著，需要 <strong>730 万次请求</strong>，接近 TF3 结束。</p>
+</li>
+<li><p>原因：高成本池占用过多缓存空间，延迟清除低成本和无用数据。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>CAMP</strong>：</p>
+<ul>
+<li><p>大部分 Trace 1 数据在较早阶段被淘汰，仅保留少量最昂贵的键值对（占缓存比小于 <strong>0.6%</strong>）。</p>
+</li>
+<li><p>即使在 <strong>4000 万次请求</strong>后，这些高成本键值对仍在缓存中，但对整体缓存利用影响极小。</p>
+</li>
+</ul>
+</li>
+</ol>
+<p>针对不同大小但成本相同的键值对，CAMP 优先保留较小的键值对，从而降低未命中率和成本未命中比。</p>
+<p>针对相同大小但成本不同的键值对，CAMP 优先保留高成本键值对，在成本未命中比上显著优于其他算法。</p>
+<p>与其他算法的对比：</p>
+<ul>
+<li><p>LRU：适用于简单场景，但无法处理成本差异。</p>
+</li>
+<li><p>Pooled LRU：小缓存情况下表现不错，但静态分区策略限制了其大缓存场景的效率。</p>
+</li>
+</ul>
+<p>CAMP 的适应性：在处理多样化的成本分布时，通过动态调整和四舍五入策略，CAMP 在复杂负载下表现出更高的灵活性和效率。</p>
+<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>What is the time complexity of LRU to select a victim?</strong></p>
+<p><strong>O(1)</strong> because the least recently used item is always at the tail of the list.</p>
+<p><strong>What is the time complexity of CAMP to select a victim?</strong></p>
+<p><strong>O(logk)</strong> CAMP identifies the key-value pair with the smallest priority from the heap, deletes it and then <strong>heapifies</strong>.</p>
+<p><strong>Why does CAMP do rounding using the high order bits?</strong></p>
+<ul>
+<li>CAMP rounds cost-to-size ratios to <strong>reduce the number of distinct ratios (or LRU queues)</strong>.</li>
+<li>High-order bits are retained because they represent the <strong>most significant portion of the value</strong>, ensuring that <strong>approximate prioritization is maintained</strong>.</li>
+</ul>
+<p><strong>How does BG generate social networking actions that are always valid?</strong></p>
+<p><strong>Pre-Validation of Actions:</strong></p>
+<ul>
+<li>Before generating an action, BG <strong>checks</strong> the current state of the database to ensure the action is valid. For instance:<ul>
+<li>A friend request is only generated if the two users are not already friends or in a “pending” relationship.</li>
+<li>A comment can only be posted on a resource if the resource exists.</li>
+</ul>
+</li>
+</ul>
+<p><strong>Avoiding Concurrent Modifications:</strong></p>
+<ul>
+<li>BG <strong>prevents multiple threads from concurrently modifying the same user’s state</strong>.</li>
+</ul>
+<p><strong>How does BG scale to a large number of nodes?</strong></p>
+<p>BG employs <strong>a shared-nothing architecture</strong> with the following mechanisms to scale effectively:</p>
+<ol>
+<li><p><strong>Partitioning Members and Resources:</strong></p>
+<ul>
+<li><p>BGCoord <strong>partitions</strong> the database into <strong>logical fragments</strong>, each containing <strong>a unique subset</strong> of members, their resources, and relationships.</p>
+</li>
+<li><p>These fragments are assigned to individual BGClients.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Multiple BGClients:</strong></p>
+<ul>
+<li><p>Each BGClient operates <strong>independently</strong>, generating workloads for its assigned logical fragment.</p>
+</li>
+<li><p>By running <strong>multiple</strong> BGClients <strong>in parallel</strong> across different nodes, BG can scale horizontally to handle millions of requests.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>D-Zipfian Distribution:</strong></p>
+<ul>
+<li><p>To ensure realistic and scalable workloads, BG uses a decentralized Zipfian distribution (D-Zipfian) that <strong>dynamically assigns</strong> requests to BGClients based on node performance.</p>
+</li>
+<li><p>Faster nodes receive a larger share of the logical fragments, ensuring even workload distribution.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Concurrency Control:</strong></p>
+<ul>
+<li>BG <strong>prevents simultaneous threads from issuing actions for the same user</strong>, maintaining the integrity of modeled user interactions and avoiding resource contention.</li>
+</ul>
+</li>
+</ol>
+<p><strong>True or False: BG quantifies the amount of unpredictable data produced by a data store?</strong></p>
+<p>True.</p>
+<p>This is achieved through:</p>
+<ul>
+<li><strong>Validation Phase:</strong><ul>
+<li>BG uses <strong>read and write log records</strong> to detect instances where a read operation observes a value <strong>outside the acceptable range</strong>, classifying it as “unpredictable data.”</li>
+</ul>
+</li>
+<li><strong>Metrics Collection:</strong><ul>
+<li>The percentage of requests that observe unpredictable data (τ) is a key metric used to evaluate the data store’s consistency.</li>
+</ul>
+</li>
+</ul>
+<p><strong>How is BG’s SoAR different than its Socialites rating?</strong></p>
+<p>SoAR (Social Action Rating): Represents the <strong>maximum throughput</strong> (actions per second) a data store can achieve while meeting a given SLA.</p>
+<p>Socialites Rating: Represents the <strong>maximum number of concurrent threads</strong> <strong>(users)</strong> a data store can support while meeting the SLA.</p>
+<p>Reference: <a target="_blank" rel="noopener" href="https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=d6f9678772a09ca29101f5efce583960ecf53745">https://citeseerx.ist.psu.edu/document?repid=rep1&amp;type=pdf&amp;doi=d6f9678772a09ca29101f5efce583960ecf53745</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/undefined/MySQL/2024/10/31/MySQL/%E7%B4%A2%E5%BC%95/" rel="prev" title="索引">
+      <i class="fa fa-chevron-left"></i> 索引
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/undefined/MySQL/2024/11/03/MySQL/%E8%A1%A8/" rel="next" title="表">
+      表 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Greedy-Dual-Size-GDS-algorithm"><span class="nav-number">1.</span> <span class="nav-text">Greedy Dual Size (GDS) algorithm</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Proposition-1"><span class="nav-number">1.1.</span> <span class="nav-text">Proposition 1</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Key-Points-in-the-Diagram"><span class="nav-number">1.2.</span> <span class="nav-text">Key Points in the Diagram</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Rounding-in-CAMP"><span class="nav-number">1.3.</span> <span class="nav-text">Rounding in CAMP</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Proposition-2-Explanation-of-Rounding-and-Distinct-Values"><span class="nav-number">1.4.</span> <span class="nav-text">Proposition 2: Explanation of Rounding and Distinct Values</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Implications"><span class="nav-number">1.4.1.</span> <span class="nav-text">Implications</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Proposition-3-Competitive-Ratio-of-CAMP"><span class="nav-number">1.5.</span> <span class="nav-text">Proposition 3: Competitive Ratio of CAMP</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Practical-Implications"><span class="nav-number">1.5.1.</span> <span class="nav-text">Practical Implications</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CAMP%E2%80%99s-Improvement-Over-GDS"><span class="nav-number">1.5.2.</span> <span class="nav-text">CAMP’s Improvement Over GDS:</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Figure-4-Heap-Node-Visits"><span class="nav-number">1.5.3.</span> <span class="nav-text">Figure 4: Heap Node Visits</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Evaluation"><span class="nav-number">2.</span> <span class="nav-text">Evaluation</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#CAMP-%E7%9A%84%E9%80%82%E5%BA%94%E8%83%BD%E5%8A%9B%EF%BC%9A%E8%AE%BF%E9%97%AE%E6%A8%A1%E5%BC%8F%E5%8F%98%E5%8C%96%E7%9A%84%E5%88%86%E6%9E%90"><span class="nav-number">3.</span> <span class="nav-text">CAMP 的适应能力：访问模式变化的分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Questions"><span class="nav-number">4.</span> <span class="nav-text">Questions</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Yihang Wei</p>
+  <div class="site-description" itemprop="description">聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">39</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="languages">
+    <label class="lang-select-label">
+      <i class="fa fa-language"></i>
+      <span>简体中文</span>
+      <i class="fa fa-angle-up" aria-hidden="true"></i>
+    </label>
+    <select class="lang-select" data-canonical="">
+      
+        <option value="zh-CN" data-href="/undefined/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/CAMP/" selected="">
+          简体中文
+        </option>
+      
+        <option value="en" data-href="/en/undefined/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/CAMP/" selected="">
+          English
+        </option>
+      
+    </select>
+  </div>
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yihang Wei</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '50%',
+  right: '32px',
+  left: 'unset',
+  time: '0.5s',
+  mixColor: '#fff',
+  backgroundColor: '#fff',
+  buttonColorDark: '#100f2c',
+  buttonColorLight: '#fff',
+  saveInCookies: true,
+  label: '明暗',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+</body>
+</html>

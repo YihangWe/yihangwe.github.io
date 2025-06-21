@@ -181,7 +181,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/04/06/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Managing%20Cold%20Data%20in%20a%20Memory-Optimized%20Database/">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/04/06/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Managing%20Cold%20Data%20in%20a%20Memory-Optimized%20Database/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -195,7 +195,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/04/06/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Managing%20Cold%20Data%20in%20a%20Memory-Optimized%20Database/" class="post-title-link" itemprop="url">Managing Cold Data in a Memory-Optimized Database</a>
+            <a href="/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/04/06/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Managing%20Cold%20Data%20in%20a%20Memory-Optimized%20Database/" class="post-title-link" itemprop="url">内存优化数据库中的冷数据管理</a>
         </h2>
 
         <div class="post-meta">
@@ -212,7 +212,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-05-31 23:04:49" itemprop="dateModified" datetime="2025-05-31T23:04:49-07:00">2025-05-31</time>
+                <time title="修改时间：2025-06-20 16:50:57" itemprop="dateModified" datetime="2025-06-20T16:50:57-07:00">2025-06-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -235,29 +235,29 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h1><p>The paper addresses 2 problems:</p>
+          <h1 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h1><p>该论文解决了两个问题：</p>
 <ol>
-<li>How to migrate records to and from the cold store.</li>
-<li>How to read and update records in the cold store in a transactionally consistent manner.</li>
+<li>如何将记录迁移到冷存储以及从冷存储迁出。</li>
+<li>如何以事务一致的方式读取和更新冷存储中的记录。</li>
 </ol>
-<p>The paper provides 3 novel ideas and elaborates the proposed approach for the implementation of each idea:</p>
+<p>论文提出了三个新颖的想法，并详细阐述了每个想法的实现方法：</p>
 <ol>
-<li>A unified interface that hides the physical location of a record to higher layer: the collaboration among cold store, access filters, private cache, and update memo.</li>
-<li>Minimizing the overhead caused by accessing secondary storage: each transaction has its own private cache.</li>
-<li>Seamless migration between hot and cold stores: the system performs migration using insert and delete operations in a transaction.</li>
+<li><strong>统一的接口，向高层隐藏记录的物理位置</strong>：通过冷存储、访问过滤器、私有缓存和更新备忘录之间的协作实现。</li>
+<li><strong>最小化访问二级存储带来的开销</strong>：每个事务拥有自己的私有缓存。</li>
+<li><strong>热存储与冷存储之间的无缝迁移</strong>：系统在事务中使用插入和删除操作执行迁移。</li>
 </ol>
-<p>Analytical and experimental findings: The paper evaluates the performance of Siberia on both the YCSB Benchmark and Multi-step read&#x2F;update workload, showing the following conclusions. With realistic client delay, the throughput loss is only 3%. Even under extreme cold access data rate, the in-memory Siberia machinery results in a low performance loss. When live migration is active, the system’s performance remains stable. The overhead of accessing the memo is expensive, which means that memo cleaning is important for improving performance. For read-only transactions at realistic cold data access rates of 5% and 10%, the performance losses are 7% and 14% respectively, which are acceptable. For update-only transactions, 5% cold data updates lead to 8% throughput loss, 10% cold data update rates lead to 13% throughput loss, which are also acceptable. For the YCSB workload, as the access skew decreases and the memory to database size ratio increases, performance degrades, and read-heavy workloads exhibit lower abort rates for transactions at higher skew rates compared to write-heavy workloads.</p>
-<h1 id="Paper-Strength"><a href="#Paper-Strength" class="headerlink" title="Paper Strength"></a>Paper Strength</h1><ul>
-<li>The paper provides a comprehensive literature review. In the HEKATON STORAGE AND INDEXING section, the paper briefly outlines the index and data storage structure of HEKATON and its read and update operations based on MVCC. In the RELATED WORK section, the paper analyzes how existing database systems handle cold data, explaining that Hyper manages cold data using virtual pages, Stoica et al propose separating hot and cold data into different memory locations. Finally, the paper describes the working principle of Anti-caching and highlights its 2 drawbacks: limited space savings and repeated execution.</li>
-<li>The paper provides a detailed description of the working principles after integrating SIBERIA into HEKATON. It presents the workflow of 2 transactions used during data migration to the cold store. Insert and update operations ensure that data is placed into the hot store to avoid the overhead of checking the cold store. Delete and read operations utilize notices in the update memo to perform concurrency control and conflict detection. Cold store cleaning is also driven by the update memo, which enables the timely removal of records from the cold store that are no longer visible to any active transactions. Furthermore, validation leverages the notices in the update memo as well and computes TsBoundSer to ensure the correctness of serializable transactions, thereby enhancing phantom detection.</li>
-<li>The paper presents the relatively comprehensive experiment. The experiments are based on the YCSB Benchmark and Multi-step read&#x2F;update workload, which allow for testing Siberia’s performance under different workloads. Moreover, the paper evaluates the pure in-memory overhead of Siberia, the overhead of running live migration, and the overhead of the update memo on the path to accessing a cold record. Furthermore, under the YCSB workload, it demonstrates the relationship among workload skew, memory to database size ratios, and workload performance.</li>
+<p>分析与实验结果：论文在 YCSB 基准测试和多步骤读&#x2F;更新工作负载上评估了 Siberia 的性能，得出以下结论。在现实的客户端延迟下，吞吐量损失仅为 3%。即使在极高的冷数据访问率下，内存中的 Siberia 机制也仅带来较低的性能损失。当实时迁移激活时，系统性能保持稳定。访问备忘录的开销较大，这意味着备忘录清理对于提高性能很重要。在冷数据访问率为 5% 和 10% 的现实场景下，只读事务的性能损失分别为 7% 和 14%，这是可接受的。对于纯更新事务，5% 的冷数据更新导致 8% 的吞吐量损失，10% 的冷数据更新率导致 13% 的吞吐量损失，同样可接受。在 YCSB 工作负载下，随着访问偏斜度降低以及内存与数据库大小比例增加，性能会下降；与写密集型工作负载相比，读密集型工作负载在更高的偏斜率下表现出更低的事务中止率。</p>
+<h1 id="论文优势"><a href="#论文优势" class="headerlink" title="论文优势"></a>论文优势</h1><ul>
+<li><strong>论文提供了全面的文献综述</strong>。在 HEKATON 存储与索引 部分，论文简要概述了 HEKATON 的索引和数据存储结构及其基于 MVCC（多版本并发控制）的读写操作。在 RELATED WORK 部分，论文分析了现有数据库系统如何处理冷数据，解释了 Hyper 使用虚拟页管理冷数据，Stoica 等人提出将热冷数据分离到不同的内存位置。最后，论文描述了反缓存（anti-caching）的工作原理，并指出了其两个缺点：节省空间有限和重复执行。</li>
+<li><strong>论文详细描述了将 SIBERIA 集成到 HEKATON 后的工作原理</strong>。它展示了数据迁移到冷存储期间使用的两种事务的工作流程。插入和更新操作确保数据被放入热存储，以避免检查冷存储的开销。删除和读取操作利用更新备忘录中的通知执行并发控制和冲突检测。冷存储清理也由更新备忘录驱动，这使得可以及时从冷存储中移除对任何活跃事务都不可见的记录。此外，验证阶段也利用更新备忘录中的通知，并计算 <code>TsBoundSer</code> 以确保可串行化事务的正确性，从而增强了幻读检测。</li>
+<li><strong>论文呈现了相对全面的实验</strong>。实验基于 YCSB 基准测试和多步骤读&#x2F;更新工作负载，这可以测试 Siberia 在不同工作负载下的性能。此外，论文评估了 Siberia 的纯内存开销、运行实时迁移的开销以及访问冷记录路径上更新备忘录的开销。并且，在 YCSB 工作负载下，展示了工作负载偏斜度、内存与数据库大小比率与工作负载性能之间的关系。</li>
 </ul>
-<h1 id="Paper-Weakness"><a href="#Paper-Weakness" class="headerlink" title="Paper Weakness"></a>Paper Weakness</h1><ul>
-<li>The paper does not describe the process of integrating Siberia in HEKATON at the code level, but only mentions integration at the level of data processing and storage mechanisms. It details the cold data migration process and explains how update memo notices in the insert, delete, read, and update operations work in collaboration with HEKATON’s versioning and concurrency control. However, the paper does not address how Siberia is integrated into HEKATON at the code level, such as by identifying core functions, code segments, and the corresponding modifications. This omission makes it difficult for readers to easily re-achieve the Siberia. Therefore, the paper should at least provide an outline of the code modifications.</li>
-<li>In the Synthetic End-to-End Workload section, the paper does not discuss the throughput loss under moderate to high cold data access rates. The paper only presents the throughput loss at 5% and 10% cold data access rates, claiming these are realistic cold data access rates. First, the paper fails to explain which report or literature supports that 5% and 10% are “realistic cold data access rates” in the Read-Only Transactions section. Second, we assume the above data is accurate, but the paper does not describes how the throughput loss changes when cold data access rates exceed 10%. This omission prevents readers from gaining a comprehensive understanding of the performance of handling workload in Siberia. Therefore, the paper should explain how the realistic cold data access rates were determined and describe the changes in throughput loss under moderate to high cold data access rates.</li>
-<li>The paper does not discuss Siberia’s performance limitations or the conditions under which its performance might degenerate, despite the Experiments section showcasing impressive performance. It is possible that such impressive performance comes at the cost of high hardware utilization such as high CPU usage. Alternatively, while integrating Siberia in HEKATON may enhance the handling of hot and cold data, it could potentially compromise some of HEKATON’s original features. Therefore, the paper should clarify the situations under which Siberia’s performance may degenerate.</li>
+<h1 id="论文不足"><a href="#论文不足" class="headerlink" title="论文不足"></a>论文不足</h1><ul>
+<li><strong>论文未在代码层面描述 Siberia 集成到 HEKATON 的过程</strong>，仅提到了在数据处理和存储机制层面进行集成。它详细描述了冷数据迁移过程，并解释了插入、删除、读取和更新操作中的更新备忘录通知如何与 HEKATON 的版本控制和并发控制协作。然而，论文未涉及 Siberia 如何在代码层面（如识别核心函数、代码段及相应修改）集成到 HEKATON。这一缺失使得读者难以轻松复现 Siberia。因此，论文至少应提供代码修改的概要说明。</li>
+<li><strong>在 Synthetic End-to-End Workload 部分，论文未讨论中等至高冷数据访问率下的吞吐量损失</strong>。论文仅展示了在 5% 和 10% 冷数据访问率下的吞吐量损失，并声称这些是现实的冷数据访问率。首先，在 Read-Only Transactions 部分，论文未能说明是哪个报告或文献支持 5% 和 10% 是“真实的冷数据访问率”。其次，即使假设上述数据是准确的，论文也未描述当冷数据访问率超过 10% 时，吞吐量损失如何变化。这一缺失使读者无法全面了解 Siberia 处理工作负载的性能。因此，论文应解释“现实的冷数据访问率”是如何确定的，并描述在中等至高冷数据访问率下吞吐量损失的变化情况。</li>
+<li><strong>论文未讨论 Siberia 的性能限制或其性能可能下降的条件</strong>，尽管实验部分展示了令人印象深刻的性能。这种优异的性能可能是以高硬件利用率（如高 CPU 使用率）为代价获得的。或者，将 Siberia 集成到 HEKATON 中虽然增强了热冷数据处理能力，但可能损害了 HEKATON 原有的某些特性。因此，论文应阐明 Siberia 性能可能下降的情形。</li>
 </ul>
-<p>Reference: <a target="_blank" rel="noopener" href="https://www.vldb.org/pvldb/vol7/p931-eldawy.pdf">https://www.vldb.org/pvldb/vol7/p931-eldawy.pdf</a></p>
+<p>参考文献: <a target="_blank" rel="noopener" href="https://www.vldb.org/pvldb/vol7/p931-eldawy.pdf">https://www.vldb.org/pvldb/vol7/p931-eldawy.pdf</a></p>
 
       
     </div>
@@ -277,7 +277,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/03/18/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20TicToc/">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/03/18/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20TicToc/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -291,7 +291,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/03/18/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20TicToc/" class="post-title-link" itemprop="url">TicToc</a>
+            <a href="/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/03/18/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20TicToc/" class="post-title-link" itemprop="url">TicToc</a>
         </h2>
 
         <div class="post-meta">
@@ -308,7 +308,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-05-31 23:02:32" itemprop="dateModified" datetime="2025-05-31T23:02:32-07:00">2025-05-31</time>
+                <time title="修改时间：2025-06-20 16:51:12" itemprop="dateModified" datetime="2025-06-20T16:51:12-07:00">2025-06-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -331,29 +331,56 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h1><p>The paper addresses 1 problem:</p>
+          <h1 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h1><p>本文解决了一个核心问题：</p>
 <ol>
-<li>How to design an efficient concurrency control algorithm to improve scalability of OLTP DBMSs in the multi-core environment?</li>
+<li>如何设计一种高效的并发控制算法，以提升 OLTP 数据库管理系统在多核环境下的可扩展性？</li>
 </ol>
-<p>The paper provides 4 novel ideas and elaborates the proposed approach for the implementation of each idea:</p>
+<p>本文提出了 4 个新颖的想法，并详细阐述了每个想法的实现方案：</p>
 <ol>
-<li>TicToc algorithm: Implemented on top of OCC, it ensures a transaction’s timestamp will be calculated lazily at the commit time based on tuples this transaction process, which will improve the parallelism as well.</li>
-<li>No-wait locking in validation phase: If a transaction fails to acquire a lock for a tuple in the write set, the validation phase will be aborted immediately. TicToc will restarts this phase after a period of time.</li>
-<li>Preemptive aborts: Based on an approximate commit timestamp together with the local rts and wts, it is possible to determine whether to abort a transaction before locking the tuples in its write set.</li>
-<li>Timestamp history: When a read tuple’s local rts is lower than the commit_ts and its wts differs from the latest wts, further inspection of the tuple’s history buffer is conducted to decide whether to start the validation phase.</li>
+<li><strong>TicToc 算法：</strong> 在乐观并发控制 (OCC) 基础上实现。其核心在于事务的时间戳将延迟到提交时刻，根据该事务处理的所有元组进行计算。这种方式也提高了并行性。</li>
+<li><strong>验证阶段的无等待锁定 (No-wait locking in validation phase)：</strong> 如果事务无法为其写集 (write set) 中的某个元组获取锁，验证阶段将立即中止。TicToc 会在等待一段时间后重启该阶段。</li>
+<li><strong>抢占式中止 (Preemptive aborts)：</strong> 基于一个近似的提交时间戳以及元组的本地读时间戳 (rts) 和写时间戳 (wts)，可以在锁定写集中的元组之前就判断是否应中止该事务。</li>
+<li><strong>时间戳历史记录 (Timestamp history)：</strong> 当读取的元组的本地读时间戳 (rts) 低于事务的 <code>commit_ts</code>，且其写时间戳 (wts) 与最新 wts 不同时，会进一步检查该元组的历史缓冲区 (history buffer)，以决定是否启动验证阶段。</li>
 </ol>
-<p>Analytical and experimental findings: The paper compares five algorithms: TicToc, Silo, HEKATON, DL_DETECT, and NO_WAIT. In the TPC-C results, with 4 warehouses, TicToc achieves the highest throughput and a lower abort rate than Silo. As the number of warehouses increases, TicToc’s throughput is eventually surpassed by Silo around 80 warehouses, but its abort rate remains lower than that of Silo. In the YCSB results, when processing read-only transactions, TicToc’s throughput is close to Silo’s and higher than that of the other algorithms; for read-write transactions under medium contention, TicToc maintains throughput similar to SIlo’s while its abort rate is significantly lower than those of Silo, HEKATON, and NO_WAIT; under high contention conditions, TicToc’s throughput far surpasses that of Silo, although its abort rate becomes more close to Silo’s. Tests for optimization indicate that most of the performance improvements come from the no-wait and preemptive aborts. Furthermore, TicToc’s timestamp growth rate is substantially lower than that of TS_ALLOC. When the isolation level is lower, TicToc shows improved throughput and a reduced abort rate, but the degree of these changes is not as pronounced compared to the other algorithms.</p>
-<h1 id="Paper-Strength"><a href="#Paper-Strength" class="headerlink" title="Paper Strength"></a>Paper Strength</h1><ul>
-<li>The paper provides a clear description of the background knowledge and the problem to be addressed. It elaborates on the weaknesses of the 2PL strategy and highlights that the T&#x2F;O strategy, such as MVCC and OCC, has gradually become mainstream. It then points out that the centralized timestamp allocator and the CPU’s cache coherence protocol in traditional T&#x2F;O algorithms have led to a timestamp allocation bottleneck. Moreover, all the hardware solutions mentioned in the paper fail to perfectly align with the architecture of most modern CPUs, and their performance remains suboptimal even if implemented. Furthermore, the paper briefly describes the execution phases of OCC and introduces 2 optimized approaches based on OCC, that is DTA and Silo, and highlights that both solutions still suffer from scalability bottlenecks. In order to tackle these problems, the paper presents TicToc algorithm.</li>
-<li>The paper provides code, charts, and an example for the core processes of the TicToc algorithm, enabling readers to quickly understand the implementation details and workflow. In Section 3.2, the paper presents pseudocode for the Read Phase, Validation Phase, and Write Phase, which clearly illustrates the design considerations in addressing conflicts in concurrent and parallel scenarios and the decentralized timestamp assignment. In Section 3.6, the paper demonstrates the structure used for storing read and write timestamps and, through pseudocode, effectively presents a solution to the potential overflow problem of the delta attribute. Moreover, in Section 3.3, the paper provides an example of interleaved transaction execution, accompanied by a bar chart, clearly displaying TicToc’s high flexibility and performance in handling concurrency and parallelism challenges.</li>
-<li>The paper presents a comprehensive experiment of TicToc on DBx1000. It assesses TicToc’s performance in both TPC-C and YCSB scenarios, comparing throughput and abort rate under various contention levels and different numbers of warehouses, with Silo, HEKATON, DL_DETECT, and NO_WAIT. The paper also evaluates TicToc optimizations, emphasizing the contributions of the no-wait and pre-abort to performance improvements. Moreover, the paper compares TicToc’s timestamp growth rate and linear timestamp growth rate, and the differences in throughput and abort rate between TicToc and other 4 algorithms under different isolation levels.</li>
+<p>分析与实验结果： 本文比较了五种算法：TicToc, Silo, HEKATON, DL_DETECT 和 NO_WAIT。</p>
+<ul>
+<li><strong>TPC-C 结果：</strong> 在 4 仓规模下，TicToc 实现了最高的吞吐量，且中止率低于 Silo。随着仓数增加，TicToc 的吞吐量最终在约 80 仓时被 Silo 超越，但其中止率仍低于 Silo。</li>
+<li><strong>YCSB 结果：</strong><ul>
+<li>处理只读事务时，TicToc 的吞吐量与 Silo 接近，并高于其他算法。</li>
+<li>在中等竞争条件下处理读写事务时，TicToc 的吞吐量与 Silo 相当，但其中止率显著低于 Silo、HEKATON 和 NO_WAIT。</li>
+<li>在高竞争条件下，TicToc 的吞吐量远超 Silo，尽管其中止率变得与 Silo 更为接近。</li>
 </ul>
-<h1 id="Paper-Weakness"><a href="#Paper-Weakness" class="headerlink" title="Paper Weakness"></a>Paper Weakness</h1><ul>
-<li>The paper does not show the process of integrating the TicToc into DBx1000. As a concurrency control algorithm, TicToc must be interfaced with other key components such as transactions, indexes, and logs, which involves a considerable amount of work. However, the paper fails to address this aspect, thereby preventing readers from easily re-achieving the algorithm. Therefore, the paper should at least provide a brief outline of the necessary steps to help readers implement this functionality.</li>
-<li>The paper’s experiments fail to demonstrate the general applicability of the TicToc across a range of databases. The evaluation was conducted only in the DBx1000 environment, thereby only substantiating TicToc’s high performance within DBx1000. But many commercially available databases, such as SQL Server and MySQL etc., exhibit distinct characteristics under varying workloads, which could potentially lead to different performance when using TicToc. However, the paper is entirely silent on this aspect. Therefore, the paper should also incorporate integration and testing of TicToc on these mainstream databases.</li>
-<li>The paper fails to provide code or explanations for certain key concepts in the critical OPTIMIZATIONS section. According to the experimental results, the no-wait and preemptive aborts lead to significant performance improvements. However, the OPTIMIZATIONS section does not present any relevant code. For instance, in the No-Wait Locking in Validation Phase section, the paper does not clarify what thrashing problems mean in the given context, nor does it showcase the code for the no-wait or highlight its modifications relative to the original TicToc implementation. Therefore, the paper should include the optimization code and explanations for concepts.</li>
+</li>
+<li><strong>优化测试：</strong> 表明大部分性能提升来源于无等待锁定和抢占式中止。此外，TicToc 的时间戳增长速度远低于 TS_ALLOC。</li>
+<li><strong>隔离级别影响：</strong> 当隔离级别降低时，TicToc 显示出吞吐量的提升和中止率的下降，但这些变化的程度与其他算法相比并不显著。</li>
 </ul>
-<p>Reference: <a target="_blank" rel="noopener" href="https://people.csail.mit.edu/sanchez/papers/2016.tictoc.sigmod.pdf">https://people.csail.mit.edu/sanchez/papers/2016.tictoc.sigmod.pdf</a></p>
+<h1 id="论文优势"><a href="#论文优势" class="headerlink" title="论文优势"></a>论文优势</h1><ul>
+<li><strong>背景与问题阐述清晰：</strong> 论文清晰地描述了背景知识和待解决的问题。它详细阐述了二阶段锁 (2PL) 策略的弱点，并指出基于时间戳排序 (T&#x2F;O) 的策略（如 MVCC 和 OCC）已逐渐成为主流。接着指出传统 T&#x2F;O 算法中集中式时间戳分配器 (centralized timestamp allocator) 和 CPU 的缓存一致性协议 (cache coherence protocol) 导致了时间戳分配瓶颈。此外，文中提到的所有硬件解决方案均未能完美契合大多数现代 CPU 的架构，即使实现其性能也欠佳。论文还简要描述了 OCC 的执行阶段，并介绍了两种基于 OCC 的优化方法（即 DTA 和 Silo），同时指出这两种方案仍存在可扩展性瓶颈。为解决这些问题，论文提出了 TicToc 算法。</li>
+<li><strong>核心流程描述详实：</strong> 论文为 TicToc 算法的核心流程提供了代码、图表和示例，使读者能快速理解实现细节和工作流程。<ul>
+<li>在 3.2 节，论文展示了读取阶段 (Read Phase)、验证阶段 (Validation Phase) 和写入阶段 (Write Phase) 的伪代码，清晰地说明了其设计如何应对并发和并行场景下的冲突，以及分布式时间戳分配。</li>
+<li>在 3.6 节，论文展示了用于存储读&#x2F;写时间戳的结构，并通过伪代码有效地呈现了解决 delta 属性潜在溢出问题的方案。</li>
+<li>在 3.3 节，论文提供了一个交错执行事务的示例，并辅以条形图，清晰地展示了 TicToc 在处理并发和并行挑战时的高灵活性和性能。</li>
+</ul>
+</li>
+<li><strong>实验评估全面：</strong> 论文在 DBx1000 上对 TicToc 进行了全面的实验评估。<ul>
+<li>在 TPC-C 和 YCSB 场景下评估了 TicToc 的性能。</li>
+<li>比较了在不同竞争级别和不同仓数下，TicToc 与 Silo、HEKATON、DL_DETECT、NO_WAIT 的吞吐量和中止率。</li>
+<li>评估了 TicToc 各项优化的效果，强调了无等待锁定和抢占式中止对性能提升的贡献。</li>
+<li>比较了 TicToc 的时间戳增长速率与线性时间戳增长速率。</li>
+<li>比较了在不同隔离级别下，TicToc 与其他 4 种算法在吞吐量和中止率上的差异。</li>
+</ul>
+</li>
+</ul>
+<h1 id="论文不足"><a href="#论文不足" class="headerlink" title="论文不足"></a>论文不足</h1><ul>
+<li><strong>集成过程缺失：</strong> 论文未展示将 TicToc 集成到 DBx1000 的过程。作为一个并发控制算法，TicToc 必须与其他关键组件（如事务、索引、日志）交互，这涉及大量工作。然而，论文未涉及此方面，使读者难以复现该算法。因此，论文至少应简要概述必要的集成步骤，以帮助读者实现此功能。</li>
+<li><strong>普适性验证不足：</strong> 论文的实验未能证明 TicToc 在多种数据库上的通用性。评估仅在 DBx1000 环境中进行，因此仅证实了 TicToc 在 DBx1000 内的高性能。但许多商用数据库（如 SQL Server、MySQL 等）在不同工作负载下表现出不同的特性，这可能导致使用 TicToc 时性能表现各异。然而，论文对此方面完全未提及。因此，论文还应包含 TicToc 在这些主流数据库上的集成和测试工作。</li>
+<li><strong>关键优化细节缺失：</strong> 论文在关键的 OPTIMIZATIONS 章节中，未能为某些关键概念提供代码或详细解释。根据实验结果，无等待锁定和抢占式中止带来了显著的性能提升。然而，优化部分并未呈现任何相关代码。<ul>
+<li>例如，在 No-Wait Locking in Validation Phase 小节，论文既未阐明给定上下文中抖动问题 (thrashing problems) 的具体含义，也未展示无等待锁定的代码，或指出其相对于原始 TicToc 实现的修改之处。</li>
+<li>因此，论文应包含优化代码以及对相关概念的解释。</li>
+</ul>
+</li>
+</ul>
+<p>参考文献: <a target="_blank" rel="noopener" href="https://people.csail.mit.edu/sanchez/papers/2016.tictoc.sigmod.pdf">https://people.csail.mit.edu/sanchez/papers/2016.tictoc.sigmod.pdf</a></p>
 
       
     </div>
@@ -373,7 +400,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/03/02/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Adaptive%20Execution%20of%20Compiled%20Queries/">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/03/02/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Adaptive%20Execution%20of%20Compiled%20Queries/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -387,7 +414,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/03/02/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Adaptive%20Execution%20of%20Compiled%20Queries/" class="post-title-link" itemprop="url">Adaptive Execution of Compiled Queries</a>
+            <a href="/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/03/02/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Adaptive%20Execution%20of%20Compiled%20Queries/" class="post-title-link" itemprop="url">编译查询的自适应执行</a>
         </h2>
 
         <div class="post-meta">
@@ -404,7 +431,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-05-31 23:01:14" itemprop="dateModified" datetime="2025-05-31T23:01:14-07:00">2025-05-31</time>
+                <time title="修改时间：2025-06-20 16:51:45" itemprop="dateModified" datetime="2025-06-20T16:51:45-07:00">2025-06-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -427,29 +454,29 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h1><p>The paper addresses 3 problems:</p>
+          <h1 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h1><p>该论文解决了三个问题：</p>
 <ol>
-<li>How to reduce the compilation time of complex but fast queries?</li>
-<li>How to reduce the compilation time of extremely large queries?</li>
-<li>How to reduce the compilation time of the first incoming query?</li>
+<li>如何减少复杂但快速查询的编译时间？</li>
+<li>如何减少极大查询的编译时间？</li>
+<li>如何减少首次传入查询的编译时间？</li>
 </ol>
-<p>The paper provides 2 novel ideas and elaborates the proposed approach for the implementation of each idea:</p>
+<p>论文提出了两个新颖的想法，并详细阐述了每个想法的实现方法：</p>
 <ol>
-<li>Adaptive execution: For a specific query pipeline, the paper tracks the progress of worker threads, predicts the remaining workload duration under 3 execution modes based on the overall state of all threads in the pipeline, and finally selects the mode with the shortest duration to apply to all threads.</li>
-<li>Fast bytecode interpretation: Based on register machine, the paper implements linear-time liveness computation through processing basic blocks in intervals and using algorithms such as the disjoint set and path compression, which optimizes register allocation further. Furthermore, the bytecode interpreter behaves equivalently to the generated machine code, ensuring seamless switching between interpretation and machine code.</li>
+<li><strong>自适应执行 (Adaptive execution)：</strong> 对于特定的查询流水线（pipeline），该方案跟踪工作线程的进度，基于流水线中所有线程的整体状态预测三种执行模式下剩余工作负载的持续时间，最终选择持续时间最短的模式应用于所有线程。</li>
+<li><strong>快速字节码解释 (Fast bytecode interpretation)：</strong> 基于寄存器机器，该方案通过按区间（intervals）处理基本块（basic block）并利用并查集（disjoint set）和路径压缩（path compression）等算法，实现了线性时间的活性计算（liveness computation），从而进一步优化了寄存器分配。此外，字节码解释器的行为与生成的机器码等效，确保了在解释执行和机器码执行之间可以无缝切换。</li>
 </ol>
-<p>Analytical and experimental findings: For different scale factors, adaptive execution can switch to the mode with the optimal performance, ensuring the lowest execution time compared to other static mode selections. For action, adaptive execution can immediately start to process pipeline morsels on all available worker threads and dynamically switch modes for pipelines with heavy workloads, allowing it to finish queries 10%, 40%, and 80% faster than its competitors. While interpreted code is slower than compiled code, it is faster than PostgreSQL and scales as well as compiled code when using multiple cores. Furthermore, the byte interpreter scales perfectly and can process the large query in a short time.</p>
-<h1 id="Paper-Strength"><a href="#Paper-Strength" class="headerlink" title="Paper Strength"></a>Paper Strength</h1><ul>
-<li>The paper provides a clear and detailed description of the problem to be addressed. In Section II, it presents the multi-step process of a SQL query in HyPer through a flowchart, highlighting that the LLVM compilation tasks takes the majority of the overall execution time. By comparing the compilation and execution times of different execution modes on TPC-H Query 1 on scale factor 1, the paper introduces the trade-off between interpreters and compilers, demonstrating that different execution modes can be applied to different parts of the same query. Furthermore, the paper analyzes the largest TPC-H and TPC-DS queries, concluding that compilation time grows super-linearly with the query size.</li>
-<li>The paper provides a comprehensive literature review. In Section VI, it references experimental results from other papers on compilation time, concluding that compiling to LLVM IR is faster than compiling to C. Based on the personal experience, the paper highlights that query compilation latency becomes a major problem in production environments, this makes adaptive execution a crucial component for making query compilation truly practical. It then explores the feasibility of integrating adaptive execution into database systems such as MemSQL, LegoBase, and Microsoft Hekaton. Furthermore, the paper demonstrates the advantages of adaptive execution over automatic plan caching, i.e. the ability to re-optimize queries on every execution. Finally, the paper discusses the similarities and differences between adaptive execution and execution engines in programming languages, such as JVM, V8, and CLR.</li>
-<li>The paper achieves significant improvements, the linear-time liveness computation. The traditional solution for computing the liveness of each block individually usually takes $O(n^2)$ runtime. However, the paper proposes a linear-time algorithm. The algorithm labels all basic blocks in reverse postorder and organizes them into a dominator tree, which allows interpreter to determine the relationships of basic blocks in $O(1)$ time and paves the way for identifying loops. It identifies the innermost enclosing loop of each basic block by using the disjoint set with path compression, and, based on the the distribution of basic blocks related to the definition and uses of a certain value, determines the lifetime of that value. The low cost of the computation is primarily attributed to the appropriate data structures.</li>
+<p>分析与实验结果：对于不同的比例因子（scale factors），自适应执行能够切换到具有最优性能的模式，确保相比其他静态模式选择具有最低的执行时间。在行动方面，自适应执行能够立即在所有可用工作线程上开始处理流水线分片（pipeline morsels），并对工作负载繁重的流水线进行动态模式切换，使其完成查询的速度比竞争对手快10%、40%和80%。虽然解释执行的代码比编译后的代码慢，但它比PostgreSQL快，并且在使用多核时能像编译代码一样扩展。此外，字节码解释器具有完美的扩展性，能够在短时间内处理大型查询。</p>
+<h1 id="论文优势"><a href="#论文优势" class="headerlink" title="论文优势"></a>论文优势</h1><ul>
+<li>论文清晰详尽地描述了待解决的问题。在第二节中，通过流程图展示了SQL查询在HyPer中的多步骤处理过程，并强调LLVM编译任务占据了总执行时间的大部分。通过比较在比例因子1的TPC-H Query 1上不同执行模式的编译和执行时间，论文引入了解释器和编译器之间的权衡，论证了可以对同一查询的不同部分应用不同的执行模式。此外，论文分析了最大的TPC-H和TPC-DS查询，得出结论：编译时间随查询规模呈超线性增长。</li>
+<li>论文提供了全面的文献综述。在第六节中，引用了其他关于编译时间的研究论文中的实验结果，得出结论：编译到LLVM中间表示（IR）比编译到C语言更快。基于实践经验，论文强调查询编译延迟在生产环境中成为一个主要问题，这使得自适应执行成为使查询编译真正实用化的关键组件。随后探讨了将自适应执行集成到MemSQL、LegoBase和Microsoft Hekaton等数据库系统中的可行性。此外，论文展示了自适应执行相对于自动计划缓存（automatic plan caching）的优势，即能够在每次执行时重新优化查询。最后，讨论了自适应执行与编程语言中执行引擎（如JVM、V8和CLR）的异同。</li>
+<li>论文取得了显著的改进，即线性时间的活性计算。传统逐个基本块计算活性的解决方案通常需要$O(n^2)$的运行时间。然而，论文提出了一种线性时间算法。该算法以逆后序（reverse postorder）标记所有基本块并将其组织成支配树（dominator tree），这使得解释器能够在$O(1)$时间内确定基本块之间的关系，并为识别循环铺平了道路。它通过使用带路径压缩的并查集（disjoint set with path compression）来识别每个基本块的最内层封闭循环（innermost enclosing loop），并基于与某个值的定义和使用相关的基本块分布来确定该值的生命周期。该计算的低成本主要归功于采用了适当的数据结构。</li>
 </ul>
-<h1 id="Paper-Weakness"><a href="#Paper-Weakness" class="headerlink" title="Paper Weakness"></a>Paper Weakness</h1><ul>
-<li>The paper does not provide a clear explanation of the basic concepts. In Section II, it does not explain the meaning of latency and throughput in the context of HyPer, nor the relationship between them, so readers may not realize the significance of the tradeoff and possibly do not understand how performance improvements in later experimental results are achieved. For example, readers might not figure out why interpreters can achieve very low latency by sacrificing throughput. Therefore, the paper should explain these concepts.</li>
-<li>The paper’s experiments are not comprehensive enough. As a core component in data processing and storage, adaptive execution framework is only shown to have an advantage in execution time, while experiments demonstrating its physical device utilization, stability and fault recovery performance are lacking. These metrics are also critical in evaluating the overall performance of the framework. For example, for the same set of queries, if the execution time is short but the CPU and memory usage are extremely high, or if the probability of throwing an exception is high and a large amount of time is required for fault recovery, then the framework still has room for improvement. Therefore, the paper should include experimental results for these metrics.</li>
-<li>The paper does not provide a detailed explanation of how to translate into VM code. In Section IV-B, the paper mentions that subsumed instructions will not be translated, but it does not specify which types of instructions are subsumed or in what manner they are subsumed. These omissions can confuse readers and hinder their understanding of the translation pseudocode. Therefore, the paper should explain principles behind subsumed instructions.</li>
+<h1 id="论文不足"><a href="#论文不足" class="headerlink" title="论文不足"></a>论文不足</h1><ul>
+<li>论文未清晰解释基本概念。在第二节中，没有解释延迟和吞吐量在HyPer上下文中的具体含义，以及两者之间的关系，因此读者可能无法认识到权衡的重要性，也可能不理解后续实验结果中性能提升是如何实现的。例如，读者可能无法理解为什么解释器能通过牺牲吞吐量来实现非常低的延迟。因此，论文应解释这些概念。</li>
+<li>论文的实验不够全面。作为数据处理和存储的核心组件，自适应执行框架仅被证明在执行时间上具有优势，而缺乏展示其物理设备利用率、稳定性和故障恢复性能的实验。这些指标对于评估框架的整体性能同样至关重要。例如，对于同一组查询，如果执行时间短但CPU和内存使用率极高，或者抛出异常的概率高且需要大量时间进行故障恢复，那么该框架仍有改进空间。因此，论文应包含这些指标的实验结果。</li>
+<li>论文未详细解释如何翻译成虚拟机代码。在第四节B小节中，论文提到被归约（subsumed）的指令不会被翻译，但未具体说明哪些类型的指令会被归约，或者以何种方式被归约。这些遗漏会使读者感到困惑，阻碍他们对翻译伪代码的理解。因此，论文应解释归约指令背后的原理。</li>
 </ul>
-<p>Reference: <a target="_blank" rel="noopener" href="https://db.in.tum.de/~leis/papers/adaptiveexecution.pdf">https://db.in.tum.de/~leis/papers/adaptiveexecution.pdf</a></p>
+<p>参考文献: <a target="_blank" rel="noopener" href="https://db.in.tum.de/~leis/papers/adaptiveexecution.pdf">https://db.in.tum.de/~leis/papers/adaptiveexecution.pdf</a></p>
 
       
     </div>
@@ -469,7 +496,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/02/11/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Orca/">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/02/11/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Orca/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -483,7 +510,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/02/11/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Orca/" class="post-title-link" itemprop="url">Orca - A Modular Query Optimizer Architecture for Big Data</a>
+            <a href="/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/02/11/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Orca/" class="post-title-link" itemprop="url">Orca - 面向大数据的模块化查询优化器架构</a>
         </h2>
 
         <div class="post-meta">
@@ -500,7 +527,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-05-31 23:05:29" itemprop="dateModified" datetime="2025-05-31T23:05:29-07:00">2025-05-31</time>
+                <time title="修改时间：2025-06-20 16:51:27" itemprop="dateModified" datetime="2025-06-20T16:51:27-07:00">2025-06-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -523,30 +550,30 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h1><p>The paper addresses 2 problems:</p>
+          <h1 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h1><p>本文解决了两个问题：</p>
 <ol>
-<li>How to design a query optimizer that can handle big data and complex analytical queries while ensuring the generation of efficient query plans.</li>
-<li>Exploring the application of advanced query optimization theories in production environments.</li>
+<li>如何设计一个能够处理大数据和复杂分析查询，同时确保生成高效查询计划的查询优化器。</li>
+<li>探索高级查询优化理论在生产环境中的应用。</li>
 </ol>
-<p>The paper provides 4 novel ideas and elaborates the proposed approach for the implementation of each idea:</p>
+<p>本文提出了4个新颖的想法，并详细阐述了每个想法的实现方法：</p>
 <ol>
-<li>Decoupling the optimizer from the DB systems through DXL: Different DB systems need to implement 3 translators, Query2DXL, MD Provider, and DXL2Plan, to support Orca.</li>
-<li>Use Memo and Group Hash Tables to optimize: Each group in the Memo stores all logically equivalent group expressions for a given operation, including enforcer operators. The group hash tables record the optimal implementation for each optimization request, i.e., the best group expressions. During query optimization, by retrieving the best group expression (best GExprs) corresponding to a given optimization request for each group and its child groups, these best GExprs are linked together to form the best execution plan.</li>
-<li>Implementing the parallel query optimization with jobs dependency graph and job queues: If a group is currently processing an optimization job, other jobs will be placed in a queue to wait. Once the job is completed, its results can be utilized by subsequent jobs.</li>
-<li>Developed efficient tools for testing: AMPERe is used to catch errors and generate dump files for later replaying to debug. TAQO samples plans uniformly based on the optimization requests’ linkage structure and evaluates the optimizer’s accuracy by calculating the correlation score between the ranking of sampled plans based on estimated costs and their ranking based on actual costs.</li>
+<li><strong>通过DXL将优化器与数据库系统解耦</strong>：不同的数据库系统需要实现3个转换器（Query2DXL、MD Provider 和 DXL2Plan）来支持Orca。</li>
+<li><strong>使用Memo和组哈希表进行优化</strong>：Memo中的每个组存储给定操作的所有逻辑等价表达式（包括强制执行运算符）。组哈希表记录每个优化请求的最优实现（即最佳组表达式）。在查询优化期间，通过检索每个组及其子组对应于给定优化请求的最佳组表达式（best GExprs），将这些最佳GExprs链接在一起形成最佳执行计划。</li>
+<li><strong>利用作业依赖图和作业队列实现并行查询优化</strong>：如果一个组当前正在处理一个优化作业，其他作业将被放入队列等待。一旦作业完成，其结果可供后续作业利用。</li>
+<li><strong>开发高效的测试工具</strong>：AMPERe用于捕获错误并生成转储文件以供后续重放调试。TAQO基于优化请求的链接结构均匀采样计划，并通过计算基于估计成本的采样计划排序与基于实际成本的排序之间的相关性得分，来评估优化器的准确性。</li>
 </ol>
-<p>Analytical and experimental findings: Based on the TPC-DS Benchmark, a limited set of queries was used to test GPDB legacy query optimizer (111 queries, MPP) and Orca, as well as Impala (31 queries, Hadoop), Stinger (19 queries, Hadoop), Presto (12 queries, Hadoop) and HAWQ. The results concluded that Orca matched or outperformed the GPDB optimizer in 80% of query executions. For 14 queries, Orca achieved a speed-up ratio of at least 1000× compared to the GPDB optimizer. Presto failed to process any TPC-DS queries under all test conditions, and query execution performance on HAWQ was generally superior to that on Impala and Stinger.</p>
-<h1 id="Paper-Strength"><a href="#Paper-Strength" class="headerlink" title="Paper Strength"></a>Paper Strength</h1><ul>
-<li>The paper provides a comprehensive literature review and covers the prerequisite knowledge needed to understand Orca. In the PRELIMINARIES, the paper briefly analyzes GPDB and explains its 3 core components: master, segments, and the interconnect layer, explains how SQL and query optimizers have been integrated into big data processing components such as Hadoop. Furthermore, it analyzes the advantages of the HAWQ architecture which is optimized by Orca compared to Impala and Presto. In the RELATED WORK, the paper introduces Volcano and Cascades, highlighting that Cascades offers greater flexibility than Volcano, then discusses various query optimizer implementations for big data in MPP databases, such as PDW and SCOPE. Finally, the paper reviews existing efforts to integrate SQL with Hadoop, such as converting queries into MapReduce jobs (Hive) and co-location of DBMS and Hadoop technologies (Hadapt).</li>
-<li>The paper presents highly valuable solutions for query optimization on big data: DXL and Parallel Query Optimization. Different DBs only need to implement their own Query2DXL and DXL2Plan translators to achieve compatibility with Orca, giving Orca the potential to be adapted to any existing database system. To satisfy the core requirement of big data, concurrent processing, Orca constructs an optimization jobs dependency graph to determine the dependencies between jobs. Parent jobs can only be executed after their child jobs are completed, while independent jobs can run in parallel. For handling resource contention, Orca places incoming jobs in a job queue, where they wait until the running job is finished. These waiting jobs can then leverage the results generated by the completed jobs.</li>
-<li>The paper elaborates steps of Orca’s optimization in the QUERY OPTIMIZATION section. In the Exploration phase, Orca creates logically equivalent expressions and deduplicates them using the Memo. In the Statistics Derivation phase, Orca estimates the cardinality and data skew for Memo groups. In the Implementation phase, Orca generates physical implementations of logical expressions. In the Optimization phase, multiple execution plans are generated, incorporating enforcer operators when necessary. The cost model is then used to select the execution plan with the lowest cost. These details effectively help readers gain a high-level understanding of Orca’s working principles.</li>
+<p>分析与实验结果：基于TPC-DS基准测试，使用有限的查询集测试了GPDB传统查询优化器（111个查询，MPP）和Orca，以及Impala（31个查询，Hadoop）、Stinger（19个查询，Hadoop）、Presto（12个查询，Hadoop）和HAWQ。结果表明，在80%的查询执行中，Orca的性能匹配或优于GPDB优化器。对于14个查询，Orca相比GPDB优化器实现了至少1000倍的加速比。Presto在所有测试条件下均未能处理任何TPC-DS查询，而HAWQ上的查询执行性能普遍优于Impala和Stinger。</p>
+<h1 id="论文优势"><a href="#论文优势" class="headerlink" title="论文优势"></a>论文优势</h1><ul>
+<li><strong>论文提供了全面的文献综述</strong>，并涵盖了理解Orca所需的预备知识。在 PRELIMINARIES 部分，论文简要分析了GPDB，解释了其3个核心组件：主节点（master）、段节点（segments）和互联层（interconnect layer）；阐述了SQL和查询优化器如何集成到Hadoop等大数据处理组件中；并分析了由Orca优化的HAWQ架构相比Impala和Presto的优势。在 RELATED WORK 部分，论文介绍了Volcano和Cascades框架，强调Cascades比Volcano提供了更大的灵活性；随后讨论了MPP数据库中各种面向大数据的查询优化器实现，如PDW和SCOPE；最后回顾了将SQL与Hadoop集成的现有努力，例如将查询转换为MapReduce作业（Hive）以及数据库管理系统与Hadoop技术的共置（Hadapt）。</li>
+<li><strong>论文提出了针对大数据查询优化的极具价值的解决方案：DXL和并行查询优化</strong>。不同的数据库只需实现各自的Query2DXL和DXL2Plan转换器即可实现与Orca的兼容，这赋予了Orca适配任何现有数据库系统的潜力。为满足大数据的核心需求——并发处理，Orca构建了优化作业依赖图来确定作业间的依赖关系。父作业必须在其子作业完成后才能执行，而独立的作业可以并行运行。为处理资源争用，Orca将传入的作业放入作业队列中等待，直到正在运行的作业完成。这些等待的作业随后可以利用已完成作业生成的结果。</li>
+<li><strong>论文在 QUERY OPTIMIZATION 部分详细阐述了Orca优化的步骤</strong>。在探索（Exploration）阶段，Orca创建逻辑等价表达式并使用Memo进行去重。在统计推导（Statistics Derivation）阶段，Orca估算Memo组的基数和数据倾斜。在实现（Implementation）阶段，Orca生成逻辑表达式的物理实现。在优化（Optimization）阶段，生成多个执行计划（必要时包含强制执行运算符），然后使用成本模型选择成本最低的执行计划。这些细节有效地帮助读者对Orca的工作原理建立起高层次的理解。</li>
 </ul>
-<h1 id="Paper-Weakness"><a href="#Paper-Weakness" class="headerlink" title="Paper Weakness"></a>Paper Weakness</h1><ul>
-<li>The paper lacks a description of how execution plan costs are computed during the Optimization phase. Specifically, there is a complete absence of discussion on the cost model, which should be a core functionality of Orca. This is particularly crucial when dealing with big data and a shared-nothing architecture, where the cost model here may differ from the Selinger’s cost model by incorporating coordination and communication across multiple worker nodes and need to account for network bandwidth. I recommend that the paper include a detailed description of the cost model and discuss its behavior in both monolithic and distributed DB systems.</li>
-<li>The paper’s experimental evaluation for MPP databases is based on a limited dataset. Orca was only compared against the GPDB legacy query optimizer using 119 queries. Both the number of queries and the number of MPP database optimizer being compared are insufficient to convincingly demonstrate Orca’s advantages over other MPP database optimizers. Therefore, the experiment should conduct comparisons with a broader range of MPP databases, such as Amazon Redshift and Teradata Aster, to provide a more comprehensive evaluation.</li>
-<li>The paper’s experiments do not reflect Orca’s hardware utilization, such as CPU usage, memory consumption, etc. Orca will possibly be used in a shared-nothing architecture, it will run across multiple servers. However, in the production environment, these servers will be not dedicated solely to Orca, other processes including databases that Orca will optimize is going to be probably running on the same server where Orca will be. If Orca has excessively high CPU or memory usage, it could negatively impact those databases’ query execution and the performance of other applications. This effect could accumulate across multiple servers, leading to significant performance degradation. Therefore, the paper should also include an evaluation of Orca’s hardware resource consumption.</li>
+<h1 id="论文不足"><a href="#论文不足" class="headerlink" title="论文不足"></a>论文不足</h1><ul>
+<li><strong>论文缺乏对优化阶段如何计算执行计划成本的描述</strong>。具体而言，完全未讨论成本模型，而这应是Orca的核心功能。这一点在处理大数据和无共享架构（shared-nothing architecture）时尤为重要，此处的成本模型可能不同于Selinger成本模型，需要纳入跨多个工作节点的协调和通信成本，并考虑网络带宽。建议论文包含对成本模型的详细描述，并讨论其在单体式和分布式数据库系统中的行为。</li>
+<li><strong>论文针对MPP数据库的实验评估基于有限的数据集</strong>。Orca仅与GPDB传统查询优化器使用119个查询进行了比较。无论是查询数量还是被比较的MPP数据库优化器的数量都不足以令人信服地证明Orca相对于其他MPP数据库优化器的优势。因此，实验应进行更广泛的MPP数据库比较，例如与Amazon Redshift和Teradata Aster进行比较，以提供更全面的评估。</li>
+<li><strong>论文的实验未反映Orca的硬件利用率</strong>，如CPU使用率、内存消耗等。Orca很可能会在无共享架构中运行，它将跨多个服务器运行。然而，在生产环境中，这些服务器不太可能专用于Orca，包括Orca将要优化的数据库在内的其他进程很可能与Orca运行在同一台服务器上。如果Orca的CPU或内存使用率过高，可能会对这些数据库的查询执行以及其他应用程序的性能产生负面影响。这种影响可能在多台服务器上累积，导致显著的性能下降。因此，论文还应包含对Orca硬件资源消耗的评估。</li>
 </ul>
-<p>Reference: <a target="_blank" rel="noopener" href="https://dl.acm.org/doi/10.1145/2588555.2595637">https://dl.acm.org/doi/10.1145/2588555.2595637</a></p>
+<p>参考文献: <a target="_blank" rel="noopener" href="https://dl.acm.org/doi/10.1145/2588555.2595637">https://dl.acm.org/doi/10.1145/2588555.2595637</a></p>
 
       
     </div>
@@ -566,7 +593,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/25/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/OLTP%20%E7%B4%A2%E5%BC%95/">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/25/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/OLTP%20%E7%B4%A2%E5%BC%95/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -580,7 +607,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/25/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/OLTP%20%E7%B4%A2%E5%BC%95/" class="post-title-link" itemprop="url">OLTP 索引</a>
+            <a href="/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/25/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/OLTP%20%E7%B4%A2%E5%BC%95/" class="post-title-link" itemprop="url">OLTP 索引</a>
         </h2>
 
         <div class="post-meta">

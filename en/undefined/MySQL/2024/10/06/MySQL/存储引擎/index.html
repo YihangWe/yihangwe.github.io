@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="zh-CN,en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yihangwe.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="存储引擎是存储、更新或查询数据、以及建立索引等技术的实现方式。存储引擎是基于表的，而不是基于库的，因此存储引擎也可被称为表类型。 指定存储引擎： 123CREATE TABLE 表名 (	...) ENGINE &#x3D; INNODB ...;  查看当前数据库支持的存储引擎：SHOW ENGINES; 存储引擎特点  InnoDB它是一个兼顾高可靠性和高性能的通用存储引擎。 特点  DML 操作遵循">
+<meta property="og:type" content="article">
+<meta property="og:title" content="存储引擎">
+<meta property="og:url" content="https://yihangwe.github.io/en/undefined/MySQL/2024/10/06/MySQL/%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E/index.html">
+<meta property="og:site_name" content="EthanWeee">
+<meta property="og:description" content="存储引擎是存储、更新或查询数据、以及建立索引等技术的实现方式。存储引擎是基于表的，而不是基于库的，因此存储引擎也可被称为表类型。 指定存储引擎： 123CREATE TABLE 表名 (	...) ENGINE &#x3D; INNODB ...;  查看当前数据库支持的存储引擎：SHOW ENGINES; 存储引擎特点  InnoDB它是一个兼顾高可靠性和高性能的通用存储引擎。 特点  DML 操作遵循">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://yihangwe.github.io/images/MySQL/storage_engine.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/MySQL/storage_engine_mem_pool.drawio.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/MySQL/storage_engine_insert_buf_non_leaf.drawio.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/MySQL/storage_engine_insert_buf_leaf.drawio.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/MySQL/storage_engine_dbwr.drawio.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/MySQL/engine_3_comp.png">
+<meta property="article:published_time" content="2024-10-06T07:00:00.000Z">
+<meta property="article:modified_time" content="2025-06-18T04:30:46.963Z">
+<meta property="article:author" content="Yihang Wei">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yihangwe.github.io/images/MySQL/storage_engine.png">
+
+<link rel="canonical" href="https://yihangwe.github.io/en/undefined/MySQL/2024/10/06/MySQL/%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>存储引擎 | EthanWeee</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<!-- hexo injector head_end start --><script>(function() {function calculateHeight(element) {let height = 0;const items = element.children;for (let i = 0; i < items.length; i++) {height += items[i].offsetHeight || 25;const child = items[i].querySelector(".nav-child");if (child && child.style.display !== "none") {height += calculateHeight(child);}}return height;}function generateToc(lang, container) {const content = document.getElementById(lang + "-content");if (!content) return;const headers = Array.from(content.querySelectorAll("h1, h2, h3, h4, h5, h6"));if (headers.length === 0) return;const ol = document.createElement("ol");ol.className = "nav";let currentLevel = 1;let currentOl = ol;let stack = [ol];let counters = [0, 0, 0, 0, 0, 0];headers.forEach((header, index) => {const level = parseInt(header.tagName[1]);counters[level - 1]++;for (let i = level; i < 6; i++) counters[i] = 0;const li = document.createElement("li");li.className = "nav-item nav-level-" + level;if (level === 1 && index === 0) {li.classList.add("active", "active-current");}const link = document.createElement("a");link.className = "nav-link";if (level === 1 && index === 0) link.classList.add("active");link.href = "#" + header.id;const numSpan = document.createElement("span");numSpan.className = "nav-number";numSpan.textContent = counters.slice(0, level).filter(n => n > 0).join(".");const textSpan = document.createElement("span");textSpan.className = "nav-text";textSpan.textContent = header.textContent;link.appendChild(numSpan);link.appendChild(document.createTextNode(" "));link.appendChild(textSpan);li.appendChild(link);if (level > currentLevel) {const newOl = document.createElement("ol");newOl.className = "nav-child";if (currentLevel === 1) {newOl.style.display = "block";stack[currentLevel - 1].lastElementChild.classList.add("active");}stack[currentLevel - 1].lastElementChild.appendChild(newOl);stack[level - 1] = newOl;currentOl = newOl;} else if (level < currentLevel) {currentOl = stack[level - 1];}currentOl.appendChild(li);currentLevel = level;});container.appendChild(ol);setTimeout(() => {const navHeight = calculateHeight(ol);ol.style.setProperty("--height", navHeight + "px");const navChilds = ol.getElementsByClassName("nav-child");Array.from(navChilds).forEach(child => {if (child.style.display === "block") {const childHeight = calculateHeight(child);child.style.setProperty("--height", childHeight + "px");}});}, 0);return ol;}function updateActiveHeading() {const activeLang = document.getElementById("en-content").style.display === "block" ? "en" : "zh";const content = document.getElementById(activeLang + "-content");const toc = document.getElementById(activeLang + "-toc");if (!content || !toc) return;const headers = Array.from(content.querySelectorAll("h1, h2, h3, h4, h5, h6"));const scrollPos = window.scrollY + window.innerHeight / 3;let activeHeader = null;for (let i = headers.length - 1; i >= 0; i--) {const header = headers[i];const headerTop = header.getBoundingClientRect().top + window.scrollY;if (headerTop <= scrollPos) {activeHeader = header;break;}}const links = toc.getElementsByClassName("nav-link");Array.from(links).forEach(link => {link.classList.remove("active");const parentLi = link.parentElement;if (parentLi) {parentLi.classList.remove("active", "active-current");}});if (activeHeader) {const activeLink = toc.querySelector(`a[href="#${activeHeader.id}"]`);if (activeLink) {activeLink.classList.add("active");let parent = activeLink.parentElement;while (parent && parent.classList) {if (parent.classList.contains("nav-item")) {parent.classList.add("active");if (parent.classList.contains("nav-level-1")) {parent.classList.add("active-current");}}parent = parent.parentElement;}}}}function initTippy() {document.querySelectorAll(".refplus-num").forEach((ref) => {if (ref._tippy) {ref._tippy.destroy();}let refid = ref.firstChild.href.replace(location.origin+location.pathname,"");let refel = document.querySelector(refid);if (!refel) return;let refnum = refel.dataset.num;let ref_content = refel.innerText.replace(`[${refnum}]`,"");tippy(ref, {content: ref_content,});});}function initToc() {const originalToc = document.querySelector(".post-toc-wrap");if (!originalToc || !document.getElementById("langToggle")) return;const tocContainer = document.createElement("div");tocContainer.className = "post-toc-wrap sidebar-panel sidebar-panel-active";const enToc = document.createElement("div");enToc.id = "en-toc";enToc.className = "post-toc motion-element";enToc.style.display = "block";const zhToc = document.createElement("div");zhToc.id = "zh-toc";zhToc.className = "post-toc motion-element";zhToc.style.display = "none";generateToc("en", enToc);generateToc("zh", zhToc);tocContainer.appendChild(enToc);tocContainer.appendChild(zhToc);originalToc.parentNode.replaceChild(tocContainer, originalToc);window.addEventListener("scroll", updateActiveHeading);setTimeout(updateActiveHeading, 0);}window.toggleLanguage = function() {const enContent = document.getElementById("en-content");const zhContent = document.getElementById("zh-content");const enToc = document.getElementById("en-toc");const zhToc = document.getElementById("zh-toc");const button = document.getElementById("langToggle");if (!enContent || !zhContent || !enToc || !zhToc || !button) return;const isEnglish = enContent.style.display === "block";enContent.style.display = isEnglish ? "none" : "block";zhContent.style.display = isEnglish ? "block" : "none";enToc.style.display = isEnglish ? "none" : "block";zhToc.style.display = isEnglish ? "block" : "none";button.querySelector(".button-text").textContent = isEnglish ? "Switch to English" : "切换中文";setTimeout(updateActiveHeading, 0);setTimeout(initTippy, 100);};document.addEventListener("DOMContentLoaded", function() {initToc();setTimeout(initTippy, 3000);});})();</script><style>.post-toc { transition: all 0.2s ease-in-out; }.post-toc .nav { padding-left: 0; }.post-toc .nav-child { padding-left: 1em; }.post-toc .nav-item { line-height: 1.8; }.post-toc .nav-link { color: #555; }.post-toc .nav-link:hover { color: #222; }.post-toc .nav-link.active { color: #fc6423; }.post-toc .active > .nav-link { color: #fc6423; }.post-toc .active-current > .nav-link { color: #fc6423; }</style><!-- hexo injector head_end end --><style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">EthanWeee</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/MySQL/2024/10/06/MySQL/%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          存储引擎
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2024-10-06 00:00:00" itemprop="dateCreated datePublished" datetime="2024-10-06T00:00:00-07:00">2024-10-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-06-17 21:30:46" itemprop="dateModified" datetime="2025-06-17T21:30:46-07:00">2025-06-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>存储引擎是存储、更新或查询数据、以及建立索引等技术的实现方式。存储引擎是<strong>基于表</strong>的，而不是基于库的，因此存储引擎也可被称为表类型。</p>
+<p>指定存储引擎：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE TABLE</span> 表名 (</span><br><span class="line">	...</span><br><span class="line">) ENGINE <span class="operator">=</span> INNODB ...;</span><br></pre></td></tr></table></figure>
+
+<p>查看当前数据库支持的存储引擎：<code>SHOW ENGINES;</code></p>
+<p>存储引擎特点</p>
+<p><img src="/../../images/MySQL/storage_engine.png" alt="img"></p>
+<h2 id="InnoDB"><a href="#InnoDB" class="headerlink" title="InnoDB"></a>InnoDB</h2><p>它是一个兼顾<strong>高可靠性和高性能</strong>的通用存储引擎。</p>
+<p>特点</p>
+<ul>
+<li>DML 操作遵循 ACID 模型，支持事务。</li>
+<li>行级锁提高并发访问性能。</li>
+<li>支持外键 FOREIGN KEY 约束，保证数据的完整性和正确性。</li>
+<li>支持非锁定读，即默认读取操作不会产生锁。</li>
+</ul>
+<p>InnoDB 引擎中有多个内存块，这些内存块组成了一个大的内存池，负责如下工作：</p>
+<ol>
+<li>维护所有进程或线程需要访问的多个内部数据结构。</li>
+<li>缓存磁盘上的数据，方便快速读取，同时再对磁盘文件的数据修改之前在这里缓存。</li>
+<li>Redo 日志缓冲。</li>
+<li>…</li>
+</ol>
+<p><img src="/../../images/MySQL/storage_engine_mem_pool.drawio.png" alt="img"></p>
+<p>上图中，后台线程的主要作用是刷新内存中的数据，保证缓冲池中缓存的是最新的数据，此外将已修改的数据文件刷新到磁盘，同时保证在数据库发生异常的情况下 InnoDB 能恢复到正常运行状态。</p>
+<h3 id="后台线程"><a href="#后台线程" class="headerlink" title="后台线程"></a>后台线程</h3><p>InnoDB 存储引擎是多线程模型，因此有多个不同的后台线程，负责不同的任务：</p>
+<ol>
+<li><p>Master Thread</p>
+<p>Master Thread 是一个非常核心的后台线程，主要负责将缓冲池中的数据异步刷新到磁盘，保证一致性，包括脏页的刷新、合并更改缓冲区、回收 Undo 页等。</p>
+</li>
+<li><p>IO Thread</p>
+<p>InnoDB 中大量使用了 AIO 来处理写 IO 请求，这样可以极大提高数据库的性能。而 IO Thread 主要负责这些 IO 请求的回调处理。</p>
+</li>
+<li><p>Purge Thread</p>
+<p>事务被提交后，其所使用的 Undo 日志可能不再被需要，因此引入 Purge Thread 来回收已经使用并被分配的 Undo 页。</p>
+</li>
+<li><p>Page Cleaner Thread</p>
+<p>作用是将之前版本中脏页的刷新操作都放入到单独的线程中来完成，用于减轻元 Master Thread 的工作以及对于用户查询线程的阻塞。</p>
+</li>
+</ol>
+<h3 id="Checkpoint"><a href="#Checkpoint" class="headerlink" title="Checkpoint"></a>Checkpoint</h3><p>缓冲池的设计目的是为了协调 CPU 速度和磁盘速度的鸿沟。但是如果每次一个页只要的发生变化，都要将脏页刷新到磁盘的话，那开销将非常大。而且如果从缓冲池刷新页到磁盘的磁盘过程中发生了宕机，那么数据无法恢复，因此 InnoDB 采用了 Write Ahead Log 策略，也就是当事务提交时，先写 Redo 日志再修改页。</p>
+<p>如果 Redo 日志可以无限增大，并且缓冲池也足够大。那么我们无需将缓冲池中的脏页刷回磁盘。但是我们做不到，因为大容量内存很少见，而且维护人员需要时刻监测 Redo 日志的积累量是否超过磁盘空间阈值，此外宕机之后大量 Redo 日志的重放非常耗时，因此我们需要 Checkpoint 解决这些问题：</p>
+<ol>
+<li>缩短数据库的恢复时间；</li>
+<li>缓冲池不够用时，将脏页刷回磁盘；</li>
+<li>Redo 日志不可用时，刷新脏页。</li>
+</ol>
+<p>因此，当数据库发⽣宕机时， 数据库不需要重做所有的⽇志，因为 Checkpoint 之前的页都已经刷新回磁盘。故数据库只需对 Checkpoint 后的重做⽇志进⾏恢复。这样就⼤⼤缩短了恢复的时间。</p>
+<p>此外，当缓冲池不够⽤时，根据 LRU 算法会淘汰最近最少使⽤的页，若此页为脏页，那么需要强制执⾏ Checkpoint，将脏页刷回磁盘。</p>
+<p>重做日志出现不可用的情况是因为当前事务数据库系统对重做日志的设计都是循环使用的，并不是让其无限增大的。重做日志可以被重用的部分是指这些重做日志已经不再需要，即当数据库发生宕机时，数据库恢复操作不需要这部分的重做日志，因此这部分就可以被覆盖重用。若此时重做日志还需要继续使用不可被覆盖的部分，那么必须强制产生 Checkpoint，将缓冲池中的页至少刷新到当前重做日志的位置。</p>
+<p>InnoDB 是通过 LSN（Log Sequence Number）来标记版本的，而 LSN 是 8 字节的数字。每个页有 LSN，重做日志中也有 LSN，Checkpoint 也有 LSN。</p>
+<p>InnoDB 存储引擎内部，有两种 Checkpoint：</p>
+<ol>
+<li>Sharp Checkpoint；</li>
+<li>Fuzzy Checkpoint。</li>
+</ol>
+<p>Sharp Checkpoint 发生在数据库关闭时将所有的脏页都刷新回磁盘，这是默认的工作方式。</p>
+<p>但是若数据库在运行时也使用 Sharp Checkpoint，那么数据库的可用性就会受到大大影响，故在 InnoDB 存储引擎内部常使用 Fuzzy Checkpoint 进行页的刷新，即只刷新一部分脏页，而不是刷新所有的脏页回磁盘。</p>
+<p>InnoDB 存储引擎中可能会生成如下几种情况的 Fuzzy Checkpoint：</p>
+<ul>
+<li>Master Thread Checkpoint；</li>
+<li>FLUSH_LRU_LIST Checkpoint；</li>
+<li>Async&#x2F;Sync Flush Checkpoint；</li>
+<li>Dirty Page too much Checkpoint。</li>
+</ul>
+<p>Master Thread 中发生的 Checkpoint，差不多以每秒或每十秒的速度从缓冲池的脏页列表中刷新一定比例的页回磁盘。这个过程是异步的，即此时 InnoDB 存储引擎可以进行其他的操作，用户查询线程不会阻塞。</p>
+<p><strong>FLUSH_LRU_LIST Checkpoint</strong> 是因为 InnoDB 存储引擎要保证 LRU 列表中需要有不多于 100 个空闲页可供使用。倘若没有 100 个可用空闲页，那么 InnoDB 会将 LRU 列表尾端的页移除。如果这些页中有脏页，那么需要进行 Checkpoint，而这些页是来自 LRU 列表的，因此称为 FLUSH_LRU_LIST Checkpoint。之后，这些检查被放在了一个单独的 Page Cleaner 线程中进行。</p>
+<p><strong>Async&#x2F;Sync Flush Checkpoint</strong> 指的是重做日志文件不可用的情况，这时需要强制将一些页刷新回磁盘，而此时脏页是从脏页列表中选取的。</p>
+<p>若将已经写到重做日志的 LSN 记为 <code>redo_lsn</code>，将已经刷新回磁盘最新页的 LSN 记为 <code>checkpoint_lsn</code>，则可定义：</p>
+<p>$$checkpoint_age &#x3D; redo_lsn - checkpoint_lsn$$</p>
+<p>再定义以下的变量：</p>
+<p>$$async_water_mark &#x3D; 75% * total_redo_log_file_size$$</p>
+<p>$$sync_water_mark &#x3D; 90% * total_redo_log_file_size$$</p>
+<p>若每个重做日志文件的大小为 1GB，并且定义了两个重做日志文件，则重做日志文件的总大小为 2GB。那么 <code>async_water_mark=1.5GB</code>，<code>sync_water_mark=1.8GB</code>，则：</p>
+<ul>
+<li>当 <code>checkpoint_age &lt; async_water_mark</code> 时，不需要刷新任何脏页到磁盘；</li>
+<li>当 <code>async_water_mark &lt; checkpoint_age &lt; sync_water_mark</code> 时触发 <strong>Async Flush</strong>，从 Flush 列表中刷新足够的脏页回磁盘，使得刷新后满足 <code>checkpoint_age &lt; async_water_mark</code>；</li>
+<li><code>checkpoint_age &gt; sync_water_mark</code> 这种情况一般很少发生，除非设置的重做日志文件大小小，并且在进行类似 LOAD DATA 或 BULK INSERT 操作。此时触发 <strong>Sync Flush</strong> 操作，从 Flush 列表中刷新足够的脏页回磁盘，使得刷新后满足 <code>checkpoint_age &lt; async_water_mark</code>。</li>
+</ul>
+<p>之后，这部分刷新操作同样被放入到 Page Cleaner 线程中，所以再也不会阻塞用户查询线程。</p>
+<p>最后一种 Checkpoint 的情况是 <strong>Dirty Page too much</strong>，即脏页的数量太多，导致 InnoDB 存储引擎强制进行 Checkpoint。其目的的总结来说是为了<strong>保证缓冲池中有足够可用的页</strong>。其可由参数 innodb_max_dirty_pages_pct 控制，<code>innodb_max_dirty_pages_pct</code> 值为 75 表示，当缓冲池中脏页的数量占比 <strong>75%</strong> 时，强制进行 Checkpoint，刷新一部分的脏页到磁盘。</p>
+<h3 id="Master-Thread"><a href="#Master-Thread" class="headerlink" title="Master Thread"></a>Master Thread</h3><p>InnoDB 存储引擎的主要工作都是在一个<strong>单独的后台线程 Master Thread</strong> 中完成的。具体的演化过程请参考 MySQL 技术内幕的 36-45 页。</p>
+<h3 id="关键底层特性"><a href="#关键底层特性" class="headerlink" title="关键底层特性"></a>关键底层特性</h3><ul>
+<li>插入缓冲</li>
+<li>两次写</li>
+<li>自适应哈希索引</li>
+<li>异步 IO</li>
+<li>刷新临接页</li>
+</ul>
+<h4 id="插入缓冲"><a href="#插入缓冲" class="headerlink" title="插入缓冲"></a>插入缓冲</h4><p>InnoDB 中，主键是行唯一的标识符，通常应用程序中行记录的插入是按照主键递增的顺序来进行的（AUTO_INCREMENT），因此插入聚集索引一般是顺序的，无需磁盘随机读取。但是，一张表上可能存在多个非聚集切非唯一的二级索引，再进行插入操作的时候，数据页的存放还是按照主键顺序存放的，但是对于非聚集非唯一的索引而言，叶子节点的插入一般来说就不再是顺序的了，也就是会出现随机访问，除了日期之类的递增列的索引。</p>
+<p>因此 InnoDB 中设计了插入缓冲：对于非狙击索引的插入和更新操作，不是每一次直接插入到索引页中，而是先判断插入的非聚集索引页是否在缓冲池中，若在，则直接插入，若不在，则先放入到一个插入缓冲中，然后再以一定频率和情况进行插入缓冲和二级索引页的合并操作，这时通常能将多个插入操作合并到一个操作中，极大提高了对于非聚集索引插入的性能。</p>
+<p>为什么插入缓冲不操作唯一索引？</p>
+<p>因为如果要对唯一索引进行操作，不论是插入、删除还是更新，都需要到索引页中判断要操作的记录的唯一性，这又会导致随机访问的发生，从而导致插入缓冲失去意义。</p>
+<p>插入缓冲是一棵 B+ 树，并且该树数据库全局中只有一棵，负责对所有表的二级索引进行插入操作的缓存。该树被放在共享表空间中，即 ibdata1 中。 因此，试图通过独⽴表空间 ibd ⽂件恢复表中数据时，往往会导致 CHECK TABLE 失败。这是因为表的辅助索引中的数据可能还在 InsertBuffer 中，也就是共享表空间中，所以通过 ibd ⽂件进⾏恢复后，还需要进⾏ REPAIR TABLE 操作来重建表上所有的辅助索引。</p>
+<p>该树中的非叶子节点存放的是查询的 search key，也就是索引键（在 Insert Buffer B + 树中，二级索引页根据（ space, offset ）都已排序好），其结构如下：</p>
+<p><img src="/../../images/MySQL/storage_engine_insert_buf_non_leaf.drawio.png" alt="img"></p>
+<p>searchkey ⼀共占⽤ 9 个字节，其中 space 表⽰待插⼈记录所在表的表空间 id，在 InnoDB 存储引擎中，每个表有⼀个唯⼀的 spaceid，可以通过 spaceid 查询得知是哪张表。space 占⽤ 4 字节。marker 占⽤ 1 字节，它是⽤来兼容⽼版本的 Insert Buffer。offset 表⽰页所在的偏移量，占⽤ 4 字节。</p>
+<p>当⼀个辅助索引要插入到页（ space, offset ）时，如果这个页不在缓冲池中，那么 InnoDB ⾸先根据上述规则构造⼀个 searchkey，接下来查询 InsertBuffer 这棵 B+树，然后再将这条记录插⼊到 Insert Buffer 的叶⼦节点中。</p>
+<p>对于插⼊到 Insert Buffer 叶⼦节点的记录，并不是直接将待插入的记录插入，⽽是需要根据如下规则进⾏构造：</p>
+<p><img src="/../../images/MySQL/storage_engine_insert_buf_leaf.drawio.png" alt="img"></p>
+<p>上图是 Insert Buffer 叶子节点中的记录结构，其中 space、marker、offset 字段和之前的含义一致，一共 9 字节。metadata 占用 4 字节，其存储内容如下：</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>字节</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>IBUF_REC_OFFSET_COUNT</td>
+<td>2</td>
+</tr>
+<tr>
+<td>IBUF_REC_OFFSET_TYPE</td>
+<td>1</td>
+</tr>
+<tr>
+<td>IBUF_REC_OFFSET_FLAGS</td>
+<td>1</td>
+</tr>
+</tbody></table>
+<p><code>IBUF_REC_OFFSET_COUNT</code> 记录进入 Insert Buffer 的顺序，并且通过这个顺序才能得到正确的值。</p>
+<p>从第 5 个字段开始，就是实际插入记录的各个字段，因此较原插入记录，Insert Buffer 中的叶子节点中的记录需要额外 13 字节的开销。</p>
+<p>当启用 Change Buffer（Insert Buffer 升级）后，InnoDB 不会立即将对非聚集索引页的修改（插入、删除、更新）同步到该页上，而是将修改记录缓存到一个 Insert Buffer 中。这种做法虽然减少了大量随机 I&#x2F;O，但带来两个问题：</p>
+<ol>
+<li>何时合并？ 合并时要把哪些缓冲修改应用到目标页？</li>
+<li>是否还有可用空间？ 只有当目标页有足够剩余空间时，才允许新的修改进入缓冲，否则要避免膨胀页大小。</li>
+</ol>
+<p>为此，引入了 bitmap 页面来快速回答这两类问题，而无需读取整个索引页。</p>
+<p>每个 bitmap 页描述一组连续的二级索引页。在常见的 16 KB 页大小下，一个 bitmap 页能跟踪 16 384 个索引页（即 256 个区）。每个 Insert Buffer Bitmap 页是 16384 个页中的第⼆个页。每个被跟踪的索引页对应 4 位信息，如下：</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>大小（bit）</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>IBUF_BITMAP_FREE</td>
+<td>2</td>
+<td>表示该辅助索引页中的可用空间数量，可取值为：<br>• 0 表示无可用剩余空间<br>• 1 表示剩余空间大于 1&#x2F;32 页（512 字节）<br>• 2 表示剩余空间大于 1&#x2F;16 页<br>• 3 表示剩余空间大于 1&#x2F;8 页</td>
+</tr>
+<tr>
+<td>IBUF_BITMAP_BUFFERED</td>
+<td>1</td>
+<td>1 表示该辅助索引页有记录被缓存至 Insert Buffer B+ 树中</td>
+</tr>
+<tr>
+<td>IBUF_BITMAP_IBUF</td>
+<td>1</td>
+<td>1 表示该页为 Insert Buffer B+ 树的索引页</td>
+</tr>
+</tbody></table>
+<p> Merge Insert Buffer 的操作可能发⽣在以下⼏种情况下：</p>
+<ol>
+<li>当某个二级索引页被读取到缓冲池时，立即应用该页所有挂起的缓冲修改；</li>
+<li>当 Insert Buffer Bitmap 检测到某页可用空间不足，必须先合并才能继续缓冲新的修改；</li>
+<li>Master Thread 循环检测并执行各种维护任务，包括 Change Buffer 的合并操作。</li>
+</ol>
+<p>对第二点进行补充：若 Bitmap 显示该页剩余可用空间 ≥ 阈值（默认为页大小的 1&#x2F;32），则直接将修改写入 Change Buffer；否则，视为可用空间不足，需要<strong>先合并</strong>该页在 Change Buffer 中的所有挂起修改，再重新计算空间后才能缓冲。</p>
+<p>在 Master Thread 中，执行 merge 操作的不止是一个页，而是根据 <code>srv_innodb_io_capacity</code> 的百分比来决定真正要合并多少个辅助索引页。但 InnoDB 存储引擎又是根据怎样的算法来得知需要合并的辅助索引页？</p>
+<p>解决方案是随机选页策略：</p>
+<ul>
+<li>随机起点：Master Thread 在 Change Buffer 树中随机挑选一个页（或一个树节点），然后从该页开始，按内部顺序（通常是树结构中后继页）依次读取所需数量的页来合并。</li>
+<li>保证覆盖全树：通过每次随机的起点，随着时间推移，整个 B+ 树中的所有页都会被均匀地触及，避免固定区段被长时间忽略。</li>
+<li>批量合并：从选中的起点开始，连续取出 N 页（N 由 I&#x2F;O 预算决定）进行条目合并和写回。</li>
+</ul>
+<p>在 merge 时，如果要进行 merge 的条目已经被删除，此时可以直接丢弃已被 Insert&#x2F;Change Buffer 存储的对应数据记录。</p>
+<p><strong>为什么不按顺序选页？</strong></p>
+<p>按 <code>(space, offset)</code> 排序：理论上可以从最小的表空间 ID（space）和页号（offset）开始，按顺序扫描整个 B+ 树。</p>
+<p>公平性问题：如果总是从头开始，前面页的挂起修改会被反复优先处理，而后面页可能长时间得不到合并。</p>
+<p>更改缓冲</p>
+<p>更改缓冲是插入缓冲的升级版，因为它可以对 DML 操作（增删改）进行缓冲。更改缓冲的适用对象仍然是非唯一的二级索引。</p>
+<p><code>innodb_change_buffering</code> 控制 Change Buffer 的行为，默认值为 all，表示所有类型的插入、更新和删除操作都会使用 Change Buffer。可选值包括：</p>
+<ul>
+<li>none：禁用 Change Buffer。</li>
+<li>inserts：仅缓存插入操作。</li>
+<li>deletes：仅缓存删除操作。</li>
+<li>changes：缓存插入和删除操作。</li>
+<li>all：缓存所有支持的操作。</li>
+</ul>
+<h4 id="双写"><a href="#双写" class="headerlink" title="双写"></a>双写</h4><p>双写为 InnoDB 带来了数据页写磁盘的可靠性。</p>
+<p>当发生数据库宕机时，可能 InnoDB 存储引擎正在写入某个页到表中，而这个页只写了一部分，比如 16 KB 的页，只写了前 4 KB，之后就发生了宕机，这种情况被称为部分写失效（partial page write）。在 InnoDB 存储引擎未使用 doublewrite 技术前，曾经出现过因为部分写失效而导致数据丢失的情况。</p>
+<p>有人会想，如果发生写失效，可以通过重做日志进行恢复。这是一个办法。但是必须清楚地认识到，重做日志中记录的是对页的物理操作，比如偏移量 800，写入 <code>aaaa</code> 记录。如果这个页本身已经发生了损坏，再对其进行重做是没有意义的。这就是说，在应用重做日志前，用户需要一个页的副本，当页写失效时，先通过页的副本来还原该页，再进行重做，这就是 doublewrite。</p>
+<p>当 InnoDB 将脏页写回磁盘时，如果发生意外宕机（如断电、进程被杀），可能只写入了页面的一部分字节，这称为部分写失效（partial page write）。此时磁盘上的原始页已损坏，内部结构（例如记录边界、checksum、LSN 等）不再正确。InnoDB 的 Redo Log 仅记录对特定行或特定偏移的修改差分，并不包含整页的镜像。因此，如果缺少干净的起始页，应用这些差分时就无从下手——就像没有原图就没法正确贴修补片一样。</p>
+<p>doublewrite 由两部分组成：一部分是内存中的 doublewrite buffer，大小为 2 MB；另一部分是物理磁盘上共享表空间中连续的 128 个页，即 2 个区（extent），大小同样为 2 MB。</p>
+<p>在后台线程对缓冲池的脏页进行刷回磁盘的时候，并不是直接写入表空间文件，而是先通过 memcpy 将数据页复制到内存中的 doublewrite buffer，它被划分为两段，每段约 1 MB，InnoDB 按连续顺序调用 <code>write()</code> 将第一段写入 OS 页缓存，再调用 <code>fsync()</code> 强制落盘，然后对第二段重复相同操作。在这个过程中，由于 doublewrite 页面在磁盘上是连续存放的，因此写入是顺序 I&#x2F;O，性能损耗也相对可控。在完成 doublewrite 页的安全落盘之后，再将磁盘的 doublewrite 中的页面按各自原始逻辑位置分散写入 .ibd 或共享表空间文件；这一步 I&#x2F;O 是随机分布的。</p>
+<p><img src="/../../images/MySQL/storage_engine_dbwr.drawio.png" alt="img"></p>
+<p>fsync 是一个 POSIX 系统调用，用于强制操作系统将指定文件的所有已修改数据块及其元数据，从内核缓冲区刷写（flush）到物理存储设备，并在返回之前<strong>阻塞</strong>直到存储设备确认写入完成。</p>
+<p>如果操作系统在将页写入磁盘的过程中发生了崩溃，在恢复过程中，InnoDB 可从共享表空间中的 doublewrite 中找到该页的一个副本，将其复制到表空间文件并应用 Redo 日志。</p>
+<p>注意：有些文件系统如 AFS 提供了部分写失效的防范机制，因此在这种情况下，无需启动 doublewrite。</p>
+<p><strong>为什么数据页会被先写入双写缓冲，而不是直接被写入数据文件？</strong></p>
+<p>直接写入数据文件时，部分写失效问题更加严重，因为数据文件中的数据页分布是<strong>随机的</strong>，不同的数据页可能在磁盘的不同区域，而不是连续存放。因此，直接写入这些随机分布的页时，我们需要花费更多的时间，发生部分写失效的风险更高。而双写缓冲区是一个专门设计的区域，确保每次写入是<strong>连续的、顺序的</strong>，它使得内存中的数据能在最短的时间内被写入磁盘，从而大大减少了部分写失效的风险。</p>
+<h4 id="自适应哈希索引"><a href="#自适应哈希索引" class="headerlink" title="自适应哈希索引"></a>自适应哈希索引</h4><p>哈希（hash）是一种非常快的查找方法，在一般情况下这种查找的时间复杂度为 O(1)，即一般仅需一次查找就能定位数据。而 B+ 树的查找次数，取决于 B+ 树的高度，在生产环境中， B+ 树的高度一般为 3 ～ 4 层，故需要 3 ～ 4 次的查询。</p>
+<p>InnoDB 存储引擎会监控对表上各索引页的查询。如果观察到建立哈希索引可以带来速度提升，则建立哈希索引，称之为自适应哈希索引（Adaptive Hash Index，AHI）。AHI 是通过缓冲池的 B+ 树页构造而来，因此建立的速度很快，而且不需要对整张表构建哈希索引。InnoDB 存储引擎会自动根据访问的频率和模式来自动地为某些热点页建立哈希索引。</p>
+<p>AHI 有一个要求，即对这个页的连续访问模式必须是一样的。例如对于 (a, b) 这样的联合索引页，其访问模式可以是以下情况：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">WHERE</span> a<span class="operator">=</span>xxx</span><br><span class="line"><span class="comment">-- 或者</span></span><br><span class="line"><span class="keyword">WHERE</span> a<span class="operator">=</span>xxx <span class="keyword">and</span> b<span class="operator">=</span>xxx</span><br></pre></td></tr></table></figure>
+
+<p>访问模式一样指的是查询的条件一样，若交替进行上述两种查询，那么 InnoDB 存储引擎不会对该页构造 AHI。此外 AHI 还有如下的要求：</p>
+<ul>
+<li>以该模式访问了 100 次；</li>
+<li>页通过该模式访问了 N 次，其中 <code>N = 页中记录 * 1/16</code>。</li>
+</ul>
+<p>仅当上述两项同时满足，且访问模式一致时，才会触发 AHI 的构建。<code>同一模式访问次数 ≥ 100</code>：保证该模式不是偶发的短时热点。<code>页访问次数 ≥ R / 16</code>：保证该模式命中足够多的行数，是真正的页级热点。</p>
+<p>当你交替执行两种不同的访问模式（<code>WHERE a=xxx</code> 和 <code>WHERE a=xxx AND b=xxx</code>），即使每种模式单独都达到了 100 次，也仍然<strong>不会</strong>触发 AHI 的构建。</p>
+<h4 id="异步-IO"><a href="#异步-IO" class="headerlink" title="异步 IO"></a>异步 IO</h4><p>同步 I&#x2F;O：每次调用 <code>read()</code>&#x2F;<code>write()</code> 后，调用线程必须阻塞等待 I&#x2F;O 完成，才能继续下一步操作。</p>
+<p>异步 I&#x2F;O (AIO)：调用线程可连续调用多次 <code>io_submit()</code>，将多个 I&#x2F;O 请求并行提交给内核，而不必等待每次完成。内核或专门的 I&#x2F;O 线程池负责实际读写，完成后通过回调或事件 (<code>io_getevents</code>) 通知应用。</p>
+<p>AIO 的另一个优势是可以进行 IO Merge 操作，也就是将多个 IO 合并为 1 个 IO，这样可以提高 IOPS 的性能。例如用户需要访问页的 <code>(space, page_no)</code> 为：<code>(8, 6), (8, 7), (8, 8)</code>。每个页的大小为 16KB，那么同步 IO 需要进行 3 次 IO 操作。而 AIO 会判断到这三个页是连续的（显然可以通过 <code>(space, page_no)</code> 得知）。因此 AIO 底层会发送一个 IO 请求，从 <code>(8, 6)</code> 开始，读取 48KB 的页。</p>
+<h4 id="刷新邻接页"><a href="#刷新邻接页" class="headerlink" title="刷新邻接页"></a>刷新邻接页</h4><p>在刷新某个脏页时，同时检查并一起刷新该页所在区（extent）中的所有其它脏页，从而通过 AIO（异步 I&#x2F;O）将多个小的写操作合并成一次较大的顺序 I&#x2F;O。</p>
+<p>为什么要刷新邻接页？</p>
+<ul>
+<li><strong>顺序 I&#x2F;O 合并</strong>：在刷新单页时，如果只发出一个 16 KB 的写请求，操作系统与硬盘可能会进行一次小随机写；若同时将同一区中其他脏页一起刷新，就能将多次 16 KB 的写请求合并为一次大块的顺序写，从而利用顺序带宽、<strong>减少磁盘的寻道开销</strong>。</li>
+<li><strong>AIO 效果</strong>：配合异步 I&#x2F;O（AIO）提交这些写请求后，硬件&#x2F;内核会自动合并相邻请求为更大块，有效提升 IOPS 和吞吐。</li>
+</ul>
+<p>如果禁用该功能，则每次仅写出单页，虽然避免了写入无关脏页，但会频繁发生随机写，导致 I&#x2F;O 延迟和写入抖动增大。</p>
+<p>示例：在同一个 extent（假设包含页号 0–63）内，页 10、页 12、页 14 已被修改，成为脏页。</p>
+<p>禁用刷新邻接页：每次只写出目标脏页本身，不管同一 extent 内是否还有其他脏页。仅页 12 刷入磁盘；页 10 和页 14 保持在缓冲池中，等待下次单独刷新或达到阈值才写入。</p>
+<p>启用刷新邻接页：在同一 extent（页 0–63）内，发现目标页 12 后，会顺带把所有脏页（页 10 和页 14）一并写入一次 I&#x2F;O。单次 I&#x2F;O 写出页 10、12、14（共 3 × 16 KB），仅一次寻道即可完成，减少 HDD （硬盘驱动器）随机写的开销。</p>
+<h2 id="MyISAM"><a href="#MyISAM" class="headerlink" title="MyISAM"></a>MyISAM</h2><p>它是 MySQL 早期默认的存储引擎。</p>
+<p>特点</p>
+<ul>
+<li><p>不支持事务和外键。</p>
+</li>
+<li><p>支持表锁，不支持行锁。</p>
+</li>
+<li><p>访问速度快。</p>
+</li>
+<li><p>缓冲池只缓存索引文件，而不缓存数据文件。</p>
+</li>
+</ul>
+<p>MyISAM 和 InnoDB 的比较如下表：</p>
+<table border="1" cellspacing="0" cellpadding="6">
+  <tr>
+    <th>项目</th>
+    <th>InnoDB</th>
+    <th>MyISAM</th>
+  </tr>
+  <tr>
+    <td>存储结构</td>
+    <td>
+      <code>.frm</code> 存储表定义<br>
+      <code>.ibd</code> 存储数据和索引
+    </td>
+    <td>
+      <code>.frm</code> 存储表定义<br>
+      <code>.MYD</code> 存储数据<br>
+      <code>.MYI</code> 存储索引
+    </td>
+  </tr>
+  <tr>
+    <td>事务</td>
+    <td>支持（ACID 事务、提交/回滚）</td>
+    <td>不支持</td>
+  </tr>
+  <tr>
+    <td>最小锁粒度</td>
+    <td>行级锁</td>
+    <td>表级锁</td>
+  </tr>
+  <tr>
+    <td>索引类型</td>
+    <td>聚簇索引</td>
+    <td>非聚簇索引（指向 <code>.MYD</code> 的指针）</td>
+  </tr>
+  <tr>
+    <td>外键</td>
+    <td>支持</td>
+    <td>不支持</td>
+  </tr>
+  <tr>
+    <td>主键</td>
+    <td>可以没有主键</td>
+    <td>可以没有主键</td>
+  </tr>
+  <tr>
+    <td>表的具体行数</td>
+    <td>需扫描整个表才能返回</td>
+    <td>存储在表属性中，查询时可直接返回</td>
+  </tr>
+</table>
+
+<h2 id="Memory"><a href="#Memory" class="headerlink" title="Memory"></a>Memory</h2><p>该存储引擎的表数据存储在内存中，因此为避免受到硬件问题或断电问题的影响，我们只能将这些表作为临时表或缓存使用。</p>
+<p>特点</p>
+<ul>
+<li><p>内存存储，访问速度快。</p>
+</li>
+<li><p>默认使用 hash 索引。</p>
+</li>
+</ul>
+<p>以上三种存储引擎的对比如下图：</p>
+<p><img src="/../../images/MySQL/engine_3_comp.png" alt="img"></p>
+<h2 id="存储引擎选择"><a href="#存储引擎选择" class="headerlink" title="存储引擎选择"></a>存储引擎选择</h2><ul>
+<li>InnoDB：<strong>支持事务、外键、行级锁</strong>。如果应用对事务的完整性有比较高的要求，在并发条件下要求数据的一致性，数据操作包含大量的增删改查，那么 InnoDB 存储引擎是比较合适的选择。</li>
+<li>MyISAM：如果应用以<strong>读操作和插入操作</strong>为主，只有很少的更新和删除操作，并且对事务的完整性、并发性要求不是很高，那么 MyISAM 是非常合适的（更好的选择是使用 <strong>MongoDB</strong>）。</li>
+<li>Memory：将所有数据保存在内存中，访问速度快，通常用于临时表及缓存。缺陷是对表的大小有限制，太大的表无法缓存在内存中，而且无法保障数据的安全性（更好的选择是使用 <strong>Redis</strong>）。</li>
+</ul>
+<p>除了以上三种引擎，MySQL 还内置了 Archive 和 Federated 等存储引擎。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/undefined/MySQL/2024/10/05/MySQL/MySQL%20%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/" rel="prev" title="MySQL 体系结构">
+      <i class="fa fa-chevron-left"></i> MySQL 体系结构
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/undefined/MySQL/2024/10/09/MySQL/SQL%20%E4%BC%98%E5%8C%96/" rel="next" title="SQL 优化">
+      SQL 优化 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#InnoDB"><span class="nav-number">1.</span> <span class="nav-text">InnoDB</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%8E%E5%8F%B0%E7%BA%BF%E7%A8%8B"><span class="nav-number">1.1.</span> <span class="nav-text">后台线程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Checkpoint"><span class="nav-number">1.2.</span> <span class="nav-text">Checkpoint</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Master-Thread"><span class="nav-number">1.3.</span> <span class="nav-text">Master Thread</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E9%94%AE%E5%BA%95%E5%B1%82%E7%89%B9%E6%80%A7"><span class="nav-number">1.4.</span> <span class="nav-text">关键底层特性</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8F%92%E5%85%A5%E7%BC%93%E5%86%B2"><span class="nav-number">1.4.1.</span> <span class="nav-text">插入缓冲</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%8C%E5%86%99"><span class="nav-number">1.4.2.</span> <span class="nav-text">双写</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%87%AA%E9%80%82%E5%BA%94%E5%93%88%E5%B8%8C%E7%B4%A2%E5%BC%95"><span class="nav-number">1.4.3.</span> <span class="nav-text">自适应哈希索引</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BC%82%E6%AD%A5-IO"><span class="nav-number">1.4.4.</span> <span class="nav-text">异步 IO</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%B7%E6%96%B0%E9%82%BB%E6%8E%A5%E9%A1%B5"><span class="nav-number">1.4.5.</span> <span class="nav-text">刷新邻接页</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MyISAM"><span class="nav-number">2.</span> <span class="nav-text">MyISAM</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Memory"><span class="nav-number">3.</span> <span class="nav-text">Memory</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E%E9%80%89%E6%8B%A9"><span class="nav-number">4.</span> <span class="nav-text">存储引擎选择</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Yihang Wei</p>
+  <div class="site-description" itemprop="description">聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">39</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="languages">
+    <label class="lang-select-label">
+      <i class="fa fa-language"></i>
+      <span>English</span>
+      <i class="fa fa-angle-up" aria-hidden="true"></i>
+    </label>
+    <select class="lang-select" data-canonical="">
+      
+        <option value="zh-CN" data-href="/undefined/MySQL/2024/10/06/MySQL/%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E/" selected="">
+          简体中文
+        </option>
+      
+        <option value="en" data-href="/en/undefined/MySQL/2024/10/06/MySQL/%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E/" selected="">
+          English
+        </option>
+      
+    </select>
+  </div>
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yihang Wei</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '50%',
+  right: '32px',
+  left: 'unset',
+  time: '0.5s',
+  mixColor: '#fff',
+  backgroundColor: '#fff',
+  buttonColorDark: '#100f2c',
+  buttonColorLight: '#fff',
+  saveInCookies: true,
+  label: '明暗',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+</body>
+</html>
