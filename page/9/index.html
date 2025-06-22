@@ -23,27 +23,27 @@
   <meta name="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
 <meta property="og:type" content="website">
 <meta property="og:title" content="EthanWeee">
-<meta property="og:url" content="https://yihangwe.github.io/en/categories/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/index.html">
+<meta property="og:url" content="https://yihangwe.github.io/page/9/index.html">
 <meta property="og:site_name" content="EthanWeee">
 <meta property="og:description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
-<meta property="og:locale" content="en_US">
+<meta property="og:locale" content="zh_CN">
 <meta property="article:author" content="Yihang Wei">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="https://yihangwe.github.io/en/categories/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/">
+<link rel="canonical" href="https://yihangwe.github.io/page/9/">
 
 
 <script id="page-configurations">
   // https://hexo.io/docs/variables.html
   CONFIG.page = {
     sidebar: "",
-    isHome : false,
+    isHome : true,
     isPost : false,
-    lang   : 'en'
+    lang   : 'zh-CN'
   };
 </script>
 
-  <title>Category: 高级数据存储 | EthanWeee</title>
+  <title>EthanWeee</title>
   
 
 
@@ -175,192 +175,155 @@
         <div class="content-wrap">
           
 
-          <div class="content category">
+          <div class="content index posts-expand">
             
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/08/30/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/SDM/">
 
-  
-  
-  
-  <div class="post-block">
-    <div class="posts-collapse">
-      <div class="collection-title">
-        <h2 class="collection-header">高级数据存储
-          <small>Category</small>
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/undefined/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/08/30/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/SDM/" class="post-title-link" itemprop="url">SDM</a>
         </h2>
-      </div>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-08-30 00:00:00" itemprop="dateCreated datePublished" datetime="2024-08-30T00:00:00-07:00">2024-08-30</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-05-30 21:44:46" itemprop="dateModified" datetime="2025-05-30T21:44:46-07:00">2025-05-30</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">数据库系统</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
 
       
-    <div class="collection-year">
-      <span class="collection-header">2025</span>
+          <h1 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h1><p>Data Models: Conceptual -&gt; Logical -&gt; Physical.</p>
+<p>SDM is a conceptual data modeling tool, at the intersection of conceptual and logical. It facilitates <strong>an understaning of the meaning of the data</strong>.</p>
+<ul>
+<li>Identify and classify principal intensional (semantic) structures of an application.</li>
+</ul>
+<p>A set of constructs that express the essential meaning and structure of different problem domains.</p>
+<h1 id="Basic-Structure"><a href="#Basic-Structure" class="headerlink" title="Basic Structure"></a>Basic Structure</h1><ul>
+<li>Classes: a collection of entities. Each class has:</li>
+<li><ul>
+<li>A name.</li>
+<li>A collection of members: Its entities. 3 member types:</li>
+<li><ul>
+<li>Objects:</li>
+<li><ul>
+<li>Concrete.</li>
+<li>Abstraction: a generalization of another entity.</li>
+<li>Aggregate: a collection of another type of entity.</li>
+</ul>
+</li>
+<li>Events: Action or activities in the application. Point and duration events.</li>
+<li>Names are deginators for objects or events.</li>
+</ul>
+</li>
+<li>Attributes.</li>
+<li>A description: nature, purpose, and uses of the class.</li>
+<li>Identified as either base or nonbase.</li>
+</ul>
+</li>
+<li>Schema: a collection of classes.</li>
+</ul>
+<p>Class Attributes:</p>
+<ol>
+<li><strong>Member attributes</strong> link the member to one or more related entities in the same or another class.</li>
+<li><strong>Class determined attribute</strong> is associated with the whole class and has the same value for all members of that class.</li>
+<li><strong>Class attribute</strong> describes a property of a class taken as a whole.</li>
+</ol>
+<p>An attribute value is either a primitive (user defined) or derived (a value calculated from other information in the database).</p>
+<h1 id="Base-class"><a href="#Base-class" class="headerlink" title="Base class"></a>Base class</h1><p>It is independent of other classes. In SDM, it may be a concrete object class, a point event class, a duration event, a name class.</p>
+<p>It is specified as either containing duplicates or not containing duplicates. The latter models a multiset&#x2F;bag of entities.</p>
+<p>It has an associated list of groups of member attributes. One or more may serve as the unique identifier of a member.</p>
+<h1 id="Nonbase-class"><a href="#Nonbase-class" class="headerlink" title="Nonbase class"></a>Nonbase class</h1><p>Subclass of a parent class. Members of the subclass inherit all attributes of the parent class. Subclass may add new member attributes. 2 types:</p>
+<ol>
+<li>Restrict: a predicate identifies which members of the parent belong to a subclass.</li>
+<li>Subset: A human user decides entities in the subclass as long as the subclass is a subset of its parent.</li>
+</ol>
+<p>Attribute value: either an entity or a class of entities. It can be UNKNOWN.</p>
+<p>Semantic types:</p>
+<ol>
+<li>A componenet models a physical part of an object.</li>
+<li>A participant of the event entity models an entity that plays a role in an event.</li>
+<li>A property of an attribute is an attribute that provides further information on the relationship between the entity and the value of one of its attributes.</li>
+</ol>
+<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>Why is it important for a relational schema to satisfy the 5 normal forms?</strong></p>
+<p>To ensure the data integrity and consistency, and minimize the loss and redundancy of information.</p>
+<p>1NF: all occurences of a record type must contain the same number of fields.</p>
+<p>2 and 3NF: a non-key attribute is a fact about only the whole key.</p>
+<p>4NF: a record should not contain two or more independent multi-valued fact about an entity.</p>
+<p>5NF: decompose a table into smaller ones to eliminate multi-valued dependencies, while ensuring that the original data can be losslessly reconstructed through join operation.</p>
+<p><strong>With SDM, what is the unique identifier of a class containing duplicates?</strong></p>
+<p>There is no unique identifier of a class containing duplicates since some of the members of this class are indistinguishable.</p>
+<p><strong>Is SDM a competitor to the relational data model?</strong> </p>
+<p>Yes. But SDM is not intended to be a direct competitor to the relational data model. The goal of SDM is to provide a more semantic way to model complex application environments, expressing the structure and meaning of data more effectively than tradtional relational models. It is designed to enhance the relational data model.</p>
+<p><strong>A database represents a snapshot of the state of an application and the changes to the database over time. What is the change in a 3D display that illuminates animations using FLSs? Does an FLS display represent a database using drones?</strong> </p>
+<p>A 3D FLS display illuminates animations by computing the flight paths of the FLS drones based on the dynamic attributes of objects, such as geometry, color, and movement over time. Changes in the display represent transitions in the object’s states or visual properties.</p>
+<p>Yes, the FLS display act as a dynamic visualization tool that represents a database where each drone corresponds to data points or entities, displaying multimedia content in a 3D space.</p>
+<p><strong>Section 1 of the SDM paper states: “SDM is not dependent on the successful implementation of a new database management system that directly supports the SDM. The latter approach would be impractical for a variety of reasons.” Why is it impractical to implement a new database management system that supports the SDM? Do you know of a system?</strong></p>
+<p>SDM emphasizes the <strong>meaning</strong> and <strong>relationship</strong> of data, requiring sophisticated handling of semantics, which adds complexity. Integrating SDM into existing systems will cause incompatibility with current DBMS architectures.</p>
+<p>While there is not a widely adopted DBMS that fully supports SDM, some graph databases or knowledge graph systems such as <strong>Neo4j</strong>, <strong>RDF stores</strong> partially align with SDM principles.</p>
+<p>Reference: <a target="_blank" rel="noopener" href="https://dl.acm.org/doi/pdf/10.1145/509252.509264">https://dl.acm.org/doi/pdf/10.1145/509252.509264</a></p>
+
+      
     </div>
 
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2025-04-06T00:00:00-07:00"
-              content="2025-04-06">
-          04-06
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/04/06/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Managing%20Cold%20Data%20in%20a%20Memory-Optimized%20Database/" itemprop="url">
-            <span itemprop="name">内存优化数据库中的冷数据管理</span>
-          </a>
-      </div>
-
-    </header>
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
   </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2025-03-18T00:00:00-07:00"
-              content="2025-03-18">
-          03-18
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/03/18/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20TicToc/" itemprop="url">
-            <span itemprop="name">TicToc</span>
-          </a>
-      </div>
-
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2025-03-02T00:00:00-08:00"
-              content="2025-03-02">
-          03-02
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/03/02/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Adaptive%20Execution%20of%20Compiled%20Queries/" itemprop="url">
-            <span itemprop="name">编译查询的自适应执行</span>
-          </a>
-      </div>
-
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2025-02-11T00:00:00-08:00"
-              content="2025-02-11">
-          02-11
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/02/11/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Orca/" itemprop="url">
-            <span itemprop="name">Orca - 面向大数据的模块化查询优化器架构</span>
-          </a>
-      </div>
-
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2025-01-25T00:00:00-08:00"
-              content="2025-01-25">
-          01-25
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/25/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/OLTP%20%E7%B4%A2%E5%BC%95/" itemprop="url">
-            <span itemprop="name">OLTP 索引</span>
-          </a>
-      </div>
-
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2025-01-25T00:00:00-08:00"
-              content="2025-01-25">
-          01-25
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/25/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20AnalyticDB%20Real-time%20OLAP%20Database%20System%20at%20Alibaba%20Cloud/" itemprop="url">
-            <span itemprop="name">AnalyticDB - 阿里云的实时 OLAP 数据库系统</span>
-          </a>
-      </div>
-
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2025-01-20T00:00:00-08:00"
-              content="2025-01-20">
-          01-20
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/20/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/OLAP%20%E7%B4%A2%E5%BC%95/" itemprop="url">
-            <span itemprop="name">OLAP 索引</span>
-          </a>
-      </div>
-
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2025-01-13T00:00:00-08:00"
-              content="2025-01-13">
-          01-13
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/13/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E5%B8%83%E5%B1%80/" itemprop="url">
-            <span itemprop="name">数据存储布局</span>
-          </a>
-      </div>
-
-    </header>
-  </article>
-
-    </div>
-  </div>
   
   
   
 
+
   
+  <nav class="pagination">
+    <a class="extend prev" rel="prev" href="/page/8/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><span class="page-number current">9</span>
+  </nav>
 
 
 
@@ -403,10 +366,10 @@
 
       <ul class="sidebar-nav motion-element">
         <li class="sidebar-nav-toc">
-          Table of Contents
+          文章目录
         </li>
         <li class="sidebar-nav-overview">
-          Overview
+          站点概览
         </li>
       </ul>
 
@@ -425,7 +388,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">40</span>
+          <span class="site-state-item-count">41</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -456,16 +419,16 @@
   <div class="languages">
     <label class="lang-select-label">
       <i class="fa fa-language"></i>
-      <span>English</span>
+      <span>简体中文</span>
       <i class="fa fa-angle-up" aria-hidden="true"></i>
     </label>
     <select class="lang-select" data-canonical="">
       
-        <option value="zh-CN" data-href="/categories/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/index.html" selected="">
+        <option value="zh-CN" data-href="/page/9/index.html" selected="">
           简体中文
         </option>
       
-        <option value="en" data-href="/en/categories/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/index.html" selected="">
+        <option value="en" data-href="/en/page/9/index.html" selected="">
           English
         </option>
       

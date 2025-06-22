@@ -1519,7 +1519,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/15/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/SQL++/">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/MySQL/2024/11/20/MySQL/%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -1533,7 +1533,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/undefined/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/15/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/SQL++/" class="post-title-link" itemprop="url">SQL++</a>
+            <a href="/undefined/MySQL/2024/11/20/MySQL/%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6/" class="post-title-link" itemprop="url">主从复制</a>
         </h2>
 
         <div class="post-meta">
@@ -1543,14 +1543,14 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2024-11-15 00:00:00" itemprop="dateCreated datePublished" datetime="2024-11-15T00:00:00-08:00">2024-11-15</time>
+              <time title="创建时间：2024-11-20 00:00:00" itemprop="dateCreated datePublished" datetime="2024-11-20T00:00:00-08:00">2024-11-20</time>
             </span>
               <span class="post-meta-item">
                 <span class="post-meta-item-icon">
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-05-31 21:01:48" itemprop="dateModified" datetime="2025-05-31T21:01:48-07:00">2025-05-31</time>
+                <time title="修改时间：2025-06-22 14:31:01" itemprop="dateModified" datetime="2025-06-22T14:31:01-07:00">2025-06-22</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1558,7 +1558,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">数据库系统</span></a>
+                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
                 </span>
             </span>
 
@@ -1573,430 +1573,43 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="Data-Model"><a href="#Data-Model" class="headerlink" title="Data Model"></a>Data Model</h1><p><strong>SQL++ has a more flexible data model:</strong></p>
-<ul>
-<li>It relaxes traditional SQL’s strict rules to handle modern, semi-structured data like JSON or CBOR.</li>
-<li>SQL++ databases can store self-describing data, meaning you don’t need a predefined schema (data structure).</li>
-</ul>
-<p><strong>Supports diverse data types:</strong></p>
-<ul>
-<li>Data can be single values (scalars), tuples (a set of key-value pairs), collections (like arrays or multisets), or combinations of these.</li>
-<li>Unlike traditional SQL, tuples in SQL++ are <strong>unordered</strong>, which means the order of attributes doesn’t matter.</li>
-</ul>
-<p><strong>Allows duplicate attribute names but discourages them:</strong></p>
-<ul>
-<li>This is to accommodate non-strict formats like JSON.</li>
-<li>However, duplicate names can lead to unpredictable query results, so they’re not recommended.</li>
-</ul>
-<p><strong>Two kinds of missing values:</strong> <strong><code>NULL</code> and <code>MISSING</code></strong>:</p>
-<ul>
-<li><strong><code>NULL</code></strong>: Means an attribute exists but has no value.</li>
-<li><strong><code>MISSING</code></strong>: Means the attribute doesn’t exist at all.</li>
-<li>This distinction is useful for clearer query results and error handling.</li>
-</ul>
-<p><strong>Importance of</strong> <strong><code>MISSING</code></strong>:</p>
-<ul>
-<li>SQL++ doesn’t stop processing if some data is missing; instead, it marks those cases as <code>MISSING</code> and continues.</li>
-<li>This makes queries more robust and tolerant of data inconsistencies.</li>
-</ul>
-<h1 id="Accessing-Nested-Data"><a href="#Accessing-Nested-Data" class="headerlink" title="Accessing Nested Data"></a>Accessing Nested Data</h1><p><strong>SQL-92 vs. Modern Data:</strong></p>
-<ul>
-<li>SQL-92 only supports tables with rows (tuples) containing simple values (scalars).</li>
-<li>Modern data formats often include <strong>nested structures</strong>, where attributes can hold complex data types like arrays, tables, or even arrays of arrays.</li>
-</ul>
-<p><strong>Nested Data Example:</strong></p>
-<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/SQLPP_code1.png" alt="img"></p>
-<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/SQLPP_code2.png" alt="img"></p>
-<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/SQLPP_code3.png" alt="img"></p>
-<ul>
-<li>In the example, the <code>projects</code> attribute of an employee is an <strong>array of tuples</strong>, representing multiple projects each employee is involved in.</li>
-</ul>
-<p><strong>Querying Nested Data in SQL++:</strong></p>
-<ul>
-<li>SQL++ can handle such nested data without adding new syntax to SQL.</li>
-<li>For example, a query can find employees working on projects with “security” in their names and output both the employee’s name and the project’s name.</li>
-</ul>
-<p><strong>How It Works:</strong></p>
-<ul>
-<li>SQL++ uses <strong>left-correlation</strong>, allowing expressions in the <code>FROM</code> clause to refer to variables declared earlier in the same clause.</li>
-<li>For instance, <code>e.projects</code> accesses the projects of an employee <code>e</code>.</li>
-<li>This relaxes SQL’s restrictions and effectively enables a join between an employee and their projects.</li>
-</ul>
-<p><strong>Using Variables in Queries:</strong></p>
-<ul>
-<li>SQL++ requires <strong>explicit</strong> use of variables (e.g., <code>e.name</code> instead of just <code>name</code>) because schema is optional and cannot guarantee automatic disambiguation.</li>
-<li>If a schema exists, SQL++ can still optimize by rewriting the query for clarity and execution.</li>
-</ul>
-<p><strong>Flexibility with Nested Collections:</strong></p>
-<ul>
-<li>Variables in SQL++ can represent any type of data—whether it’s a table, array, or scalar.</li>
-<li>These variables can be used seamlessly in <code>FROM</code>, <code>WHERE</code>, and <code>SELECT</code> clauses.</li>
-</ul>
-<p><strong>Aliases Can Bind to Any Data Type:</strong></p>
-<ul>
-<li>In SQL++, variables (aliases) don’t have to refer only to tuples.</li>
-<li>They can bind to <strong>arrays of scalars</strong>, <strong>arrays of arrays</strong>, or any combination of scalars, tuples, and arrays.</li>
-</ul>
-<p><strong>Flexibility in Querying Nested Data:</strong></p>
-<ul>
-<li>Users don’t need to learn new query syntax for different data structures.</li>
-<li>The same <strong>unnesting feature</strong> is used regardless of whether the data is an array of tuples or an array of scalars.</li>
-</ul>
-<p>Example:</p>
-<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/SQLPP_code4.png" alt="img"></p>
-<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/SQLPP_code5.png" alt="img"></p>
-<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/SQLPP_code6.png" alt="img"></p>
-<ul>
-<li>If the <code>projects</code> attribute is an <strong>array of strings</strong> (instead of tuples), SQL++ queries can still process it.</li>
-<li>The query would range over <code>e.projects</code> and bind <code>p</code> to each project name (a string).</li>
-</ul>
-<p><strong>Relaxed Semantics Compared to SQL:</strong></p>
-<ul>
-<li>In traditional SQL, the <code>FROM</code> clause binds variables strictly to tuples.</li>
-<li>SQL++ generalizes this by treating the <code>FROM</code> clause as a function that can bind variables to <strong>any type of data</strong>—not just tuples.</li>
-</ul>
-<p><strong>Practical Outcome:</strong></p>
-<ul>
-<li>In the example, the <code>FROM</code> clause produced variable bindings like <code>&#123;e: employee_data, p: project_name&#125;</code>.</li>
-<li>This allows the query to handle data structures that SQL would not support without extensions.</li>
-</ul>
-<h1 id="ABSENCE-OF-SCHEMA-AND-SEMI-STRUCTURED-DATA"><a href="#ABSENCE-OF-SCHEMA-AND-SEMI-STRUCTURED-DATA" class="headerlink" title="ABSENCE OF SCHEMA AND SEMI-STRUCTURED DATA"></a>ABSENCE OF SCHEMA AND SEMI-STRUCTURED DATA</h1><p>Schemaless Data:</p>
-<ul>
-<li>Many modern data formats (e.g., JSON) don’t require a predefined schema to describe their structure.</li>
-<li>This allows for <strong>flexible and diverse data</strong>, but it also introduces <strong>heterogeneity</strong>.</li>
-</ul>
-<p>Types of Heterogeneity:</p>
-<ul>
-<li><strong>Attribute presence</strong>: Some tuples may have a specific attribute (e.g., <code>x</code>), while others may not.</li>
-<li><strong>Attribute type</strong>: The same attribute can have different types across tuples. For example:<ul>
-<li>In one tuple, <code>x</code> might be a string.</li>
-<li>In another tuple, <code>x</code> might be an array.</li>
-</ul>
-</li>
-<li><strong>Element types in collections</strong>: A collection (e.g., an array or a bag) can have elements of different types. For example:<ul>
-<li>The first element could be a string, the second an integer, and the third an array.</li>
-</ul>
-</li>
-<li><strong>Legacy or data evolution</strong>: These heterogeneities often result from evolving requirements or data conversions (e.g., converting XML to JSON).</li>
-</ul>
-<p>Heterogeneity Is Not Limited to Schemaless Data:</p>
-<ul>
-<li>Even structured databases can have heterogeneity. For example:<ul>
-<li>Hive’s <strong>union type</strong> allows an attribute to hold multiple types, like a string or an array of strings.</li>
-</ul>
-</li>
-</ul>
-<p>How SQL++ Handles It:</p>
-<ul>
-<li>SQL++ is designed to work seamlessly with <strong>heterogeneous data</strong>, whether the data comes from a schemaless format or a schema-based system.</li>
-<li>It offers features and mechanisms to process such data flexibly, without enforcing rigid structure requirements.</li>
-</ul>
-<h2 id="Missing-Attributes"><a href="#Missing-Attributes" class="headerlink" title="Missing Attributes"></a>Missing Attributes</h2><ol>
-<li><p><strong>Representation of Missing Information</strong>:</p>
-<ul>
-<li><p>In SQL, a missing value is typically represented as <code>NULL</code> (e.g., Bob Smith’s title in the first example).</p>
-</li>
-<li><p>In SQL++, there’s an additional option: simply omitting the attribute altogether (as seen in the second example for Bob Smith).</p>
-</li>
-</ul>
-</li>
-<li><p><code>NULL</code> <strong>vs.</strong> <code>MISSING</code>:</p>
-<ul>
-<li><p><code>NULL</code>: Indicates the attribute exists but has no value.</p>
-</li>
-<li><p><code>MISSING</code>: Indicates the attribute is entirely absent.</p>
-</li>
-<li><p>SQL++ supports distinguishing between these two cases, unlike traditional SQL.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Why This Matters</strong>:</p>
-<ul>
-<li><p>Some data systems or formats (e.g., JSON) naturally omit <strong>missing</strong> attributes rather than assigning a <code>NULL</code> value.</p>
-</li>
-<li><p>SQL++ makes it easy to work with both approaches by allowing queries to handle <code>NULL</code> and <code>MISSING</code> values distinctly.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Query Behavior</strong>:</p>
-<ul>
-<li><p>Queries in SQL++ can propagate <code>NULL</code> and <code>MISSING</code> values as they are.</p>
-</li>
-<li><p>The system introduces the special value <code>MISSING</code> to represent absent attributes, allowing clear differentiation from <code>NULL</code>.</p>
-</li>
-</ul>
-</li>
-</ol>
-<h2 id="MISSING-as-a-Value"><a href="#MISSING-as-a-Value" class="headerlink" title="MISSING as a Value"></a>MISSING as a Value</h2><p>What Happens When Data is Missing:</p>
-<ul>
-<li>If a query references an attribute that doesn’t exist in a tuple (e.g., <code>e.title</code> for Bob Smith), SQL++ assigns the value <code>MISSING</code>.</li>
-<li>This avoids query failures and ensures processing can continue.</li>
-</ul>
-<p><strong>Three Cases Where</strong> <code>MISSING</code> <strong>is Produced</strong>:</p>
-<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/SQLPP_code7.png" alt="img"></p>
-<ul>
-<li><strong>Case 1</strong>: Accessing a missing attribute. For example, <code>&#123;id: 3, name: &#39;Bob Smith&#39;&#125;.title</code> results in <code>MISSING</code>.</li>
-<li><strong>Case 2</strong>: Using invalid input types for functions or operators (e.g., <code>2 * &#39;some string&#39;</code>).</li>
-<li><strong>Case 3</strong>: When <code>MISSING</code> is an input to a function or operator, it propagates as <code>MISSING</code> in the output.</li>
-</ul>
-<p>SQL Compatibility Mode:</p>
-<ul>
-<li>In SQL compatibility mode, <code>MISSING</code> behaves like <code>NULL</code> for compatibility. For instance, <code>COALESCE(MISSING, 2)</code> will return <code>2</code>, just as <code>COALESCE(NULL, 2)</code> does in SQL.</li>
-</ul>
-<p><strong>Propagation of</strong> <code>MISSING</code> <strong>in Queries</strong>:</p>
-<ul>
-<li>In queries, <code>MISSING</code> values flow naturally through transformations, enabling consistent handling of absent data.</li>
-<li>For example, in a <code>CASE</code> statement, if <code>e.title</code> evaluates to <code>MISSING</code>, the result of the entire <code>CASE</code> expression will also be <code>MISSING</code>.</li>
-</ul>
-<p><strong>Results with</strong> <code>MISSING</code>:</p>
-<ul>
-<li>If a query result includes <code>MISSING</code>, SQL++ will omit the attribute from the result tuple.</li>
-<li>In communication with external systems like JDBC&#x2F;ODBC, <code>MISSING</code> is transmitted as <code>NULL</code> to ensure compatibility.</li>
-</ul>
-<h1 id="RESULT-CONSTRUCTION-NESTING-AND-GROUPING"><a href="#RESULT-CONSTRUCTION-NESTING-AND-GROUPING" class="headerlink" title="RESULT CONSTRUCTION,NESTING, AND GROUPING"></a>RESULT CONSTRUCTION,NESTING, AND GROUPING</h1><h2 id="Creating-Collections-of-Any-Value"><a href="#Creating-Collections-of-Any-Value" class="headerlink" title="Creating Collections of Any Value"></a>Creating Collections of Any Value</h2><p><strong>Power of</strong> <code>SELECT VALUE</code>:</p>
-<ul>
-<li>The <code>SELECT VALUE</code> clause in SQL++ allows constructing collections of any type of data, not just tuples.</li>
-<li>It enables creating outputs that match the structure of nested data without flattening it unnecessarily.</li>
-</ul>
-<p>Example Query:</p>
-<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/SQLPP_code8.png" alt="img"></p>
-<ul>
-<li>The query in Listing 10 demonstrates how to use <code>SELECT VALUE</code> to extract only the “security” projects of employees, resulting in a nested structure.</li>
-<li>Each employee’s tuple includes their ID, name, title, and a collection of their security-related projects.</li>
-</ul>
-<p>Result:</p>
-<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/SQLPP_code9.png" alt="img"></p>
-<ul>
-<li>Listing 11 shows the result where each employee has a field <code>security_proj</code> containing a nested collection of projects that match the condition (e.g., projects with “Security” in the name).</li>
-</ul>
-<p>Key Difference from Standard SQL:</p>
-<ul>
-<li>SQL’s <code>SELECT</code> clause can be viewed as shorthand for <code>SELECT VALUE</code>, but with differences:<ul>
-<li>SQL automatically coerces subquery results into scalar values, collections of scalars, or tuples based on context.</li>
-<li>In contrast, <code>SELECT VALUE</code> in SQL++ consistently produces a collection and does not apply implicit coercion.</li>
-</ul>
-</li>
-</ul>
-<p>Flexibility:</p>
-<ul>
-<li>SQL++ avoids implicit “magic” by explicitly treating <code>SELECT</code> as shorthand for <code>SELECT VALUE</code>.</li>
-<li>This approach aligns more closely with functional programming principles, making it easier to handle and compose nested data results.</li>
-</ul>
-<h2 id="GROUP-BY-and-GROUP-AS"><a href="#GROUP-BY-and-GROUP-AS" class="headerlink" title="GROUP BY and GROUP AS"></a>GROUP BY and GROUP AS</h2><p><strong>Introduction to</strong> <code>GROUP BY ... GROUP AS</code>:</p>
-<ul>
-<li>This feature extends SQL’s <code>GROUP BY</code> functionality, allowing groups (and their contents) to be directly accessible in the <code>SELECT</code> and <code>HAVING</code> clauses.</li>
-<li>It is more efficient and intuitive for creating nested results compared to traditional SQL, especially when the output nesting doesn’t directly align with the input data structure.</li>
-</ul>
-<p>How It Works:</p>
-<ul>
-<li><strong>Generalization</strong>: Unlike SQL, which limits access to grouped data in <code>GROUP BY</code>, SQL++ allows accessing the full group details as part of the query.</li>
-<li><strong>Pipeline Model</strong>: SQL++ processes queries in a step-by-step fashion, starting with <code>FROM</code>, followed by optional clauses like <code>WHERE</code>, <code>GROUP BY</code>, <code>HAVING</code>, and ending with <code>SELECT</code>.</li>
-</ul>
-<p>Example:</p>
-<ul>
-<li>In the query from <strong>Listing 12</strong>, employees are grouped by their project names (converted to lowercase), and a nested list of employees for each project is created.</li>
-<li>The <code>GROUP BY LOWER(p) AS p GROUP AS g</code> clause groups data and stores each group in <code>g</code>.</li>
-<li>The <code>SELECT</code> clause then extracts project names and employees.</li>
-</ul>
-<p>Result:</p>
-<ul>
-<li>The output (shown in <strong>Listing 13</strong>) contains nested objects:</li>
-<li><ul>
-<li>Each object has a <code>proj_name</code> (e.g., <code>&#39;OLTP Security&#39;</code>) and an <code>employees</code> field listing the names of employees associated with that project.</li>
-</ul>
-</li>
-</ul>
-<p><strong>Details of</strong> <code>GROUP BY ... GROUP AS</code>:</p>
-<ul>
-<li>The clause produces bindings like the ones in <strong>Listing 14</strong>, where each group (<code>g</code>) includes all the data for its corresponding key (<code>p</code>).</li>
-<li>The result allows users to flexibly access and format the grouped data.</li>
-</ul>
-<p>SQL++ Flexibility:</p>
-<ul>
-<li>SQL++ allows placing the <code>SELECT</code> clause either at the start or the end of a query block, enhancing readability and flexibility.</li>
-<li>This approach is more consistent with functional programming and reduces constraints found in traditional SQL.</li>
-</ul>
-<p>Advanced Features:</p>
-<ul>
-<li>SQL++ supports additional analytical tools like <code>CUBE</code>, <code>ROLLUP</code>, and <code>GROUPING SETS</code>, making it highly compatible with SQL but better suited for nested and semi-structured data.</li>
-</ul>
-<h2 id="Aggregate-Functions"><a href="#Aggregate-Functions" class="headerlink" title="Aggregate Functions"></a>Aggregate Functions</h2><p>Limitations of Traditional SQL Aggregate Functions:</p>
-<ul>
-<li>Aggregate functions like <code>AVG</code> and <code>MAX</code> in traditional SQL lack <strong>composability</strong>.</li>
-<li>They work directly on table columns but don’t easily integrate with more complex expressions or subqueries.</li>
-</ul>
-<p>SQL++ Solution:</p>
-<ul>
-<li>SQL++ introduces <strong>composable aggregate functions</strong>, such as <code>COLL_AVG</code> (for calculating the average of a collection) and <code>COLL_MAX</code>.</li>
-<li>These functions take a <strong>collection</strong> as input and return the aggregated value.</li>
-</ul>
-<p>Importance of Composability:</p>
-<ul>
-<li>In SQL++, data is conceptually <strong>materialized</strong> into a collection first, then passed to the composable aggregate function.</li>
-<li>While this materialization is conceptual, SQL++ engines optimize the execution (e.g., using pipelined aggregation).</li>
-</ul>
-<p>Example 1: Calculating the Average Salary of Engineers:</p>
-<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/SQLPP_code10.png" alt="img"></p>
-<ul>
-<li><strong>SQL Query</strong> (Listing 15): Uses <code>AVG(e.salary)</code> directly.</li>
-<li><strong>SQL++ Core Query</strong> (Listing 16): Converts <code>e.salary</code> into a collection and applies the <code>COLL_AVG</code> function.</li>
-<li>SQL++ clearly defines the flow of data, making it more intuitive and flexible.</li>
-</ul>
-<p>Example 2: Calculating the Average Salary of Engineers by Department:</p>
-<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/SQLPP_code11.png" alt="img"></p>
-<ul>
-<li><strong>SQL Query</strong> (Listing 17): Uses <code>GROUP BY</code> and <code>AVG</code>.</li>
-<li><strong>SQL++ Core Query</strong> (Listing 18):<ul>
-<li>Uses <code>GROUP BY ... GROUP AS</code> to form groups.</li>
-<li>Feeds each group into <code>COLL_AVG</code> to calculate the average salary.</li>
-<li>Constructs the result using the <code>SELECT VALUE</code> clause, explicitly specifying the output format.</li>
-</ul>
-</li>
-</ul>
-<p>Flexibility of SQL++ Style:</p>
-<ul>
-<li>SQL++ allows the <code>SELECT</code> clause to be written at the end of a query block, consistent with functional programming styles.</li>
-<li>This enhances readability and composability while maintaining compatibility with SQL.</li>
-</ul>
-<h1 id="Pivoting-and-Unpivoting"><a href="#Pivoting-and-Unpivoting" class="headerlink" title="Pivoting and Unpivoting"></a>Pivoting and Unpivoting</h1><h2 id="UNPIVOT-Transforming-Attributes-into-Rows"><a href="#UNPIVOT-Transforming-Attributes-into-Rows" class="headerlink" title="UNPIVOT: Transforming Attributes into Rows"></a>UNPIVOT: Transforming Attributes into Rows</h2><ol>
-<li><p><strong>What is Unpivoting?</strong></p>
-<ul>
-<li><p>Unpivoting is the process of converting attribute names (used as keys) into data rows.</p>
-</li>
-<li><p>This is useful for cases where key-value pairs in the data need to be analyzed as individual rows.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Example (Listing 19-21)</strong>:</p>
-</li>
-</ol>
-<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/SQLPP_code12.png" alt="img"></p>
-<ul>
-<li><p>Input: A <code>closing_prices</code> collection where stock symbols (<code>amzn</code>, <code>goog</code>, <code>fb</code>) are attributes with prices as values.</p>
-</li>
-<li><p>Query (Listing 20): The <code>UNPIVOT</code> clause transforms these attributes into rows with fields for <code>symbol</code> and <code>price</code>.</p>
-</li>
-<li><p>Output (Listing 21): A flattened structure where each row contains the date, stock symbol, and price.</p>
-</li>
-</ul>
-<h2 id="Pivoting"><a href="#Pivoting" class="headerlink" title="Pivoting"></a>Pivoting</h2><ol>
-<li><strong>Purpose of Pivoting</strong>:<ul>
-<li>Pivoting transforms rows into attributes (columns).</li>
-</ul>
-</li>
-<li><strong>Example from Listings 23-25</strong>:</li>
-</ol>
-<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/SQLPP_code13.png" alt="img"></p>
-<ul>
-<li><strong>Input (Listing 23)</strong>: Rows of <code>today_stock_prices</code> where each stock symbol and its price are separate rows.</li>
-<li><strong>Query (Listing 24)</strong>: The <code>PIVOT</code> operation turns these rows into a single object, using <code>sp.symbol</code> as attribute names and <code>sp.price</code> as their values.</li>
-<li><strong>Output (Listing 25)</strong>: A tuple where each stock symbol (<code>amzn</code>, <code>goog</code>, <code>fb</code>) is an attribute, and their corresponding prices are the values.</li>
-</ul>
-<p><strong>Combining Grouping and Pivoting</strong></p>
-<ol>
-<li><strong>Using Pivot with Grouping</strong>:</li>
-<li><ul>
-<li>Combining <code>GROUP BY</code> and <code>PIVOT</code> enables aggregation of grouped rows into a more structured output.</li>
-<li>This is particularly useful when working with time-series data or hierarchical datasets.</li>
-</ul>
-</li>
-<li><strong>Example Query (Listing 26)</strong>:</li>
-</ol>
-<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/SQLPP_code14.png" alt="img"></p>
-<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/SQLPP_code15.png" alt="img"></p>
-<ul>
-<li>Input: Data from <code>stock_prices</code> (Listing 27), which includes stock prices for multiple dates as individual rows.</li>
-<li>Query:<ul>
-<li>Groups the data by <code>date</code> using <code>GROUP BY sp.date</code>.</li>
-<li>Pivots the grouped rows to produce a nested structure where each date contains all its stock prices as attributes.</li>
-</ul>
-</li>
-<li>Output (Listing 28): For each date, an object with a <code>prices</code> field lists the stock symbols as attributes and their respective prices as values.</li>
-</ul>
-<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>SQL++ identifies aggregate functions as an SQL violation of functional composability. Give an example of an aggregate function and describe how it violates SQL’s functional composability.</strong></p>
-<ul>
-<li><p><strong>Aggregate Function</strong>:<code>COLL_AVG()</code></p>
-</li>
-<li><p><strong>Violation Explanation</strong>:</p>
-<ul>
-<li><p>In traditional SQL, aggregate functions like <code>AVG</code> processes the column and returns a single value.</p>
-</li>
-<li><p>In SQL++, this issue is resolved by providing <strong>composable versions</strong> of aggregate functions, such as <code>COLL_AVG</code>, which operate on collections, allowing intermediate results to flow naturally into the aggregation.</p>
-</li>
-</ul>
-</li>
-</ul>
-<p><strong>With SQL++, what is the difference between NULL and Missing?</strong></p>
-<p><code>NULL</code>: Indicates that an attribute exists but has no value.</p>
-<p><code>MISSING</code>: Indicates that an attribute is completely absent in the data.</p>
-<p><strong>True or false: One must define a schema for data prior to using SQL++.</strong> </p>
-<p>False:</p>
-<ul>
-<li>SQL++ supports <strong>schema-optional</strong> and <strong>schema-less</strong> data formats, such as JSON.</li>
-<li>While schemas can improve query optimization and validation, SQL++ can process data without requiring predefined schemas, making it highly flexible for semi-structured data use cases.</li>
-</ul>
-<p><strong>How does the I lease prevent a thundering herd?</strong></p>
-<p>The I lease (Inhibit Lease) prevents a thundering herd problem by ensuring that only one read session at a time is allowed to query the RDBMS for a missing key-value pair in the Key-Value Store (KVS). Here’s how it works:</p>
-<ol>
-<li><p><strong>Thundering Herd Problem</strong>:</p>
-<ul>
-<li><p>When a key-value pair is not found in the KVS (a <strong>KVS miss</strong>), multiple read sessions might simultaneously query the RDBMS to fetch the value.</p>
-</li>
-<li><p>This can overload the RDBMS and degrade performance under high concurrency.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Role of the I Lease</strong>:</p>
-<ul>
-<li><p>When the first read session encounters a KVS miss, it requests an I lease for the key.</p>
-</li>
-<li><p>Once the I lease is granted, the KVS prevents other read sessions from querying the RDBMS for the same key.</p>
-</li>
-<li><p>All other read sessions must “back off” and wait for the value to be updated in the KVS by the session holding the I lease.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Result</strong>:</p>
-<ul>
-<li><p>The session with the I lease queries the RDBMS, retrieves the value, and populates the KVS.</p>
-</li>
-<li><p>Subsequent read sessions observe a <strong>KVS hit</strong> and do not need to access the RDBMS.</p>
-</li>
-<li><p>This mechanism avoids simultaneous RDBMS queries, effectively solving the thundering herd problem.</p>
-</li>
-</ul>
-</li>
-</ol>
-<p><strong>What is the difference between invalidate and refresh&#x2F;refill for maintaining the cache consistent with the database management system?</strong></p>
-<ul>
-<li><strong>Invalidate</strong>: Deletes stale cache entries to prevent incorrect reads, but at the cost of forcing subsequent queries to access the RDBMS.</li>
-<li><strong>Refresh&#x2F;Refill</strong>: Proactively updates the cache with new data, ensuring consistent reads while reducing future load on the RDBMS at the expense of immediate computation.</li>
-</ul>
-<p><strong>Describe how CAMP inserts a key-value pair in the cache.</strong></p>
-<p><strong>Check Cache Capacity</strong></p>
-<ul>
-<li>If there is <strong>enough memory</strong> to store the new key-value pair:<ul>
-<li>The pair is inserted directly into the appropriate <strong>priority group</strong> based on its cost-to-size ratio.</li>
-<li>L is not updated.</li>
-</ul>
-</li>
-<li>If the cache is <strong>full</strong>:<ul>
-<li>CAMP selects one or more key-value pairs to <strong>evict</strong> based on their H(p) values.</li>
-<li>It removes the pair(s) with the <strong>lowest H(p)</strong> values until there is sufficient space for the new pair.</li>
-</ul>
-</li>
-</ul>
-<p><strong>Insert the New Pair</strong></p>
-<ul>
-<li>The new key-value pair p is added to the cache, and its H(p) value is computed and recorded.</li>
-<li>The pair is placed in the appropriate priority queue based on its cost-to-size ratio.</li>
-</ul>
-<p><strong>How does BG compute the SoAR of a database management system?</strong> </p>
-<ol>
-<li>Define the SLA.</li>
-<li>Run a series of experiments with increasing numbers of threads (T) to find the peak throughput while ensuring SLA compliance.</li>
-</ol>
-<p>Reference: <a target="_blank" rel="noopener" href="https://escholarship.org/content/qt2bj3m590/qt2bj3m590_noSplash_084218340bb4e928c05878f04d01f04d.pdf">https://escholarship.org/content/qt2bj3m590/qt2bj3m590_noSplash_084218340bb4e928c05878f04d01f04d.pdf</a></p>
+          <p>在基于 Binlog 的异步复制模式中，主库将所有 DDL 与 DML 操作写入二进制日志，并在本地完成事务提交后立即返回，无需等待从库确认，从而实现松散耦合的复制流程。随后，从库的 <strong>IO 线程</strong>会与主库保持长连接，不断读取新生成的 binlog 事件并将它们写入本地的 <strong>Relay Log</strong>。接着，从库的 <strong>SQL 线程</strong>会顺序读取 Relay Log 中的事件，并在从库上重做这些 DDL 与 DML，以达到数据同步的目的。</p>
+<p><img src="/../../images/MySQL/mysql_replic_ms.drawio.png" alt="img"></p>
+<p>MySQL 支持一主多从复制拓扑，且从库本身也可以配置为其他从库的源库，实现链式复制。这种异步复制模式允许在主库出现故障时，通过提升任一从库为新的主库来快速切换并恢复服务，极大增强了系统的高可用性。同时，通过将写操作集中到主库、将读操作分散到从库，也减轻了主库的负载，并可在从库上执行备份任务，避免对主库性能产生影响。由于主库无需等待从库完成写入，可获得更高的写入吞吐量，但也可能引入复制延迟问题，需要结合监控指标加以管理。为进一步降低从库的应用延迟，可使用并行复制功能，让 SQL 线程并发地执行多个复制通道中的事件。总体而言，基于 Binlog 的异步复制以其配置简单、可扩展性强和高可用性好等特点，成为 MySQL 最常用的主从复制方案。</p>
+<p>在主从复制中，<strong>Relay Log</strong> 起到四大关键作用：</p>
+<p>首先，它充当从库的缓冲区——IO 线程不断地将主库的二进制日志拉取并写入本地的 Relay Log，即使 SQL 线程处理变更较慢，也不会影响向主库的读取，从而有效降低延迟；</p>
+<p>其次，Relay Log 支持异步处理——IO 线程与 SQL 线程分离，前者专注拉取日志，后者专注重放语句，两者互不阻塞，大幅提升同步的并发能力；</p>
+<p>第三，它增强了数据可靠性——日志落盘后即便网络波动或从库重启，SQL 线程也能从已持久化的 Relay Log 继续执行，无需重新拉取；</p>
+<p>最后，在链式复制场景中，从库的 Relay Log 同样可以对下游从库提供日志源，成为二进制日志传递链上的一环。这样，Relay Log 不仅保证了数据的连续、高效复制，还提升了系统的容错与可扩展性。</p>
+<h2 id="同步延迟的原因"><a href="#同步延迟的原因" class="headerlink" title="同步延迟的原因"></a>同步延迟的原因</h2><p>主从同步延迟通常是因为从库的复制流程存在瓶颈：主库可以同时接收大量并发写请求，但从库只有一个 IO 线程负责拉取 binlog、一个 SQL 线程负责执行，如果某条 SQL 在从库上执行耗时较长或因锁等待而阻塞，就会造成 binlog 在从库端堆积，进而引起读写不一致。为缓解这一问题，一方面可以在写操作后立即把紧接着的读操作路由到主库，以确保及时读取最新数据；另一方面也可在读从库失败时自动再去主库重试二次读取，这种方式改动最小，但会增加主库的读负载；此外，还可以将关键业务（如注册、登录）的所有读写都定向主库处理，而对一致性要求较低的查询（如用户资料展示）继续采用读写分离，从而在保证关键路径数据正确性的同时，将大部分查询压力分散到从库。</p>
+<h2 id="同步模式"><a href="#同步模式" class="headerlink" title="同步模式"></a>同步模式</h2><h3 id="异步复制"><a href="#异步复制" class="headerlink" title="异步复制"></a>异步复制</h3><p>异步复制（Asynchronous Replication）是 MySQL 最基础也是最常用的复制方式，其中主库在本地提交事务并写入二进制日志后即可立即返回客户端，从库的 IO 线程随后异步地拉取这些 binlog 并将其写入 Relay Log，最后由 SQL 线程在从库上执行重放，从而完成数据同步。由于主库无需等待从库确认即完成提交，异步复制能够获得最高的写入吞吐量，但会产生一定的复制延迟，若主库故障，尚未同步的事务可能丢失。</p>
+<h3 id="半同步复制"><a href="#半同步复制" class="headerlink" title="半同步复制"></a>半同步复制</h3><p>半同步复制（Semisynchronous Replication）介于异步与全同步之间，当主库提交一个事务时，会阻塞等待至少一个从库的确认（即从库已将该事务事件接收并写入 Relay Log，但不必执行完毕）后才向客户端返回，从而保证提交成功的事务至少存在于主库和一个从库上。相比纯异步复制，半同步复制在保证可用性的同时，显著提升了数据安全性；但因需等待确认，写延迟会略高于异步模式，尤其在网络或从库性能较差时更为明显。</p>
+<h3 id="全同步复制（组复制）"><a href="#全同步复制（组复制）" class="headerlink" title="全同步复制（组复制）"></a>全同步复制（组复制）</h3><p>全同步复制通常由 MySQL Group Replication 或 NDB Cluster 实现，要求主库在提交时，所有或一定多数的副本必须完成提交确认后才继续执行，从而实现真正的强同步。该模式在保证各节点数据实时一致性方面最强，但也带来最高的写延迟和最复杂的部署需求，通常用于对一致性和故障切换要求极高的场景。</p>
+<p><strong>百万千万级大表如何添加字段？</strong></p>
+<p>在面对上千万行的大表时，直接执行 <code>ALTER TABLE … ADD COLUMN</code> 往往会长时间锁表，影响线上业务；常见的无停机扩容方案包括：</p>
+<p>一是在新库&#x2F;新表中先创建完整的表结构并添加字段，然后通过分批次或全量迁移程序将旧表数据复制过去，最后再原子化地用新表替换旧表（此法简洁但需要额外迁移逻辑）；</p>
+<p>二是借助 Percona 的 pt-online-schema-change 或 GitHub 的 gh-ost 等在线变更工具，它们会在后台创建影子表、实时捕获并同步写入，通过触发器或 binlog 流将增量写入合并到新表，待数据迁移完成后再用重命名操作切换，无需停机且复制过程中表仍可读写；</p>
+<p>三是针对极高并发的热表，可先在从库执行字段添加操作，待从库完成同步并切换读写角色后，再依次在其他节点上部署新字段，最大程度上降低主库负载和用户感知的停机风险。</p>
+<p><strong>当 MySQL 表的数据量增长过快，导致查询性能下降时，你会采取哪些措施来优化表的设计或查询？</strong></p>
+<p>当表数据量激增导致单表查询与写入性能下降时，可采取以下优化措施：</p>
+<p>首先，通过水平分表将数据按用户 ID 或时间等分片键拆分到多张子表或多库中，以减少单表大小、降低锁竞争并分散 I&#x2F;O 压力；</p>
+<p>其次，合理设计索引，包括对经常用于过滤的单个字段创建单列索引、对多字段组合查询创建复合索引，以及使用覆盖索引来避免回表，但切忌在索引字段上使用函数或表达式以免导致索引失效；</p>
+<p>其三，可在应用层或独立缓存层（如 Redis）缓存热点数据或热点查询结果，显著减少数据库访问次数并缓解压力；</p>
+<p>第四，定期将历史或冷数据归档到独立的存档表、数据仓库或专用归档系统中，保持主表的数据量在可控范围内，从而提升主表的查询效率；</p>
+<p>最后，当单机 MySQL 无法再满足性能与扩展需求时，可考虑迁移到分布式数据库（如 TiDB、PolarDB），利用其水平可扩展架构和分布式事务能力，实现更大规模的数据存储与高并发访问。</p>
+<h2 id="读写分离"><a href="#读写分离" class="headerlink" title="读写分离"></a>读写分离</h2><p>在主从复制架构中，可以将数据库服务器组织成一主一从或一主多从的集群模式：所有写操作（INSERT、UPDATE、DELETE 等）都集中发送到主库，以保证强一致性；主库会将数据变更实时同步到一个或多个从库，而从库则专注于处理只读查询，提供最终一致性的读服务。业务服务器根据操作类型，将写请求路由到主库，将读请求路由到从库，从而在不影响写入性能和一致性的前提下，大幅提升整体系统的读扩展能力和稳定性。</p>
+<p>这样做有几个好处：</p>
+<p>第一，写入流量只作用于主库，从库则专注于处理查询请求，可显著减轻单台数据库的压力；</p>
+<p>第二，通过增加从库数量，可以水平扩展读能力，提升整体系统的并发查询性能；</p>
+<p>第三，即使在从库进行备份或维护时，也能保证主库持续提供写入服务，增强了系统的可用性和抗故障能力。</p>
+<p>需要注意的是，从库与主库之间存在微小的复制延迟，因此对于对实时性要求极高的查询，应优先访问主库或使用读写路由策略进行合理调度；同时，还要考虑事务隔离和一致性需求，确保读写分离不会引入数据不一致风险。通过合理配置负载均衡和故障切换机制，读写分离能够在保证数据安全与一致性的前提下，大幅提升数据库集群的性能和稳定性。</p>
+<p><img src="/../../images/MySQL/mysql_replic_re_decoup.drawio.png" alt="img"></p>
+<p>在程序层面，实现读写分离通常有两种方式：</p>
+<p>一种是在业务代码中抽象出一个数据访问层（或“中间层”），由这一层统一管理主从库的连接和路由逻辑，业务逻辑只需调用该层提供的接口即可完成读写分离，如下图；</p>
+<p><img src="/../../images/MySQL/mysql_replic_mid.drawio.png" alt="img"></p>
+<p>另一种是通过独立部署的中间件系统来承担这项工作，它对外提供与数据库协议兼容的接口，自动将写请求路由到主库、读请求分发到从库，业务服务器无需关心具体的分库路由和连接管理。这样既能保持程序的清晰简洁，又能在中间件层面灵活扩展和运维读写分离的能力。具体结构如下图：</p>
+<p><img src="/../../images/MySQL/mysql_replic_mycat.drawio.png" alt="img"></p>
+<p>如果要是用 MyCat 作为中间件的话，可参考：<a target="_blank" rel="noopener" href="https://bbs.huaweicloud.com/blogs/343277">https://bbs.huaweicloud.com/blogs/343277</a></p>
 
       
     </div>
@@ -2015,7 +1628,7 @@
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/9/">9</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -2081,7 +1694,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">40</span>
+          <span class="site-state-item-count">41</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
