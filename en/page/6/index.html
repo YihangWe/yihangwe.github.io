@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="zh-CN,en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yihangwe.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="EthanWeee">
+<meta property="og:url" content="https://yihangwe.github.io/en/page/6/index.html">
+<meta property="og:site_name" content="EthanWeee">
+<meta property="og:description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+<meta property="og:locale" content="en_US">
+<meta property="article:author" content="Yihang Wei">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://yihangwe.github.io/en/page/6/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : true,
+    isPost : false,
+    lang   : 'en'
+  };
+</script>
+
+  <title>EthanWeee</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<!-- hexo injector head_end start --><script>(function() {function calculateHeight(element) {let height = 0;const items = element.children;for (let i = 0; i < items.length; i++) {height += items[i].offsetHeight || 25;const child = items[i].querySelector(".nav-child");if (child && child.style.display !== "none") {height += calculateHeight(child);}}return height;}function generateToc(lang, container) {const content = document.getElementById(lang + "-content");if (!content) return;const headers = Array.from(content.querySelectorAll("h1, h2, h3, h4, h5, h6"));if (headers.length === 0) return;const ol = document.createElement("ol");ol.className = "nav";let currentLevel = 1;let currentOl = ol;let stack = [ol];let counters = [0, 0, 0, 0, 0, 0];headers.forEach((header, index) => {const level = parseInt(header.tagName[1]);counters[level - 1]++;for (let i = level; i < 6; i++) counters[i] = 0;const li = document.createElement("li");li.className = "nav-item nav-level-" + level;if (level === 1 && index === 0) {li.classList.add("active", "active-current");}const link = document.createElement("a");link.className = "nav-link";if (level === 1 && index === 0) link.classList.add("active");link.href = "#" + header.id;const numSpan = document.createElement("span");numSpan.className = "nav-number";numSpan.textContent = counters.slice(0, level).filter(n => n > 0).join(".");const textSpan = document.createElement("span");textSpan.className = "nav-text";textSpan.textContent = header.textContent;link.appendChild(numSpan);link.appendChild(document.createTextNode(" "));link.appendChild(textSpan);li.appendChild(link);if (level > currentLevel) {const newOl = document.createElement("ol");newOl.className = "nav-child";if (currentLevel === 1) {newOl.style.display = "block";stack[currentLevel - 1].lastElementChild.classList.add("active");}stack[currentLevel - 1].lastElementChild.appendChild(newOl);stack[level - 1] = newOl;currentOl = newOl;} else if (level < currentLevel) {currentOl = stack[level - 1];}currentOl.appendChild(li);currentLevel = level;});container.appendChild(ol);setTimeout(() => {const navHeight = calculateHeight(ol);ol.style.setProperty("--height", navHeight + "px");const navChilds = ol.getElementsByClassName("nav-child");Array.from(navChilds).forEach(child => {if (child.style.display === "block") {const childHeight = calculateHeight(child);child.style.setProperty("--height", childHeight + "px");}});}, 0);return ol;}function updateActiveHeading() {const activeLang = document.getElementById("en-content").style.display === "block" ? "en" : "zh";const content = document.getElementById(activeLang + "-content");const toc = document.getElementById(activeLang + "-toc");if (!content || !toc) return;const headers = Array.from(content.querySelectorAll("h1, h2, h3, h4, h5, h6"));const scrollPos = window.scrollY + window.innerHeight / 3;let activeHeader = null;for (let i = headers.length - 1; i >= 0; i--) {const header = headers[i];const headerTop = header.getBoundingClientRect().top + window.scrollY;if (headerTop <= scrollPos) {activeHeader = header;break;}}const links = toc.getElementsByClassName("nav-link");Array.from(links).forEach(link => {link.classList.remove("active");const parentLi = link.parentElement;if (parentLi) {parentLi.classList.remove("active", "active-current");}});if (activeHeader) {const activeLink = toc.querySelector(`a[href="#${activeHeader.id}"]`);if (activeLink) {activeLink.classList.add("active");let parent = activeLink.parentElement;while (parent && parent.classList) {if (parent.classList.contains("nav-item")) {parent.classList.add("active");if (parent.classList.contains("nav-level-1")) {parent.classList.add("active-current");}}parent = parent.parentElement;}}}}function initTippy() {document.querySelectorAll(".refplus-num").forEach((ref) => {if (ref._tippy) {ref._tippy.destroy();}let refid = ref.firstChild.href.replace(location.origin+location.pathname,"");let refel = document.querySelector(refid);if (!refel) return;let refnum = refel.dataset.num;let ref_content = refel.innerText.replace(`[${refnum}]`,"");tippy(ref, {content: ref_content,});});}function initToc() {const originalToc = document.querySelector(".post-toc-wrap");if (!originalToc || !document.getElementById("langToggle")) return;const tocContainer = document.createElement("div");tocContainer.className = "post-toc-wrap sidebar-panel sidebar-panel-active";const enToc = document.createElement("div");enToc.id = "en-toc";enToc.className = "post-toc motion-element";enToc.style.display = "block";const zhToc = document.createElement("div");zhToc.id = "zh-toc";zhToc.className = "post-toc motion-element";zhToc.style.display = "none";generateToc("en", enToc);generateToc("zh", zhToc);tocContainer.appendChild(enToc);tocContainer.appendChild(zhToc);originalToc.parentNode.replaceChild(tocContainer, originalToc);window.addEventListener("scroll", updateActiveHeading);setTimeout(updateActiveHeading, 0);}window.toggleLanguage = function() {const enContent = document.getElementById("en-content");const zhContent = document.getElementById("zh-content");const enToc = document.getElementById("en-toc");const zhToc = document.getElementById("zh-toc");const button = document.getElementById("langToggle");if (!enContent || !zhContent || !enToc || !zhToc || !button) return;const isEnglish = enContent.style.display === "block";enContent.style.display = isEnglish ? "none" : "block";zhContent.style.display = isEnglish ? "block" : "none";enToc.style.display = isEnglish ? "none" : "block";zhToc.style.display = isEnglish ? "block" : "none";button.querySelector(".button-text").textContent = isEnglish ? "Switch to English" : "切换中文";setTimeout(updateActiveHeading, 0);setTimeout(initTippy, 100);};document.addEventListener("DOMContentLoaded", function() {initToc();setTimeout(initTippy, 3000);});})();</script><style>.post-toc { transition: all 0.2s ease-in-out; }.post-toc .nav { padding-left: 0; }.post-toc .nav-child { padding-left: 1em; }.post-toc .nav-item { line-height: 1.8; }.post-toc .nav-link { color: #555; }.post-toc .nav-link:hover { color: #222; }.post-toc .nav-link.active { color: #fc6423; }.post-toc .active > .nav-link { color: #fc6423; }.post-toc .active-current > .nav-link { color: #fc6423; }</style><!-- hexo injector head_end end --><style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">EthanWeee</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content index posts-expand">
+            
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/10/11/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/OCC%20%E5%92%8C%20MVCC/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/undefined/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/10/11/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/OCC%20%E5%92%8C%20MVCC/" class="post-title-link" itemprop="url">OCC 和 MVCC</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2024-10-11 00:00:00" itemprop="dateCreated datePublished" datetime="2024-10-11T00:00:00-07:00">2024-10-11</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-05-31 01:18:09" itemprop="dateModified" datetime="2025-05-31T01:18:09-07:00">2025-05-31</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">数据库系统</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="Time-Stamp-Based-Protocols"><a href="#Time-Stamp-Based-Protocols" class="headerlink" title="Time-Stamp Based Protocols"></a>Time-Stamp Based Protocols</h1><p>Suppose transaction Ti issues read(Q):</p>
+<ul>
+<li>If TS(Ti) &lt; W-TimeStamp(Q), then Ti needs to read the value of Q which was already overwritten. Hence the read request is rejected and Ti is rolled back.</li>
+<li>If TS(Ti) &gt;&#x3D; W-TimeStamp(Q), then the read operation is executed and the R-timeStamp(Q) is set to the maximum of R-TimeStamp(Q) and TS(Ti).</li>
+</ul>
+<p>Suppose transaction Ti issues write(Q):</p>
+<ul>
+<li>If TS(Ti) &lt; R-TimeStamp(Q), then this implies that some transaction has already consumed the value of Q and Ti should have produced a value before that transaction read it. Thus, the write request is rejected and Ti is rolled back.</li>
+<li>If TS(Ti) &lt; W-TimeStamp(Q), then Ti is trying to write an obsolete value of Q. Hence reject Ti’s request and roll it back. &#x2F; Ignore this write operation. (Tomas’s Write Rule)</li>
+<li>Otherwise, execute the write(Q) operation and update W-TimeStamp(Q) to TS(Ti).</li>
+</ul>
+<h1 id="OCC"><a href="#OCC" class="headerlink" title="OCC"></a>OCC</h1><p>Each transaction Ti has three phases:</p>
+<ul>
+<li>Read phase: reads the value of data items and copies its contents to variables local to Ti. All writes are performed on the temporary local variables.</li>
+<li>Validation phase: Ti determines whether the local variables whose values have been overwritten can be copied to the database. If not, then abort. Otherwise, proceed to Write phase.</li>
+<li><ul>
+<li>When validating transaction Tj, for all transactions Ti with TS(Ti) &lt; TS(Tj), one of the following must hold:</li>
+<li><ul>
+<li>Finish(Ti) &lt; Start(Tj), OR</li>
+<li>Set of data items written by Ti does not intersect with the set of data items read by Tj, and Ti completes its write phase before Tj starts its validation phase.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Write phase: The values stored in local variables overwrite the value of the data items in the database.</li>
+</ul>
+<p>A transaction has three time stamps:</p>
+<ul>
+<li>Start(Ti): When Ti started its execution.</li>
+<li>Validation(Ti): When Ti finished its read phase and started its validation.</li>
+<li>Finish(Ti): Done with the write phase.</li>
+</ul>
+<h1 id="MVCC"><a href="#MVCC" class="headerlink" title="MVCC"></a>MVCC</h1><p>Assume that transaction Ti issues either a read(Q) or a write(Q) operation.</p>
+<p>Let Qk denote the version of Q whose write timestamp is the largest write timestamp less than TS(Ti), i.e., W-TimeStamp(Qk) &lt; TS(Ti).</p>
+<ul>
+<li>If Ti issues a Read(Q), then return the value of Qk.</li>
+<li>If Ti issues a write(Q), and TS(Ti) &lt; R-TimeStamp(Qk), then Ti is rolled back.</li>
+<li>Otherwise, a new version of Qk is created.</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/MySQL/2024/10/09/MySQL/SQL%20%E4%BC%98%E5%8C%96/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/undefined/MySQL/2024/10/09/MySQL/SQL%20%E4%BC%98%E5%8C%96/" class="post-title-link" itemprop="url">SQL 优化</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2024-10-09 00:00:00" itemprop="dateCreated datePublished" datetime="2024-10-09T00:00:00-07:00">2024-10-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-06-17 22:01:44" itemprop="dateModified" datetime="2025-06-17T22:01:44-07:00">2025-06-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>在阐述 SQL 的优化方案之前，我们需要先了解 SQL 的执行流程，如下：</p>
+<ol>
+<li><p>客户端发送 SQL 语句给 MySQL 服务器。</p>
+</li>
+<li><p>如果查询缓存打开则会优先查询缓存，如果缓存中有对应的结果，直接返回给客户端。不过，MySQL 8.0 版本已经移除了查询缓存。</p>
+</li>
+<li><p>分析器对 SQL 语句进行语法分析，判断是否有语法错误。</p>
+</li>
+<li><p>明确 SQL 语句的目的后，MySQL 通过优化器生成执行计划。优化器通过成本计算预估出执行效率最高的方式，基本的预估维度为：</p>
+</li>
+<li><p>IO 成本：</p>
+<ol>
+<li>数据量越大，IO 成本越高，所以要避免 <code>select *</code>；尽量分页查询。</li>
+<li>尽量通过索引加快查询。</li>
+</ol>
+</li>
+<li><p>CPU 成本：</p>
+<ol>
+<li>尽量避免复杂的查询条件，如有必要，考虑对子查询结果进行过滤。</li>
+<li>尽量缩减计算成本，比如说为排序字段加上索引，提高排序效率；比如说使用 union all 替代 union，减少去重处理。</li>
+</ol>
+</li>
+<li><p>执行器调用存储引擎的接口，执行 SQL 语句。</p>
+</li>
+</ol>
+<h2 id="SQL-性能分析工具"><a href="#SQL-性能分析工具" class="headerlink" title="SQL 性能分析工具"></a>SQL 性能分析工具</h2><p>如果要查询某一类 SQL 语句的执行频率，比如查看当前数据库的增删改查操作的访问频次，我们可以使用如下命令：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> [<span class="keyword">GLOBAL</span> <span class="operator">|</span> SESSION] STATUS <span class="keyword">LIKE</span> <span class="string">&#x27;Com_%&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>慢查询日志</strong>记录了执行时间超过指定参数（<code>long_query_time</code>，单位：秒，默认 10 秒）的所有 SQL 语句。</p>
+<p>慢查询日志默认不开启，所以我们需要在配置文件 <code>/etc/my.cnf</code> 中配置如下信息来启动慢查询日志：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">slow_query_log = 1</span><br><span class="line"></span><br><span class="line">long_query_time = 2 # 执行时间超过 2s 的操作被记录到慢查询日志当中</span><br></pre></td></tr></table></figure>
+
+<p>profile 详情（默认关闭），该功能可以帮助了解 SQL 语句耗时的部分。比如：</p>
+<ul>
+<li>查看每一条 SQL 的耗时基本情况：<strong>SHOW</strong> <strong>PROFILES</strong>;</li>
+<li>查看指定 query_id 的 SQL 语句各个阶段的耗时情况（或CPU 使用情况）：<code>show profile [cpu] for query query_id;</code></li>
+<li>查看是否支持 profile 操作：<code>SELECT @@have_profiling;</code></li>
+</ul>
+<p>如果需要开启 profile 操作，我们可以设置：<code>SET profiling = 1;</code></p>
+<p><code>EXPLAIN SELECT SQL语句;</code> 可以获取 MySQL 如何执行 SELECT 语句的信息，包括 SELECT 语句执行过程中表如何连接和连接的顺序，也就是该 SQL 语句的执行计划的细节。</p>
+<p><img src="/../../images/MySQL/explain.png" alt="img"></p>
+<p>上图展示了 explain 语句的结果中的各个字段，这些字段的含义如下表：</p>
+<table>
+<thead>
+<tr>
+<th>列名</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>id</strong></td>
+<td>表示查询中执行 <code>SELECT</code> 子句或操作表的顺序。<br>– <code>id</code> 相同：按顺序从上到下执行。<br>– <code>id</code> 不同：数值越大越优先执行。</td>
+</tr>
+<tr>
+<td><strong>select_type</strong></td>
+<td>表示 <code>SELECT</code> 的类型：<br>– <code>SIMPLE</code>: 简单查询，不使用 <code>JOIN</code> 或子查询。<br>– <code>PRIMARY</code>: 主查询，即最外层查询。<br>– <code>UNION</code>: <code>UNION</code> 中第二个或后面的查询。<br>– <code>SUBQUERY</code>: 在 <code>SELECT</code> &#x2F; <code>WHERE</code> 后包含子查询。<br>– <code>DERIVED</code>: 派生表的 <code>SELECT</code>（<code>FROM</code> 子句中的子查询）。</td>
+</tr>
+<tr>
+<td><strong>table</strong></td>
+<td>查询的表名。</td>
+</tr>
+<tr>
+<td><strong>type</strong></td>
+<td>表示连接类型，性能由好到差：<br>– <code>system</code>: 表只有一行，通常是系统表，速度最快。<br>– <code>const</code>, <code>eq_ref</code>, <code>ref</code>: 使用索引查找单个行，<code>const</code> 最优。<br>– <code>range</code>: 检索给定范围的行。<br>– <code>index</code>: 遍历索引树读取。<br>– <code>ALL</code>: 全表扫描，效率最低。</td>
+</tr>
+<tr>
+<td><strong>possible_keys</strong></td>
+<td>显示该表可能会使用的索引（一个或多个），但不一定真的被使用。</td>
+</tr>
+<tr>
+<td><strong>key</strong></td>
+<td>实际使用的索引；如果为 <code>NULL</code>，则未使用索引。</td>
+</tr>
+<tr>
+<td><strong>key_len</strong></td>
+<td>索引中使用的字节数，是索引字段的最大可能长度，并非实际长度；值越短越好。</td>
+</tr>
+<tr>
+<td><strong>ref</strong></td>
+<td>用于与索引列比较的值来源：<br>– <code>const</code>: 常量（如 <code>WHERE column = &#39;value&#39;</code>）。<br>– 列名称：通常在 <code>JOIN</code> 操作中，表示 <code>JOIN</code> 条件依赖的字段。<br>– <code>NULL</code>: 未使用索引或全表扫描。</td>
+</tr>
+<tr>
+<td><strong>rows</strong></td>
+<td>估算为得到结果集需扫描的行数，越少越好。</td>
+</tr>
+<tr>
+<td><strong>filtered</strong></td>
+<td>表示返回结果行数占扫描行数的百分比，越大越好。</td>
+</tr>
+<tr>
+<td><strong>Extra</strong></td>
+<td>其他信息：<br>– <code>using index condition</code> &#x2F; <code>NULL</code>: 查找使用了索引，但需回表查询数据。<br>– <code>using where, using index</code>: 查找使用了索引，且所需数据都在索引列中，无需回表。<br>– <code>using temporary</code>: 使用临时表存储中间结果。</td>
+</tr>
+</tbody></table>
+<p>示例：</p>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>select_type</th>
+<th>table</th>
+<th>partitions</th>
+<th>type</th>
+<th>possible_keys</th>
+<th>key</th>
+<th>key_len</th>
+<th>ref</th>
+<th>rows</th>
+<th>filtered</th>
+<th>Extra</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>SIMPLE</td>
+<td>user</td>
+<td>NULL</td>
+<td>range</td>
+<td>PRIMARY</td>
+<td>PRIMARY</td>
+<td>4</td>
+<td>NULL</td>
+<td>6</td>
+<td>100.00</td>
+<td>Using where</td>
+</tr>
+</tbody></table>
+<p>通过 explain 命令，我们能分析出一些慢 SQL 的常见原因：</p>
+<p>首先是索引使用问题，我们可通过 possible_keys(预计使用的索引) 和 key(实际使用的索引) 两个字段查看 InnoDB 有没有使用索引，优化器是否选择了错误索引，以及有没有实现覆盖索引。</p>
+<p>接着是 I&#x2F;O 开销问题，通过 rows(执行当前查询要遍历的行数) 和 filtered(有效行数&#x2F;扫描行数比值) 字段来查看，是否扫描的行数过多，是否返回无用列且无用列有明显 I&#x2F;O 性能开销(比如text、blob、json 等类型）。</p>
+<p><code>optimizer_trace</code> 可用于跟踪执行语句的解析、优化、执行的全过程。</p>
+<p>使用步骤：</p>
+<ul>
+<li>查看系统变量信息：<code>show variables like &#39;%optimizer_trace%&#39;;</code></li>
+<li>打开 optimizer trace 开关：<code>set optimizer_trace=&quot;enabled=on&quot;;</code></li>
+<li>执行 SQL 语句。</li>
+<li>查看 INFORMATION_SCHEMA.OPTIMIZER_TRACE 表中跟踪结果：<code>select * from INFORMATION_SCHEMA.OPTIMIZER_TRACE;</code>，并分析执行树：<ul>
+<li><code>join_preparation</code>：准备阶段；</li>
+<li><code>join_optimization</code>：分析阶段；</li>
+<li><code>join_execution</code>：执行阶段。</li>
+</ul>
+</li>
+</ul>
+<p>关闭该功能：<code>set optimizer_trace=&quot;enabled=off&quot;;</code></p>
+<h2 id="定位慢-SQL"><a href="#定位慢-SQL" class="headerlink" title="定位慢 SQL"></a>定位慢 SQL</h2><p>定位和优化慢 SQL 是提升 MySQL 性能的关键环节。通常可通过以下四大步骤完成：</p>
+<ol>
+<li>慢查询日志：记录所有执行时间超过阈值的 SQL，并借助 mysqldumpslow 汇总分析；</li>
+<li>服务监控：在应用层面通过字节码插桩、连接池或 ORM 拦截对慢 SQL 进行实时监控与告警；</li>
+<li>SHOW PROCESSLIST：在数据库层面查看当前运行的会话及其执行时间，快速锁定长时间运行的语句；</li>
+<li>EXPLAIN：对疑似慢 SQL 执行 EXPLAIN，洞察查询执行计划，从而发现索引缺失、全表扫描等根本原因。</li>
+</ol>
+<p><img src="/../../images/MySQL/sql_optimize.png" alt="img"></p>
+<h2 id="索引优化"><a href="#索引优化" class="headerlink" title="索引优化"></a>索引优化</h2><p>覆盖索引指的是当查询所需字段全部存在于索引叶节点时，数据库可以仅依赖索引而无需回表读取，显著降低 I&#x2F;O 开销。因此我们需要避免不必要的列，只查询需要的列。</p>
+<p>创建联合索引能使多个查询字段同时被索引覆盖，从而避免回表和索引合并操作，且应遵循最左前缀规则以确保索引被有效利用。</p>
+<p>为了保持索引的可用性，应避免使用 <code>!=</code>、<code>&lt;&gt;</code> 等非等值算符以及在索引列上应用函数，因为这些写法会导致索引失效，全表扫描或全索引扫描，从而影响性能。</p>
+<p>当对较长字符串字段建立前缀索引时，可节省存储空间，但由于前缀索引无法存储完整值，MySQL 无法利用其实现排序或分组操作，依然可能触发 filesort 或临时表。</p>
+<p>此外，InnoDB 默认启用索引下推技术（ICP），能将部分过滤条件下放至存储引擎层，仅在满足索引列过滤的记录上执行回表，从而减少数据传输量与回表次数，进一步提升查询效率。</p>
+<p>假设我要执行如下命令：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> users <span class="keyword">WHERE</span> age <span class="operator">&gt;</span> <span class="number">30</span> <span class="keyword">AND</span> city <span class="operator">=</span> <span class="string">&#x27;Los Angeles&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>在未启用索引下推时，InnoDB 存储引擎仅依据 age &gt; 30 的索引范围扫描收集所有符合该条件的行，并将它们一股脑儿地返回给 MySQL 服务器层，由服务器再对 <code>city = &#39;Los Angeles&#39;</code> 条件逐行筛选；而启用索引下推后，存储引擎会在索引扫描阶段同时评估 <code>age &gt; 30</code> 与 <code>city = &#39;Los Angeles&#39;</code> 两个条件，只有同时满足的行才会被送到服务器层，从而避免了无谓的行回表和服务器级过滤，显著减少了 I&#x2F;O 操作并提升了查询性能。实际执行时，若在 EXPLAIN 的 Extra 列中看到 Using index condition 即表示已启用这一优化。</p>
+<h2 id="join-优化"><a href="#join-优化" class="headerlink" title="join 优化"></a>join 优化</h2><p>在实际生产环境中，为了避免子查询带来的性能瓶颈，我们通常将其改写为等价的 JOIN 操作，并让行数较少的小表首先驱动行数庞大的大表，从而缩小中间结果集，减少随机 I&#x2F;O；同时可以在业务表中适当增加冗余字段，将频繁关联的维度信息直接存储在事实表中，以降低 JOIN 次数；为控制单次查询的复杂度，通常不超过三张表联合查询，如若业务允许，还可将逻辑复杂的多表 JOIN 拆分为多个简单查询，再在应用层按需合并结果，以实现更稳定高效的查询性能。</p>
+<h2 id="insert-优化"><a href="#insert-优化" class="headerlink" title="insert 优化"></a>insert 优化</h2><p>在大规模数据写入场景下，将多条记录合并到单条 INSERT 语句中（例如一次提交 500–1000 条）能显著减少网络往返与语句解析开销，性能远超逐行插入；同时，关闭 AUTOCOMMIT 并使用 <code>START TRANSACTION…COMMIT</code> 手动提交事务，可以将多次写操作合并在一次事务中，避免频繁的事务开启与提交，从而进一步提升吞吐量；对于尤其庞大的数据集，采用 <code>LOAD DATA LOCAL INFILE</code> 命令从客户端文件批量导入，可利用服务器端的高速流式加载机制，其速度通常比批量 INSERT 快一个数量级以上；最后，确保插入数据按照主键单调递增的顺序写入 InnoDB 表，可减少聚簇索引中的页分裂与随机 I&#x2F;O，获得优于乱序插入的最佳写入性能。</p>
+<h2 id="主键优化"><a href="#主键优化" class="headerlink" title="主键优化"></a>主键优化</h2><p><strong>选择简短且固定长度的整型主键</strong>：主键长度越短，聚簇索引和二级索引的存储和缓存开销越小；建议使用 INT 或 BIGINT 类型，并尽量避免使用 UUID 等无序且长度较长的值。</p>
+<p><strong>采用自增（<code>AUTO_INCREMENT</code>）主键</strong>：自增主键保证插入顺序与唯一性，能够最大化页的填充率并避免频繁的页分裂；只要满足业务需求，应优先使用自增主键而非自然主键（如身份证号）。</p>
+<p><strong>避免修改主键值</strong>：主键一旦更新，InnoDB 必须删除旧记录并插入新记录，等同于一次删除加一次插入，极易导致页分裂和 B+ 树重组，严重影响写入性能和存储布局。</p>
+<p><strong>显式定义主键</strong>：即使表中已有唯一索引，仍应显式声明主键列；若未定义主键，InnoDB 会隐式创建一个隐藏的聚簇索引，增加不确定性，且可能浪费空间和管理成本。</p>
+<h2 id="order-by-优化"><a href="#order-by-优化" class="headerlink" title="order by 优化"></a>order by 优化</h2><p>在 MySQL 中，任何无法直接利用索引有序性完成的 ORDER BY 操作都会触发 <strong>filesort</strong>：存储引擎先全表（或范围）扫描读取所有匹配行，将它们放入排序缓冲区（<code>sort_buffer</code>）中完成内存（或磁盘）排序后再返回结果；而如果能建立一个正好覆盖排序字段并且包含查询所需列的索引（<strong>Using index</strong>），MySQL 则可通过顺序扫描该索引直接输出有序结果，无需额外排序，效率更高。例如：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> age, phone </span><br><span class="line"><span class="keyword">FROM</span> table_name </span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> age <span class="keyword">ASC</span>, phone <span class="keyword">DESC</span>;</span><br></pre></td></tr></table></figure>
+
+<p>若事先创建：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> INDEX idx_user_age_pho_ad </span><br><span class="line"><span class="keyword">ON</span> table_name(age <span class="keyword">ASC</span>, phone <span class="keyword">DESC</span>);</span><br></pre></td></tr></table></figure>
+
+<p>则该查询可通过索引顺序扫描直接返回，避免 filesort 和回表查询；否则，MySQL 在执行时仍需先回表取出 phone 字段，再对 age、phone 结果集进行 filesort，才能满足排序要求。对于多列排序，除了要遵循<strong>最左前缀</strong>原则以保证索引可用，还需在建索引时指定正确的 ASC&#x2F;DESC 顺序；当无法避免 filesort 时，可通过增大 <code>sort_buffer_size</code>（默认为 256 KB）来提升大数据量场景下的排序性能。</p>
+<h2 id="group-by-优化"><a href="#group-by-优化" class="headerlink" title="group by 优化"></a>group by 优化</h2><p>在 MySQL 中，如果将用于 GROUP BY 的列定义在符合<strong>最左前缀</strong>规则的复合 B+Tree 索引上，服务器就可以直接沿着索引的有序叶节点执行分组操作，而无需使用临时表或 filesort，从而显著提高聚合查询性能；例如对于 <code>GROUP BY(a, b)</code> 的场景，只要存在 <code>(a, b, …)</code> 这样的复合索引，MySQL 就能利用该索引在扫描叶节点时即完成对 (a,b) 键值的分组，而不是先拉取所有行再在服务器层排序和分组。</p>
+<h2 id="limit-优化"><a href="#limit-优化" class="headerlink" title="limit 优化"></a>limit 优化</h2><p>在面对海量数据分页时，传统的 <code>LIMIT … OFFSET</code> 会因数据库必须扫描并丢弃前 OFFSET 行而导致深度分页速度骤降；为此，可采用延迟关联（Deferred Join）技术——先在子查询中仅基于主键索引完成分页，再与主表 JOIN 获取完整行，以大幅缩减扫描量并保持深度分页的稳定性能；另一种常见做法是书签或键集分页（Keyset Pagination），即在每页结果中记录最后一行的排序键，下次查询以 <code>WHERE key &gt; last_key LIMIT N</code> 的方式继续，既避免了昂贵的 OFFSET 跳过开销，又能直接利用索引顺序扫描；总之，通过延迟关联减少笛卡尔积运算并使用游标式或书签式分页策略，可在保持简洁 SQL 的同时显著提升大数据量分页查询的执行效率。</p>
+<h2 id="count-优化"><a href="#count-优化" class="headerlink" title="count 优化"></a>count 优化</h2><p>在 MySQL 中，<code>COUNT(column)</code> 最慢，因为引擎要逐行取出指定列的值并判断是否为 NULL，只有非空值才累加；<code>COUNT(primary_key)</code> 略快一些，因为主键列本身有 NOT NULL 约束，无需判断空值即可累加；<code>COUNT(1)</code> 与 <code>COUNT(*)</code> 在现代 MySQL 中被优化为等价操作，它们都不实际读取任何列值，而是在服务层对每行隐式累加一个常量，性能十分接近，通常是最快的计数方式。</p>
+<p>大多数权威测试与官方文档都表明，COUNT(1) 与 COUNT(*) 在 MySQL&#x2F;InnoDB 上几乎没有性能差异，且二者优于其他形式的 COUNT（例如 COUNT(column)）。</p>
+<blockquote>
+<p>[!NOTE]</p>
+<p>如果我们需要在大数据量下统计唯一值，同时对处理速度要求很高，但是允许出现小幅度误差，这个时候我们可以使用 HyperLogLog 算法。</p>
+<p>HyperLogLog 是一种概率算法，通过统计哈希值中最长前导零长度来估算数据基数，误差一般在 1–2% 范围内。</p>
+<p>具体论文，可参考：<a target="_blank" rel="noopener" href="https://algo.inria.fr/flajolet/Publications/FlFuGaMe07.pdf">https://algo.inria.fr/flajolet/Publications/FlFuGaMe07.pdf</a></p>
+</blockquote>
+<h2 id="update-优化"><a href="#update-优化" class="headerlink" title="update 优化"></a>update 优化</h2><p>InnoDB 的行锁实际上是对索引记录（index record）加锁，而非对物理存储行本身加锁：当执行带有 WHERE 条件的 <code>UPDATE</code>、<code>DELETE</code> 或 <code>SELECT … FOR UPDATE</code> 时，InnoDB 会在匹配条件的索引叶节点上设置记录锁和必要的间隙锁，从而实现行级并发控制；但如果查询条件无法利用任何合适的索引，InnoDB 就必须扫描整个表并在聚簇索引（或隐式主键索引）上对所有记录加锁，这时就会退化为表级锁，阻塞全表写操作；同样地，若使用的索引失效（例如对非索引列做范围扫描或函数运算），也会触发锁粒度升级为表锁，导致并发性能急剧下降。因此，为了保持细粒度的行锁并避免意外的表锁锁阻塞，务必为常用的查询条件列创建合适且选择性高的索引。</p>
+<h2 id="union-优化"><a href="#union-优化" class="headerlink" title="union 优化"></a>union 优化</h2><p>在使用 UNION 语句时，为了让优化器更高效地执行查询，应将共同的过滤条件（如 WHERE）和分页限制（如 LIMIT）尽可能下推到各个子查询中，这样每个子查询只需处理满足自身子集条件的行，并在各自范围内完成截取与过滤，避免先将所有子查询结果合并后再做统一筛选，从而减少中间结果集的大小、降低 I&#x2F;O 与内存开销，并加快整体查询响应速度。</p>
+<p><strong>MySQL 数据库 cpu 飙升的话，要怎么处理呢？</strong></p>
+<p>在 MySQL 出现 CPU 飙升时，首先可借助操作系统工具（如 top 或 htop）确认是 mysqld 进程占用过高，接着在数据库层面执行 <code>SHOW PROCESSLIST</code> 或查询 <code>information_schema.processlist</code>，快速定位执行时间或状态异常的会话，并对最耗资源的 SQL 做 EXPLAIN 分析，检查是否缺失索引或数据量过大；发现可疑线程后，可使用 KILL 语句终止它们，同时观察 CPU 是否回落，然后针对性地优化（如新增索引、重写慢查询、调整内存参数等）并重新执行这些 SQL；此外，如果是大量会话瞬间涌入导致 CPU 突增，则需与应用方协同排查连接激增的原因，并可考虑设置最大连接数或在业务层做限流，以防过多并发请求压垮数据库服务器。</p>
+<p><strong>有一个查询需求，MySQL 中有两个表，一个表 1000W 数据，另一个表只有几千数据，要做一个关联查询，如何优化？</strong></p>
+<p>如果 orders 表是大表（比如 1000 万条记录），而 users 表是相对较小的表（比如几千条记录）。</p>
+<ol>
+<li><p>为关联字段建立索引，确保两个表中用于 JOIN 操作的字段都有索引。这是最基本的优化策略，避免数据库进行全表扫描，可以大幅度减少查找匹配行的时间。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> INDEX idx_user_id <span class="keyword">ON</span> users(user_id);</span><br><span class="line"><span class="keyword">CREATE</span> INDEX idx_user_id <span class="keyword">ON</span> orders(user_id);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>小表驱动大表，在执行 JOIN 操作时，先过滤小表中的数据，这样可以减少后续与大表进行 JOIN 时需要处理的数据量，从而提高查询效率。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> u.<span class="operator">*</span>, o.<span class="operator">*</span></span><br><span class="line"><span class="keyword">FROM</span> (</span><br><span class="line">  <span class="keyword">SELECT</span> user_id</span><br><span class="line">  <span class="keyword">FROM</span> users</span><br><span class="line">  <span class="keyword">WHERE</span> some_condition <span class="comment">-- 这里是对小表进行过滤的条件</span></span><br><span class="line">) <span class="keyword">AS</span> filtered_users</span><br><span class="line"><span class="keyword">JOIN</span> orders o <span class="keyword">ON</span> filtered_users.user_id <span class="operator">=</span> o.user_id</span><br><span class="line"><span class="keyword">WHERE</span> o.some_order_condition; <span class="comment">-- 如果需要，可以进一步过滤大表</span></span><br></pre></td></tr></table></figure></li>
+</ol>
+<p><strong>如何解决慢查询问题？</strong></p>
+<p>首先，开启慢查询日志，用于记录执行时间超过阈值的查询，帮助定位慢查询的 SQL 语句。</p>
+<p>开启方法如下：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SET</span> <span class="keyword">GLOBAL</span> slow_query_log <span class="operator">=</span> <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">SET</span> <span class="keyword">GLOBAL</span> long_query_time <span class="operator">=</span> <span class="number">1</span>; <span class="comment">-- 设置慢查询的阈值为1秒</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">SHOW</span> VARIABLES <span class="keyword">LIKE</span> <span class="string">&#x27;slow_query_log%&#x27;</span>; <span class="comment">-- 确认是否启用</span></span><br></pre></td></tr></table></figure>
+
+<p>之后检查慢查询日志文件，定位耗时较长的 SQL 语句，并使用 EXPLAIN 分析 SQL 的执行计划，判断是否使用了索引或是否存在全表扫描等问题。</p>
+<p>比如说：<code>EXPLAIN SELECT * FROM table_name WHERE column_name = &#39;value&#39;;</code>，该命令中的关键字段解释如下：</p>
+<ol>
+<li>type：查询类型，优化目标是避免 ALL（全表扫描），优先选择 index、range。</li>
+<li>key：实际使用的索引。</li>
+<li>rows：扫描的行数，值越小越好。</li>
+<li>extra：留意 Using temporary 或 Using filesort，这些会影响性能。</li>
+</ol>
+<p>如果缺少索引，那么我们需要为查询条件中的字段添加索引，特别是 WHERE、JOIN、GROUP BY、ORDER BY 中涉及的字段。<br>比如说：<code>CREATE INDEX idx_column ON table_name (column_name);</code></p>
+<p>如果大量数据出现回表操作，那么需要改成覆盖索引，减少回表操作。<br>比如说：<code>CREATE INDEX idx_multi_column ON table_name (column1, column2);</code></p>
+<p>同时，还要判断是否出现索引失效。对此，我们可以避免对索引列使用函数或表达式，避免隐式类型转换（如字符串与数字比较）。</p>
+<p>然后，我们可以重构查询语句，比如说使用 LIMIT 分页来避免返回大量数据：<code>SELECT * FROM table_name WHERE condition LIMIT 100;</code>，或者可以明确查询字段：<code>SELECT column1, column2 FROM table_name WHERE condition;</code>，避免运行 <code>SELECT *;</code>，再者可以在 JOIN 字段上设置索引，并尽量减少复杂的嵌套查询。</p>
+<p>最后，我们可以进行表结构优化。</p>
+<p>比如说可以使用分区表，也就是如果查询条件中经常使用时间或地理区域，可以将表按这些字段分区，减少扫描范围：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE TABLE</span> table_name (</span><br><span class="line">  id <span class="type">BIGINT</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line">  created_at <span class="type">DATE</span> <span class="keyword">NOT NULL</span></span><br><span class="line">) <span class="keyword">PARTITION</span> <span class="keyword">BY</span> <span class="keyword">RANGE</span> (<span class="keyword">YEAR</span>(created_at)) (</span><br><span class="line">  <span class="keyword">PARTITION</span> p2023 <span class="keyword">VALUES</span> LESS THAN (<span class="number">2024</span>),</span><br><span class="line">  <span class="keyword">PARTITION</span> p2024 <span class="keyword">VALUES</span> LESS THAN (<span class="number">2025</span>)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<p>或者如果单表数据量仍然过大，还可以按特定规则（如用户 ID）将表拆分为多个子表，降低单表数据量。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/MySQL/2024/10/06/MySQL/%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/undefined/MySQL/2024/10/06/MySQL/%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E/" class="post-title-link" itemprop="url">存储引擎</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2024-10-06 00:00:00" itemprop="dateCreated datePublished" datetime="2024-10-06T00:00:00-07:00">2024-10-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-06-17 21:30:46" itemprop="dateModified" datetime="2025-06-17T21:30:46-07:00">2025-06-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>存储引擎是存储、更新或查询数据、以及建立索引等技术的实现方式。存储引擎是<strong>基于表</strong>的，而不是基于库的，因此存储引擎也可被称为表类型。</p>
+<p>指定存储引擎：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE TABLE</span> 表名 (</span><br><span class="line">	...</span><br><span class="line">) ENGINE <span class="operator">=</span> INNODB ...;</span><br></pre></td></tr></table></figure>
+
+<p>查看当前数据库支持的存储引擎：<code>SHOW ENGINES;</code></p>
+<p>存储引擎特点</p>
+<p><img src="/../../images/MySQL/storage_engine.png" alt="img"></p>
+<h2 id="InnoDB"><a href="#InnoDB" class="headerlink" title="InnoDB"></a>InnoDB</h2><p>它是一个兼顾<strong>高可靠性和高性能</strong>的通用存储引擎。</p>
+<p>特点</p>
+<ul>
+<li>DML 操作遵循 ACID 模型，支持事务。</li>
+<li>行级锁提高并发访问性能。</li>
+<li>支持外键 FOREIGN KEY 约束，保证数据的完整性和正确性。</li>
+<li>支持非锁定读，即默认读取操作不会产生锁。</li>
+</ul>
+<p>InnoDB 引擎中有多个内存块，这些内存块组成了一个大的内存池，负责如下工作：</p>
+<ol>
+<li>维护所有进程或线程需要访问的多个内部数据结构。</li>
+<li>缓存磁盘上的数据，方便快速读取，同时再对磁盘文件的数据修改之前在这里缓存。</li>
+<li>Redo 日志缓冲。</li>
+<li>…</li>
+</ol>
+<p><img src="/../../images/MySQL/storage_engine_mem_pool.drawio.png" alt="img"></p>
+<p>上图中，后台线程的主要作用是刷新内存中的数据，保证缓冲池中缓存的是最新的数据，此外将已修改的数据文件刷新到磁盘，同时保证在数据库发生异常的情况下 InnoDB 能恢复到正常运行状态。</p>
+<h3 id="后台线程"><a href="#后台线程" class="headerlink" title="后台线程"></a>后台线程</h3><p>InnoDB 存储引擎是多线程模型，因此有多个不同的后台线程，负责不同的任务：</p>
+<ol>
+<li><p>Master Thread</p>
+<p>Master Thread 是一个非常核心的后台线程，主要负责将缓冲池中的数据异步刷新到磁盘，保证一致性，包括脏页的刷新、合并更改缓冲区、回收 Undo 页等。</p>
+</li>
+<li><p>IO Thread</p>
+<p>InnoDB 中大量使用了 AIO 来处理写 IO 请求，这样可以极大提高数据库的性能。而 IO Thread 主要负责这些 IO 请求的回调处理。</p>
+</li>
+<li><p>Purge Thread</p>
+<p>事务被提交后，其所使用的 Undo 日志可能不再被需要，因此引入 Purge Thread 来回收已经使用并被分配的 Undo 页。</p>
+</li>
+<li><p>Page Cleaner Thread</p>
+<p>作用是将之前版本中脏页的刷新操作都放入到单独的线程中来完成，用于减轻元 Master Thread 的工作以及对于用户查询线程的阻塞。</p>
+</li>
+</ol>
+<h3 id="Checkpoint"><a href="#Checkpoint" class="headerlink" title="Checkpoint"></a>Checkpoint</h3><p>缓冲池的设计目的是为了协调 CPU 速度和磁盘速度的鸿沟。但是如果每次一个页只要的发生变化，都要将脏页刷新到磁盘的话，那开销将非常大。而且如果从缓冲池刷新页到磁盘的磁盘过程中发生了宕机，那么数据无法恢复，因此 InnoDB 采用了 Write Ahead Log 策略，也就是当事务提交时，先写 Redo 日志再修改页。</p>
+<p>如果 Redo 日志可以无限增大，并且缓冲池也足够大。那么我们无需将缓冲池中的脏页刷回磁盘。但是我们做不到，因为大容量内存很少见，而且维护人员需要时刻监测 Redo 日志的积累量是否超过磁盘空间阈值，此外宕机之后大量 Redo 日志的重放非常耗时，因此我们需要 Checkpoint 解决这些问题：</p>
+<ol>
+<li>缩短数据库的恢复时间；</li>
+<li>缓冲池不够用时，将脏页刷回磁盘；</li>
+<li>Redo 日志不可用时，刷新脏页。</li>
+</ol>
+<p>因此，当数据库发⽣宕机时， 数据库不需要重做所有的⽇志，因为 Checkpoint 之前的页都已经刷新回磁盘。故数据库只需对 Checkpoint 后的重做⽇志进⾏恢复。这样就⼤⼤缩短了恢复的时间。</p>
+<p>此外，当缓冲池不够⽤时，根据 LRU 算法会淘汰最近最少使⽤的页，若此页为脏页，那么需要强制执⾏ Checkpoint，将脏页刷回磁盘。</p>
+<p>重做日志出现不可用的情况是因为当前事务数据库系统对重做日志的设计都是循环使用的，并不是让其无限增大的。重做日志可以被重用的部分是指这些重做日志已经不再需要，即当数据库发生宕机时，数据库恢复操作不需要这部分的重做日志，因此这部分就可以被覆盖重用。若此时重做日志还需要继续使用不可被覆盖的部分，那么必须强制产生 Checkpoint，将缓冲池中的页至少刷新到当前重做日志的位置。</p>
+<p>InnoDB 是通过 LSN（Log Sequence Number）来标记版本的，而 LSN 是 8 字节的数字。每个页有 LSN，重做日志中也有 LSN，Checkpoint 也有 LSN。</p>
+<p>InnoDB 存储引擎内部，有两种 Checkpoint：</p>
+<ol>
+<li>Sharp Checkpoint；</li>
+<li>Fuzzy Checkpoint。</li>
+</ol>
+<p>Sharp Checkpoint 发生在数据库关闭时将所有的脏页都刷新回磁盘，这是默认的工作方式。</p>
+<p>但是若数据库在运行时也使用 Sharp Checkpoint，那么数据库的可用性就会受到大大影响，故在 InnoDB 存储引擎内部常使用 Fuzzy Checkpoint 进行页的刷新，即只刷新一部分脏页，而不是刷新所有的脏页回磁盘。</p>
+<p>InnoDB 存储引擎中可能会生成如下几种情况的 Fuzzy Checkpoint：</p>
+<ul>
+<li>Master Thread Checkpoint；</li>
+<li>FLUSH_LRU_LIST Checkpoint；</li>
+<li>Async&#x2F;Sync Flush Checkpoint；</li>
+<li>Dirty Page too much Checkpoint。</li>
+</ul>
+<p>Master Thread 中发生的 Checkpoint，差不多以每秒或每十秒的速度从缓冲池的脏页列表中刷新一定比例的页回磁盘。这个过程是异步的，即此时 InnoDB 存储引擎可以进行其他的操作，用户查询线程不会阻塞。</p>
+<p><strong>FLUSH_LRU_LIST Checkpoint</strong> 是因为 InnoDB 存储引擎要保证 LRU 列表中需要有不多于 100 个空闲页可供使用。倘若没有 100 个可用空闲页，那么 InnoDB 会将 LRU 列表尾端的页移除。如果这些页中有脏页，那么需要进行 Checkpoint，而这些页是来自 LRU 列表的，因此称为 FLUSH_LRU_LIST Checkpoint。之后，这些检查被放在了一个单独的 Page Cleaner 线程中进行。</p>
+<p><strong>Async&#x2F;Sync Flush Checkpoint</strong> 指的是重做日志文件不可用的情况，这时需要强制将一些页刷新回磁盘，而此时脏页是从脏页列表中选取的。</p>
+<p>若将已经写到重做日志的 LSN 记为 <code>redo_lsn</code>，将已经刷新回磁盘最新页的 LSN 记为 <code>checkpoint_lsn</code>，则可定义：</p>
+<p>$$checkpoint_age &#x3D; redo_lsn - checkpoint_lsn$$</p>
+<p>再定义以下的变量：</p>
+<p>$$async_water_mark &#x3D; 75% * total_redo_log_file_size$$</p>
+<p>$$sync_water_mark &#x3D; 90% * total_redo_log_file_size$$</p>
+<p>若每个重做日志文件的大小为 1GB，并且定义了两个重做日志文件，则重做日志文件的总大小为 2GB。那么 <code>async_water_mark=1.5GB</code>，<code>sync_water_mark=1.8GB</code>，则：</p>
+<ul>
+<li>当 <code>checkpoint_age &lt; async_water_mark</code> 时，不需要刷新任何脏页到磁盘；</li>
+<li>当 <code>async_water_mark &lt; checkpoint_age &lt; sync_water_mark</code> 时触发 <strong>Async Flush</strong>，从 Flush 列表中刷新足够的脏页回磁盘，使得刷新后满足 <code>checkpoint_age &lt; async_water_mark</code>；</li>
+<li><code>checkpoint_age &gt; sync_water_mark</code> 这种情况一般很少发生，除非设置的重做日志文件大小小，并且在进行类似 LOAD DATA 或 BULK INSERT 操作。此时触发 <strong>Sync Flush</strong> 操作，从 Flush 列表中刷新足够的脏页回磁盘，使得刷新后满足 <code>checkpoint_age &lt; async_water_mark</code>。</li>
+</ul>
+<p>之后，这部分刷新操作同样被放入到 Page Cleaner 线程中，所以再也不会阻塞用户查询线程。</p>
+<p>最后一种 Checkpoint 的情况是 <strong>Dirty Page too much</strong>，即脏页的数量太多，导致 InnoDB 存储引擎强制进行 Checkpoint。其目的的总结来说是为了<strong>保证缓冲池中有足够可用的页</strong>。其可由参数 innodb_max_dirty_pages_pct 控制，<code>innodb_max_dirty_pages_pct</code> 值为 75 表示，当缓冲池中脏页的数量占比 <strong>75%</strong> 时，强制进行 Checkpoint，刷新一部分的脏页到磁盘。</p>
+<h3 id="Master-Thread"><a href="#Master-Thread" class="headerlink" title="Master Thread"></a>Master Thread</h3><p>InnoDB 存储引擎的主要工作都是在一个<strong>单独的后台线程 Master Thread</strong> 中完成的。具体的演化过程请参考 MySQL 技术内幕的 36-45 页。</p>
+<h3 id="关键底层特性"><a href="#关键底层特性" class="headerlink" title="关键底层特性"></a>关键底层特性</h3><ul>
+<li>插入缓冲</li>
+<li>两次写</li>
+<li>自适应哈希索引</li>
+<li>异步 IO</li>
+<li>刷新临接页</li>
+</ul>
+<h4 id="插入缓冲"><a href="#插入缓冲" class="headerlink" title="插入缓冲"></a>插入缓冲</h4><p>InnoDB 中，主键是行唯一的标识符，通常应用程序中行记录的插入是按照主键递增的顺序来进行的（AUTO_INCREMENT），因此插入聚集索引一般是顺序的，无需磁盘随机读取。但是，一张表上可能存在多个非聚集切非唯一的二级索引，再进行插入操作的时候，数据页的存放还是按照主键顺序存放的，但是对于非聚集非唯一的索引而言，叶子节点的插入一般来说就不再是顺序的了，也就是会出现随机访问，除了日期之类的递增列的索引。</p>
+<p>因此 InnoDB 中设计了插入缓冲：对于非狙击索引的插入和更新操作，不是每一次直接插入到索引页中，而是先判断插入的非聚集索引页是否在缓冲池中，若在，则直接插入，若不在，则先放入到一个插入缓冲中，然后再以一定频率和情况进行插入缓冲和二级索引页的合并操作，这时通常能将多个插入操作合并到一个操作中，极大提高了对于非聚集索引插入的性能。</p>
+<p>为什么插入缓冲不操作唯一索引？</p>
+<p>因为如果要对唯一索引进行操作，不论是插入、删除还是更新，都需要到索引页中判断要操作的记录的唯一性，这又会导致随机访问的发生，从而导致插入缓冲失去意义。</p>
+<p>插入缓冲是一棵 B+ 树，并且该树数据库全局中只有一棵，负责对所有表的二级索引进行插入操作的缓存。该树被放在共享表空间中，即 ibdata1 中。 因此，试图通过独⽴表空间 ibd ⽂件恢复表中数据时，往往会导致 CHECK TABLE 失败。这是因为表的辅助索引中的数据可能还在 InsertBuffer 中，也就是共享表空间中，所以通过 ibd ⽂件进⾏恢复后，还需要进⾏ REPAIR TABLE 操作来重建表上所有的辅助索引。</p>
+<p>该树中的非叶子节点存放的是查询的 search key，也就是索引键（在 Insert Buffer B + 树中，二级索引页根据（ space, offset ）都已排序好），其结构如下：</p>
+<p><img src="/../../images/MySQL/storage_engine_insert_buf_non_leaf.drawio.png" alt="img"></p>
+<p>searchkey ⼀共占⽤ 9 个字节，其中 space 表⽰待插⼈记录所在表的表空间 id，在 InnoDB 存储引擎中，每个表有⼀个唯⼀的 spaceid，可以通过 spaceid 查询得知是哪张表。space 占⽤ 4 字节。marker 占⽤ 1 字节，它是⽤来兼容⽼版本的 Insert Buffer。offset 表⽰页所在的偏移量，占⽤ 4 字节。</p>
+<p>当⼀个辅助索引要插入到页（ space, offset ）时，如果这个页不在缓冲池中，那么 InnoDB ⾸先根据上述规则构造⼀个 searchkey，接下来查询 InsertBuffer 这棵 B+树，然后再将这条记录插⼊到 Insert Buffer 的叶⼦节点中。</p>
+<p>对于插⼊到 Insert Buffer 叶⼦节点的记录，并不是直接将待插入的记录插入，⽽是需要根据如下规则进⾏构造：</p>
+<p><img src="/../../images/MySQL/storage_engine_insert_buf_leaf.drawio.png" alt="img"></p>
+<p>上图是 Insert Buffer 叶子节点中的记录结构，其中 space、marker、offset 字段和之前的含义一致，一共 9 字节。metadata 占用 4 字节，其存储内容如下：</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>字节</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>IBUF_REC_OFFSET_COUNT</td>
+<td>2</td>
+</tr>
+<tr>
+<td>IBUF_REC_OFFSET_TYPE</td>
+<td>1</td>
+</tr>
+<tr>
+<td>IBUF_REC_OFFSET_FLAGS</td>
+<td>1</td>
+</tr>
+</tbody></table>
+<p><code>IBUF_REC_OFFSET_COUNT</code> 记录进入 Insert Buffer 的顺序，并且通过这个顺序才能得到正确的值。</p>
+<p>从第 5 个字段开始，就是实际插入记录的各个字段，因此较原插入记录，Insert Buffer 中的叶子节点中的记录需要额外 13 字节的开销。</p>
+<p>当启用 Change Buffer（Insert Buffer 升级）后，InnoDB 不会立即将对非聚集索引页的修改（插入、删除、更新）同步到该页上，而是将修改记录缓存到一个 Insert Buffer 中。这种做法虽然减少了大量随机 I&#x2F;O，但带来两个问题：</p>
+<ol>
+<li>何时合并？ 合并时要把哪些缓冲修改应用到目标页？</li>
+<li>是否还有可用空间？ 只有当目标页有足够剩余空间时，才允许新的修改进入缓冲，否则要避免膨胀页大小。</li>
+</ol>
+<p>为此，引入了 bitmap 页面来快速回答这两类问题，而无需读取整个索引页。</p>
+<p>每个 bitmap 页描述一组连续的二级索引页。在常见的 16 KB 页大小下，一个 bitmap 页能跟踪 16 384 个索引页（即 256 个区）。每个 Insert Buffer Bitmap 页是 16384 个页中的第⼆个页。每个被跟踪的索引页对应 4 位信息，如下：</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>大小（bit）</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>IBUF_BITMAP_FREE</td>
+<td>2</td>
+<td>表示该辅助索引页中的可用空间数量，可取值为：<br>• 0 表示无可用剩余空间<br>• 1 表示剩余空间大于 1&#x2F;32 页（512 字节）<br>• 2 表示剩余空间大于 1&#x2F;16 页<br>• 3 表示剩余空间大于 1&#x2F;8 页</td>
+</tr>
+<tr>
+<td>IBUF_BITMAP_BUFFERED</td>
+<td>1</td>
+<td>1 表示该辅助索引页有记录被缓存至 Insert Buffer B+ 树中</td>
+</tr>
+<tr>
+<td>IBUF_BITMAP_IBUF</td>
+<td>1</td>
+<td>1 表示该页为 Insert Buffer B+ 树的索引页</td>
+</tr>
+</tbody></table>
+<p> Merge Insert Buffer 的操作可能发⽣在以下⼏种情况下：</p>
+<ol>
+<li>当某个二级索引页被读取到缓冲池时，立即应用该页所有挂起的缓冲修改；</li>
+<li>当 Insert Buffer Bitmap 检测到某页可用空间不足，必须先合并才能继续缓冲新的修改；</li>
+<li>Master Thread 循环检测并执行各种维护任务，包括 Change Buffer 的合并操作。</li>
+</ol>
+<p>对第二点进行补充：若 Bitmap 显示该页剩余可用空间 ≥ 阈值（默认为页大小的 1&#x2F;32），则直接将修改写入 Change Buffer；否则，视为可用空间不足，需要<strong>先合并</strong>该页在 Change Buffer 中的所有挂起修改，再重新计算空间后才能缓冲。</p>
+<p>在 Master Thread 中，执行 merge 操作的不止是一个页，而是根据 <code>srv_innodb_io_capacity</code> 的百分比来决定真正要合并多少个辅助索引页。但 InnoDB 存储引擎又是根据怎样的算法来得知需要合并的辅助索引页？</p>
+<p>解决方案是随机选页策略：</p>
+<ul>
+<li>随机起点：Master Thread 在 Change Buffer 树中随机挑选一个页（或一个树节点），然后从该页开始，按内部顺序（通常是树结构中后继页）依次读取所需数量的页来合并。</li>
+<li>保证覆盖全树：通过每次随机的起点，随着时间推移，整个 B+ 树中的所有页都会被均匀地触及，避免固定区段被长时间忽略。</li>
+<li>批量合并：从选中的起点开始，连续取出 N 页（N 由 I&#x2F;O 预算决定）进行条目合并和写回。</li>
+</ul>
+<p>在 merge 时，如果要进行 merge 的条目已经被删除，此时可以直接丢弃已被 Insert&#x2F;Change Buffer 存储的对应数据记录。</p>
+<p><strong>为什么不按顺序选页？</strong></p>
+<p>按 <code>(space, offset)</code> 排序：理论上可以从最小的表空间 ID（space）和页号（offset）开始，按顺序扫描整个 B+ 树。</p>
+<p>公平性问题：如果总是从头开始，前面页的挂起修改会被反复优先处理，而后面页可能长时间得不到合并。</p>
+<p>更改缓冲</p>
+<p>更改缓冲是插入缓冲的升级版，因为它可以对 DML 操作（增删改）进行缓冲。更改缓冲的适用对象仍然是非唯一的二级索引。</p>
+<p><code>innodb_change_buffering</code> 控制 Change Buffer 的行为，默认值为 all，表示所有类型的插入、更新和删除操作都会使用 Change Buffer。可选值包括：</p>
+<ul>
+<li>none：禁用 Change Buffer。</li>
+<li>inserts：仅缓存插入操作。</li>
+<li>deletes：仅缓存删除操作。</li>
+<li>changes：缓存插入和删除操作。</li>
+<li>all：缓存所有支持的操作。</li>
+</ul>
+<h4 id="双写"><a href="#双写" class="headerlink" title="双写"></a>双写</h4><p>双写为 InnoDB 带来了数据页写磁盘的可靠性。</p>
+<p>当发生数据库宕机时，可能 InnoDB 存储引擎正在写入某个页到表中，而这个页只写了一部分，比如 16 KB 的页，只写了前 4 KB，之后就发生了宕机，这种情况被称为部分写失效（partial page write）。在 InnoDB 存储引擎未使用 doublewrite 技术前，曾经出现过因为部分写失效而导致数据丢失的情况。</p>
+<p>有人会想，如果发生写失效，可以通过重做日志进行恢复。这是一个办法。但是必须清楚地认识到，重做日志中记录的是对页的物理操作，比如偏移量 800，写入 <code>aaaa</code> 记录。如果这个页本身已经发生了损坏，再对其进行重做是没有意义的。这就是说，在应用重做日志前，用户需要一个页的副本，当页写失效时，先通过页的副本来还原该页，再进行重做，这就是 doublewrite。</p>
+<p>当 InnoDB 将脏页写回磁盘时，如果发生意外宕机（如断电、进程被杀），可能只写入了页面的一部分字节，这称为部分写失效（partial page write）。此时磁盘上的原始页已损坏，内部结构（例如记录边界、checksum、LSN 等）不再正确。InnoDB 的 Redo Log 仅记录对特定行或特定偏移的修改差分，并不包含整页的镜像。因此，如果缺少干净的起始页，应用这些差分时就无从下手——就像没有原图就没法正确贴修补片一样。</p>
+<p>doublewrite 由两部分组成：一部分是内存中的 doublewrite buffer，大小为 2 MB；另一部分是物理磁盘上共享表空间中连续的 128 个页，即 2 个区（extent），大小同样为 2 MB。</p>
+<p>在后台线程对缓冲池的脏页进行刷回磁盘的时候，并不是直接写入表空间文件，而是先通过 memcpy 将数据页复制到内存中的 doublewrite buffer，它被划分为两段，每段约 1 MB，InnoDB 按连续顺序调用 <code>write()</code> 将第一段写入 OS 页缓存，再调用 <code>fsync()</code> 强制落盘，然后对第二段重复相同操作。在这个过程中，由于 doublewrite 页面在磁盘上是连续存放的，因此写入是顺序 I&#x2F;O，性能损耗也相对可控。在完成 doublewrite 页的安全落盘之后，再将磁盘的 doublewrite 中的页面按各自原始逻辑位置分散写入 .ibd 或共享表空间文件；这一步 I&#x2F;O 是随机分布的。</p>
+<p><img src="/../../images/MySQL/storage_engine_dbwr.drawio.png" alt="img"></p>
+<p>fsync 是一个 POSIX 系统调用，用于强制操作系统将指定文件的所有已修改数据块及其元数据，从内核缓冲区刷写（flush）到物理存储设备，并在返回之前<strong>阻塞</strong>直到存储设备确认写入完成。</p>
+<p>如果操作系统在将页写入磁盘的过程中发生了崩溃，在恢复过程中，InnoDB 可从共享表空间中的 doublewrite 中找到该页的一个副本，将其复制到表空间文件并应用 Redo 日志。</p>
+<p>注意：有些文件系统如 AFS 提供了部分写失效的防范机制，因此在这种情况下，无需启动 doublewrite。</p>
+<p><strong>为什么数据页会被先写入双写缓冲，而不是直接被写入数据文件？</strong></p>
+<p>直接写入数据文件时，部分写失效问题更加严重，因为数据文件中的数据页分布是<strong>随机的</strong>，不同的数据页可能在磁盘的不同区域，而不是连续存放。因此，直接写入这些随机分布的页时，我们需要花费更多的时间，发生部分写失效的风险更高。而双写缓冲区是一个专门设计的区域，确保每次写入是<strong>连续的、顺序的</strong>，它使得内存中的数据能在最短的时间内被写入磁盘，从而大大减少了部分写失效的风险。</p>
+<h4 id="自适应哈希索引"><a href="#自适应哈希索引" class="headerlink" title="自适应哈希索引"></a>自适应哈希索引</h4><p>哈希（hash）是一种非常快的查找方法，在一般情况下这种查找的时间复杂度为 O(1)，即一般仅需一次查找就能定位数据。而 B+ 树的查找次数，取决于 B+ 树的高度，在生产环境中， B+ 树的高度一般为 3 ～ 4 层，故需要 3 ～ 4 次的查询。</p>
+<p>InnoDB 存储引擎会监控对表上各索引页的查询。如果观察到建立哈希索引可以带来速度提升，则建立哈希索引，称之为自适应哈希索引（Adaptive Hash Index，AHI）。AHI 是通过缓冲池的 B+ 树页构造而来，因此建立的速度很快，而且不需要对整张表构建哈希索引。InnoDB 存储引擎会自动根据访问的频率和模式来自动地为某些热点页建立哈希索引。</p>
+<p>AHI 有一个要求，即对这个页的连续访问模式必须是一样的。例如对于 (a, b) 这样的联合索引页，其访问模式可以是以下情况：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">WHERE</span> a<span class="operator">=</span>xxx</span><br><span class="line"><span class="comment">-- 或者</span></span><br><span class="line"><span class="keyword">WHERE</span> a<span class="operator">=</span>xxx <span class="keyword">and</span> b<span class="operator">=</span>xxx</span><br></pre></td></tr></table></figure>
+
+<p>访问模式一样指的是查询的条件一样，若交替进行上述两种查询，那么 InnoDB 存储引擎不会对该页构造 AHI。此外 AHI 还有如下的要求：</p>
+<ul>
+<li>以该模式访问了 100 次；</li>
+<li>页通过该模式访问了 N 次，其中 <code>N = 页中记录 * 1/16</code>。</li>
+</ul>
+<p>仅当上述两项同时满足，且访问模式一致时，才会触发 AHI 的构建。<code>同一模式访问次数 ≥ 100</code>：保证该模式不是偶发的短时热点。<code>页访问次数 ≥ R / 16</code>：保证该模式命中足够多的行数，是真正的页级热点。</p>
+<p>当你交替执行两种不同的访问模式（<code>WHERE a=xxx</code> 和 <code>WHERE a=xxx AND b=xxx</code>），即使每种模式单独都达到了 100 次，也仍然<strong>不会</strong>触发 AHI 的构建。</p>
+<h4 id="异步-IO"><a href="#异步-IO" class="headerlink" title="异步 IO"></a>异步 IO</h4><p>同步 I&#x2F;O：每次调用 <code>read()</code>&#x2F;<code>write()</code> 后，调用线程必须阻塞等待 I&#x2F;O 完成，才能继续下一步操作。</p>
+<p>异步 I&#x2F;O (AIO)：调用线程可连续调用多次 <code>io_submit()</code>，将多个 I&#x2F;O 请求并行提交给内核，而不必等待每次完成。内核或专门的 I&#x2F;O 线程池负责实际读写，完成后通过回调或事件 (<code>io_getevents</code>) 通知应用。</p>
+<p>AIO 的另一个优势是可以进行 IO Merge 操作，也就是将多个 IO 合并为 1 个 IO，这样可以提高 IOPS 的性能。例如用户需要访问页的 <code>(space, page_no)</code> 为：<code>(8, 6), (8, 7), (8, 8)</code>。每个页的大小为 16KB，那么同步 IO 需要进行 3 次 IO 操作。而 AIO 会判断到这三个页是连续的（显然可以通过 <code>(space, page_no)</code> 得知）。因此 AIO 底层会发送一个 IO 请求，从 <code>(8, 6)</code> 开始，读取 48KB 的页。</p>
+<h4 id="刷新邻接页"><a href="#刷新邻接页" class="headerlink" title="刷新邻接页"></a>刷新邻接页</h4><p>在刷新某个脏页时，同时检查并一起刷新该页所在区（extent）中的所有其它脏页，从而通过 AIO（异步 I&#x2F;O）将多个小的写操作合并成一次较大的顺序 I&#x2F;O。</p>
+<p>为什么要刷新邻接页？</p>
+<ul>
+<li><strong>顺序 I&#x2F;O 合并</strong>：在刷新单页时，如果只发出一个 16 KB 的写请求，操作系统与硬盘可能会进行一次小随机写；若同时将同一区中其他脏页一起刷新，就能将多次 16 KB 的写请求合并为一次大块的顺序写，从而利用顺序带宽、<strong>减少磁盘的寻道开销</strong>。</li>
+<li><strong>AIO 效果</strong>：配合异步 I&#x2F;O（AIO）提交这些写请求后，硬件&#x2F;内核会自动合并相邻请求为更大块，有效提升 IOPS 和吞吐。</li>
+</ul>
+<p>如果禁用该功能，则每次仅写出单页，虽然避免了写入无关脏页，但会频繁发生随机写，导致 I&#x2F;O 延迟和写入抖动增大。</p>
+<p>示例：在同一个 extent（假设包含页号 0–63）内，页 10、页 12、页 14 已被修改，成为脏页。</p>
+<p>禁用刷新邻接页：每次只写出目标脏页本身，不管同一 extent 内是否还有其他脏页。仅页 12 刷入磁盘；页 10 和页 14 保持在缓冲池中，等待下次单独刷新或达到阈值才写入。</p>
+<p>启用刷新邻接页：在同一 extent（页 0–63）内，发现目标页 12 后，会顺带把所有脏页（页 10 和页 14）一并写入一次 I&#x2F;O。单次 I&#x2F;O 写出页 10、12、14（共 3 × 16 KB），仅一次寻道即可完成，减少 HDD （硬盘驱动器）随机写的开销。</p>
+<h2 id="MyISAM"><a href="#MyISAM" class="headerlink" title="MyISAM"></a>MyISAM</h2><p>它是 MySQL 早期默认的存储引擎。</p>
+<p>特点</p>
+<ul>
+<li><p>不支持事务和外键。</p>
+</li>
+<li><p>支持表锁，不支持行锁。</p>
+</li>
+<li><p>访问速度快。</p>
+</li>
+<li><p>缓冲池只缓存索引文件，而不缓存数据文件。</p>
+</li>
+</ul>
+<p>MyISAM 和 InnoDB 的比较如下表：</p>
+<table border="1" cellspacing="0" cellpadding="6">
+  <tr>
+    <th>项目</th>
+    <th>InnoDB</th>
+    <th>MyISAM</th>
+  </tr>
+  <tr>
+    <td>存储结构</td>
+    <td>
+      <code>.frm</code> 存储表定义<br>
+      <code>.ibd</code> 存储数据和索引
+    </td>
+    <td>
+      <code>.frm</code> 存储表定义<br>
+      <code>.MYD</code> 存储数据<br>
+      <code>.MYI</code> 存储索引
+    </td>
+  </tr>
+  <tr>
+    <td>事务</td>
+    <td>支持（ACID 事务、提交/回滚）</td>
+    <td>不支持</td>
+  </tr>
+  <tr>
+    <td>最小锁粒度</td>
+    <td>行级锁</td>
+    <td>表级锁</td>
+  </tr>
+  <tr>
+    <td>索引类型</td>
+    <td>聚簇索引</td>
+    <td>非聚簇索引（指向 <code>.MYD</code> 的指针）</td>
+  </tr>
+  <tr>
+    <td>外键</td>
+    <td>支持</td>
+    <td>不支持</td>
+  </tr>
+  <tr>
+    <td>主键</td>
+    <td>可以没有主键</td>
+    <td>可以没有主键</td>
+  </tr>
+  <tr>
+    <td>表的具体行数</td>
+    <td>需扫描整个表才能返回</td>
+    <td>存储在表属性中，查询时可直接返回</td>
+  </tr>
+</table>
+
+<h2 id="Memory"><a href="#Memory" class="headerlink" title="Memory"></a>Memory</h2><p>该存储引擎的表数据存储在内存中，因此为避免受到硬件问题或断电问题的影响，我们只能将这些表作为临时表或缓存使用。</p>
+<p>特点</p>
+<ul>
+<li><p>内存存储，访问速度快。</p>
+</li>
+<li><p>默认使用 hash 索引。</p>
+</li>
+</ul>
+<p>以上三种存储引擎的对比如下图：</p>
+<p><img src="/../../images/MySQL/engine_3_comp.png" alt="img"></p>
+<h2 id="存储引擎选择"><a href="#存储引擎选择" class="headerlink" title="存储引擎选择"></a>存储引擎选择</h2><ul>
+<li>InnoDB：<strong>支持事务、外键、行级锁</strong>。如果应用对事务的完整性有比较高的要求，在并发条件下要求数据的一致性，数据操作包含大量的增删改查，那么 InnoDB 存储引擎是比较合适的选择。</li>
+<li>MyISAM：如果应用以<strong>读操作和插入操作</strong>为主，只有很少的更新和删除操作，并且对事务的完整性、并发性要求不是很高，那么 MyISAM 是非常合适的（更好的选择是使用 <strong>MongoDB</strong>）。</li>
+<li>Memory：将所有数据保存在内存中，访问速度快，通常用于临时表及缓存。缺陷是对表的大小有限制，太大的表无法缓存在内存中，而且无法保障数据的安全性（更好的选择是使用 <strong>Redis</strong>）。</li>
+</ul>
+<p>除了以上三种引擎，MySQL 还内置了 Archive 和 Federated 等存储引擎。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/MySQL/2024/10/05/MySQL/MySQL%20%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/undefined/MySQL/2024/10/05/MySQL/MySQL%20%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/" class="post-title-link" itemprop="url">MySQL 体系结构</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2024-10-05 00:00:00" itemprop="dateCreated datePublished" datetime="2024-10-05T00:00:00-07:00">2024-10-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-06-21 13:48:20" itemprop="dateModified" datetime="2025-06-21T13:48:20-07:00">2025-06-21</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>MySQL 的体系结构如下：</p>
+<p><img src="/../../images/MySQL/mysql-architecture.png" alt="MySQL architecture diagram showing connectors, interfaces, pluggable storage engines, the file system with files and logs."></p>
+<table border="1" cellspacing="0" cellpadding="4">
+  <tr>
+    <td colspan="6" align="center"><strong>客户端连接器</strong></td>
+  </tr>
+  <tr>
+    <td rowspan="2"><strong>系统管理和控制工具</strong></td>
+    <td colspan="4" align="center"><strong>连接池</strong></td>
+    <td colspan="1" align="center"><strong>连接层</strong></td>
+  </tr>
+  <tr>
+    <td><strong>SQL 接口</strong></td>
+    <td><strong>解析器</strong></td>
+    <td><strong>查询优化器</strong></td>
+    <td><strong>缓存</strong></td>
+    <td colspan="1" align="center"><strong>服务层</strong></td>
+  </tr>
+  <tr>
+    <td colspan="5" align="center"><strong>可插拔式存储引擎</strong></td>
+    <td colspan="5" align="center"><strong>引擎层</strong></td>
+  </tr>
+  <tr>
+    <td><strong>系统文件</strong></td>
+    <td colspan="4"><strong>文件和日志</strong></td>
+    <td colspan="1" align="center"><strong>存储层</strong></td>
+  </tr>
+</table>
+
+<ul>
+<li>连接层：负责网络协议解析、用户认证及会话管理，为每个客户端分配线程或线程池。</li>
+<li>服务层：包含 SQL 解析、优化与执行模块，并实现跨引擎功能，如存储过程、触发器和视图等。</li>
+<li>引擎层：通过统一的 Handler API 与各存储引擎（如 InnoDB、MyISAM）通信，负责数据的存储、检索及索引管理。</li>
+<li>存储层：基于操作系统文件系统执行物理 I&#x2F;O，管理表空间、日志文件并支持异步或直通 I&#x2F;O 优化。</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/10/04/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/DynamoDB/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/undefined/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/10/04/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/DynamoDB/" class="post-title-link" itemprop="url">DynamoDB</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2024-10-04 00:00:00" itemprop="dateCreated datePublished" datetime="2024-10-04T00:00:00-07:00">2024-10-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-05-31 20:59:45" itemprop="dateModified" datetime="2025-05-31T20:59:45-07:00">2025-05-31</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">数据库系统</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h1><p>Dynamo has the ability of incremental scalability and predictable high performance, but it carries the operational complexity of self-managed large database systems.</p>
+<p>SimpleDB is easy to administrate a cloud service, consistency, and a table-based data model, but it has limitations that tables have a small capacity in terms of storage and of request throughput, and that a unpredictable query and write latency.</p>
+<p>DynamoDB &#x3D; Dynamo + SImpleDB</p>
+<h1 id="Architecture"><a href="#Architecture" class="headerlink" title="Architecture"></a>Architecture</h1><p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/dynamodb_arch.png" alt="img"></p>
+<ol>
+<li><strong>DynamoDB Tables and Primary Keys</strong>: A DynamoDB table is a collection of items, each uniquely identified by a primary key. The primary key can be a partition key or a composite key (partition key + sort key).</li>
+<li><strong>Secondary Indexes</strong>: DynamoDB supports secondary indexes, allowing queries using alternate keys in addition to the primary key, enhancing query capabilities.</li>
+<li><strong>Partitions and Replication Groups</strong>: DynamoDB tables are divided into multiple partitions, with each partition managing a contiguous key range. Each partition has multiple replicas across different Availability Zones for high availability and durability. A <strong>Multi-Paxos</strong> consensus is used for leader election within the replication group, and the leader handles writes and strongly consistent reads.</li>
+<li><strong>Write-Ahead Logs and Consistency</strong>: The leader replica generates a write-ahead log for write requests. A write is acknowledged once a quorum of replicas persists the log. DynamoDB supports both strongly consistent and eventually consistent reads.</li>
+<li><strong>Failure Detection and Leader Election</strong>: If the current leader is detected as unhealthy, other replicas initiate a new election. The new leader can only start serving writes or consistent reads after the old leader’s lease expires.</li>
+<li><strong>Autoadmin Service</strong>: The autoadmin service monitors the health of the fleet and partitions, scaling tables and replacing unhealthy replicas or hardware to maintain system stability. It automatically detects and resolves issues, ensuring a stable and healthy infrastructure.</li>
+</ol>
+<h1 id="Journey-from-provisioned-to-on-demand"><a href="#Journey-from-provisioned-to-on-demand" class="headerlink" title="Journey from provisioned to on-demand"></a>Journey from provisioned to on-demand</h1><ul>
+<li><p><strong>Bursting:</strong> To address the issue of uneven workload distribution across partitions, DynamoDB introduced the concept of <strong>bursting</strong>. Bursting allows an application to utilize unused capacity at the partition level when its provisioned throughput is exhausted, helping to <strong>handle short-term spikes</strong> in workload. DynamoDB retains unused capacity in a partition for <strong>up to 300 seconds</strong>, which can be tapped into when the consumed capacity exceeds the provisioned capacity. This reserved capacity is referred to as <strong>burst capacity</strong>.</p>
+<p><strong>How It Works</strong>: DynamoDB manages throughput using multiple <strong>token buckets</strong>:</p>
+<ul>
+<li><p><strong>Each partition has two token buckets</strong>: one for allocated capacity and another for burst capacity. <strong>Each storage node has a token bucket</strong> that controls the overall load across partitions hosted on that node.</p>
+</li>
+<li><p>When a read or write request arrives at a storage node, the system first checks the partition’s token bucket. If the allocated capacity has been exhausted, burst capacity can be used, but only if there are available tokens at both the burst token level and the node level.</p>
+</li>
+<li><p><strong>Additional Check for Write Requests</strong>: When using burst capacity for write requests, an additional check is performed to ensure that other replica nodes for the partition also have sufficient capacity. This ensures that the write operation can be completed safely and consistently across all replicas. The leader replica periodically gathers information about the node-level capacity of other members in the replication group to facilitate this process.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Adaptive (deprecated):</strong> DynamoDB launched adaptive capacity to better absorb <strong>longlived</strong> spikes that cannot be absorbed by the burst capacity. Adaptive capacity allowed DynamoDB to better absorb workloads that had heavily skewed access patterns across partitions. Adaptive capacity actively monitored the provisioned and consumed capacity of all the tables.</p>
+<ul>
+<li><p>If a table experienced throttling and the table level throughput was not exceeded, then it would automatically increase (boost) the allocated throughput of the partitions of the table using a proportional control algorithm.</p>
+</li>
+<li><p>If the table was consuming more than its provisioned capacity then capacity of the partitions which received the boost would be decreased. The autoadmin system ensured that partitions receiving boost were relocated to an appropriate node that had the capacity to serve the increased throughput.</p>
+</li>
+</ul>
+</li>
+<li><p>GAC, how does it work:</p>
+<ul>
+<li><p><strong>Global Throughput Tracking and Management</strong></p>
+<ul>
+<li><p><strong>Global Token Management</strong>: GAC uses a <strong>token bucket system</strong> to manage the overall throughput (RCUs and WCUs) of a DynamoDB table.</p>
+</li>
+<li><p><strong>Token Buckets</strong>: Each request router maintains a <strong>local token bucket</strong> to handle requests. When tokens are depleted locally, the router requests more tokens from GAC, which manages the global distribution of these tokens across partitions.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Dynamic Token Allocation</strong></p>
+<ul>
+<li><p><strong>Periodic Replenishment</strong>: GAC regularly communicates with the request routers every few seconds to replenish their token buckets. The amount of tokens allocated is based on the overall resource consumption of the table, particularly when certain partitions are experiencing high traffic.</p>
+</li>
+<li><p><strong>Handling Hot Partitions</strong>: When specific partitions become hot, GAC dynamically allocates additional tokens to those partitions.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Capacity Limits and Isolation</strong></p>
+<ul>
+<li><p><strong>Global Throughput Limits</strong>: GAC ensures that the total number of tokens allocated to partitions does not exceed the <strong>provisioned capacity</strong> for the entire table.</p>
+</li>
+<li><p><strong>Node-Level Limits</strong>: Although GAC allocates tokens globally, each partition is subject to the <strong>maximum throughput capacity of its storage node</strong>. This ensures that no single partition can consume more than its node’s allowable resources.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Stateless and Distributed Design</strong></p>
+<ul>
+<li><p><strong>Stateless Operation</strong>: GAC operates in a <strong>stateless manner</strong>, meaning it calculates token allocations in real-time based on incoming client requests. It doesn’t rely on long-term stored states, so GAC servers can be restarted or stopped without affecting the system’s overall operation.</p>
+</li>
+<li><p><strong>Distributed Architecture</strong>: GAC uses a distributed architecture, where multiple GAC instances coordinate using a <strong>hash ring</strong>. This allows GAC to scale horizontally and handle requests from multiple routers efficiently.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Defense-in-Depth with Partition-Level Token Buckets</strong></p>
+<ul>
+<li><p><strong>Partition-Level Control</strong>: Even though GAC manages tokens globally, DynamoDB still retains <strong>partition-level token buckets</strong> for additional protection. These buckets ensure that no single partition consumes excessive resources, offering a secondary layer of isolation and control.</p>
+</li>
+<li><p><strong>Resource Isolation</strong>: Partition-level token buckets prevent any single application or partition from monopolizing the resources of the storage node.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Token Consumption and Replenishment Process</strong></p>
+<ul>
+<li><p>When a request is made, the request router checks its local token bucket for available tokens. If enough tokens are present, the request is processed.</p>
+</li>
+<li><p>If the local tokens are depleted, the request router asks GAC for more tokens.</p>
+</li>
+<li><p>GAC calculates the global consumption of tokens for the table and allocates more tokens to the router based on overall resource usage.</p>
+</li>
+<li><p>Once tokens are used up or expire, the process repeats, with the router requesting new tokens from GAC.</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Proactive load balancing mechanism</p>
+<ul>
+<li><p>Independent Monitoring: Each storage node independently monitors the total throughput (read&#x2F;write requests) and data size of all the partition replicas it hosts.</p>
+</li>
+<li><p>Threshold Detection: When the throughput or data size of a partition replica approaches or exceeds a predefined threshold of the node’s capacity, that partition replica is flagged as a candidate for migration.</p>
+</li>
+<li><p>Reporting to Autoadmin Service: The storage node reports the list of over-utilized partition replicas to the Autoadmin service, which manages the load balancing process.</p>
+</li>
+<li><p>Automatic Migration: The Autoadmin service finds a new storage node, usually located in a different Availability Zone, that can accommodate the migrating partition replica. This new node must have enough spare capacity to handle the increased load.</p>
+</li>
+<li><p>GAC 和 bursting 都擅长处理 短期或临时的高负载，但如果某个分区长期处于高负载状态（例如一个分区持续有热点键），这些机制可能无法完全消除该分区对特定节点的影响。在这种情况下，自动迁移分区副本是更长期有效的解决方案。</p>
+</li>
+</ul>
+</li>
+<li><p>Even with GAC and partition bursting capacity, DynamoDB tables may still experience throttling if traffic is heavily concentrated on a specific set of items. When the throughput for a partition exceeds a certain threshold, the system splits the partition according to the observed key distribution, rather than simply splitting the key range in the middle. These smaller partitions are typically distributed to different storage nodes. However, some workloads may not benefit from this mechanism, such as:</p>
+<ul>
+<li><p>A partition where traffic is concentrated on a single item.</p>
+</li>
+<li><p>A partition where the key range is accessed sequentially.</p>
+</li>
+</ul>
+</li>
+<li><p>DynamoDB’s <strong>on-demand tables</strong> eliminate the need for customers to manually set throughput. The system automatically adjusts resources based on actual read and write requests, enabling it to quickly adapt to sudden traffic increases. Specifically:</p>
+<ul>
+<li><p>DynamoDB automatically scales up to <strong>twice the previous peak traffic</strong> to handle more requests instantly.</p>
+</li>
+<li><p>If traffic continues to increase, DynamoDB further allocates more resources to prevent throttling and maintain performance.</p>
+</li>
+</ul>
+<p>The scaling mechanism for on-demand tables is achieved through <strong>partition splitting</strong>, where partitions are split based on traffic patterns to ensure each partition has sufficient resources. At the same time, <strong>GAC (Global Admission Control)</strong> monitors the system to prevent any single application from consuming too many resources, maintaining overall system stability.</p>
+</li>
+</ul>
+<p><strong>机制之间的关联总结：</strong></p>
+<ul>
+<li><strong>On-demand tables</strong> 依赖 <strong>GAC</strong> 和 <strong>bursting</strong> 来动态扩展资源，处理流量波动。</li>
+<li><strong>GAC</strong> 管理整个系统的全局资源分配，确保突发和按需扩展时不影响其他应用，同时在必要时与 <strong>proactive load balancing</strong> 机制配合，进行分区迁移。</li>
+<li><strong>Bursting</strong> 提供短期解决方案，而当负载持续增加时，系统会通过 <strong>主动负载平衡</strong> 来长期调整资源分配，防止系统瓶颈。</li>
+</ul>
+<h1 id="Durability-and-correctness"><a href="#Durability-and-correctness" class="headerlink" title="Durability and correctness"></a>Durability and correctness</h1><h2 id="Hardware-failures"><a href="#Hardware-failures" class="headerlink" title="Hardware failures"></a>Hardware failures</h2><p>The write-ahead logs in DynamoDB are crucial for ensuring data durability and crash recovery. Each partition has three replicas that store the write-ahead logs. To enhance durability, the logs are periodically archived to Amazon S3. The unarchived logs typically amount to a few hundred megabytes.</p>
+<p>In large-scale systems, hardware failures such as memory or disk failures are common. When a node fails, all replication groups hosted on that node are reduced to two copies. The process of repairing a storage replica can take several minutes, as it involves copying both the B-tree and the write-ahead logs.</p>
+<p>When the system detects an unhealthy replica, the leader of the replication group adds a log replica to ensure data durability is not compromised. Since only the recent write-ahead logs need to be copied without the B-tree, adding the log replica takes just a few seconds. This quick addition helps restore the affected replication group, ensuring that the most recent writes remain highly durable.</p>
+<h2 id="Silent-data-errors"><a href="#Silent-data-errors" class="headerlink" title="Silent data errors"></a>Silent data errors</h2><p>Hardware failures can cause incorrect data storage: In DynamoDB, errors may occur due to issues with storage media, CPU, or memory, and these errors are often difficult to detect.</p>
+<p>Extensive use of checksums: DynamoDB maintains checksums for every log entry, message, and log file to detect silent errors and ensure data integrity during each data transfer. When messages are transmitted between nodes, checksums verify whether errors occurred during transmission.</p>
+<p>Log archiving and validation: Each log file archived to S3 has a manifest that records details such as the table, partition, and data markers. Before uploading, the archiving agent performs various checks, including checksum validation, verifying that the log belongs to the correct table and partition, and ensuring that there are no gaps in the sequence numbers.</p>
+<p>Multiple replica log archiving: Log archiving agents run on all three replicas. If one agent finds that a log file has already been archived, it downloads the file and compares it with the local write-ahead log to verify data integrity.</p>
+<p>Checksum validation during S3 upload: Every log file and manifest file is uploaded to S3 with a content checksum. S3 verifies this checksum during the upload process to catch any errors in data transmission.</p>
+<h2 id="Continuous-verification"><a href="#Continuous-verification" class="headerlink" title="Continuous verification"></a>Continuous verification</h2><p>Continuous Data Integrity Verification: DynamoDB continuously verifies data at rest to detect silent data errors and bit rot, which can occur due to hardware failures or data corruption. This is a critical defense mechanism for maintaining data reliability.</p>
+<p>Scrub Process: The scrub process is central to detecting unforeseen errors. It checks two main aspects:</p>
+<ul>
+<li><strong>Replica Consistency</strong>: Ensures that all three replicas in a replication group have identical data.</li>
+<li><strong>Archived Log Reconstruction</strong>: Rebuilds an offline replica using archived write-ahead logs from S3 and verifies that it matches the live replica.</li>
+</ul>
+<p>Verification Mechanism: Scrub computes checksums for the live replicas and compares them with those generated from replicas built using archived logs.</p>
+<p>Defense in Depth: This mechanism ensures that live storage replicas and those rebuilt from historical logs remain consistent, providing confidence in the system’s integrity and reliability.</p>
+<h2 id="Backups-and-restores"><a href="#Backups-and-restores" class="headerlink" title="Backups and restores"></a>Backups and restores</h2><p>Backup and Restore Mechanism: DynamoDB supports backup and restore to protect against logical corruption caused by bugs in customer applications. Backups and restores are built using write-ahead logs stored in S3 and do not affect table performance or availability.</p>
+<p>Backup Consistency: Backups are full copies of DynamoDB tables, consistent across multiple partitions to the nearest second, and stored in Amazon S3. Data can be restored to a new DynamoDB table at any time.</p>
+<p>Point-in-Time Restore: DynamoDB supports point-in-time restore, allowing customers to restore a table to any point within the last 35 days. This feature creates periodic snapshots of table partitions and stores them in S3.</p>
+<p>Snapshots and Write-Ahead Logs: For point-in-time restore, DynamoDB identifies the closest snapshots to the requested time, applies the corresponding write-ahead logs, and restores the table to the desired state.</p>
+<h1 id="Availability"><a href="#Availability" class="headerlink" title="Availability"></a>Availability</h1><h2 id="Write-and-consistent-read-availability"><a href="#Write-and-consistent-read-availability" class="headerlink" title="Write and consistent read availability"></a>Write and consistent read availability</h2><p>Write Availability: DynamoDB partition write availability depends on having a healthy leader and a healthy write quorum. A write quorum in DynamoDB requires two out of three replicas across different Availability Zones (AZs) to be healthy.</p>
+<p>Handling Write Quorum Failures: <strong>If one replica becomes unresponsive, the leader adds a log replica, which is the fastest way to meet the quorum requirement and minimize write disruptions caused by an unhealthy quorum.</strong></p>
+<p>Consistent Reads: Consistent reads are served by the leader replica. <strong>If the leader fails, other replicas detect the failure and elect a new leader to minimize disruptions to consistent read availability.</strong></p>
+<p>Impact of Log Replicas: The introduction of log replicas was a significant system change. The use of the formally proven Paxos protocol provided confidence to safely implement this change, increasing system availability. DynamoDB can run millions of Paxos groups with log replicas in a single region.</p>
+<p>Eventually Consistent Reads: Eventually consistent reads can be served by any of the replicas.</p>
+<h2 id="Failure-detection"><a href="#Failure-detection" class="headerlink" title="Failure detection"></a>Failure detection</h2><p>New Leader Waits for Lease Expiry: A newly elected leader must wait for the old leader’s lease to expire before handling traffic, causing a few seconds of disruption where no new writes or consistent reads can be processed.</p>
+<p>Importance of Leader Failure Detection: Quick and robust leader failure detection is crucial for minimizing disruptions. False positives in failure detection can lead to unnecessary leader elections, further disrupting availability.</p>
+<p>Impact of Gray Network Failures: Gray network failures, such as communication issues between nodes or routers, can result in false or missed failure detections. These failures can trigger unnecessary leader elections, causing availability interruptions.</p>
+<p>Improved Failure Detection Algorithm: To address the availability issues caused by gray failures, DynamoDB’s failure detection algorithm was improved. <strong>When a follower attempts to trigger a failover, it first checks with other replicas to see if they can still communicate with the leader. If they report the leader is healthy, the follower cancels the failover attempt.</strong> This change significantly reduced false leader elections and minimized availability disruptions.</p>
+<h2 id="Metadata-availability"><a href="#Metadata-availability" class="headerlink" title="Metadata availability"></a>Metadata availability</h2><p>Metadata Needs for Request Routers: DynamoDB’s request routers require metadata mapping between table primary keys and storage nodes. Initially, this metadata was stored in DynamoDB, and the routers cached it locally. Although the cache hit rate was high, cache misses or cold starts caused metadata lookup traffic spikes, potentially destabilizing the system.</p>
+<p>Caching Challenges: When caches failed or during cold starts, request routers frequently queried the metadata service, putting immense pressure on it and leading to cascading failures in other parts of the system.</p>
+<p>Introduction of MemDS: <strong>To reduce reliance on local caches, DynamoDB introduced MemDS, a distributed in-memory data store for storing and replicating metadata.</strong> MemDS scales horizontally to handle all incoming requests and stores data in a compressed format. It uses a Perkle tree structure, combining Patricia and Merkle tree features for efficient key lookups and range queries.</p>
+<p>Perkle Tree Operations: MemDS supports efficient key lookups, range queries, and special operations like floor (find the largest key ≤ given key) and ceiling (find the smallest key ≥ given key) for metadata retrieval.</p>
+<p>New Partition Map Cache: DynamoDB implemented a new cache on request routers, addressing the issues of bimodal behavior. Even when a cache hit occurs, an asynchronous call is made to MemDS to refresh the cache. This ensures that MemDS consistently handles a steady volume of traffic, preventing reliance on cache hit ratios and avoiding cascading failures when caches become ineffective.</p>
+<p>Partition Membership Updates: DynamoDB storage nodes, the authoritative source of partition membership data, push updates to MemDS. If a request router queries an incorrect storage node due to outdated information, the node provides updated membership data or triggers a new MemDS lookup.</p>
+<h1 id="Programming-Interface"><a href="#Programming-Interface" class="headerlink" title="Programming Interface"></a>Programming Interface</h1><ol>
+<li><p><strong>Key-Value Store</strong></p>
+<p>DynamoDB allows users to create tables that can grow almost indefinitely. Each table is a collection of items, and each item is a collection of attributes. Each item is uniquely identified by a primary key, ensuring uniqueness within the table. DynamoDB provides a simple interface to store or retrieve items from a table or an index.</p>
+</li>
+<li><p><strong>Read and Write Operations</strong></p>
+<p>DynamoDB operates as a key-value store, and the most common operations used by applications involve reading and writing data. These operations include:</p>
+<ul>
+<li><p><strong>GetItem</strong>: Retrieves an item with a given primary key.</p>
+</li>
+<li><p><strong>PutItem</strong>: Inserts a new item or replaces an existing one.</p>
+</li>
+<li><p><strong>UpdateItem</strong>: Updates an existing item, or adds it if it doesn’t exist.</p>
+</li>
+<li><p><strong>DeleteItem</strong>: Deletes an item from the table based on the primary key.</p>
+</li>
+</ul>
+<p>These last three operations (PutItem, UpdateItem, and DeleteItem) are collectively referred to as writes. A write operation can optionally include conditions that must be satisfied for the operation to be executed successfully. For instance, you could specify that a PutItem operation should only succeed if the item doesn’t already exist.</p>
+</li>
+<li><p><strong>Transactional Operations</strong></p>
+<p>DynamoDB supports transactions through two key operations:</p>
+<ul>
+<li><p><strong>TransactGetItems</strong>: Used for reading multiple items atomically. It retrieves the latest versions of items from one or more tables at a single point in time, ensuring consistency. If any conflicting operation is modifying an item that’s being read, the transaction will be rejected.</p>
+</li>
+<li><p><strong>TransactWriteItems</strong>: This is used for performing atomic writes across multiple items and tables. It allows you to create, update, or delete multiple items in one or more tables within a single atomic transaction. This ensures that either all changes happen, or none do. The operation is synchronous and idempotent (meaning it can be retried without causing duplicate effects). TransactWriteItems can include conditions on the current values of the items, and the operation is rejected if these conditions aren’t met.</p>
+</li>
+</ul>
+</li>
+</ol>
+<h1 id="Transactions"><a href="#Transactions" class="headerlink" title="Transactions"></a>Transactions</h1><p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/dynamodb_txn.png" alt="img"></p>
+<p><strong>Request Router (RR)</strong>:</p>
+<ul>
+<li>The <strong>Request Router</strong> is the first major component that handles incoming requests after they pass through the network.</li>
+<li><strong>Authentication and Authorization</strong>: RR typically interacts with an <strong>Authentication System</strong> to ensure that the request is valid and the user has the proper permissions to access or modify the data.</li>
+<li><strong>Routing Requests</strong>: Once a request is authenticated, the RR determines which <strong>Storage Nodes</strong> the request should be forwarded to. It uses the <strong>Metadata System</strong> to map the key(s) involved in the request to the correct storage nodes, as the data is distributed across many nodes.</li>
+<li><strong>Forwarding Requests</strong>: Depending on whether the operation is a simple read&#x2F;write or part of a larger transaction, the RR may route the request directly to storage nodes or to the Transaction Coordinator.</li>
+</ul>
+<p><strong>Transaction Coordinator (TC)</strong>:</p>
+<ul>
+<li>The <strong>Transaction Coordinator</strong> plays a central role in handling transactions that span multiple items or storage nodes.</li>
+<li><strong>Transaction Management</strong>: For requests that involve multiple storage nodes or require consistency (e.g., multi-item writes in a transaction), the RR forwards the request to the TC. The TC is responsible for breaking down the transaction into individual operations and coordinating these operations across the necessary storage nodes.</li>
+<li><strong>Distributed Transaction Execution</strong>: The TC ensures that the operations follow the appropriate protocol (e.g., two-phase commit) to guarantee atomicity and consistency, ensuring that all parts of the transaction are either completed successfully or rolled back.</li>
+<li><strong>Timestamp Assignment and Conflict Resolution</strong>: In a timestamp-based system like DynamoDB, the TC may assign timestamps to ensure the correct ordering of operations and manage any potential conflicts between concurrent transactions.</li>
+</ul>
+<p>In summary:</p>
+<ul>
+<li><strong>Request Router (RR)</strong> handles initial authentication and routing of requests to the appropriate storage nodes or transaction coordinator.</li>
+<li><strong>Transaction Coordinator (TC)</strong> manages distributed transactions, ensuring data consistency and handling multi-node operations.</li>
+</ul>
+<h1 id="Transaction-execution"><a href="#Transaction-execution" class="headerlink" title="Transaction execution"></a>Transaction execution</h1><ol>
+<li><p><strong>Transaction Routing</strong></p>
+<p>All operation requests first reach a set of frontend hosts known as request routers. These routers are responsible for authenticating the requests and routing them to the appropriate storage nodes. Storage nodes are mapped based on key ranges. For transaction management, the routers forward transaction operations to transaction coordinators.</p>
+<p>Transaction coordinators break down the transaction into multiple operations targeting different items and coordinate the execution of these operations across the storage nodes using a distributed protocol.</p>
+</li>
+<li><p><strong>Timestamp Ordering</strong></p>
+<p>Each transaction is assigned a timestamp that defines its logical execution order. Multiple transaction coordinators operate in parallel, and different coordinators assign timestamps to different transactions. As long as transactions execute in the assigned order, serializability is maintained.</p>
+<p>The storage nodes are responsible for ensuring that the operations on the items they manage are executed in the correct order and rejecting transactions that cannot be properly ordered.</p>
+</li>
+<li><p><strong>Write Transaction Protocol</strong></p>
+<p>DynamoDB uses a two-phase commit protocol to ensure that the write operations within a transaction are atomic and executed in the correct order. In the prepare phase, the coordinator prepares all the write operations. If all storage nodes accept the operations, the transaction is committed; otherwise, it is canceled.</p>
+<p>The storage nodes record the timestamp and metadata of each item involved in the transaction to ensure the transaction is handled correctly.</p>
+</li>
+<li><p><strong>Read Transaction Protocol</strong></p>
+<p>Read transactions also use a two-phase protocol, but it differs from the write transaction protocol. DynamoDB designed a two-phase read protocol without write operations to avoid adding latency and costs to reads.</p>
+<p>In the first phase, the coordinator reads all the items involved in the transaction, along with their Log Sequence Numbers (LSN). In the second phase, if the LSN has not changed, the read is successful; otherwise, the read is rejected.</p>
+</li>
+<li><p><strong>Recovery and Fault Tolerance</strong></p>
+<p>If a storage node fails, the leadership role transfers to another storage node within the same replication group, with transaction metadata persistently stored and replicated across the nodes.</p>
+<p>Transaction coordinator failures are more complex. Coordinators maintain a persistent record of each transaction to ensure atomicity and completeness. Recovery managers periodically scan these transaction records, looking for incomplete transactions, and reassign them to new coordinators to resume execution.</p>
+</li>
+</ol>
+<h1 id="Two-phase-commit-2PC"><a href="#Two-phase-commit-2PC" class="headerlink" title="Two-phase commit (2PC)"></a>Two-phase commit (2PC)</h1><ol>
+<li><p><strong>Prepare Phase</strong></p>
+<p>In the prepare phase, the transaction coordinator (TC) is responsible for sending the transaction’s write operations to all the participating storage nodes. The coordinator breaks down the transaction into individual operations targeting specific data items and sends a prepare message to each storage node involved. This message includes:</p>
+<ul>
+<li><p>The transaction’s timestamp.</p>
+</li>
+<li><p>The transaction’s unique identifier (ID).</p>
+</li>
+<li><p>The specific operation to be performed on the data item (such as insert, update, or delete).</p>
+</li>
+</ul>
+<p>Upon receiving the prepare message, each storage node evaluates whether it can accept the transaction. The storage node will accept the transaction’s write operation if all of the following conditions are met:</p>
+<ul>
+<li><p><strong>Preconditions</strong> are satisfied (e.g., a condition might be that the item must exist, or that it has a certain value).</p>
+</li>
+<li><p>The write operation does not violate any <strong>system restrictions</strong> (e.g., exceeding the maximum item size).</p>
+</li>
+<li><p>The transaction’s timestamp is <strong>greater than</strong> the item’s last write timestamp, indicating that this operation is the most recent.</p>
+</li>
+<li><p>There are no <strong>ongoing transactions</strong> attempting to write to the same item.</p>
+</li>
+</ul>
+<p>If all participating storage nodes accept the transaction during the prepare phase, the coordinator moves to the commit phase. If any node rejects the transaction (e.g., due to a failed precondition or timestamp conflict), the transaction is canceled.</p>
+</li>
+<li><p><strong>Commit Phase</strong></p>
+<p>Once the transaction has been accepted by all storage nodes during the prepare phase, the coordinator enters the commit phase. During this phase, the coordinator sends a commit message to all the storage nodes, instructing them to apply the write operations. Each storage node then:</p>
+<ul>
+<li><p>Applies the prepared write operations to the local items.</p>
+</li>
+<li><p>Updates the <strong>timestamp</strong> of the item to reflect the transaction’s timestamp.</p>
+</li>
+<li><p>Updates the timestamps of any items where preconditions were checked, even if no write operation was performed.</p>
+</li>
+</ul>
+<p>If any node rejects the transaction during the prepare phase, the coordinator sends a cancel message to all storage nodes, instructing them to discard any prepared changes. No writes are applied, ensuring atomicity.</p>
+</li>
+</ol>
+<h1 id="Adapting-timestamp-ordering-for-key-value-operations"><a href="#Adapting-timestamp-ordering-for-key-value-operations" class="headerlink" title="Adapting timestamp ordering for key-value operations"></a>Adapting timestamp ordering for key-value operations</h1><ol>
+<li><p><strong>Individual Item Read Operations</strong></p>
+<p>In DynamoDB, even if there is a prepared transaction attempting to read to a particular data item, the system still allows read operations on that item. Specifically:</p>
+<ul>
+<li><p><strong>Bypassing the transaction coordinator</strong>: Non-transactional <code>GetItem</code> operations are routed directly to the storage node responsible for the item, bypassing the transaction coordinator. This avoids potential transaction locks or delays.</p>
+</li>
+<li><p><strong>Returning the latest data immediately</strong>: The storage node immediately returns the latest committed value of the item, regardless of whether a prepared transaction may later update it.</p>
+</li>
+<li><p><strong>Timestamp assignment</strong>: This read operation is assigned a timestamp that is after the last write operation’s timestamp but before the prepared transaction’s commit timestamp. This ensures the read operation is serializable, meaning it is placed between the last completed write and the pending write.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Individual Item Write Operations</strong></p>
+<p>In most cases, DynamoDB allows individual item write operations to be executed immediately, often before prepared transactions:</p>
+<ul>
+<li><p><strong>Directly routed to the storage node</strong>: Non-transactional <code>PutItem</code> and other modification operations are routed directly to the storage node, bypassing the transaction coordinator.</p>
+</li>
+<li><p><strong>Timestamp ordering</strong>: The storage node assigns a timestamp to the write operation that is typically earlier than any prepared transactions (since those have not yet written).</p>
+</li>
+<li><p><strong>Exceptions</strong>: If a prepared transaction includes a condition check on the item (e.g., checking a bank account balance), the system will not allow a new write to bypass the prepared transaction. For example, if a transaction is checking that there are enough funds to withdraw $100, a new transaction cannot make a withdrawal or delete the item during that check.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Delayed Execution of Write Operations</strong></p>
+<p>In certain scenarios, the system can delay write operations instead of rejecting them:</p>
+<ul>
+<li><p><strong>Buffering writes</strong>: If a new write operation conflicts with a prepared transaction’s conditions (e.g., by modifying the item’s state), the storage node can buffer the write operation in a queue until the prepared transaction is complete. This prevents the need to reject the write and require the client to resubmit it.</p>
+</li>
+<li><p><strong>Processing buffered writes after the transaction completes</strong>: Once the prepared transaction completes (committed or canceled), the buffered write can be assigned a new timestamp and executed. Typically, the delay caused by waiting for the transaction to complete is short, so this strategy doesn’t significantly increase latency.</p>
+</li>
+<li><p><strong>Unconditional writes</strong>: If the storage node receives a <code>PutItem</code> or <code>DeleteItem</code> operation without any preconditions, these operations can be executed immediately. They are assigned a timestamp later than any prepared transactions, ensuring the correctness of transactions. If a previously prepared transaction is committed with an earlier timestamp, its write operations will be ignored.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Write Transactions with Older Timestamps</strong></p>
+<p>DynamoDB supports accepting write transactions with older timestamps:</p>
+<ul>
+<li><p><strong>Handling after already committed writes</strong>: If a write transaction with an older timestamp arrives at a storage node where a later write has already been processed, the node can still accept the older transaction and mark it as prepared. If the transaction is eventually committed, its write will be ignored, as the earlier write has already been overwritten by the newer one.</p>
+</li>
+<li><p><strong>Exceptions for partial updates</strong>: This rule applies to full overwrites of data items (like <code>PutItem</code>), but not to partial updates (like <code>UpdateItem</code>). If the last write was a partial update, the operations must be executed in strict timestamp order to ensure correctness.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Multiple Transactions Writing to the Same Item</strong></p>
+<p>DynamoDB allows multiple transactions to simultaneously prepare to write the same data item:</p>
+<ul>
+<li><p><strong>Simultaneous transaction preparation</strong>: For a given item, a series of transactions can enter the prepared state simultaneously, without waiting for the previous transaction to commit. This increases concurrency and allows multiple transactions to proceed in parallel.</p>
+</li>
+<li><p><strong>Order of transaction commits</strong>: If the write operations are full item overwrites (like <code>PutItem</code> or <code>DeleteItem</code>), the transactions can be committed in any order, as long as the last <code>PutItem</code> or <code>DeleteItem</code> operation (with the latest timestamp) is the final one executed.</p>
+</li>
+<li><p><strong>Restrictions for partial updates</strong>: For transactions performing partial updates (like <code>UpdateItem</code>), the transactions must be executed in timestamp order, as the final state of the item depends on the sequence of updates.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Optimized Single-Phase Read Transactions</strong></p>
+<p>DynamoDB introduces optimizations for read transactions, allowing certain read transactions to be completed in a single phase without requiring a two-phase commit protocol:</p>
+<ul>
+<li><p><strong><code>GetItemWithTimestamp</code></strong>: Assuming storage nodes support the <code>GetItemWithTimestamp</code> operation, it allows a read timestamp to be passed as a parameter. This operation returns the latest value of the item, provided its last write timestamp is earlier than the given read timestamp and any prepared transactions have timestamps later than the read timestamp; otherwise, the request is rejected.</p>
+</li>
+<li><p><strong>Single-phase completion of read transactions</strong>: When a read transaction involves multiple items, the transaction coordinator issues <code>GetItemWithTimestamp</code> requests for each item and buffers the returned values. If all storage nodes accept the requests without conflict, the coordinator can return the buffered values to the client, completing the transaction. If any node rejects the request, the read transaction fails.</p>
+</li>
+<li><p><strong>Serialization issues</strong>: This optimization is optimistic but can lead to potential serialization issues. If a storage node later accepts a write with a timestamp earlier than a previously executed read transaction, it may cause the transaction to be non-serializable. To avoid this, storage nodes need to track both the last read and write timestamps for each item. Future write transactions must ensure that their timestamps are later than the last read&#x2F;write timestamps of all the items they modify.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Optimizations for Single-Partition Write Transactions</strong></p>
+<p>DynamoDB further optimizes write transactions that involve multiple items within a single partition, allowing them to be completed in a single phase without a two-phase commit protocol:</p>
+<ul>
+<li><p><strong>Single-partition transaction processing</strong>: If all the items being written in a transaction reside within the same partition (and thus are stored on the same storage node), there is no need for separate prepare and commit phases. The storage node can perform all the necessary precondition checks and immediately execute the write operations.</p>
+</li>
+<li><p><strong>Reduced communication overhead</strong>: This approach significantly reduces the communication overhead between the transaction coordinator and storage nodes, especially in highly concurrent environments, improving system performance.</p>
+</li>
+</ul>
+</li>
+</ol>
+<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>Why does DynmoDB not use the two-phase locking protocol?</strong> </p>
+<p>While two-phase locking is used traditionally to prevent concurrent transactions from reading and writing the same data items, it has drawbacks. Locking <strong>restricts concurrency</strong> and can lead to <strong>deadlocks</strong>. Moreover, it requires <strong>a recovery mechanism</strong> to release locks when an application fails after acquiring locks as part of a transaction but before that transaction commits. To simplify the design and take advantage of low-contention workloads, DynamoDB uses an optimistic concurrency control scheme that avoids locking altogether.</p>
+<p><strong>With DynamoDB, what is the role of a transaction coordinator?</strong></p>
+<ul>
+<li>The <strong>Transaction Coordinator</strong> plays a central role in handling transactions that span multiple items or storage nodes. The TC is responsible for</li>
+<li><ul>
+<li>breaking down the transaction into individual operations and coordinating these operations across the necessary storage nodes.</li>
+<li>ensuring that the operations follow two-phase commit and all parts of the transaction are either completed successfully or rolled back.</li>
+<li>assigning timestamps to ensure the correct ordering of operations and managing any potential conflicts between concurrent transactions.</li>
+</ul>
+</li>
+</ul>
+<p><strong>Is DynamoDB a relational database management system?</strong></p>
+<p>No, DynamoDB is not a relational database management system (RDBMS). It is a NoSQL database, specifically a key-value and document store. Here’s how it differs from an RDBMS:</p>
+<ol>
+<li><strong>Data Model</strong>: DynamoDB does not use tables with fixed schemas like relational databases. Instead, it stores data as key-value pairs or documents (JSON-like structure). Each item can have different attributes, and there’s no need for predefined schemas.</li>
+<li><strong>Relationships</strong>: Relational databases focus on managing relationships between data (using joins, foreign keys, etc.), while DynamoDB is optimized for storing large amounts of data without complex relationships between the data items.</li>
+<li><strong>Querying</strong>: RDBMSs typically use <strong>SQL</strong> for querying data, which allows for complex joins and aggregations. DynamoDB uses its own API for querying and does not support SQL natively. While it allows querying by primary key and secondary indexes, it doesn’t support joins.</li>
+<li><strong>Consistency and Transactions</strong>: DynamoDB supports <strong>eventual consistency</strong> or <strong>strong consistency</strong> for reads, while traditional relational databases typically ensure strong consistency through ACID transactions. DynamoDB has introduced <strong>transactions</strong>, but they work differently compared to those in relational databases.</li>
+<li><strong>Scalability</strong>: DynamoDB is designed for horizontal scalability across distributed systems, allowing it to handle very large amounts of traffic and data by automatically partitioning data. In contrast, RDBMSs are typically vertically scaled and are not as naturally distributed.</li>
+</ol>
+<p><strong>How is DynamoDB’s transaction coordinator different than Gamma’s scheduler?</strong> </p>
+<ul>
+<li>DynamoDB’s transaction coordinator uses Optimistic Concurrency Control (OCC) to manage distributed transactions, ensuring atomicity without 2PC, focusing on scalability and performance in a globally distributed system.</li>
+<li>Gamma’s scheduler, on the other hand, uses the traditional Two-Phase Locking (2PL) protocol to guarantee strong consistency in a distributed environment, prioritizing strict coordination across nodes.</li>
+</ul>
+<p><strong>Name one difference between FoundationDB and DynamoDB?</strong></p>
+<p>FoundationDB: FoundationDB is a multi-model database that offers a core key-value store as its foundation, but it allows you to build other data models (such as documents, graphs, or relational) on top of this key-value layer. It’s highly flexible and provides transactional support for different types of data models via layers.</p>
+<p>DynamoDB: DynamoDB is a NoSQL key-value and document store with a fixed data model designed specifically for highly scalable, distributed environments. It does not offer the flexibility of building different models on top of its architecture and is focused on high-performance operations with automatic scaling.</p>
+<p><strong>What partitioning strategy does FoundationDB use to distribute key-value pairs across its StorageServers?</strong></p>
+<p>FoundationDB uses a range-based partitioning strategy to distribute key-value pairs across its StorageServers.</p>
+<p>Here’s how it works:</p>
+<ol>
+<li><strong>Key Ranges</strong>: FoundationDB partitions the key-value pairs by dividing the key space into <strong>contiguous ranges</strong>. Each range of keys is assigned to a specific <strong>StorageServer</strong>.</li>
+<li><strong>Dynamic Splitting</strong>: The key ranges are <strong>dynamically split</strong> and adjusted based on data distribution and load. If a particular range grows too large or becomes a hotspot due to frequent access, FoundationDB will automatically split that range into smaller sub-ranges and distribute them across multiple <strong>StorageServers</strong> to balance the load.</li>
+<li><strong>Data Movement</strong>: When a key range is split or needs to be rebalanced, the corresponding data is migrated from one <strong>StorageServer</strong> to another without manual intervention, ensuring even distribution of data and load across the system.</li>
+</ol>
+<p><strong>Why do systems such as Nova-LSM separate storage of data from its processing?</strong> </p>
+<ul>
+<li><strong>Independent Scaling</strong>: Storage and processing resources can scale independently to meet varying load demands.</li>
+<li><strong>Resource Optimization</strong>: Storage nodes focus on data persistence and I&#x2F;O performance, while processing nodes handle computation, improving overall resource efficiency.</li>
+<li><strong>Fault Tolerance</strong>: Data remains safe in storage even if processing nodes fail, ensuring high availability.</li>
+</ul>
+<p>Reference: </p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.usenix.org/system/files/atc23-idziorek.pdf">https://www.usenix.org/system/files/atc23-idziorek.pdf</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.usenix.org/system/files/atc22-elhemali.pdf">https://www.usenix.org/system/files/atc22-elhemali.pdf</a></li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+
+  
+  <nav class="pagination">
+    <a class="extend prev" rel="prev" href="/en/page/5/"><i class="fa fa-angle-left" aria-label="Previous page"></i></a><a class="page-number" href="/en/">1</a><span class="space">&hellip;</span><a class="page-number" href="/en/page/5/">5</a><span class="page-number current">6</span><a class="page-number" href="/en/page/7/">7</a><span class="space">&hellip;</span><a class="page-number" href="/en/page/9/">9</a><a class="extend next" rel="next" href="/en/page/7/"><i class="fa fa-angle-right" aria-label="Next page"></i></a>
+  </nav>
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Yihang Wei</p>
+  <div class="site-description" itemprop="description">聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">42</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="languages">
+    <label class="lang-select-label">
+      <i class="fa fa-language"></i>
+      <span>English</span>
+      <i class="fa fa-angle-up" aria-hidden="true"></i>
+    </label>
+    <select class="lang-select" data-canonical="">
+      
+        <option value="zh-CN" data-href="/page/6/index.html" selected="">
+          简体中文
+        </option>
+      
+        <option value="en" data-href="/en/page/6/index.html" selected="">
+          English
+        </option>
+      
+    </select>
+  </div>
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yihang Wei</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '50%',
+  right: '32px',
+  left: 'unset',
+  time: '0.5s',
+  mixColor: '#fff',
+  backgroundColor: '#fff',
+  buttonColorDark: '#100f2c',
+  buttonColorLight: '#fff',
+  saveInCookies: true,
+  label: '明暗',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+</body>
+</html>

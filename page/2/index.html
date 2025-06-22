@@ -977,6 +977,115 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/MySQL/2024/11/26/MySQL/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/undefined/MySQL/2024/11/26/MySQL/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/" class="post-title-link" itemprop="url">分库分表</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-11-26 00:00:00" itemprop="dateCreated datePublished" datetime="2024-11-26T00:00:00-08:00">2024-11-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-06-22 15:15:35" itemprop="dateModified" datetime="2025-06-22T15:15:35-07:00">2025-06-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>分库分表主要是为了解决单库单表在海量数据和高并发场景下的性能瓶颈：当数据量达到千万级甚至亿级时，单表查询效率和索引更新速度都会明显下降，备份恢复也变得极其缓慢；而在高并发写入时，单实例的 CPU、内存、I&#x2F;O 资源易成为瓶颈，锁竞争也会导致事务阻塞。通过将大表拆成多张子表、或将数据分散到多个数据库实例，不仅能降低单表、单库的数据规模，提升读写性能，还能分散并发压力、减少锁冲突，从而显著提高系统的可用性和扩展能力。</p>
+<p>垂直分库通过将不同业务模块或功能独立到各自的数据库，既降低了数据之间的耦合度，又提升了整体可用性；水平分库则将同一业务的数据按一定策略分散到多台实例，分担了单库的 CPU、I&#x2F;O 和网络压力；垂直分表是把表中不同类型的数据拆分到多张表中，进一步削弱耦合；水平分表则把一张大表按范围或哈希划分成多张子表，从而减少索引深度并加快查询。</p>
+<p>若仍使用单库单表模式，会因热点数据频繁访问导致缓冲区不足、磁盘 I&#x2F;O 激增，又因大量请求而引发网络带宽瓶颈，此外 SQL 处理也会占用过多 CPU 资源，最终形成性能瓶颈。分库分表的核心思想就是通过分散存储，将单一数据库或表的数据规模控制在可承载范围内，进而显著缓解 I&#x2F;O、CPU 和网络方面的压力。</p>
+<h2 id="拆分策略"><a href="#拆分策略" class="headerlink" title="拆分策略"></a>拆分策略</h2><h3 id="垂直拆分"><a href="#垂直拆分" class="headerlink" title="垂直拆分"></a>垂直拆分</h3><p>垂直拆分主要包括两种形式：<strong>垂直分库</strong>和<strong>垂直分表</strong>。其中，垂直分库是以表为单位、根据业务模块将不同的表拆分到各自独立的数据库实例中，使得每个库只包含某一类业务的表，从而降低数据耦合度并提升可用性；而垂直分表则是以字段为依据，将同一张宽表中访问频次不同或性质相异的字段拆分到多张子表，通过主键—外键关联保持数据完整性，以减小单表宽度、优化查询性能。在实践中，垂直分库常用于按业务边界隔离数据，而垂直分表则侧重于对单表内部结构的精细化拆分，两者结合能够更好地满足系统的可扩展性与维护性需求。</p>
+<p><img src="/../../images/MySQL/mysql_partition_v.drawio.png" alt="img"></p>
+<h3 id="水平拆分"><a href="#水平拆分" class="headerlink" title="水平拆分"></a>水平拆分</h3><p>水平拆分是一种以<strong>行</strong>为单位对数据进行切割的策略：水平分库是将同一表的若干行数据按照某种分片键（如用户ID范围或哈希）分散到多个数据库实例，每个实例存储一部分数据，从而分担 CPU、I&#x2F;O 和网络负载；而水平分表则是在同一数据库实例内部将表数据行按相同策略分布到多张结构相同的子表中，以减少单表的索引层数，提升查询性能和并发处理能力。无论是分库还是分表，都可通过范围切片、哈希切片或列表切片等算法来保证数据的均衡分布，进一步降低锁竞争与热点访问问题。</p>
+<p>在业界，这种做法通常也被称为分片（sharding），每个分片可以是独立的数据存储节点。此外，在云服务环境下，水平分区是实现水平扩展（scale-out）的核心方式，通过动态增加分片或实例来处理更大规模的请求和数据量；它还能与读写分离、缓存策略等机制结合，共同构建高可用、高性能的数据库架构。</p>
+<p><img src="/../../images/MySQL/mysql_partition_h.drawio.png" alt="img"></p>
+<h3 id="水平分表的路由方式"><a href="#水平分表的路由方式" class="headerlink" title="水平分表的路由方式"></a>水平分表的路由方式</h3><p>要实现水平分表，必须设计一个路由策略，根据<strong>分片键</strong>（Sharding Key）决定每条记录应写入哪张子表。理想的分片键应该具备以下特征：</p>
+<p>一是<strong>高区分度</strong>，使数据均匀分布，避免某些表过热或过载；</p>
+<p>二是<strong>查询频率高</strong>，优先选取常在 WHERE 条件中出现的字段，以确保绝大多数查询能直接定位到目标表，提升查询效率；</p>
+<p>三是<strong>写入频率高</strong>，将频繁更新或插入的字段作为分片键，有助于将写负载均衡地分散到各个子表，从而减少单表写入瓶颈。</p>
+<p>范围路由、哈希路由和配置路由是水平分表中最常用的三种策略。</p>
+<p>范围路由通过将分片键按值的连续区间映射到不同的表，例如按时间戳或订单号切分，优势在于实现简单且可以平滑扩容，但容易出现部分分片数据过多的倾斜问题。</p>
+<p><img src="/../../images/MySQL/mysql_partition_range.drawio.png" alt="img"></p>
+<p>哈希路由则对分片键取哈希值并取模分表，可以较均匀地分散数据，避免单表热点，但执行范围查询时需要访问多个分片，查询性能有所下降。</p>
+<p><img src="/../../images/MySQL/mysql_partition_hash.drawio.png" alt="img"></p>
+<p>配置路由则通过维护一张映射表，显式指定每个分片键对应的目标表，灵活性最高，能够应对分片键分布不均或规则多变的场景，但需要额外的配置表来管理路由映射，运维成本和复杂度也相对更高。</p>
+<p><img src="/../../images/MySQL/mysql_partition_route.drawio.png" alt="img"></p>
+<p>以上的路由方式可以根据场景的不同组合使用，比如：首先根据业务维度（如订单月份）将数据划分到不同的<strong>分组</strong>，每个分组再映射到若干<strong>物理节点</strong>，形成按月分组的“范围切分”策略。然后在每个分组内部，对分片键（如 orderId）计算哈希并取模，将其均匀分配到该组的各节点上，兼顾了哈希路由的负载均衡效果。</p>
+<h3 id="不停机扩容"><a href="#不停机扩容" class="headerlink" title="不停机扩容"></a>不停机扩容</h3><p>不停机扩容通常分为三个阶段，以确保旧库和新库在业务不中断的情况下平滑过渡。</p>
+<p>第一阶段是<strong>在线双写、老库查询</strong>：在此阶段，先在新环境中建立与旧库完全相同的库表结构，然后将所有新增写操作同时写入旧库和新库，业务查询仍然走旧库；接着，通过专用迁移程序对旧库中的历史数据进行全量迁移，并通过定时校验任务对比新旧库的数据一致性，实时补齐任何差异。</p>
+<p><img src="/../../images/MySQL/mysql_partition_scale1.drawio.png" alt="img"></p>
+<p>第二阶段是<strong>完成同步并切换读流量</strong>：当确认历史数据已经成功迁移且新库中的写入与旧库始终保持一致后，就可以将所有读操作从旧库切换到新库，从而开始验证新库的查询性能和稳定性。</p>
+<p><img src="/../../images/MySQL/mysql_partition_scale2.drawio.png" alt="img"></p>
+<p>第三阶段是<strong>停止旧库写入并下线</strong>：在确认旧库不再接收任何新写后，需要等待一段时间以清空剩余连接与缓冲，然后可以安全地关闭或拆除旧库，实现真正的无缝下线。通过这种三阶段流程，在整个扩容过程中既保证了业务的连续性，也维持了数据的一致性和可用性。</p>
+<p><img src="/../../images/MySQL/mysql_partition_scale3.drawio.png" alt="img"></p>
+<p>尽管在线双写与写时复制在延迟复制、零停机思想上有交集，但它们在层级、触发条件、技术依赖和一致性模型上都有本质区别。在线双写更适合数据库扩容与数据迁移场景；写时复制则是操作系统与存储层面优化内存和文件复制的通用技术。两者均为提升可用性和性能的重要手段，但并非同一机制。</p>
+<h2 id="分库分表的问题"><a href="#分库分表的问题" class="headerlink" title="分库分表的问题"></a>分库分表的问题</h2><p>在分库后，单机事务的强一致性优势不再适用，必须引入分布式事务（如两阶段提交或 TCC）来保证跨库的事务完整性；同时，由于数据库实例被拆分，原生的跨库 JOIN 无法直接执行，只能在业务代码中先查询一个库的数据再查询另一个库并进行合并，或通过冗余字段将常用关联信息（如名称）复制到当前表，减少关联请求；另一种思路是利用 binlog 同步等机制将需要跨库关联的数据异构到 Elasticsearch 等专用存储，再由 ES 实现联合查询。</p>
+<p>在分表场景下，跨分片的聚合计算（如 COUNT、ORDER BY、GROUP BY）只能通过业务端或中间件对各分表结果进行汇总、排序与分页才能实现；同时，需要在切分前对数据迁移、容量规划及未来扩容的可行性进行充分评估，以避免二次拆分带来的复杂度和风险。更重要的是，表被水平切分后已不能再依赖数据库自身的自增主键机制来保证全局唯一性，常见的替代方案包括：设置不同的自增步长与初始值（例如三张表分别以步长 3、初始值 1、2、3 生成 ID），从而避免冲突；使用 UUID 生成全局唯一主键，但要警惕随机主键可能导致 B-Tree 页分裂、写放大和性能下降；或者采用分布式 ID 生成算法（如 Twitter Snowflake），通过时间戳、节点 ID 及序列号的组合方式高效生成可排序的全局唯一 ID，兼顾性能与一致性。</p>
+<p>更多内容可参考：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/1232122">基因法与倒排索引在MySQL分库分表的应用</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/1627841">美团面试：百亿级分片，如何设计基因算法？</a></li>
+<li><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/xGYM0pXAHfaLMpTxBJvLBg">字节面试：百亿级存储，怎么设计？只是分库分表？</a></li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
     <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/22/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/MapReduce/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1515,116 +1624,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/MySQL/2024/11/20/MySQL/%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Yihang Wei">
-      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="EthanWeee">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/undefined/MySQL/2024/11/20/MySQL/%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6/" class="post-title-link" itemprop="url">主从复制</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-11-20 00:00:00" itemprop="dateCreated datePublished" datetime="2024-11-20T00:00:00-08:00">2024-11-20</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-06-22 14:31:01" itemprop="dateModified" datetime="2025-06-22T14:31:01-07:00">2025-06-22</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>在基于 Binlog 的异步复制模式中，主库将所有 DDL 与 DML 操作写入二进制日志，并在本地完成事务提交后立即返回，无需等待从库确认，从而实现松散耦合的复制流程。随后，从库的 <strong>IO 线程</strong>会与主库保持长连接，不断读取新生成的 binlog 事件并将它们写入本地的 <strong>Relay Log</strong>。接着，从库的 <strong>SQL 线程</strong>会顺序读取 Relay Log 中的事件，并在从库上重做这些 DDL 与 DML，以达到数据同步的目的。</p>
-<p><img src="/../../images/MySQL/mysql_replic_ms.drawio.png" alt="img"></p>
-<p>MySQL 支持一主多从复制拓扑，且从库本身也可以配置为其他从库的源库，实现链式复制。这种异步复制模式允许在主库出现故障时，通过提升任一从库为新的主库来快速切换并恢复服务，极大增强了系统的高可用性。同时，通过将写操作集中到主库、将读操作分散到从库，也减轻了主库的负载，并可在从库上执行备份任务，避免对主库性能产生影响。由于主库无需等待从库完成写入，可获得更高的写入吞吐量，但也可能引入复制延迟问题，需要结合监控指标加以管理。为进一步降低从库的应用延迟，可使用并行复制功能，让 SQL 线程并发地执行多个复制通道中的事件。总体而言，基于 Binlog 的异步复制以其配置简单、可扩展性强和高可用性好等特点，成为 MySQL 最常用的主从复制方案。</p>
-<p>在主从复制中，<strong>Relay Log</strong> 起到四大关键作用：</p>
-<p>首先，它充当从库的缓冲区——IO 线程不断地将主库的二进制日志拉取并写入本地的 Relay Log，即使 SQL 线程处理变更较慢，也不会影响向主库的读取，从而有效降低延迟；</p>
-<p>其次，Relay Log 支持异步处理——IO 线程与 SQL 线程分离，前者专注拉取日志，后者专注重放语句，两者互不阻塞，大幅提升同步的并发能力；</p>
-<p>第三，它增强了数据可靠性——日志落盘后即便网络波动或从库重启，SQL 线程也能从已持久化的 Relay Log 继续执行，无需重新拉取；</p>
-<p>最后，在链式复制场景中，从库的 Relay Log 同样可以对下游从库提供日志源，成为二进制日志传递链上的一环。这样，Relay Log 不仅保证了数据的连续、高效复制，还提升了系统的容错与可扩展性。</p>
-<h2 id="同步延迟的原因"><a href="#同步延迟的原因" class="headerlink" title="同步延迟的原因"></a>同步延迟的原因</h2><p>主从同步延迟通常是因为从库的复制流程存在瓶颈：主库可以同时接收大量并发写请求，但从库只有一个 IO 线程负责拉取 binlog、一个 SQL 线程负责执行，如果某条 SQL 在从库上执行耗时较长或因锁等待而阻塞，就会造成 binlog 在从库端堆积，进而引起读写不一致。为缓解这一问题，一方面可以在写操作后立即把紧接着的读操作路由到主库，以确保及时读取最新数据；另一方面也可在读从库失败时自动再去主库重试二次读取，这种方式改动最小，但会增加主库的读负载；此外，还可以将关键业务（如注册、登录）的所有读写都定向主库处理，而对一致性要求较低的查询（如用户资料展示）继续采用读写分离，从而在保证关键路径数据正确性的同时，将大部分查询压力分散到从库。</p>
-<h2 id="同步模式"><a href="#同步模式" class="headerlink" title="同步模式"></a>同步模式</h2><h3 id="异步复制"><a href="#异步复制" class="headerlink" title="异步复制"></a>异步复制</h3><p>异步复制（Asynchronous Replication）是 MySQL 最基础也是最常用的复制方式，其中主库在本地提交事务并写入二进制日志后即可立即返回客户端，从库的 IO 线程随后异步地拉取这些 binlog 并将其写入 Relay Log，最后由 SQL 线程在从库上执行重放，从而完成数据同步。由于主库无需等待从库确认即完成提交，异步复制能够获得最高的写入吞吐量，但会产生一定的复制延迟，若主库故障，尚未同步的事务可能丢失。</p>
-<h3 id="半同步复制"><a href="#半同步复制" class="headerlink" title="半同步复制"></a>半同步复制</h3><p>半同步复制（Semisynchronous Replication）介于异步与全同步之间，当主库提交一个事务时，会阻塞等待至少一个从库的确认（即从库已将该事务事件接收并写入 Relay Log，但不必执行完毕）后才向客户端返回，从而保证提交成功的事务至少存在于主库和一个从库上。相比纯异步复制，半同步复制在保证可用性的同时，显著提升了数据安全性；但因需等待确认，写延迟会略高于异步模式，尤其在网络或从库性能较差时更为明显。</p>
-<h3 id="全同步复制（组复制）"><a href="#全同步复制（组复制）" class="headerlink" title="全同步复制（组复制）"></a>全同步复制（组复制）</h3><p>全同步复制通常由 MySQL Group Replication 或 NDB Cluster 实现，要求主库在提交时，所有或一定多数的副本必须完成提交确认后才继续执行，从而实现真正的强同步。该模式在保证各节点数据实时一致性方面最强，但也带来最高的写延迟和最复杂的部署需求，通常用于对一致性和故障切换要求极高的场景。</p>
-<p><strong>百万千万级大表如何添加字段？</strong></p>
-<p>在面对上千万行的大表时，直接执行 <code>ALTER TABLE … ADD COLUMN</code> 往往会长时间锁表，影响线上业务；常见的无停机扩容方案包括：</p>
-<p>一是在新库&#x2F;新表中先创建完整的表结构并添加字段，然后通过分批次或全量迁移程序将旧表数据复制过去，最后再原子化地用新表替换旧表（此法简洁但需要额外迁移逻辑）；</p>
-<p>二是借助 Percona 的 pt-online-schema-change 或 GitHub 的 gh-ost 等在线变更工具，它们会在后台创建影子表、实时捕获并同步写入，通过触发器或 binlog 流将增量写入合并到新表，待数据迁移完成后再用重命名操作切换，无需停机且复制过程中表仍可读写；</p>
-<p>三是针对极高并发的热表，可先在从库执行字段添加操作，待从库完成同步并切换读写角色后，再依次在其他节点上部署新字段，最大程度上降低主库负载和用户感知的停机风险。</p>
-<p><strong>当 MySQL 表的数据量增长过快，导致查询性能下降时，你会采取哪些措施来优化表的设计或查询？</strong></p>
-<p>当表数据量激增导致单表查询与写入性能下降时，可采取以下优化措施：</p>
-<p>首先，通过水平分表将数据按用户 ID 或时间等分片键拆分到多张子表或多库中，以减少单表大小、降低锁竞争并分散 I&#x2F;O 压力；</p>
-<p>其次，合理设计索引，包括对经常用于过滤的单个字段创建单列索引、对多字段组合查询创建复合索引，以及使用覆盖索引来避免回表，但切忌在索引字段上使用函数或表达式以免导致索引失效；</p>
-<p>其三，可在应用层或独立缓存层（如 Redis）缓存热点数据或热点查询结果，显著减少数据库访问次数并缓解压力；</p>
-<p>第四，定期将历史或冷数据归档到独立的存档表、数据仓库或专用归档系统中，保持主表的数据量在可控范围内，从而提升主表的查询效率；</p>
-<p>最后，当单机 MySQL 无法再满足性能与扩展需求时，可考虑迁移到分布式数据库（如 TiDB、PolarDB），利用其水平可扩展架构和分布式事务能力，实现更大规模的数据存储与高并发访问。</p>
-<h2 id="读写分离"><a href="#读写分离" class="headerlink" title="读写分离"></a>读写分离</h2><p>在主从复制架构中，可以将数据库服务器组织成一主一从或一主多从的集群模式：所有写操作（INSERT、UPDATE、DELETE 等）都集中发送到主库，以保证强一致性；主库会将数据变更实时同步到一个或多个从库，而从库则专注于处理只读查询，提供最终一致性的读服务。业务服务器根据操作类型，将写请求路由到主库，将读请求路由到从库，从而在不影响写入性能和一致性的前提下，大幅提升整体系统的读扩展能力和稳定性。</p>
-<p>这样做有几个好处：</p>
-<p>第一，写入流量只作用于主库，从库则专注于处理查询请求，可显著减轻单台数据库的压力；</p>
-<p>第二，通过增加从库数量，可以水平扩展读能力，提升整体系统的并发查询性能；</p>
-<p>第三，即使在从库进行备份或维护时，也能保证主库持续提供写入服务，增强了系统的可用性和抗故障能力。</p>
-<p>需要注意的是，从库与主库之间存在微小的复制延迟，因此对于对实时性要求极高的查询，应优先访问主库或使用读写路由策略进行合理调度；同时，还要考虑事务隔离和一致性需求，确保读写分离不会引入数据不一致风险。通过合理配置负载均衡和故障切换机制，读写分离能够在保证数据安全与一致性的前提下，大幅提升数据库集群的性能和稳定性。</p>
-<p><img src="/../../images/MySQL/mysql_replic_re_decoup.drawio.png" alt="img"></p>
-<p>在程序层面，实现读写分离通常有两种方式：</p>
-<p>一种是在业务代码中抽象出一个数据访问层（或“中间层”），由这一层统一管理主从库的连接和路由逻辑，业务逻辑只需调用该层提供的接口即可完成读写分离，如下图；</p>
-<p><img src="/../../images/MySQL/mysql_replic_mid.drawio.png" alt="img"></p>
-<p>另一种是通过独立部署的中间件系统来承担这项工作，它对外提供与数据库协议兼容的接口，自动将写请求路由到主库、读请求分发到从库，业务服务器无需关心具体的分库路由和连接管理。这样既能保持程序的清晰简洁，又能在中间件层面灵活扩展和运维读写分离的能力。具体结构如下图：</p>
-<p><img src="/../../images/MySQL/mysql_replic_mycat.drawio.png" alt="img"></p>
-<p>如果要是用 MyCat 作为中间件的话，可参考：<a target="_blank" rel="noopener" href="https://bbs.huaweicloud.com/blogs/343277">https://bbs.huaweicloud.com/blogs/343277</a></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1694,7 +1693,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">41</span>
+          <span class="site-state-item-count">42</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
