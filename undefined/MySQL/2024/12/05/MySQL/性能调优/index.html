@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
 <meta name="generator" content="Hexo 7.3.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
@@ -244,7 +245,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h2 id="选择合适的-CPU"><a href="#选择合适的-CPU" class="headerlink" title="选择合适的 CPU"></a>选择合适的 CPU</h2><p>一般而言，当前数据库的应用类型可分为两大类：OLTP（Online Transaction Processing，在线事务处理）和 OLAP（Online Analytical Processing，在线分析处理）。这是两种截然不同的数据库应用。OLAP 多用于数据仓库或数据集中，一般需要执行复杂的 SQL 语句来进行查询；OLTP 多用于日常的事务性应用中，如银行交易、在线商品交易、Blog、网络游戏等应用。相对于 OLAP，OLTP 应用中的数据库容量较小。</p>
+        <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><h2 id="选择合适的-CPU"><a href="#选择合适的-CPU" class="headerlink" title="选择合适的 CPU"></a>选择合适的 CPU</h2><p>一般而言，当前数据库的应用类型可分为两大类：OLTP（Online Transaction Processing，在线事务处理）和 OLAP（Online Analytical Processing，在线分析处理）。这是两种截然不同的数据库应用。OLAP 多用于数据仓库或数据集中，一般需要执行复杂的 SQL 语句来进行查询；OLTP 多用于日常的事务性应用中，如银行交易、在线商品交易、Blog、网络游戏等应用。相对于 OLAP，OLTP 应用中的数据库容量较小。</p>
 <p>InnoDB 存储引擎一般都应用于 OLTP 的数据库应用，这种应用的特点如下：</p>
 <ul>
 <li>用户操作的并发量大；</li>

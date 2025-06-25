@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
 <meta name="generator" content="Hexo 7.3.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
@@ -235,7 +236,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>MySQL 默认 InnoDB 存储引擎，擅长事务处理，具有崩溃恢复特性。</p>
+          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><p>MySQL 默认 InnoDB 存储引擎，擅长事务处理，具有崩溃恢复特性。</p>
 <h2 id="内存结构"><a href="#内存结构" class="headerlink" title="内存结构"></a>内存结构</h2><p><img src="/../../images/MySQL/innodb-architecture-8-0.png" alt="InnoDB architecture diagram showing in-memory and on-disk structures. In-memory structures include the buffer pool, adaptive hash index, change buffer, and log buffer. On-disk structures include tablespaces, redo logs, and doublewrite buffer files."></p>
 <h3 id="缓冲池"><a href="#缓冲池" class="headerlink" title="缓冲池"></a>缓冲池</h3><p>InnoDB 存储引擎是基于磁盘存储的，并将其中的记录按照页的方式进行管理。</p>
 <p>缓冲池是一块内存区域，通过内存的速度来弥补磁盘速度较慢对数据库性能的影响。</p>
@@ -452,7 +453,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>如何在高并发访问下，既充分利用数据库的并发能力，又保证每个用户对数据的读写操作保持一致性呢？为此，数据库系统引入了锁（locking）机制，这也是它与文件系统的一个关键区别。</p>
+          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><p>如何在高并发访问下，既充分利用数据库的并发能力，又保证每个用户对数据的读写操作保持一致性呢？为此，数据库系统引入了锁（locking）机制，这也是它与文件系统的一个关键区别。</p>
 <p>而且这里需要澄清，只有当系统真正需要更高锁粒度时，行级锁才会出现开销，而 InnoDB 本身并不依赖锁升级机制，因为单个锁与多个锁的成本是相当的。也就是说，在不需要非常高并发写冲突控制的情况下，InnoDB 不会主动为每一行都添加行锁；只有当真的有并发冲突需要保护同一行时，才会产生行级锁对应的数据结构开销。</p>
 <p>锁是计算机中协调多个进程或线程并发访问某一资源的机制。</p>
 <p>在MySQL中，事务中的锁（行锁、表锁等）会一直保留到事务结束（COMMIT 或 ROLLBACK）。</p>
@@ -1430,7 +1431,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="What-is-the-IQ-Framework"><a href="#What-is-the-IQ-Framework" class="headerlink" title="What is the IQ Framework?"></a>What is the IQ Framework?</h1><p>The IQ framework is a solution designed for Cache-Augmented SQL (CASQL) systems, which combine relational databases (RDBMS) and key-value stores (KVS) to boost performance by caching database query results. However, CASQL systems often face challenges related to stale data and race conditions. The IQ framework ensures strong consistency while maintaining high performance.</p>
+          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><h1 id="What-is-the-IQ-Framework"><a href="#What-is-the-IQ-Framework" class="headerlink" title="What is the IQ Framework?"></a>What is the IQ Framework?</h1><p>The IQ framework is a solution designed for Cache-Augmented SQL (CASQL) systems, which combine relational databases (RDBMS) and key-value stores (KVS) to boost performance by caching database query results. However, CASQL systems often face challenges related to stale data and race conditions. The IQ framework ensures strong consistency while maintaining high performance.</p>
 <h1 id="Challenges-in-CASQL-Systems"><a href="#Challenges-in-CASQL-Systems" class="headerlink" title="Challenges in CASQL Systems"></a>Challenges in CASQL Systems</h1><ol>
 <li><p><strong>Stale Data in Cache</strong>:</p>
 <ul>
@@ -1916,7 +1917,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h2 id="索引组织表"><a href="#索引组织表" class="headerlink" title="索引组织表"></a>索引组织表</h2><p>在 InnoDB 存储引擎中，表都是根据主键顺序组织存放的，这种存储方式的表称为索引组织表（index organized table）。在 InnoDB 存储引擎表中，每张表都有一个主键（Primary Key），如果在创建表时没有显式地定义主键，则 InnoDB 存储引擎会按如下方式选择或创建主键：</p>
+          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><h2 id="索引组织表"><a href="#索引组织表" class="headerlink" title="索引组织表"></a>索引组织表</h2><p>在 InnoDB 存储引擎中，表都是根据主键顺序组织存放的，这种存储方式的表称为索引组织表（index organized table）。在 InnoDB 存储引擎表中，每张表都有一个主键（Primary Key），如果在创建表时没有显式地定义主键，则 InnoDB 存储引擎会按如下方式选择或创建主键：</p>
 <ul>
 <li>首先判断表中是否有非空的唯一索引（Unique NOT NULL），如果有，则该列即为主键。</li>
 <li>如果不符合上述条件，InnoDB 存储引擎会自动创建一个 6 字节大小的指针。</li>
@@ -2697,7 +2698,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="Greedy-Dual-Size-GDS-algorithm"><a href="#Greedy-Dual-Size-GDS-algorithm" class="headerlink" title="Greedy Dual Size (GDS) algorithm"></a>Greedy Dual Size (GDS) algorithm</h1><p>Key Concepts:</p>
+          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><h1 id="Greedy-Dual-Size-GDS-algorithm"><a href="#Greedy-Dual-Size-GDS-algorithm" class="headerlink" title="Greedy Dual Size (GDS) algorithm"></a>Greedy Dual Size (GDS) algorithm</h1><p>Key Concepts:</p>
 <ol>
 <li><strong>Variable Size and Cost</strong>:<ul>
 <li>Unlike simple algorithms that treat all objects equally, GDS takes into account:<ul>

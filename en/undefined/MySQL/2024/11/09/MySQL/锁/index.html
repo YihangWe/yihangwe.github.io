@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
 <meta name="generator" content="Hexo 7.3.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
@@ -243,7 +244,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>如何在高并发访问下，既充分利用数据库的并发能力，又保证每个用户对数据的读写操作保持一致性呢？为此，数据库系统引入了锁（locking）机制，这也是它与文件系统的一个关键区别。</p>
+        <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><p>如何在高并发访问下，既充分利用数据库的并发能力，又保证每个用户对数据的读写操作保持一致性呢？为此，数据库系统引入了锁（locking）机制，这也是它与文件系统的一个关键区别。</p>
 <p>而且这里需要澄清，只有当系统真正需要更高锁粒度时，行级锁才会出现开销，而 InnoDB 本身并不依赖锁升级机制，因为单个锁与多个锁的成本是相当的。也就是说，在不需要非常高并发写冲突控制的情况下，InnoDB 不会主动为每一行都添加行锁；只有当真的有并发冲突需要保护同一行时，才会产生行级锁对应的数据结构开销。</p>
 <p>锁是计算机中协调多个进程或线程并发访问某一资源的机制。</p>
 <p>在MySQL中，事务中的锁（行锁、表锁等）会一直保留到事务结束（COMMIT 或 ROLLBACK）。</p>

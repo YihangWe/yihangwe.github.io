@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
 <meta name="generator" content="Hexo 7.3.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
@@ -239,7 +240,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h1 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h1><p>FoundationDB的研究意义在于，它成功地将NoSQL的灵活性与ACID事务的强大功能结合在一起，提供了一种模块化的架构，使得各个子系统可以独立配置和扩展。这种设计不仅提高了系统的可扩展性和可用性，还增强了故障容忍能力。此外，FoundationDB采用了严格的模拟测试框架，确保了系统的稳定性和高效性，使得开发者能够快速引入和发布新特性。FoundationDB的快速恢复机制显著提高了系统的可用性，简化了软件升级和配置变更的过程，通常在几秒钟内完成。</p>
+        <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><h1 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h1><p>FoundationDB的研究意义在于，它成功地将NoSQL的灵活性与ACID事务的强大功能结合在一起，提供了一种模块化的架构，使得各个子系统可以独立配置和扩展。这种设计不仅提高了系统的可扩展性和可用性，还增强了故障容忍能力。此外，FoundationDB采用了严格的模拟测试框架，确保了系统的稳定性和高效性，使得开发者能够快速引入和发布新特性。FoundationDB的快速恢复机制显著提高了系统的可用性，简化了软件升级和配置变更的过程，通常在几秒钟内完成。</p>
 <p>The main design principles are:</p>
 <ol>
 <li>Divide-and-Conquer (or separation of concerns). FDB decouples the transaction management system (write path) from the distributed storage (read path) and scales them independently. Within the transaction management system, processes are assigned various roles representing different aspects of transaction management. Furthermore, cluster-wide orchestrating tasks, such as overload control and load balancing are also divided and serviced by additional heterogeneous roles.</li>

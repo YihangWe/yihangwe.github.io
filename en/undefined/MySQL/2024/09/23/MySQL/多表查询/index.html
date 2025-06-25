@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
 <meta name="generator" content="Hexo 7.3.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
@@ -237,7 +238,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h1 id="多表关系"><a href="#多表关系" class="headerlink" title="多表关系"></a>多表关系</h1><ul>
+        <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><h1 id="多表关系"><a href="#多表关系" class="headerlink" title="多表关系"></a>多表关系</h1><ul>
 <li>一对多：在多的一方建立外键，指向一的一方的主键。如：部门-员工。</li>
 <li>多对多：建立第三张中间表，其中至少包含两个外键，分别关联两方主键。如：学生-课程。</li>
 <li>一对一：用于单表拆分，将一张表的基础字段放在一张表中，其他详情字段放在另一张表中，以提升操作效率。在任意一方加入外键，关联另一方的主键，并且设置外键为唯一（UNIQUE） 。</li>

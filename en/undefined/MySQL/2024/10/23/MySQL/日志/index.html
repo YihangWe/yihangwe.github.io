@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
 <meta name="generator" content="Hexo 7.3.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
@@ -239,7 +240,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p><strong>错误日志（Error Log）</strong> 用于记录在服务 <strong>启动、运行及停止</strong> 过程中遇到的各种错误信息。该日志功能默认启用，且默认保存在 Linux 系统的 <code>/var/log/mysqld.log</code>（或 <code>/var/log/mysql/error.log</code>）路径下，也可能在 data 目录中以主机名为 .err 后缀的文件方式存在。若想查看或修改该路径，可通过 MySQL 命令：</p>
+        <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><p><strong>错误日志（Error Log）</strong> 用于记录在服务 <strong>启动、运行及停止</strong> 过程中遇到的各种错误信息。该日志功能默认启用，且默认保存在 Linux 系统的 <code>/var/log/mysqld.log</code>（或 <code>/var/log/mysql/error.log</code>）路径下，也可能在 data 目录中以主机名为 .err 后缀的文件方式存在。若想查看或修改该路径，可通过 MySQL 命令：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> VARIABLES <span class="keyword">LIKE</span> <span class="string">&#x27;%log_error%&#x27;</span>;</span><br></pre></td></tr></table></figure>
 
 <p>该命令会显示当前 log_error 变量的值，即错误日志所在路径。如果该变量为空，通常默认日志会被输出到 stderr，或由系统服务（如 systemd）转至系统日志（如 <code>/var/log/messages</code> 或由 journalctl 管理）。</p>

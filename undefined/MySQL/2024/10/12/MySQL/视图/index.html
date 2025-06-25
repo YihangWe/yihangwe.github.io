@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
 <meta name="generator" content="Hexo 7.3.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
@@ -237,7 +238,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>在 MySQL 数据库中，视图（View）是一个命名的虚表，它由一个 SQL 查询来定义，可以当做表使用。与持久表（permanent table）不同的是，视图中的数据没有实际的物理存储。也就是说视图中的数据并不在数据库中实际存在，行和列的数据来自定义视图的查询中使用的表，在使用视图时动态生成的。</p>
+        <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><p>在 MySQL 数据库中，视图（View）是一个命名的虚表，它由一个 SQL 查询来定义，可以当做表使用。与持久表（permanent table）不同的是，视图中的数据没有实际的物理存储。也就是说视图中的数据并不在数据库中实际存在，行和列的数据来自定义视图的查询中使用的表，在使用视图时动态生成的。</p>
 <p>视图只保存了查询的 SQL 逻辑，不保存查询结果。</p>
 <h2 id="视图的作用"><a href="#视图的作用" class="headerlink" title="视图的作用"></a>视图的作用</h2><p>视图在数据库中发挥着重要的作用。视图的主要用途之一是被用做一个抽象装置，特别是对于一些应用程序，程序本身不需要关心基表（base table）的结构，只需要按照视图定义来取数据或更新数据；因此，视图同时在一定程度上起到一个安全层的作用。</p>
 <p>MySQL 数据库 DBA 的一个常用的命令是 SHOW TABLES，该命令会显示出当前数据库下所有的表。但因为视图是虚表，同样被作为表显示出来。若用户只想查看当前架构下的基表，可以通过 information_schema 架构下的 TABLES 表来查询，并搜索表类型为 BASE TABLE 的表。</p>

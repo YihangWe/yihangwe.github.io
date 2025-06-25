@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
 <meta name="generator" content="Hexo 7.3.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
@@ -246,7 +247,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h1 id="Data-Skipping"><a href="#Data-Skipping" class="headerlink" title="Data Skipping"></a>Data Skipping</h1><p>我们可以利用辅助数据结构标识表中哪些部分可以跳过扫描，避免对每一行（tuple）都做判断。</p>
+        <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><h1 id="Data-Skipping"><a href="#Data-Skipping" class="headerlink" title="Data Skipping"></a>Data Skipping</h1><p>我们可以利用辅助数据结构标识表中哪些部分可以跳过扫描，避免对每一行（tuple）都做判断。</p>
 <p><strong>OLAP 场景下为什么要用 Data Skipping？</strong></p>
 <p>在 OLAP 场景中，查询往往是扫描大量历史数据，筛选满足某种复杂条件的子集，典型例子如数据仓库的多维分析、报表查询等。此时：</p>
 <ol>

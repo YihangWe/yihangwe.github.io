@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
 <meta name="generator" content="Hexo 7.3.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
@@ -235,7 +236,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>数据库的备份与恢复是一项最基本的操作与工作。在意外情况下（如服务器宕机、磁盘损坏、RAID 卡损坏等）要保证数据不丢失，或者是最小程度地丢失，每个开发者应该时刻关心所负责的数据库备份情况。</p>
+          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><p>数据库的备份与恢复是一项最基本的操作与工作。在意外情况下（如服务器宕机、磁盘损坏、RAID 卡损坏等）要保证数据不丢失，或者是最小程度地丢失，每个开发者应该时刻关心所负责的数据库备份情况。</p>
 <p>可以根据不同的类型来划分备份的方法。根据备份的方法不同可以将备份分为：</p>
 <ul>
 <li>Hot Backup（热备）</li>
@@ -529,7 +530,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>分库分表主要是为了解决单库单表在海量数据和高并发场景下的性能瓶颈：当数据量达到千万级甚至亿级时，单表查询效率和索引更新速度都会明显下降，备份恢复也变得极其缓慢；而在高并发写入时，单实例的 CPU、内存、I&#x2F;O 资源易成为瓶颈，锁竞争也会导致事务阻塞。通过将大表拆成多张子表、或将数据分散到多个数据库实例，不仅能降低单表、单库的数据规模，提升读写性能，还能分散并发压力、减少锁冲突，从而显著提高系统的可用性和扩展能力。</p>
+          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><p>分库分表主要是为了解决单库单表在海量数据和高并发场景下的性能瓶颈：当数据量达到千万级甚至亿级时，单表查询效率和索引更新速度都会明显下降，备份恢复也变得极其缓慢；而在高并发写入时，单实例的 CPU、内存、I&#x2F;O 资源易成为瓶颈，锁竞争也会导致事务阻塞。通过将大表拆成多张子表、或将数据分散到多个数据库实例，不仅能降低单表、单库的数据规模，提升读写性能，还能分散并发压力、减少锁冲突，从而显著提高系统的可用性和扩展能力。</p>
 <p>垂直分库通过将不同业务模块或功能独立到各自的数据库，既降低了数据之间的耦合度，又提升了整体可用性；水平分库则将同一业务的数据按一定策略分散到多台实例，分担了单库的 CPU、I&#x2F;O 和网络压力；垂直分表是把表中不同类型的数据拆分到多张表中，进一步削弱耦合；水平分表则把一张大表按范围或哈希划分成多张子表，从而减少索引深度并加快查询。</p>
 <p>若仍使用单库单表模式，会因热点数据频繁访问导致缓冲区不足、磁盘 I&#x2F;O 激增，又因大量请求而引发网络带宽瓶颈，此外 SQL 处理也会占用过多 CPU 资源，最终形成性能瓶颈。分库分表的核心思想就是通过分散存储，将单一数据库或表的数据规模控制在可承载范围内，进而显著缓解 I&#x2F;O、CPU 和网络方面的压力。</p>
 <h2 id="拆分策略"><a href="#拆分策略" class="headerlink" title="拆分策略"></a>拆分策略</h2><h3 id="垂直拆分"><a href="#垂直拆分" class="headerlink" title="垂直拆分"></a>垂直拆分</h3><p>垂直拆分主要包括两种形式：<strong>垂直分库</strong>和<strong>垂直分表</strong>。其中，垂直分库是以表为单位、根据业务模块将不同的表拆分到各自独立的数据库实例中，使得每个库只包含某一类业务的表，从而降低数据耦合度并提升可用性；而垂直分表则是以字段为依据，将同一张宽表中访问频次不同或性质相异的字段拆分到多张子表，通过主键—外键关联保持数据完整性，以减小单表宽度、优化查询性能。在实践中，垂直分库常用于按业务边界隔离数据，而垂直分表则侧重于对单表内部结构的精细化拆分，两者结合能够更好地满足系统的可扩展性与维护性需求。</p>
@@ -638,7 +639,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="编程模型-Programming-Model"><a href="#编程模型-Programming-Model" class="headerlink" title="编程模型 (Programming Model)"></a>编程模型 (Programming Model)</h1><p><strong>输入与输出 (Input and Output):</strong></p>
+          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><h1 id="编程模型-Programming-Model"><a href="#编程模型-Programming-Model" class="headerlink" title="编程模型 (Programming Model)"></a>编程模型 (Programming Model)</h1><p><strong>输入与输出 (Input and Output):</strong></p>
 <ul>
 <li>接收一组<strong>输入键&#x2F;值对 (input key&#x2F;value pairs)</strong>。</li>
 <li>生成一组<strong>输出键&#x2F;值对 (output key&#x2F;value pairs)</strong>。</li>
@@ -1180,7 +1181,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>在基于 Binlog 的异步复制模式中，主库将所有 DDL 与 DML 操作写入二进制日志，并在本地完成事务提交后立即返回，无需等待从库确认，从而实现松散耦合的复制流程。随后，从库的 <strong>IO 线程</strong>会与主库保持长连接，不断读取新生成的 binlog 事件并将它们写入本地的 <strong>Relay Log</strong>。接着，从库的 <strong>SQL 线程</strong>会顺序读取 Relay Log 中的事件，并在从库上重做这些 DDL 与 DML，以达到数据同步的目的。</p>
+          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><p>在基于 Binlog 的异步复制模式中，主库将所有 DDL 与 DML 操作写入二进制日志，并在本地完成事务提交后立即返回，无需等待从库确认，从而实现松散耦合的复制流程。随后，从库的 <strong>IO 线程</strong>会与主库保持长连接，不断读取新生成的 binlog 事件并将它们写入本地的 <strong>Relay Log</strong>。接着，从库的 <strong>SQL 线程</strong>会顺序读取 Relay Log 中的事件，并在从库上重做这些 DDL 与 DML，以达到数据同步的目的。</p>
 <p><img src="/../../images/MySQL/mysql_replic_ms.drawio.png" alt="img"></p>
 <p>MySQL 支持一主多从复制拓扑，且从库本身也可以配置为其他从库的源库，实现链式复制。这种异步复制模式允许在主库出现故障时，通过提升任一从库为新的主库来快速切换并恢复服务，极大增强了系统的高可用性。同时，通过将写操作集中到主库、将读操作分散到从库，也减轻了主库的负载，并可在从库上执行备份任务，避免对主库性能产生影响。由于主库无需等待从库完成写入，可获得更高的写入吞吐量，但也可能引入复制延迟问题，需要结合监控指标加以管理。为进一步降低从库的应用延迟，可使用并行复制功能，让 SQL 线程并发地执行多个复制通道中的事件。总体而言，基于 Binlog 的异步复制以其配置简单、可扩展性强和高可用性好等特点，成为 MySQL 最常用的主从复制方案。</p>
 <p>在主从复制中，<strong>Relay Log</strong> 起到四大关键作用：</p>
@@ -1290,7 +1291,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="Data-Model"><a href="#Data-Model" class="headerlink" title="Data Model"></a>Data Model</h1><p><strong>SQL++ has a more flexible data model:</strong></p>
+          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><h1 id="Data-Model"><a href="#Data-Model" class="headerlink" title="Data Model"></a>Data Model</h1><p><strong>SQL++ has a more flexible data model:</strong></p>
 <ul>
 <li>It relaxes traditional SQL’s strict rules to handle modern, semi-structured data like JSON or CBOR.</li>
 <li>SQL++ databases can store self-describing data, meaning you don’t need a predefined schema (data structure).</li>

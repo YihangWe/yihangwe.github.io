@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
 <meta name="generator" content="Hexo 7.3.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
@@ -243,7 +244,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h1 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h1><p>LSM-Tree（Log-Structured Merge Tree）的核心思想是将大量的随机写入转换为更高效的顺序写入。简单来说，它通过以下方式来实现：</p>
+        <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><h1 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h1><p>LSM-Tree（Log-Structured Merge Tree）的核心思想是将大量的随机写入转换为更高效的顺序写入。简单来说，它通过以下方式来实现：</p>
 <ol>
 <li><strong>写入内存</strong>：当有新的数据写入时，LSM-Tree首先将这些数据存储在内存中的缓冲区（称为MemTable）。这是一个有序的结构，数据按键排序。</li>
 <li><strong>批量写入磁盘</strong>：当内存中的数据积累到一定程度时，整个MemTable会被一次性地写入磁盘，这个过程是<strong>顺序写入</strong>，非常高效。写入磁盘后，这个数据成为一个不可修改的文件，称为SSTable（Sorted String Table）。</li>

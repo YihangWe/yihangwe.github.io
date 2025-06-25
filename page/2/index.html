@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
 <meta name="generator" content="Hexo 7.3.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
@@ -235,7 +236,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="B-Tree"><a href="#B-Tree" class="headerlink" title="B+Tree"></a>B+Tree</h1><p>B+Tree 通过宽而浅的多路平衡结构，以及对页级 IO、顺序访问、并发保护和崩溃恢复的深度优化，完美契合 OLTP 系统对<strong>低延迟点查找</strong>、<strong>高并发访问</strong>和<strong>安全写入</strong>的严格要求，因此成为主流关系型数据库（MySQL、PostgreSQL、Oracle 等）在 OLTP 场景中最常用的索引实现。</p>
+          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><h1 id="B-Tree"><a href="#B-Tree" class="headerlink" title="B+Tree"></a>B+Tree</h1><p>B+Tree 通过宽而浅的多路平衡结构，以及对页级 IO、顺序访问、并发保护和崩溃恢复的深度优化，完美契合 OLTP 系统对<strong>低延迟点查找</strong>、<strong>高并发访问</strong>和<strong>安全写入</strong>的严格要求，因此成为主流关系型数据库（MySQL、PostgreSQL、Oracle 等）在 OLTP 场景中最常用的索引实现。</p>
 <p><strong>性能特点</strong></p>
 <ol>
 <li><strong>O(log n) 查找复杂度</strong>：树高 ≈ logₘ N，当 m 很大时，即使 N 达到亿级，树高也通常只有 3～4 层，单次查找只需 3～4 次磁盘／页访问。</li>
@@ -599,7 +600,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h1><p>该论文解决了三个问题：</p>
+          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><h1 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h1><p>该论文解决了三个问题：</p>
 <ol>
 <li>如何以低延迟处理用户更复杂多样的查询；</li>
 <li>如何设计一种友好且统一的数据布局，使其兼容列式存储和行式存储，能够处理复杂数据类型，并保持低延迟；</li>
@@ -703,7 +704,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="Data-Skipping"><a href="#Data-Skipping" class="headerlink" title="Data Skipping"></a>Data Skipping</h1><p>我们可以利用辅助数据结构标识表中哪些部分可以跳过扫描，避免对每一行（tuple）都做判断。</p>
+          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><h1 id="Data-Skipping"><a href="#Data-Skipping" class="headerlink" title="Data Skipping"></a>Data Skipping</h1><p>我们可以利用辅助数据结构标识表中哪些部分可以跳过扫描，避免对每一行（tuple）都做判断。</p>
 <p><strong>OLAP 场景下为什么要用 Data Skipping？</strong></p>
 <p>在 OLAP 场景中，查询往往是扫描大量历史数据，筛选满足某种复杂条件的子集，典型例子如数据仓库的多维分析、报表查询等。此时：</p>
 <ol>
@@ -1170,7 +1171,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>数据存储格式决定了数据如何在物理介质上组织与编码，这直接影响了系统的读写性能与资源使用效率。在大数据环境下，不同的格式会带来显著的 I&#x2F;O 差异，从而影响查询响应时间和吞吐量  。此外，恰当的存储格式有助于提高压缩比，实现更高的数据密度，降低存储成本，并减少网络传输开销 。对于需要长期保留的数据，选择稳定且可持续的格式至关重要，否则会面临文件格式过时与不可读的风险。最后，不同应用场景（如 OLTP 与 OLAP）对读写模式有不同要求，合适的存储格式既能满足高并发事务访问，也能兼顾批量分析查询，实现系统的整体优化。</p>
+          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><p>数据存储格式决定了数据如何在物理介质上组织与编码，这直接影响了系统的读写性能与资源使用效率。在大数据环境下，不同的格式会带来显著的 I&#x2F;O 差异，从而影响查询响应时间和吞吐量  。此外，恰当的存储格式有助于提高压缩比，实现更高的数据密度，降低存储成本，并减少网络传输开销 。对于需要长期保留的数据，选择稳定且可持续的格式至关重要，否则会面临文件格式过时与不可读的风险。最后，不同应用场景（如 OLTP 与 OLAP）对读写模式有不同要求，合适的存储格式既能满足高并发事务访问，也能兼顾批量分析查询，实现系统的整体优化。</p>
 <p>当前常用的数据存储格式有以下三种：</p>
 <ol>
 <li><strong>行式存储（Row-oriented Layout）</strong></li>
@@ -1395,7 +1396,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h2 id="选择合适的-CPU"><a href="#选择合适的-CPU" class="headerlink" title="选择合适的 CPU"></a>选择合适的 CPU</h2><p>一般而言，当前数据库的应用类型可分为两大类：OLTP（Online Transaction Processing，在线事务处理）和 OLAP（Online Analytical Processing，在线分析处理）。这是两种截然不同的数据库应用。OLAP 多用于数据仓库或数据集中，一般需要执行复杂的 SQL 语句来进行查询；OLTP 多用于日常的事务性应用中，如银行交易、在线商品交易、Blog、网络游戏等应用。相对于 OLAP，OLTP 应用中的数据库容量较小。</p>
+          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><h2 id="选择合适的-CPU"><a href="#选择合适的-CPU" class="headerlink" title="选择合适的 CPU"></a>选择合适的 CPU</h2><p>一般而言，当前数据库的应用类型可分为两大类：OLTP（Online Transaction Processing，在线事务处理）和 OLAP（Online Analytical Processing，在线分析处理）。这是两种截然不同的数据库应用。OLAP 多用于数据仓库或数据集中，一般需要执行复杂的 SQL 语句来进行查询；OLTP 多用于日常的事务性应用中，如银行交易、在线商品交易、Blog、网络游戏等应用。相对于 OLAP，OLTP 应用中的数据库容量较小。</p>
 <p>InnoDB 存储引擎一般都应用于 OLTP 的数据库应用，这种应用的特点如下：</p>
 <ul>
 <li>用户操作的并发量大；</li>

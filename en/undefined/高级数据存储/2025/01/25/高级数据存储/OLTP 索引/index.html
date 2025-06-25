@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
 <meta name="generator" content="Hexo 7.3.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
@@ -247,7 +248,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h1 id="B-Tree"><a href="#B-Tree" class="headerlink" title="B+Tree"></a>B+Tree</h1><p>B+Tree 通过宽而浅的多路平衡结构，以及对页级 IO、顺序访问、并发保护和崩溃恢复的深度优化，完美契合 OLTP 系统对<strong>低延迟点查找</strong>、<strong>高并发访问</strong>和<strong>安全写入</strong>的严格要求，因此成为主流关系型数据库（MySQL、PostgreSQL、Oracle 等）在 OLTP 场景中最常用的索引实现。</p>
+        <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><h1 id="B-Tree"><a href="#B-Tree" class="headerlink" title="B+Tree"></a>B+Tree</h1><p>B+Tree 通过宽而浅的多路平衡结构，以及对页级 IO、顺序访问、并发保护和崩溃恢复的深度优化，完美契合 OLTP 系统对<strong>低延迟点查找</strong>、<strong>高并发访问</strong>和<strong>安全写入</strong>的严格要求，因此成为主流关系型数据库（MySQL、PostgreSQL、Oracle 等）在 OLTP 场景中最常用的索引实现。</p>
 <p><strong>性能特点</strong></p>
 <ol>
 <li><strong>O(log n) 查找复杂度</strong>：树高 ≈ logₘ N，当 m 很大时，即使 N 达到亿级，树高也通常只有 3～4 层，单次查找只需 3～4 次磁盘／页访问。</li>

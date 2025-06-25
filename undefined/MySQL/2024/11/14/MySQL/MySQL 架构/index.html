@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
 <meta name="generator" content="Hexo 7.3.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
@@ -243,7 +244,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>MySQL 默认 InnoDB 存储引擎，擅长事务处理，具有崩溃恢复特性。</p>
+        <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><p>MySQL 默认 InnoDB 存储引擎，擅长事务处理，具有崩溃恢复特性。</p>
 <h2 id="内存结构"><a href="#内存结构" class="headerlink" title="内存结构"></a>内存结构</h2><p><img src="/../../images/MySQL/innodb-architecture-8-0.png" alt="InnoDB architecture diagram showing in-memory and on-disk structures. In-memory structures include the buffer pool, adaptive hash index, change buffer, and log buffer. On-disk structures include tablespaces, redo logs, and doublewrite buffer files."></p>
 <h3 id="缓冲池"><a href="#缓冲池" class="headerlink" title="缓冲池"></a>缓冲池</h3><p>InnoDB 存储引擎是基于磁盘存储的，并将其中的记录按照页的方式进行管理。</p>
 <p>缓冲池是一块内存区域，通过内存的速度来弥补磁盘速度较慢对数据库性能的影响。</p>

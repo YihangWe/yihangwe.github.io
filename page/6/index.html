@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
 <meta name="generator" content="Hexo 7.3.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
@@ -235,7 +236,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>在 insert &#x2F; update &#x2F; delete 之前或之后，触发并执行触发器中定义的 SQL 语句集合。</p>
+          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><p>在 insert &#x2F; update &#x2F; delete 之前或之后，触发并执行触发器中定义的 SQL 语句集合。</p>
 <p>确保数据完整性，日志记录，数据校验等操作。</p>
 <p>使用别名 OLD 和 NEW 来引用触发器中发生变化的记录内容。</p>
 <table>
@@ -339,7 +340,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>存储过程是事先经过编译并存储在数据库中的一段 SQL 语句的集合，调用存储过程可以简化应用开发人员的很多工作，减少数据在数据库和应用服务器之间的传输。</p>
+          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><p>存储过程是事先经过编译并存储在数据库中的一段 SQL 语句的集合，调用存储过程可以简化应用开发人员的很多工作，减少数据在数据库和应用服务器之间的传输。</p>
 <p>特点：</p>
 <ol>
 <li>封装，复用。</li>
@@ -518,7 +519,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>在 MySQL 数据库中，视图（View）是一个命名的虚表，它由一个 SQL 查询来定义，可以当做表使用。与持久表（permanent table）不同的是，视图中的数据没有实际的物理存储。也就是说视图中的数据并不在数据库中实际存在，行和列的数据来自定义视图的查询中使用的表，在使用视图时动态生成的。</p>
+          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><p>在 MySQL 数据库中，视图（View）是一个命名的虚表，它由一个 SQL 查询来定义，可以当做表使用。与持久表（permanent table）不同的是，视图中的数据没有实际的物理存储。也就是说视图中的数据并不在数据库中实际存在，行和列的数据来自定义视图的查询中使用的表，在使用视图时动态生成的。</p>
 <p>视图只保存了查询的 SQL 逻辑，不保存查询结果。</p>
 <h2 id="视图的作用"><a href="#视图的作用" class="headerlink" title="视图的作用"></a>视图的作用</h2><p>视图在数据库中发挥着重要的作用。视图的主要用途之一是被用做一个抽象装置，特别是对于一些应用程序，程序本身不需要关心基表（base table）的结构，只需要按照视图定义来取数据或更新数据；因此，视图同时在一定程度上起到一个安全层的作用。</p>
 <p>MySQL 数据库 DBA 的一个常用的命令是 SHOW TABLES，该命令会显示出当前数据库下所有的表。但因为视图是虚表，同样被作为表显示出来。若用户只想查看当前架构下的基表，可以通过 information_schema 架构下的 TABLES 表来查询，并搜索表类型为 BASE TABLE 的表。</p>
@@ -642,7 +643,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="Time-Stamp-Based-Protocols"><a href="#Time-Stamp-Based-Protocols" class="headerlink" title="Time-Stamp Based Protocols"></a>Time-Stamp Based Protocols</h1><p>Suppose transaction Ti issues read(Q):</p>
+          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><h1 id="Time-Stamp-Based-Protocols"><a href="#Time-Stamp-Based-Protocols" class="headerlink" title="Time-Stamp Based Protocols"></a>Time-Stamp Based Protocols</h1><p>Suppose transaction Ti issues read(Q):</p>
 <ul>
 <li>If TS(Ti) &lt; W-TimeStamp(Q), then Ti needs to read the value of Q which was already overwritten. Hence the read request is rejected and Ti is rolled back.</li>
 <li>If TS(Ti) &gt;&#x3D; W-TimeStamp(Q), then the read operation is executed and the R-timeStamp(Q) is set to the maximum of R-TimeStamp(Q) and TS(Ti).</li>
@@ -754,7 +755,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>在阐述 SQL 的优化方案之前，我们需要先了解 SQL 的执行流程，如下：</p>
+          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><p>在阐述 SQL 的优化方案之前，我们需要先了解 SQL 的执行流程，如下：</p>
 <ol>
 <li><p>客户端发送 SQL 语句给 MySQL 服务器。</p>
 </li>

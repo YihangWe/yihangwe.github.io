@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
 <meta name="generator" content="Hexo 7.3.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
@@ -248,7 +249,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h2 id="索引组织表"><a href="#索引组织表" class="headerlink" title="索引组织表"></a>索引组织表</h2><p>在 InnoDB 存储引擎中，表都是根据主键顺序组织存放的，这种存储方式的表称为索引组织表（index organized table）。在 InnoDB 存储引擎表中，每张表都有一个主键（Primary Key），如果在创建表时没有显式地定义主键，则 InnoDB 存储引擎会按如下方式选择或创建主键：</p>
+        <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><h2 id="索引组织表"><a href="#索引组织表" class="headerlink" title="索引组织表"></a>索引组织表</h2><p>在 InnoDB 存储引擎中，表都是根据主键顺序组织存放的，这种存储方式的表称为索引组织表（index organized table）。在 InnoDB 存储引擎表中，每张表都有一个主键（Primary Key），如果在创建表时没有显式地定义主键，则 InnoDB 存储引擎会按如下方式选择或创建主键：</p>
 <ul>
 <li>首先判断表中是否有非空的唯一索引（Unique NOT NULL），如果有，则该列即为主键。</li>
 <li>如果不符合上述条件，InnoDB 存储引擎会自动创建一个 6 字节大小的指针。</li>

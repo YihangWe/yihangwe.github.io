@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
 <meta name="generator" content="Hexo 7.3.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
@@ -235,7 +236,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>存储引擎是存储、更新或查询数据、以及建立索引等技术的实现方式。存储引擎是<strong>基于表</strong>的，而不是基于库的，因此存储引擎也可被称为表类型。</p>
+          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><p>存储引擎是存储、更新或查询数据、以及建立索引等技术的实现方式。存储引擎是<strong>基于表</strong>的，而不是基于库的，因此存储引擎也可被称为表类型。</p>
 <p>指定存储引擎：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE TABLE</span> 表名 (</span><br><span class="line">	...</span><br><span class="line">) ENGINE <span class="operator">=</span> INNODB ...;</span><br></pre></td></tr></table></figure>
 
@@ -605,7 +606,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>MySQL 的体系结构如下：</p>
+          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><p>MySQL 的体系结构如下：</p>
 <p><img src="/../../images/MySQL/mysql-architecture.png" alt="MySQL architecture diagram showing connectors, interfaces, pluggable storage engines, the file system with files and logs."></p>
 <table border="1" cellspacing="0" cellpadding="4">
   <tr>
@@ -713,7 +714,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h1><p>Dynamo has the ability of incremental scalability and predictable high performance, but it carries the operational complexity of self-managed large database systems.</p>
+          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><h1 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h1><p>Dynamo has the ability of incremental scalability and predictable high performance, but it carries the operational complexity of self-managed large database systems.</p>
 <p>SimpleDB is easy to administrate a cloud service, consistency, and a table-based data model, but it has limitations that tables have a small capacity in terms of storage and of request throughput, and that a unpredictable query and write latency.</p>
 <p>DynamoDB &#x3D; Dynamo + SImpleDB</p>
 <h1 id="Architecture"><a href="#Architecture" class="headerlink" title="Architecture"></a>Architecture</h1><p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/dynamodb_arch.png" alt="img"></p>
@@ -1177,7 +1178,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>一组 SQL 操作的集合，不可分割的工作单位。也就是说，事务会把所有操作作为一个整体向系统进行提交或撤销，即这些操作要么同时成功，要么同时失败。</p>
+          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><p>一组 SQL 操作的集合，不可分割的工作单位。也就是说，事务会把所有操作作为一个整体向系统进行提交或撤销，即这些操作要么同时成功，要么同时失败。</p>
 <p>MYSQL 的事务默认是自动提交的，即当执行一条 DML 语句时，MYSQL 会立即隐式地提交事务。</p>
 <p>查看&#x2F;设置事务提交方式：</p>
 <ul>
@@ -2104,7 +2105,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h1><p>FoundationDB的研究意义在于，它成功地将NoSQL的灵活性与ACID事务的强大功能结合在一起，提供了一种模块化的架构，使得各个子系统可以独立配置和扩展。这种设计不仅提高了系统的可扩展性和可用性，还增强了故障容忍能力。此外，FoundationDB采用了严格的模拟测试框架，确保了系统的稳定性和高效性，使得开发者能够快速引入和发布新特性。FoundationDB的快速恢复机制显著提高了系统的可用性，简化了软件升级和配置变更的过程，通常在几秒钟内完成。</p>
+          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><h1 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h1><p>FoundationDB的研究意义在于，它成功地将NoSQL的灵活性与ACID事务的强大功能结合在一起，提供了一种模块化的架构，使得各个子系统可以独立配置和扩展。这种设计不仅提高了系统的可扩展性和可用性，还增强了故障容忍能力。此外，FoundationDB采用了严格的模拟测试框架，确保了系统的稳定性和高效性，使得开发者能够快速引入和发布新特性。FoundationDB的快速恢复机制显著提高了系统的可用性，简化了软件升级和配置变更的过程，通常在几秒钟内完成。</p>
 <p>The main design principles are:</p>
 <ol>
 <li>Divide-and-Conquer (or separation of concerns). FDB decouples the transaction management system (write path) from the distributed storage (read path) and scales them independently. Within the transaction management system, processes are assigned various roles representing different aspects of transaction management. Furthermore, cluster-wide orchestrating tasks, such as overload control and load balancing are also divided and serviced by additional heterogeneous roles.</li>

@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
 <meta name="generator" content="Hexo 7.3.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
@@ -242,7 +243,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>在基于 Binlog 的异步复制模式中，主库将所有 DDL 与 DML 操作写入二进制日志，并在本地完成事务提交后立即返回，无需等待从库确认，从而实现松散耦合的复制流程。随后，从库的 <strong>IO 线程</strong>会与主库保持长连接，不断读取新生成的 binlog 事件并将它们写入本地的 <strong>Relay Log</strong>。接着，从库的 <strong>SQL 线程</strong>会顺序读取 Relay Log 中的事件，并在从库上重做这些 DDL 与 DML，以达到数据同步的目的。</p>
+        <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><p>在基于 Binlog 的异步复制模式中，主库将所有 DDL 与 DML 操作写入二进制日志，并在本地完成事务提交后立即返回，无需等待从库确认，从而实现松散耦合的复制流程。随后，从库的 <strong>IO 线程</strong>会与主库保持长连接，不断读取新生成的 binlog 事件并将它们写入本地的 <strong>Relay Log</strong>。接着，从库的 <strong>SQL 线程</strong>会顺序读取 Relay Log 中的事件，并在从库上重做这些 DDL 与 DML，以达到数据同步的目的。</p>
 <p><img src="/../../images/MySQL/mysql_replic_ms.drawio.png" alt="img"></p>
 <p>MySQL 支持一主多从复制拓扑，且从库本身也可以配置为其他从库的源库，实现链式复制。这种异步复制模式允许在主库出现故障时，通过提升任一从库为新的主库来快速切换并恢复服务，极大增强了系统的高可用性。同时，通过将写操作集中到主库、将读操作分散到从库，也减轻了主库的负载，并可在从库上执行备份任务，避免对主库性能产生影响。由于主库无需等待从库完成写入，可获得更高的写入吞吐量，但也可能引入复制延迟问题，需要结合监控指标加以管理。为进一步降低从库的应用延迟，可使用并行复制功能，让 SQL 线程并发地执行多个复制通道中的事件。总体而言，基于 Binlog 的异步复制以其配置简单、可扩展性强和高可用性好等特点，成为 MySQL 最常用的主从复制方案。</p>
 <p>在主从复制中，<strong>Relay Log</strong> 起到四大关键作用：</p>
