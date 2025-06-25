@@ -181,6 +181,909 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/MySQL/2024/10/31/MySQL/%E7%B4%A2%E5%BC%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/undefined/MySQL/2024/10/31/MySQL/%E7%B4%A2%E5%BC%95/" class="post-title-link" itemprop="url">索引</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-10-31 00:00:00" itemprop="dateCreated datePublished" datetime="2024-10-31T00:00:00-07:00">2024-10-31</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-06-19 16:27:58" itemprop="dateModified" datetime="2025-06-19T16:27:58-07:00">2025-06-19</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>索引是一种可以帮助 MySQL 高效获取数据的数据结构，也是有序结构。</p>
+<p>优点</p>
+<ul>
+<li>提高数据检索效率，降低数据库 I&#x2F;O 成本。</li>
+<li>通过索引列对数据进行排序，降低数据排序成本，降低 CPU 的消耗。</li>
+</ul>
+<p>缺点</p>
+<ul>
+<li>占用空间。</li>
+<li>降低了更新表的效率，如 INSERT、UPDATE、DELETE。</li>
+</ul>
+<p>因此，若索引太多，应用程序的性能可能会受到影响。而索引太少，对查询性能又会产生影响。要找到一个合适的平衡点，这对应用程序的性能至关重要。</p>
+<h2 id="索引结构"><a href="#索引结构" class="headerlink" title="索引结构"></a>索引结构</h2><p>MySQL 索引是在引擎层实现的，不同的存储引擎支持不同的索引结构。</p>
+<table>
+<thead>
+<tr>
+<th>索引结构</th>
+<th>描述</th>
+<th>InnoDB</th>
+<th>MyISAM</th>
+<th>Memory</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>B+Tree 索引</td>
+<td>最常见的索引类型，大部分引擎支持 B+Tree索引</td>
+<td>支持</td>
+<td>支持</td>
+<td>支持</td>
+</tr>
+<tr>
+<td>Hash 索引</td>
+<td>底层数据结构由哈希表实现，只有精确匹配索引列的查询才有效，不支持查询范围</td>
+<td>不支持</td>
+<td>不支持</td>
+<td>支持</td>
+</tr>
+<tr>
+<td>R-Tree 空间索引</td>
+<td>空间索引是 MyISAM 引擎的一个特殊索引类型，主要用于地理空间数据类型</td>
+<td>不支持</td>
+<td>支持</td>
+<td>不支持</td>
+</tr>
+<tr>
+<td>Full-Text 全文索引</td>
+<td>一种通过建立倒排索引来快速匹配文档的方式</td>
+<td>5.6版本之后支持</td>
+<td>支持</td>
+<td>不支持</td>
+</tr>
+</tbody></table>
+<h2 id="InnoDB-索引分类"><a href="#InnoDB-索引分类" class="headerlink" title="InnoDB 索引分类"></a>InnoDB 索引分类</h2><p><img src="/../../images/MySQL/index_type.png" alt="img"></p>
+<table>
+<thead>
+<tr>
+<th>索引类别</th>
+<th>含义</th>
+<th>特点</th>
+<th>关键字</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>主键索引</td>
+<td>针对表中<strong>主键</strong>创建的索引</td>
+<td>默认自动创建，只能有一个</td>
+<td>PRIMARY</td>
+</tr>
+<tr>
+<td>唯一索引</td>
+<td><strong>避免</strong>同一个表中某数据列中的值<strong>重复</strong></td>
+<td>可以有多个</td>
+<td>UNIQUE</td>
+</tr>
+<tr>
+<td>常规索引</td>
+<td>快速定位特定数据</td>
+<td>可以有多个</td>
+<td></td>
+</tr>
+<tr>
+<td>全文索引</td>
+<td><strong>查找</strong>文本中的<strong>关键字</strong>，而不是比较索引中的值</td>
+<td>可以有多个</td>
+<td>FULLTEXT</td>
+</tr>
+</tbody></table>
+<p>根据索引存储形式，可分为以下两种：</p>
+<table>
+<thead>
+<tr>
+<th>分类</th>
+<th>含义</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>聚集索引</td>
+<td><strong>将数据存储与索引放到了一块</strong>，索引结构的叶子节点保存了行数据</td>
+<td>必须有，而且只有一个</td>
+</tr>
+<tr>
+<td>二级索引</td>
+<td><strong>将数据与索引分开存储</strong>，索引结构的叶子节点关联的是对应的<strong>主键</strong></td>
+<td>可以存在多个</td>
+</tr>
+</tbody></table>
+<p>InnoDB 支持以下索引：</p>
+<ul>
+<li>B+ 树索引</li>
+<li>全文索引</li>
+<li>自适应 Hash 索引</li>
+</ul>
+<p>B+ 树索引就是传统意义上的索引，这是目前关系型数据库系统中查找最为高效且被认为有效的索引。B+ 树索引的构造类似于二叉树，根据键值（Key Value）快速找到数据。B+ 树索引能找到的只是被查找数据所在的页。然后数据库通过把页读入到内存，再在内存中进行查找，最后得到要查找的数据。</p>
+<p>整体流程：</p>
+<p>B+ 树 Root &#x3D;&gt; B+ 树索引节点 &#x3D;&gt; B+ 树叶子节点 &#x3D;&gt; Page Directory 中的一个 Slot &#x3D;&gt; 目标行数据。</p>
+<p>InnoDB 存储引擎支持的哈希索引是自适应的，InnoDB 存储引擎会根据表的使用情况自动为表生成哈希索引，不能人为干预是否在一张表中生成哈希索引。</p>
+<p>InnoDB 的主键使用的是聚簇索引，而 MyISAM 中，不管是主键索引还是二级索引使用的都是非聚簇索引。</p>
+<p>InnoDB 中的全表扫描会顺序读取聚集索引上的数据页（即叶子节点），等价于按主键顺序逐行扫描表中所有行。</p>
+<h2 id="全表扫描"><a href="#全表扫描" class="headerlink" title="全表扫描"></a>全表扫描</h2><p>在 InnoDB 中，一条简单的 <code>SELECT * FROM A</code> 在执行时会经过以下几层，才能把表 A 中的每一行读出来。下面分段结合关键源码，逐步说明一个典型的全表扫描流程。</p>
+<p><strong>一、Handler 接口</strong>：<code>ha_rnd_next</code> 循环读取</p>
+<p><code>TableScanIterator::Read()</code> 中：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> ((tmp = <span class="built_in">table</span>()-&gt;file-&gt;<span class="built_in">ha_rnd_next</span>(m_record))) &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (tmp == HA_ERR_RECORD_DELETED &amp;&amp; !<span class="built_in">thd</span>()-&gt;killed) <span class="keyword">continue</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">HandleError</span>(tmp);</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p><code>ha_rnd_next(m_record)</code>：MySQL 存储引擎统一接口，每次调用读一行到 <code>m_record</code>。</p>
+</li>
+<li><p>跳过 DELETED：MyISAM 在并发删时会返回 <code>HA_ERR_RECORD_DELETED</code>，此处跳过。</p>
+</li>
+<li><p>返回码：0 表示成功取到一行；非 0 则调用 <code>HandleError(tmp)</code> 终止扫描。</p>
+</li>
+</ul>
+<p>对于 InnoDB，<code>ha_rnd_next</code> 内部实现为：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">handler::ha_rnd_next</span><span class="params">(uchar *buf)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">MYSQL_TABLE_IO_WAIT</span>(..., &#123; result = <span class="built_in">rnd_next</span>(buf); &#125;)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!result &amp;&amp; m_update_generated_read_fields)</span><br><span class="line"></span><br><span class="line">      <span class="built_in">update_generated_read_fields</span>(buf, table);</span><br><span class="line"></span><br><span class="line">  table-&gt;<span class="built_in">set_row_status_from_handler</span>(result);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>二、InnoDB 读取流程</strong>：<code>rnd_next</code> → <code>general_fetch</code> → <code>row_search_mvcc</code></p>
+<p><code>rnd_next(buf)</code> 中的核心调用如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (m_start_of_scan) &#123;</span><br><span class="line"></span><br><span class="line">  error = <span class="built_in">index_first</span>(buf);</span><br><span class="line"></span><br><span class="line">  m_start_of_scan = <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line"></span><br><span class="line">  error = <span class="built_in">general_fetch</span>(buf, ROW_SEL_NEXT, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> error;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>首次扫描 调用 <code>index_first(buf)</code> 定位到最左叶节点的第一条记录；</li>
+<li>后续扫描 一律调用 <code>general_fetch</code>。</li>
+</ul>
+<p><code>general_fetch(buf, ROW_SEL_NEXT, 0)</code> 中的核心调用如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (!intrinsic) <span class="comment">// 普通表</span></span><br><span class="line"></span><br><span class="line">  ret = <span class="built_in">row_search_mvcc</span>(buf, PAGE_CUR_UNSUPP, m_prebuilt, <span class="number">0</span>, ROW_SEL_NEXT);</span><br><span class="line"></span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 再把 dberr_t 转成 MySQL 错误码返回给 rnd_next</span></span><br></pre></td></tr></table></figure>
+
+<p>row_search_mvcc</p>
+<p><code>row_search_mvcc</code> 中的核心调用如下：</p>
+<ul>
+<li>首次 (<code>direction == 0</code>)：构造或恢复一个 B-树游标 pcur，调用 <code>pcur-&gt;open_no_init()</code>（或 <code>open_at_side</code>）从根节点一路走到左最叶，定位第一条记录。</li>
+<li>后续 (<code>direction == ROW_SEL_NEXT</code>)：直接在叶节点上调用 <code>pcur-&gt;move_to_next(&amp;mtr)</code>，利用叶节点之间的双向链表遍历下一条记录，无需再从根节点重查。</li>
+<li>循环过滤（<code>rec_loop</code>）：<ul>
+<li>跳过 infimum&#x2F;supremum 伪记录，检查页内偏移合法性；</li>
+<li>MVCC 版本检查：如果当前版本不可见，调用 undo log 回溯到可见版本；</li>
+<li>删除标记：跳过 delete-marked；</li>
+<li>索引条件下推（此例没有 WHERE，相当于 <code>match_mode == 0</code>，所有行都通过）；</li>
+<li>转换格式：调用 <code>row_sel_store_mysql_rec(buf, …)</code> 将内部二进制行转成 MySQL 客户端格式；</li>
+<li>预取缓存：若启用缓存则放入队列，否则直接写入 buf 并 <code>return DB_SUCCESS</code>。</li>
+</ul>
+</li>
+<li>退出：当 <code>move_to_next</code> 返回 false（无更多记录），函数最终返回 <code>DB_END_OF_INDEX</code> 或 <code>DB_RECORD_NOT_FOUND</code>，上层映射为 <code>HA_ERR_END_OF_FILE</code>。</li>
+</ul>
+<p>在 <code>row_search_mvcc</code> 的整个执行过程中，游标（pcur）的状态会在多处被保存和恢复，其核心目的有两个：</p>
+<ol>
+<li>跨页扫描时保持定位：当 B- 树叶节点遍历到一页的末尾，需要切换到下一页时，InnoDB 会提交当前 mini-transaction（<code>mtr_commit(&amp;mtr)</code>）并重新开启一个新的 mini-transaction（mtr_start(&amp;mtr)）。提交会释放当前页面的读锁（latch），以避免死锁或锁的过度持有。但一旦释放，就无法再在页内继续定位，于是必须在释放前存储当前位置，切换后再恢复，才能从下一个页的正确位置继续扫描。</li>
+<li>出现锁等待或错误时的回退：如果在给某条记录加锁过程中遇到锁等待（<code>DB_LOCK_WAIT</code>）或其他可重试的错误，函数会<ul>
+<li>在释放 mini-transaction、让出 latch 之前存储游标位置，</li>
+<li>等待锁或错误解决后，再恢复游标，继续当前记录或下一条记录的扫描，保证最终不会漏读也不重复读。</li>
+</ul>
+</li>
+</ol>
+<p><strong>完整调用链一览</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">mysql_select()</span><br><span class="line"> └─ join_read_table() / read_table_rows()</span><br><span class="line">   	└─ handler::ha_rnd_next(buf)</span><br><span class="line">       └─ rnd_next(buf)</span><br><span class="line">          ├─ index_first(buf)     // 第一次，从根到左叶</span><br><span class="line">          └─ general_fetch(buf,…)  // 后续，调用 row_search_mvcc</span><br><span class="line">         		 └─ row_search_mvcc(buf,…)</span><br><span class="line">                ├─ pcur-&gt;open_no_init()   // 定位（首次）</span><br><span class="line">                ├─ pcur-&gt;move_to_next()   // 遍历（后续）</span><br><span class="line">                └─ row_sel_store_mysql_rec // 转换格式</span><br></pre></td></tr></table></figure>
+
+<p>此外，整个过程主要涉及两类锁：</p>
+<p><strong>元数据锁（MDL，Metadata Lock）</strong></p>
+<ul>
+<li><code>MDL_SHARED_READ</code>：在执行任何 SELECT 时，MySQL 都会在打开表的时候对表结构加一个元数据读锁，类型叫 <code>MDL_SHARED_READ</code>。<ul>
+<li>作用：保证在查询进行时，表定义（DDL）不会被改动（比如 <code>ALTER TABLE</code>）。</li>
+<li>持续时间：从打开表到查询结束（<code>close_tables()</code>）为止。</li>
+</ul>
+</li>
+</ul>
+<p><strong>InnoDB 内部的短期页锁（Latch）与 MVCC</strong></p>
+<ul>
+<li>页锁（Page Latch）：为了从缓冲池安全地读取 B+ 树节点和行记录，InnoDB 在内存页上会拿短期的读或写 latch（互斥锁），确保数据页在读取&#x2F;解码时不被并发修改。<ul>
+<li>这不是 SQL 层面的锁，你在 <code>SHOW ENGINE INNODB STATUS</code> 能看到它们，但在 <code>SHOW OPEN TABLES</code> 或 <code>INFORMATION_SCHEMA.INNODB_TRX</code> 中看不到。</li>
+</ul>
+</li>
+<li>MVCC 版本控制：<strong>默认一致性读不会向行上加记录锁或间隙锁</strong>；它通过读视图加上 undo log 回溯来返回符合快照的行版本。<ul>
+<li>不产生任何行锁，也不会阻塞并发的 UPDATE&#x2F;DELETE。</li>
+<li>只有在遇到刚提交的、版本不可见的行时，InnoDB 会临时读取 undo log 中的旧版本，但这也是通过读取 undo 区块，不会在真正的索引上留下锁。</li>
+</ul>
+</li>
+</ul>
+<p>而且需要注意的是，整个流程中的数据是被一条条地读取并存储到 Record Buffer 中的，这就是 Valcano 风格的 pull-based Iteration Model 的体现。</p>
+<h3 id="并行化增强"><a href="#并行化增强" class="headerlink" title="并行化增强"></a>并行化增强</h3><p>我们可以对全表扫描进行<strong>并行化增强</strong>。因为 MySQL 在 InnoDB 层引入了并行扫描功能，用于加速需要全表扫描的操作，该功能自 8.0.14 版本开始支持，通过将 B+ 树划分为多个子树并由多个工作线程并行扫描来实现。要启用并行全表扫描，只需将会话级或全局变量 <code>innodb_parallel_read_threads</code> 设置为大于 1 的值，MySQL 会根据该值和实际子树数量来决定并行线程数。</p>
+<p>配置参数 <code>innodb_parallel_read_threads</code>：</p>
+<ul>
+<li>作用：控制 InnoDB 层并行扫描主键索引时的线程数，仅支持主键（聚簇索引）扫描，不支持二级索引扫描。</li>
+<li>默认值：默认值为可用逻辑处理器数除以 8，至少 4；MySQL 8.4 之前始终为 4。</li>
+<li>范围：1 至 256，总线程数上限为 256（跨所有会话）; 达到上限后会话会回退到单线程扫描。</li>
+</ul>
+<p>动态修改：支持会话级和全局级动态设置，例如：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SET GLOBAL innodb_parallel_read_threads = 16;</span><br><span class="line">SET SESSION innodb_parallel_read_threads = 8;</span><br></pre></td></tr></table></figure>
+
+<p>然后执行需要全表扫描的 SQL 即可利用并行扫描。</p>
+<h3 id="其他相关参数"><a href="#其他相关参数" class="headerlink" title="其他相关参数"></a>其他相关参数</h3><ul>
+<li><code>innodb_ddl_threads</code>：控制并行创建二级索引或重建表时的排序和 B+ 树构建线程数。</li>
+<li><code>innodb_ddl_buffer_size</code>：并行 DDL 操作的排序缓冲区总大小，应配合 <code>innodb_parallel_read_threads</code> 一同调优。</li>
+</ul>
+<h4 id="并行扫描原理"><a href="#并行扫描原理" class="headerlink" title="并行扫描原理"></a>并行扫描原理</h4><p>MySQL 并行查询实际上是对 B+ 树的并行扫描。核心流程如下：</p>
+<ol>
+<li>调用扫描接口：用户线程执行如 <code>SELECT COUNT(*)</code> 等语句后，进入 InnoDB 并行扫描逻辑，从 <code>row_scan_index_for_mysql</code> 接口开始分发任务。</li>
+<li>预分片（coarse-grained sharding）：用户线程先对整个聚簇索引做粗粒度分片，将每个子树（Range），由 <code>[start, end)</code> 两个游标标记，放入任务队列。其中分片的步骤如下：<ol>
+<li>用户线程在预分片期间对整个索引加 INDEX S 锁，并对根页加 ROOT PAGE S 锁，确保树在分片时不会发生页分裂或新增子树。 </li>
+<li>根页每条记录都包含一个指向子树的指针。用户线程依次读取这些指针，对应第 i 条指针即第 i 个子树。</li>
+<li>对于每个指针，沿 B+ 树从该指针所在页向下定位到最左叶记录。</li>
+<li>在遍历过程中，对每个经过的页加 S 锁，定位完成后创建一个 Iter，其中包含原始记录指针 <code>m_rec</code> 和持久化游标 <code>m_pcur</code>，用于后续线程快速定位。</li>
+</ol>
+</li>
+<li>创建工作线程：根据 <code>innodb_parallel_read_threads</code> 值启动相应数量的工作线程，然后等待所有工作线程完成。</li>
+<li>工作线程取任务：每个工作线程从队列中取出一个 Range，如粒度过大（分片数 ＞ 线程数）则再基于该 RANGE 的键值范围按同样方式二次切分，然后依次扫描该范围内的记录，通过内部函数 <code>row_search_mvcc</code> 获取每条记录并执行回调（如计数或检查）。</li>
+<li>结果汇总：各线程扫描完毕后，用户线程收集各子树的统计结果或校验结果，并返回给 SERVER 层。</li>
+</ol>
+<h4 id="分片（Sharding）机制"><a href="#分片（Sharding）机制" class="headerlink" title="分片（Sharding）机制"></a>分片（Sharding）机制</h4><p>并行扫描将 B+ 树划分为多个子树，每个子树对应一个 RANGE 结构体：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">RANGE</span> &#123;</span><br><span class="line"> Iter start; <span class="comment">// 子树起始记录位置</span></span><br><span class="line"> Iter end;  <span class="comment">// 子树结束记录位置（右开区间）</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>其中 Iter 包含了记录指针和 B+ 树游标，用于定位扫描边界。工作线程可对粒度过大的 Range 再次细分，以提高负载均衡。</p>
+<p>Iter 的结构如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** Boundary of the range to scan. */</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Iter</span> &#123;</span><br><span class="line"> <span class="comment">/** Destructor. */</span></span><br><span class="line"> ~<span class="built_in">Iter</span>();</span><br><span class="line"> <span class="comment">/** Heap used to allocate m_rec, m_tuple and m_pcur. */</span></span><br><span class="line"> <span class="type">mem_heap_t</span> *m_heap&#123;&#125;;   <span class="comment">// 分配迭代所需内存（记录副本、tuple、游标等）</span></span><br><span class="line"> <span class="comment">/** m_rec column offsets. */</span></span><br><span class="line"> <span class="type">const</span> ulint *m_offsets&#123;&#125;; <span class="comment">// 原始记录中各列的偏移数组</span></span><br><span class="line"> <span class="comment">/** Start scanning from this key. Raw data of the row. */</span></span><br><span class="line"> <span class="type">const</span> <span class="type">rec_t</span> *m_rec&#123;&#125;;   <span class="comment">// 指向边界记录的原始数据</span></span><br><span class="line"> <span class="comment">/**</span></span><br><span class="line"><span class="comment">  * Tuple representation inside m_rec,</span></span><br><span class="line"><span class="comment">  * for two Iter instances in a range m_tuple will be [first-&gt;m_tuple, second-&gt;m_tuple).</span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line"> <span class="type">const</span> <span class="type">dtuple_t</span> *m_tuple&#123;&#125;; <span class="comment">// m_rec 对应的解析后 tuple，方便按列访问</span></span><br><span class="line"> <span class="comment">/** Persistent cursor. */</span></span><br><span class="line"> <span class="type">btr_pcur_t</span> *m_pcur&#123;&#125;;   <span class="comment">// 用于快速定位 m_rec 所在页的 B+ 树游标</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h3 id="字段说明"><a href="#字段说明" class="headerlink" title="字段说明"></a>字段说明</h3><ol>
+<li><code>m_heap</code>：用于在堆上分配和管理该 Iter 所需的临时内存，包括存放记录副本、tuple 结构和游标状态等。</li>
+<li><code>m_offsets</code>：指向一组 ulint，用于记录 m_rec 中每列在页面上的偏移位置，以便快速定位列值。</li>
+<li><code>m_rec</code>：原始记录指针（raw record），标记分片边界的具体行数据。</li>
+<li><code>m_tuple</code>：m_rec 的逻辑封装（<code>dtuple_t</code>），两端 Iter 的 <code>m_tuple</code> 共同定义了扫描区间；扫描时常直接基于 <code>m_tuple</code> 进行比较和移动。</li>
+<li><code>m_pcur</code>：持久化游标（<code>btr_pcur_t*</code>），用于记录定位 <code>m_rec</code> 所在页面和行号，后续扫描可通过该游标快速恢复上次位置，而无需从根节点重定位。</li>
+</ol>
+<h4 id="支持的语句类型"><a href="#支持的语句类型" class="headerlink" title="支持的语句类型"></a>支持的语句类型</h4><p>目前，InnoDB 并行扫描支持以下全表操作场景：</p>
+<ul>
+<li><code>SELECT COUNT(*) FROM table1;</code> 完整扫描主键索引并行计数。</li>
+<li><code>CHECK TABLE table1;</code> 第二次扫描主键索引时可并行校验。</li>
+<li><code>CREATE INDEX … ON table1</code> &#x2F; <code>ALTER TABLE … ADD INDEX …</code> 扫描和排序阶段支持并行，B+ 树构建阶段仍为单线程。</li>
+<li><code>ALTER TABLE … ENGINE=InnoDB</code> &#x2F; <code>OPTIMIZE TABLE</code> 重建表阶段扫描主键索引不并行，排序和索引构建支持并行。</li>
+</ul>
+<h4 id="限制与注意事项"><a href="#限制与注意事项" class="headerlink" title="限制与注意事项"></a>限制与注意事项</h4><ul>
+<li>并行扫描仅适用于主键索引，不支持二级索引扫描或包含虚拟列、全文索引、空间索引的表。</li>
+<li>并行线程读取的数据页会被放到缓冲池 LRU 链表尾部，避免在扫描时占用过多热页。</li>
+<li>当并行线程数超过子树数量时，实际使用的线程数取两者中的最小值。</li>
+</ul>
+<h2 id="B-树索引"><a href="#B-树索引" class="headerlink" title="B+ 树索引"></a>B+ 树索引</h2><p>B+ 树是为磁盘或其他直接存取辅助设备设计的一种自平衡的多路查找树。在 B+ 树中，所有记录节点都是按键值的大小顺序放在同一层的叶子节点上，由各叶子节点指针进行连接。</p>
+<p>B+ 树的非叶子节点只存储键值，不存储数据，而叶子节点存储了所有的数据，并且构成了一个有序双向链表。因此，范围查询时就可以直接通过叶子节点间的指针顺序访问整个查询范围内的所有记录，而无需对树进行多次遍历。</p>
+<p>在B+ 树的实现中，节点的大小往往被设计为与磁盘页大小相同（或者是其整数倍）。相比于 B 树（非叶子节点中存储指针和数据），B+ 树的非叶子节点能够存储更多的指针，提升索引查找的效率并且减少磁盘 I&#x2F;O 次数，因为每次从磁盘中加载的节点携带了更多的指针信息。</p>
+<p>以下是 B-Tree 的结构（绿色代表子节点的地址，黄色代表记录的主键，红色代表单条记录中除主键外的数据，之后的图也是如此）：</p>
+<p><img src="/../../images/MySQL/mysql_index_bt.drawio.png" alt="img"></p>
+<p>B-Tree可视化：<a target="_blank" rel="noopener" href="https://www.cs.usfca.edu/~galles/visualization/BTree.html">B-Tree Visualization</a></p>
+<p>以下是 B+ 树的结构：</p>
+<p><img src="/../../images/MySQL/mysql_index_bpt.drawio.png" alt="img"></p>
+<p>B+ 树可视化：<a target="_blank" rel="noopener" href="https://www.cs.usfca.edu/~galles/visualization/BPlusTree.html">B+ Tree Visualization</a></p>
+<p>也就是说，MySQL 索引数据结构在经典 B-Tree 的基础上，增加了一个指向相邻左右叶子节点的链表指针，形成了双向循环链表，这样可以方便范围查询和反向遍历。</p>
+<p>如果需要在 B+树中从大值向小值进行范围查询，可以按以下步骤操作：</p>
+<ul>
+<li>定位到最右侧节点：首先，找到包含最大值的叶子节点。这通常通过从根节点开始向右遍历树的方式实现。</li>
+<li>反向遍历：一旦定位到了最右侧的叶子节点，可以利用叶节点间的双向链表向左遍历。</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/rjzheng/p/12316685.html">为什么Mongodb索引用B树，而MySQL用B+树?</a>：在关系型数据库中，遍历操作比较常见，因此采用 B+ 树作为索引比较合适。而在非关系型数据库中，单一查询比较常见，因此采用 B 树作为索引比较合适。</p>
+<p>B+ 树对于 B 树的优势：</p>
+<ol>
+<li>更高的查询效率： B+ 树叶子节点的双向链表使得范围查询时无需从根节点开始进行多次索引查询，只需顺序遍历双向链表即可。</li>
+<li>更高的空间利用率：B+ 树非叶子节点只存储指针，使得单个节点能够存储更多的指针只指向子节点，且单次磁盘 I&#x2F;O 读取更多信息，减少 I&#x2F;O 读取次数。</li>
+<li>更稳定的查询效率：B+ 树叶子节点深度相同，数据查询路径长度相同。</li>
+</ol>
+<p>B+ 树对于二叉树的优势：</p>
+<ol>
+<li>B+ 树的每个节点可以有 m 个子节点，而红黑树和二叉平衡树都只有 2 个。</li>
+<li>普通二叉树存在退化的情况，如果它退化成链表，就相当于全表扫描。</li>
+<li>读取数据的时候，是从磁盘先读到内存。平衡二叉树的每个节点只存储一个键值和数据，而 B+ 树可以存储更多的节点数据，树的高度也会降低，因此读取磁盘的次数就会下降，查询效率就快。</li>
+</ol>
+<p>为什么 InnoDB 存储引擎选择使用 B+Tree 索引结构？</p>
+<ol>
+<li>相比于二叉树（顺序插入数据行的情况下会退化成链表），B+Tree 更平衡，层级更少，搜索效率高。</li>
+<li>就B-Tree（或 BST）而言，无论叶子节点还是非叶子节点都会保留数据，这样导致一页中存储的键减少，指针也减少了，要保存大量数据，只能增加树的高度，导致性能降低。</li>
+<li>相比于 Hash 索引，B+Tree 支持范围匹配及排序操作。</li>
+</ol>
+<p>一棵 B+ 树能存储多少数据？</p>
+<p>假如我们的主键 ID 是 bigint 类型，长度为 8 个字节。指针大小在 InnoDB 源码中设置为 6 字节，这样一共 14 字节。所以非叶子节点(一页)可以存储 $16384&#x2F;14&#x3D;1170$ 个这样的单元(键值+指针)。</p>
+<p>一个指针指向一个存放记录的页，一页可以放 16 条数据，树深度为 2 的时候，可以存放 $1170*16&#x3D;18720$ 条数据。</p>
+<p>同理，树深度为 3 的时候，可以存储的数据为 $1170<em>1170</em>16&#x3D;21902400$ 条记录。</p>
+<p>理论上，在 InnoDB 存储引擎中，B+树的高度一般为 2-4 层，就可以满足千万级数据的存储。查找数据的时候，一次页的查找代表一次 IO，当我们通过主键索引查询的时候，最多只需要 2-4 次 IO 就可以了。</p>
+<h3 id="B-树的插入操作"><a href="#B-树的插入操作" class="headerlink" title="B+ 树的插入操作"></a>B+ 树的插入操作</h3><p>B+ 树的插入必须保证插入后叶子节点中的记录依然排序，同时需要考虑插入到 B+ 树的三种情况，每种情况都可能会导致不同的插入算法。具体如下：</p>
+<p>叶子节点未满，索引节点未满：直接将记录插入到目标叶子节点的合适位置（保持有序）。</p>
+<p>叶子节点已满，索引节点未满：</p>
+<ul>
+<li>拆分叶子节点为左右两个节点。</li>
+<li>将中间键值提升为分隔键，插入到父级索引页。</li>
+<li>原叶子节点中：<ul>
+<li>小于中间键值的记录 → 左侧新页；</li>
+<li>大于等于中间键值的记录 → 右侧新页。</li>
+</ul>
+</li>
+</ul>
+<p>叶子节点和索引节点都已满：</p>
+<ul>
+<li><p>拆分叶子节点（Leaf Page）：</p>
+<ul>
+<li>小于中间键值的记录 → 左页；</li>
+<li>大于等于中间键值的记录 → 右页；</li>
+</ul>
+</li>
+<li><p>将中间键值提升为分隔键，插入到父级索引页。</p>
+</li>
+<li><p>由于父级索引页也已满，继续处理其溢出：</p>
+<ul>
+<li>拆分 Index Page：<ul>
+<li>小于中间索引值的记录 → 左侧索引页；</li>
+<li>大于中间索引值的记录 → 右侧索引页；</li>
+</ul>
+</li>
+<li>将新的中间索引项继续提升到上一层索引页中。</li>
+</ul>
+</li>
+<li><p>若上一层索引页仍满，则继续递归，直到根节点；若根节点也满，最终会导致根节点分裂，树高度增加。</p>
+</li>
+</ul>
+<p>因此，不管怎么变化，B+ 树总是会保持平衡。但是为了保持平衡，对于新插入的键值可能需要做大量的拆分页操作。因为 B+ 树结构主要用于磁盘，页的拆分意味着磁盘的操作，所以应当在可能的情况下尽量减少页的拆分操作。因此，B+ 树同样提供了类似于平衡二叉树的旋转功能。</p>
+<p>旋转发生在叶子页（Leaf Page）已经满，但其左右兄弟节点没有满的情况下。这时 B+ 树并不会急于做拆分页的操作，而是将记录移到所在页的兄弟节点上。在通常情况下，会首先检查左兄弟以执行旋转操作。在下面的例子中：若插入键值 70，B+ 树并不会立即拆分叶子节点，而是先做旋转操作。</p>
+<p><img src="/../../images/MySQL/mysql_index_insert.drawio.png" alt="img"></p>
+<p>我们可以看到，旋转操作使得 B+ 树减少了一次页的拆分操作，同时这棵 B+ 树的高度依然为 2。</p>
+<h3 id="B-树的删除操作"><a href="#B-树的删除操作" class="headerlink" title="B+ 树的删除操作"></a>B+ 树的删除操作</h3><p>B+ 树使用填充因子（fill factor）来控制树的删除变化，50% 是填充因子可设的最小值。B+ 树的删除操作同样必须保证删除后叶子节点中的记录依然排序。与插入一样，B+ 树的删除操作同样需要考虑三种情况，根据填充因子的变化来衡量是否需要进行节点合并或旋转操作。</p>
+<table>
+<thead>
+<tr>
+<th>叶子节点小于填充因子</th>
+<th>中间节点小于填充因子</th>
+<th>操作</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>No</td>
+<td>No</td>
+<td>直接将记录从叶子节点删除，如果该节点还是 Index Page 的节点，用该节点的右兄弟节点代替</td>
+</tr>
+<tr>
+<td>Yes</td>
+<td>No</td>
+<td>合并叶子节点和它的兄弟节点，同时更新对应的 Index Page</td>
+</tr>
+<tr>
+<td>Yes</td>
+<td>Yes</td>
+<td>1. 合并叶子节点和它的兄弟节点  <br>2. 更新对应的 Index Page  <br>3. 合并 Index Page 和它的兄弟节点</td>
+</tr>
+</tbody></table>
+<p>对于第一种情况的后半部分的解释：</p>
+<p>在以下 B+ 树中（这里省去叶节点之间的指针），我们删除键值为 25 的记录，因为该值也是 Index Page 中的值，所以在删除之后，需要将 25 的右兄弟节点的 28 更新到 Index Page 中。</p>
+<p><img src="/../../images/MySQL/mysql_index_bt_del.drawio.png" alt="img"></p>
+<p>以下是删除之后的 B+ 树。</p>
+<p><img src="/../../images/MySQL/mysql_index_bt_deled.drawio.png" alt="img"></p>
+<p>这时，如果删除 Leaf Page 中键值为 60 的记录，那么 Fill Factor 小于 50%，需要做合并操作；同样，在删除 Index Page 中相关记录后，需要做 Index Page 的合并操作。结果如下：</p>
+<p><img src="/../../images/MySQL/mysql_index_del_merge.drawio.png" alt="img"></p>
+<p>注意：页面合并时，<strong>首先</strong>尝试与<strong>左侧</strong>直接相邻的兄弟页合并；仅在左侧不符合条件时，才会检查右侧兄弟页。如果左右两侧都没有足够的空间容纳当前页的所有记录，合并操作将不会执行，页面将保持“半空”状态，直到后续操作（如父节点合并或树高度调整）触发新的重组逻辑。合并成功后，还需在父节点中删除对应的指针条目，并在必要时向上递归合并或降高。</p>
+<h3 id="聚集索引"><a href="#聚集索引" class="headerlink" title="聚集索引"></a>聚集索引</h3><p>数据库中的 B+ 树索引可以分为聚集索引（clustered index）和辅助索引（secondary index）。但是无论是聚集索引还是辅助索引，其内部结构都是 B+ 树，即高度平衡的，且叶子节点存放所有的数据。聚集索引与辅助索引的不同之处在于：叶子节点存放的是否是一整行的信息。</p>
+<p>之前已经介绍过，InnoDB 存储引擎表是索引组织表，即表中数据按照主键顺序存放。而聚集索引就是按照每张表的主键构造一棵 B+ 树，同时叶子子节点中存放的即为整张表的行记录数据，也将聚集索引的叶子节点称为数据页。聚集索引的这个特性决定了索引组织表中数据也是索引的一部分。同 B+ 树数据结构一样，每个数据页都通过一个双向链表来进行链接。</p>
+<p>由于实际的数据页只能按照一棵 B+ 树进行排序，因此每张表只能拥有一个聚集索引。在多数情况下，查询优化器倾向于采用聚集索引。因为聚集索引能够在 B+ 树索引的叶子节点上直接找到数据。此外，由于定义了数据的逻辑顺序，聚集索引能够特别快速地访问针对范围值的查询。查询优化器能够快速发现某一段范围的数据页需要扫描。</p>
+<p>例如：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE TABLE</span> t (</span><br><span class="line"> a <span class="type">INT</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line"> b <span class="type">VARCHAR</span>(<span class="number">8000</span>),</span><br><span class="line"> c <span class="type">INT</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line"> <span class="keyword">PRIMARY KEY</span> (a),</span><br><span class="line"> KEY idx_c (c)</span><br><span class="line">) ENGINE<span class="operator">=</span>InnoDB;</span><br><span class="line"></span><br><span class="line"><span class="keyword">INSERT INTO</span> t <span class="keyword">SELECT</span> <span class="number">1</span>, REPEAT(<span class="string">&#x27;a&#x27;</span>, <span class="number">7000</span>), <span class="number">-1</span>;</span><br><span class="line"><span class="keyword">INSERT INTO</span> t <span class="keyword">SELECT</span> <span class="number">2</span>, REPEAT(<span class="string">&#x27;a&#x27;</span>, <span class="number">7000</span>), <span class="number">-2</span>;</span><br><span class="line"><span class="keyword">INSERT INTO</span> t <span class="keyword">SELECT</span> <span class="number">3</span>, REPEAT(<span class="string">&#x27;a&#x27;</span>, <span class="number">7000</span>), <span class="number">-3</span>;</span><br><span class="line"><span class="keyword">INSERT INTO</span> t <span class="keyword">SELECT</span> <span class="number">4</span>, REPEAT(<span class="string">&#x27;a&#x27;</span>, <span class="number">7000</span>), <span class="number">-4</span>;</span><br></pre></td></tr></table></figure>
+
+<p>我们可以发现数据页上存放的是完整的每行记录，而在非数据页的索引页中，存放的仅仅是键值及指向数据页的偏移量，而不是一个完整的行记录。具体结构如下：</p>
+<p><img src="/../../images/MySQL/mysql_index_cluster.drawio.png" alt="img"></p>
+<p>许多资料会说：聚集索引按照顺序物理地存储数据。但是试想一下，如果聚集索引必须按照特定顺序存放物理记录，则维护成本显得非常之高。所以，聚集索引的存储并不是物理上连续的，而是逻辑上连续的。这其中有两点： </p>
+<ol>
+<li>前面说过的页通过双向链表链接，页按照主键的顺序排列； </li>
+<li>每个页中的记录也是通过双向链表进行维护的，物理存储上可以不按主键存放。</li>
+</ol>
+<p>说白了，就是在物理存储时，不同页和页内记录的数据块可以散布在数据文件各处，通过上述链表结构保证逻辑遍历顺序，从而大幅降低维护开销。</p>
+<p>聚集索引的另一个好处是，它对于主键的排序查找和范围查找速度非常快。叶子节点的数据就是用户所要查询的数据。</p>
+<p>还有就是范围查询（range query），即如果要查找主键某一范围内的数据，通过叶子节点的上层中间节点就可以得到页的范围，之后直接读取数据页即可。</p>
+<p>此外，聚集索引存在如下选取规则：</p>
+<ul>
+<li>如果存在主键，主键索引就是聚集索引。</li>
+<li>如果不存在主键，将使用第一个遇到的唯一索引作为聚集索引。</li>
+<li>如果既没有主键也没有合适的唯一索引，则自动生成一个以单调递增的 row ID 作为键的隐藏聚集索引。</li>
+</ul>
+<h3 id="辅助索引"><a href="#辅助索引" class="headerlink" title="辅助索引"></a>辅助索引</h3><p><img src="/../../images/MySQL/mysql_index_sec.drawio.png" alt="img"></p>
+<p>对于辅助索引（Secondary Index，也称非聚集索引），叶子节点并不包含行记录的全部数据。也就是说，叶子节点除了包含键值以外，每个叶子节点中的索引行中还包含了一个书签。该书签用来告诉 InnoDB 存储引擎哪里可以找到与该索引行对应的行数据。由于 InnoDB 存储引擎表是索引组织表，因此辅助索引的书签就是相应行数据在聚集索引中的聚集索引键。</p>
+<p>辅助索引的存在并不影响数据在聚集索引中的组织，因此每张表上可以有多个辅助索引。当通过辅助索引来寻找数据时，InnoDB 存储引擎会：</p>
+<ol>
+<li>遍历辅助索引树，到达叶子节点后获得对应行的聚集索引键；</li>
+<li>再通过聚集索引树查找该主键，定位到完整的行记录所在的数据页。</li>
+</ol>
+<p>举例来说，如果辅助索引树的高度为 3，则需要 3 次查找才能找到指定的主键；若聚集索引树的高度也为 3，则还需要额外 3 次查找才能在聚集索引中定位到完整行的数据页。因此，总共需要 6 次逻辑 I&#x2F;O 访问，才能得到最终的数据页。</p>
+<p>示例：</p>
+<p>在之前的表 t 上新增一列 c，并对列 c 创建聚集索引：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">ALTER TABLE</span> t</span><br><span class="line">  <span class="operator">-</span><span class="operator">&gt;</span> <span class="keyword">ADD</span> c <span class="type">INT</span> <span class="keyword">NOT NULL</span>;</span><br><span class="line">Query OK, <span class="number">4</span> <span class="keyword">rows</span> affected (<span class="number">0.24</span> sec)</span><br><span class="line">Records: <span class="number">4</span> Duplicates: <span class="number">0</span> Warnings: <span class="number">0</span></span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">UPDATE</span> t <span class="keyword">SET</span> c <span class="operator">=</span> <span class="number">0</span> <span class="operator">-</span> a;</span><br><span class="line">Query OK, <span class="number">4</span> <span class="keyword">rows</span> affected (<span class="number">0.04</span> sec)</span><br><span class="line"><span class="keyword">Rows</span> matched: <span class="number">4</span> Changed: <span class="number">4</span> Warnings: <span class="number">0</span></span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">ALTER TABLE</span> t <span class="keyword">ADD</span> KEY idx_c (c);</span><br><span class="line">Query OK, <span class="number">4</span> <span class="keyword">rows</span> affected (<span class="number">0.28</span> sec)</span><br><span class="line">Records: <span class="number">4</span> Duplicates: <span class="number">0</span> Warnings: <span class="number">0</span></span><br></pre></td></tr></table></figure>
+
+<p>更改之后的索引结构如下：</p>
+<p><img src="/../../images/MySQL/mysql_index_sec_clu.drawio.png" alt="img"></p>
+<p>上图显示了表 t 中辅助索引 <code>idx_c</code> 和聚集索引的关系。可以看到辅助索引的叶子节点中包含了列 c 的值和主键的值。因为这里的键值为负值，所以会发现以 <code>7f ff ff ff</code> 的方式进行内部存储。7（0111）最高位为 0，代表负值，实际的值应该取反后加 1，即得 -1。</p>
+<h3 id="B-树索引的分裂"><a href="#B-树索引的分裂" class="headerlink" title="B+ 树索引的分裂"></a>B+ 树索引的分裂</h3><p>之前介绍的 B+ 树分裂是最为简单的一种情况，这和数据库中 B+ 树索引的实际情况可能略有不同，因为并未涉及并发，而这才是 B+ 树索引实现中最为困难的部分。</p>
+<p>B+ 树索引页的分裂并不总是从页的中间记录开始，这样可能会导致页空间的浪费。例如下面的记录：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1, 2, 3, 4, 5, 6, 7, 8, 9</span><br></pre></td></tr></table></figure>
+
+<p>插入是根据自增顺序进行的，若此时插入第 10 条记录后需要进行页的分裂操作，那么根据之前介绍的分裂方法，会将记录 5 作为分裂点记录，分裂后得到下面两个页：</p>
+<p>Page 1: <code>1, 2, 3, 4</code>；</p>
+<p>Page 2: <code>5, 6, 7, 8, 9, 10</code>。</p>
+<p>由于插入是顺序的，P1 这个页将不会再有新记录被插入，从而导致空间浪费；而 P2 又会再次进行分裂。</p>
+<p>InnoDB 存储引擎的 Page Header 中有以下几个部分用来保存在页中记录插入的顺序信息：</p>
+<ul>
+<li><code>PAGE_LAST_INSERT</code></li>
+<li><code>PAGE_DIRECTION</code></li>
+<li><code>PAGE_N_DIRECTION</code></li>
+</ul>
+<p>通过这些信息，InnoDB 存储引擎可以决定是向左还是向右进行分裂，同时决定将分裂点记录为哪一个。若插入是随机的，则取页中的中间记录作为分裂点记录，这和之前介绍的相同。若往同一方向进行插入的记录数量为 5，并且目前已定位（cursor）到的记录（该记录为待插入记录的前一条记录）之后还有 3 条记录，则分裂点记录为定位到的记录后的第三条记录；否则，分裂点记录就是待插入的记录。</p>
+<p>示例：</p>
+<p>下面来看一个向右分裂的例子，并且定位到的记录之后还有 3 条记录，则分裂点记录如下：</p>
+<p><img src="/../../images/MySQL/mysql_index_before_split.drawio.png" alt="img"></p>
+<p>分裂后的结果如下：</p>
+<p><img src="/../../images/MySQL/mysql_index_after_split.drawio.png" alt="img"></p>
+<p>接着是分裂点就为插入记录本身：</p>
+<p><img src="/../../images/MySQL/mysql_index_split_self.drawio.png" alt="img"></p>
+<h3 id="B-树的管理"><a href="#B-树的管理" class="headerlink" title="B+ 树的管理"></a>B+ 树的管理</h3><h4 id="索引管理"><a href="#索引管理" class="headerlink" title="索引管理"></a>索引管理</h4><p>索引的创建和删除可以通过两种方法，一种是 ALTER TABLE，另一种是 CREATE&#x2F;DROP INDEX。通过 ALTER TABLE 创建索引的语法为：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER TABLE</span> tbl_name</span><br><span class="line"><span class="keyword">ADD</span> [INDEX<span class="operator">|</span>KEY] [index_name]</span><br><span class="line">[index_type] (index_col_name, ...) [index_option] ...</span><br><span class="line"></span><br><span class="line"><span class="keyword">ALTER TABLE</span> tbl_name</span><br><span class="line"><span class="keyword">DROP</span> <span class="keyword">PRIMARY KEY</span> <span class="operator">|</span> <span class="keyword">DROP</span> &#123;INDEX<span class="operator">|</span>KEY&#125; index_name</span><br></pre></td></tr></table></figure>
+
+<p>CREATE&#x2F;DROP INDEX 的语法同样很简单：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> [<span class="keyword">UNIQUE</span>] INDEX index_name</span><br><span class="line">[index_type] <span class="keyword">ON</span> tbl_name (index_col_name, ...)</span><br><span class="line"></span><br><span class="line"><span class="keyword">DROP</span> INDEX index_name <span class="keyword">ON</span> tbl_name</span><br></pre></td></tr></table></figure>
+
+<p>用户可以设置对整个列的数据进行索引，也可以只索引一列的开头部分数据，如前面创建的表 t，列 b 为 <code>varchar(8000)</code>，但是用户可以只索引前 100 个字段，如：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">ALTER TABLE</span> t</span><br><span class="line">  <span class="operator">-</span><span class="operator">&gt;</span> <span class="keyword">ADD</span> KEY idx_b (b(<span class="number">100</span>));</span><br><span class="line">Query OK, <span class="number">4</span> <span class="keyword">rows</span> affected (<span class="number">0.32</span> sec)</span><br><span class="line">Records: <span class="number">4</span> Duplicates: <span class="number">0</span> Warnings: <span class="number">0</span></span><br></pre></td></tr></table></figure>
+
+<p>若用户想要查看表中索引的信息，可以使用命令 SHOW INDEX。我们以主键列为例，结果如下：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SHOW</span> INDEX <span class="keyword">FROM</span> t\G;</span><br><span class="line"><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span> <span class="number">1.</span> <span class="type">row</span> <span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span></span><br><span class="line">    <span class="keyword">Table</span>: t</span><br><span class="line">    Non_unique: <span class="number">0</span></span><br><span class="line">    Key_name: <span class="keyword">PRIMARY</span></span><br><span class="line">    Seq_in_index: <span class="number">1</span></span><br><span class="line">    Column_name: a</span><br><span class="line">    <span class="keyword">Collation</span>: A</span><br><span class="line">    <span class="keyword">Cardinality</span>: <span class="number">2</span></span><br><span class="line">    Sub_part: <span class="keyword">NULL</span></span><br><span class="line">    Packed: <span class="keyword">NULL</span></span><br><span class="line">    <span class="keyword">Null</span>: </span><br><span class="line">    Index_type: BTREE</span><br><span class="line">    Comment: </span><br><span class="line">…</span><br></pre></td></tr></table></figure>
+
+<p>以上结果中每列的含义如下：</p>
+<p><strong><code>Table</code></strong>：索引所在的表名。</p>
+<p><strong><code>Non_unique</code></strong>：非唯一的索引，可以看到 primary key 是 0，因为必须是唯一的。</p>
+<p><strong><code>Key_name</code></strong>：索引的名字，用户可以通过这个名字来执行 DROP INDEX。</p>
+<p><strong><code>Seq_in_index</code></strong>：索引中该列的位置，如果看联合索引 idx_a_c 就比较直观了。</p>
+<p><strong><code>Column_name</code></strong>：索引列的名称。</p>
+<p><strong><code>Collation</code></strong>：列以什么方式存储在索引中。可以是 A 或 NULL。B+ 树索引总是 A，即排序的。如果使用了 Heap 存储引擎，并且建立了 Hash 索引，这里就会显示 NULL 了。因为 Hash 根据 Hash 桶存放索引数据，而不是对数据进行排序。</p>
+<p><strong><code>Cardinality</code></strong>：非常关键的值，表示索引中唯一值的数目的估计值。Cardinality 表的行数应尽可能接近 1，如果非常小，那么用户需要考虑是否可以删除此索引。</p>
+<p><strong><code>Sub_part</code></strong>：是否是列的部分被索引。如果看到 <code>idx_b</code> 这个索引，这里显示 100，表示只对 b 列的前 100 字符进行索引。如果索引整个列，则该字段为 NULL。</p>
+<p><strong><code>Packed</code></strong>：关键字如何被压缩。如果没有被压缩，则为 NULL。</p>
+<p><strong><code>Null</code></strong>：是否索引的列含有 NULL 值。可以看到 <code>idx_b</code> 这里为 Yes，因为定义的列 b 允许 NULL 值。</p>
+<p><strong><code>Index_type</code></strong>：索引的类型。InnoDB 存储引擎只支持 B+ 树索引，所以这里显示的都是 BTREE。</p>
+<p><strong><code>Comment</code></strong>：注释。</p>
+<p>Cardinality 值非常关键，优化器会根据这个值来判断是否使用这个索引。但是这个值并不是实时更新的，即并非每次索引的更新都会更新该值，因为这样代价太大了。因此这个值是不太准确的，只是一个大概的值。上面显示的结果主键的 Cardinality 为 2，但是很显然我们表中有 4 条记录，这个值应该是 4。如果需要更新索引 Cardinality 的信息，可以使用 <code>ANALYZE TABLE</code> 命令。</p>
+<p>另一个问题是 MySQL 数据库对于 Cardinality 计数的问题，在运行一段时间后，可能会看到下面的结果：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">show</span> index <span class="keyword">from</span> Profile\G;</span><br><span class="line"><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span> <span class="number">1.</span> <span class="type">row</span> <span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span></span><br><span class="line">    <span class="keyword">Table</span>: Profile</span><br><span class="line">    Non_unique: <span class="number">0</span></span><br><span class="line">    Key_name: UserName</span><br><span class="line">    Seq_in_index: <span class="number">1</span></span><br><span class="line">    Column_name: username</span><br><span class="line">    <span class="keyword">Collation</span>: A</span><br><span class="line">    <span class="keyword">Cardinality</span>: <span class="keyword">NULL</span></span><br><span class="line">    Sub_part: <span class="keyword">NULL</span></span><br><span class="line">    Packed: <span class="keyword">NULL</span></span><br><span class="line">    <span class="keyword">Null</span>: </span><br><span class="line">    Index_type: BTREE</span><br><span class="line">    Comment: </span><br></pre></td></tr></table></figure>
+
+<p><strong>Cardinality</strong> 为 NULL，在某些情况下可能会发生索引建立了却没有用到的情况。或者对两条基本一样的语句执行 EXPLAIN，但是最终出来的结果不一样：一个使用索引，另外一个使用全表扫描。</p>
+<p>这时最好的解决办法就是做一次 <code>ANALYZE TABLE</code> 的操作。因此建议在一个非高峰时间，对应用程序下的几张核心表做 <code>ANALYZE TABLE</code> 操作，这能使优化器和索引更好地为你工作。</p>
+<h4 id="Fast-Index-Creation"><a href="#Fast-Index-Creation" class="headerlink" title="Fast Index Creation"></a>Fast Index Creation</h4><p>MySQL 5.5 版本之前（不包括 5.5）存在的一个普遍被人诟病的问题是 MySQL 数据库对于索引的添加或者删除的这类 DDL 操作，MySQL 数据库的操作过程是：</p>
+<ul>
+<li>首先创建一张新的临时表，表结构为通过命令 ALTER TABLE 新定义的结构。</li>
+<li>然后把原表中数据导入到临时表。</li>
+<li>接着删除原表。</li>
+<li>最后把临时表重名为原来的表名。</li>
+</ul>
+<p>可以发现，若用户对一张大表进行索引的添加和删除操作，那么会花费很长的时间。更关键的是，若有大量事务需要访问正在被修改的表，这意味着数据库服务不可用。</p>
+<p><strong>InnoDB</strong> 存储引擎从 <strong>InnoDB 1.0.x</strong> 版本开始支持一种称为 <strong>Fast Index Creation（快速索引创建）</strong> 的索引创建方式——简称 <strong>FIC</strong>。</p>
+<p>对于辅助索引的创建，InnoDB 存储引擎会对创建索引的表加上一个 <strong>S 锁</strong>。在创建的过程中，不需要重建表，因此速度较之前提高很多，并且数据库的可用性也得到了提高。<br> 删除辅助索引操作就更简单了，InnoDB 存储引擎只需更新内部视图，并将辅助索引的空间标记为可用，同时触发 MySQL 数据库内部视图上对该索引定义即可以。</p>
+<p>这里需要特别注意的是，临时表的创建路径是通过参数 tmpdir 进行设置的。用户必须保证 tmpdir 有足够的空间可以存放临时表，否则会导致创建索引失败。</p>
+<p>由于 FIC 在索引的创建中对表加上了 S 锁，因此在创建的过程中只能对该表进行 <strong>读操作</strong>，若有大量的事务需要对目标表进行写操作，那么数据库的服务同样不可用。此外，FIC 方法只限用于 <strong>辅助索引</strong>，对于主键的创建和删除同样需要重建一张表。</p>
+<h4 id="Online-Schema-Change"><a href="#Online-Schema-Change" class="headerlink" title="Online Schema Change"></a>Online Schema Change</h4><p>Online Schema Change（OSC）是一种用于 <strong>在线执行 MySQL DDL 操作</strong> 的技术，最早由 Facebook 推出并开源，旨在解决传统 DDL 操作期间数据库不可用的问题。通过 OSC，用户可以在 <strong>不中断业务访问的前提下</strong> 对表结构进行修改，如添加索引、修改字段等。</p>
+<p>其核心思想是通过复制原表结构创建一张临时表，并在数据迁移和结构变更过程中，借助触发器记录原表的变更操作（DML）。在数据导入和变更同步完成后，再将原表与新表进行原子性换名操作，从而实现无缝切换。</p>
+<h4 id="Online-DDL"><a href="#Online-DDL" class="headerlink" title="Online DDL"></a>Online DDL</h4><p>虽然 FIC 可以让 InnoDB 存储引擎避免创建临时表，从而提高索引创建的效率，但正如前面章节所说的，索引创建时会阻塞表上的 DML 操作。OSC 虽然解决了上述的部分问题，但还是有很大的局限性。</p>
+<p>MySQL 从 5.6 版本开始支持 <strong>Online DDL（在线数据定义）</strong> 操作，其允许在辅助索引创建的同时，还允许其他诸如 INSERT、UPDATE、DELETE 这类 DML 操作，这极大地提高了 MySQL 数据库在生产环境中的可用性。</p>
+<p>此外，不仅是辅助索引，以下几类 DDL 操作都可以通过“在线”的方式进行操作：</p>
+<ul>
+<li><p>辅助索引的创建与删除</p>
+</li>
+<li><p>改变自增长值</p>
+</li>
+<li><p>添加或删除外键约束</p>
+</li>
+<li><p>列的重命名</p>
+</li>
+</ul>
+<p>通过新的 <code>ALTER TABLE</code> 语法，用户可以选择索引的创建方式：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER TABLE</span> tbl_name</span><br><span class="line"><span class="keyword">ADD</span> [INDEX<span class="operator">|</span>KEY] [index_name]</span><br><span class="line">[index_type] (index_col_name,...) [index_option] ...</span><br><span class="line">ALGORITHM [<span class="operator">=</span>] &#123;<span class="keyword">DEFAULT</span><span class="operator">|</span>INPLACE<span class="operator">|</span><span class="keyword">COPY</span>&#125;</span><br><span class="line">LOCK [<span class="operator">=</span>] &#123;<span class="keyword">DEFAULT</span><span class="operator">|</span><span class="keyword">NONE</span><span class="operator">|</span>SHARED<span class="operator">|</span>EXCLUSIVE&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>ALGORITHM</strong> 指定了创建或删除索引的算法：</p>
+<ul>
+<li>COPY 表示按 MySQL 5.1 版本之前的工作模式，即创建临时表的方式。</li>
+<li>INPLACE 表示索引创建或删除操作不需要创建临时表。</li>
+<li>DEFAULT 表示根据参数 <code>old_alter_table</code> 判断是否使用 INPLACE 或 COPY 算法，默认值为 OFF，即采用 INPLACE 方式。</li>
+</ul>
+<p>LOCK 部分表示在创建或删除索引时对表加锁的情况，可选值包括：</p>
+<ol>
+<li>**NONE：**执行索引创建或删除操作时，对目标表不添加任何锁，即事务仍然可以进行读写操作，不会受到阻塞。因此该模式可以获得最大的并发度。</li>
+<li>**SHARE：**与 FIC 类似，执行索引创建或删除操作时，对目标表加上一个 S 锁。对于读操作不影响，但会阻塞写操作。</li>
+<li>**EXCLUSIVE：**执行索引创建或删除操作时，对目标表加上一个 X 锁。此时所有事务都不能进行，等同于 COPY 方式运行时的状态，但不需要创建临时表。</li>
+<li>**DEFAULT：**默认模式下，系统会判断当前操作是否可以使用 NONE 模式，若不能，则判断是否可以使用 SHARE，最后才判断是否可以使用 EXCLUSIVE 模式。DEFAULT 会根据当前事务的最大并发性来自动选择 DDL 执行的锁定模式。</li>
+</ol>
+<p>InnoDB 存储引擎在执行 Online DDL 的过程中，会将 INSERT、UPDATE、DELETE 等 DML 操作的日志写入一个缓冲区，待索引创建完成后再将这些日志应用到表上，以此保证数据一致性。</p>
+<p>这个缓冲区的大小由参数 <code>innodb_online_alter_log_max_size</code> 控制，默认值为<strong>128MB</strong>。若在创建过程中遇到大量写事务，而缓冲区不够，会报错：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Error: 1799 SQLSTATE: HY000 (ER_INNODB_ONLINE_LOG_TOO_BIG)</span><br><span class="line"></span><br><span class="line">Message: Creating index &#x27;idx_aaa&#x27; required more than &#x27;innodb_online_alter_log_max_size&#x27; bytes of modification log. Please try again.</span><br></pre></td></tr></table></figure>
+
+<p>为避免该错误，可通过调整 <code>innodb_online_alter_log_max_size</code> 获取更大的日志缓冲空间。此外，也可以设置 <code>ALTER TABLE 的 LOCK = SHARE</code> 模式，以避免记录过多的 DML 日志。</p>
+<p>需要特别注意的是，<strong>在 Online DDL 结束后，MySQL 会通过重放日志达到数据最终一致性</strong>。因此在索引创建过程中，SQL 优化器不会选择正在创建的索引。</p>
+<h2 id="Cardinality"><a href="#Cardinality" class="headerlink" title="Cardinality"></a>Cardinality</h2><p>概念：Cardinality ≈ 列中不同值的数量 → 反映列的选择性。</p>
+<p>判断索引价值</p>
+<ul>
+<li><p>高选择性（Cardinality ≈ 表行数）：建 B+ 树索引，能显著加速查询。</p>
+</li>
+<li><p>低选择性（取值极少，如性别、地区）：索引作用有限，通常不建。</p>
+</li>
+</ul>
+<p>衡量方法：SHOW INDEX 查看 Cardinality；用 Cardinality &#x2F; 总行数 估算选择性。</p>
+<p>注意：Cardinality 仅是估值，可能不精确，仍需结合实际查询频率和过滤比例综合判断。</p>
+<h3 id="InnoDB-存储引擎的-Cardinality-统计"><a href="#InnoDB-存储引擎的-Cardinality-统计" class="headerlink" title="InnoDB 存储引擎的 Cardinality 统计"></a>InnoDB 存储引擎的 Cardinality 统计</h3><p>InnoDB 不会在每次索引变动时都重新计算 Cardinality，而是通过采样（Sample）方式周期性更新，以避免频繁统计带来的性能开销。更新时机主要有两个条件：</p>
+<ol>
+<li><p>表中已有数据发生变化占比 ≥ 1&#x2F;16</p>
+<ol>
+<li>上次统计后，若有至少六分之一的数据被插入或删除，则触发 Cardinality 重新计算。 </li>
+<li>目的是：当表数据量大幅变化时，统计结果才会显著偏离实际。</li>
+</ol>
+</li>
+<li><p><code>stat_modified_counter &gt; 2,000,000,000</code> </p>
+<ol>
+<li>InnoDB 内部维护一个计数器 stat_modified_counter，用于记录自上次索引统计（Cardinality 更新）以来，对表中<strong>单行数据</strong>执行 INSERT&#x2F;UPDATE 之类操作的累计次数；</li>
+<li>若对某行数据的更新非常频繁——即使该表总行数未增减，但同一行被多次修改，也会触发 Cardinality 更新； </li>
+<li>当 stat_modified_counter 累积值超过 20 亿，则认为存量数据“实质”发生变化，从而重新采样计算。</li>
+</ol>
+</li>
+</ol>
+<p>这种双重策略保证在数据量变化大或单行更新极其频繁时，InnoDB 能及时刷新索引选择性估计；平时不会因频繁 INSERT&#x2F;UPDATE 而频繁统计，以降低系统负担。 </p>
+<p>InnoDB 通过对 B+ 树叶子页（Leaf Page）进行随机采样，估算索引的 Cardinality 值（不保证精确）。默认采样 8 个叶子页，步骤如下：</p>
+<ol>
+<li>获取叶子页总数：设定为 A，即 B+ 树索引中叶子节点的总数量。</li>
+<li>随机选取 8 个叶子节点：对这 8 个数据页，分别统计每页中不同记录的个数，记为 P1、P2、…、P8。</li>
+<li>计算估算值：<code>Cardinality ≈ (P1 + P2 + … + P8) × A / 8</code>。</li>
+</ol>
+<p>每次采样都可能选到不同的 8 个叶子页，故同一索引的 Cardinality 值会有所波动。也就是说，这是一个估算值，并非精准统计。</p>
+<p>当表的叶子页数 ≤ 8 时，InnoDB 默认会对所有叶子页进行采样（即采样页数 ≥ 表叶子页数）。这意味着每次执行索引统计，选到的都是相同的页，导致观测到的 Cardinality 值始终一致。</p>
+<p>InnoDB 采样配置</p>
+<ol>
+<li><p><code>innodb_stats_sample_pages</code></p>
+<p>用途：设置每次计算 Cardinality 时要采样的叶子页数量。</p>
+<p>默认值：8。</p>
+<p>如果将该值调小，采样精度会下降；调大则统计开销增加。</p>
+</li>
+<li><p><code>innodb_stats_method</code><br>控制统计时对索引列中 NULL 值的处理方式，可选取：</p>
+<ul>
+<li><p>nulls_equal（默认）：将所有 NULL 视为相同值。</p>
+</li>
+<li><p>nulls_unequal：将不同 NULL 视为不同值。</p>
+</li>
+<li><p>nulls_ignored：完全忽略 NULL 记录，不计入不同值。</p>
+</li>
+</ul>
+</li>
+</ol>
+<p>示例<br>针对某页记录：NULL, NULL, 1, 2, 2, 3, 3, 3</p>
+<ul>
+<li>nulls_equal → 视为 {NULL, 1, 2, 3}, Cardinality &#x3D; 4</li>
+<li>nulls_unequal → 视为 {NULL₁, NULL₂, 1, 2, 3}, Cardinality &#x3D; 5</li>
+<li>nulls_ignored → 只计 {1, 2, 3}, Cardinality &#x3D; 3</li>
+</ul>
+<p>当执行 SQL 语句 <code>ANALYZE TABLE</code>、<code>SHOW TABLE STATUS</code>、<code>SHOW INDEX</code> 以及访问 INFORMATION_SCHEMA 架构下的表 TABLES 和 STATISTICS 时，会导致 InnoDB 存储引擎去重新计算索引的 Cardinality 值。若表中的数据量非常大，并且表中存在多个辅助索引时，执行上述这些操作可能会非常慢。虽然用户可能并不希望去更新 Cardinality 值。</p>
+<p>Cardinality 的设置参数如下：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>innodb_stats_persistent</strong></td>
+<td>是否将命令 <code>ANALYZE TABLE</code> 计算得到的 Cardinality 值存放到磁盘上。<br>若是，则这样做的好处是可以减少重新计算每个索引的 Cardinality 值，例如当 MySQL 数据库重启时。此外，用户也可以通过命令 <code>CREATE TABLE</code> 和 <code>ALTER TABLE</code> 的选项 <code>STATS_PERSISTENT</code> 来对每张表进行控制。<br>默认值：OFF</td>
+</tr>
+<tr>
+<td><strong>innodb_stats_on_metadata</strong></td>
+<td>当通过命令 <code>SHOW TABLE STATUS</code>、<code>SHOW INDEX</code> 及访问 <code>INFORMATION_SCHEMA</code> 架构下的表 <code>TABLES</code> 和 <code>STATISTICS</code> 时，是否需要重新计算索引的 Cardinality 值。<br>默认值：OFF</td>
+</tr>
+<tr>
+<td><strong>innodb_stats_persistent_sample_pages</strong></td>
+<td>若参数 <code>innodb_stats_persistent</code> 设置为 ON，该参数表示 <code>ANALYZE TABLE</code> 更新 Cardinality 值时每次采样页的数量。<br>默认值：20</td>
+</tr>
+<tr>
+<td><strong>innodb_stats_transient_sample_pages</strong></td>
+<td>该参数用来取代之前版本的参数 <code>innodb_stats_sample_pages</code>，表示每次采样页的数量。<br>默认值：8</td>
+</tr>
+</tbody></table>
+<p>最后两个参数的区别：</p>
+<p><code>persistent_sample_pages</code>：针对持久化统计（<code>ANALYZE TABLE</code> 等）时使用，采样页数较多以提高持久化统计精度。</p>
+<p><code>transient_sample_pages</code>：针对临时统计（<code>SHOW INDEX</code>、<code>SHOW TABLE STATUS</code>、<code>INFORMATION_SCHEMA</code> 查询、或 <code>innodb_stats_persistent=OFF</code> 时的抽样）时使用，采样页数较少以减少临时统计的开销。</p>
+<h2 id="B-树索引的使用"><a href="#B-树索引的使用" class="headerlink" title="B+ 树索引的使用"></a>B+ 树索引的使用</h2><p>OLTP（联机事务处理）场景下，单次查询通常只访问非常少量的记录（往往 ≤ 10 条，有时甚至只取 1 条）。此时建立的 B+ 树索引主要用于通过主键或少量条件快速定位对应记录。只有当索引能够显著减少 IO、提高查询效率时才有意义，否则即使创建了索引，优化器也可能绕过直接全表扫描。</p>
+<p>OLAP（联机分析处理）场景下，查询往往涉及对表中大量数据的聚合与统计，面向决策支持（如按月统计销售额、环比增长等）。此类查询关注宏观视角，索引设计应基于整体分析需求，而非针对单条记录检索。一般情况下，不会对诸如“姓名”等仅偶尔单独查询的字段建立索引；但常见做法是对用作分区或筛选条件的<strong>时间字段</strong>建索引，因为大多数统计都是基于时间维度进行过滤。<br>在多表联接（JOIN）操作中，若使用 Hash Join 等算法，索引的重要性会相对降低，需要结合具体执行计划来权衡是否添加索引。</p>
+<p>因此，索引添加策略需 Think Different，结合实际查询特点（选择性、扫描量、计算开销）和执行计划采样结果。</p>
+<h3 id="联合索引"><a href="#联合索引" class="headerlink" title="联合索引"></a>联合索引</h3><p>单列索引：一个索引只包含单个列。</p>
+<p>联合索引：一个索引包含多个列。</p>
+<p>以下代码创建了一张 t 表，并且索引 <code>idx_a_b</code> 是联合索引，联合的列为 <code>(a, b)</code>。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE TABLE</span> t (</span><br><span class="line">  a <span class="type">INT</span>,</span><br><span class="line">  b <span class="type">INT</span>,</span><br><span class="line">  <span class="keyword">PRIMARY KEY</span> (a),</span><br><span class="line">  KEY idx_a_b (a, b)</span><br><span class="line">) ENGINE<span class="operator">=</span>INNODB;</span><br></pre></td></tr></table></figure>
+
+<p>该表对应的联合索引结构如下（同样省去叶节点之间的指针）：</p>
+<p><img src="/../../images/MySQL/mysql_index_multi.drawio.png" alt="img"></p>
+<p>因此，对于查询 <code>SELECT * FROM TABLE WHERE a=xxx and b=xxx</code>，显然是可以使用 <code>(a, b)</code> 这个联合索引的。对于单个 a 列查询 <code>SELECT * FROM TABLE WHERE a=xxx</code>，也可以使用这个 <code>(a, b)</code> 索引。但对于 b 列的查询 <code>SELECT * FROM TABLE WHERE b=xxx</code>，则不可以使用这棵 B+ 树索引。可以发现叶子节点上的 b 值为 1、2、1、4、1、2，显然不是排序的，因此对于 b 列的查询使用不到 <code>(a, b)</code> 的索引。</p>
+<p>联合索引的第二个好处是已经对第二个键值进行了排序处理。例如，在很多情况下应用程序都需要查询某个用户的购物情况，并按照时间进行排序，最后取出最近三次的购买记录，这时使用联合索引可以避免多一次的排序操作，因为索引本身在叶子节点已经排好了。</p>
+<p>在业务场景中，如果存在多个查询条件，考虑针对查询字段建立索引时，建议建立联合索引，而非单列索引。</p>
+<p>多条件联合查询时，MySQL 优化器会评估哪个字段的索引效率更高并且选择对应索引完成本次查询。</p>
+<h3 id="覆盖索引"><a href="#覆盖索引" class="headerlink" title="覆盖索引"></a>覆盖索引</h3><p>在 InnoDB 中，覆盖索引（Covering Index）指的是查询只访问辅助索引就能获取所需字段的数据，不需要回表到主键索引（聚集索引）中再取数据。</p>
+<p>此外，统计查询也能利用覆盖索引：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE TABLE</span> buy_log (</span><br><span class="line">  userid <span class="type">INT</span> UNSIGNED <span class="keyword">NOT NULL</span>,</span><br><span class="line">  buy_date <span class="type">DATE</span></span><br><span class="line">) ENGINE<span class="operator">=</span>InnoDB;</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> <span class="built_in">COUNT</span>(<span class="operator">*</span>) <span class="keyword">FROM</span> buy_log;</span><br></pre></td></tr></table></figure>
+
+<p>对于这个 SQL 语句，InnoDB 并不会选择通过查询聚集索引来进行统计，因为 <code>buy_log</code> 表上还有辅助索引，而辅助索引远小于聚集索引，这有助于减少 I&#x2F;O 操作。</p>
+<p>而且，对于以下 SQL 语句：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="built_in">COUNT</span>(<span class="operator">*</span>) <span class="keyword">FROM</span> buy_log</span><br><span class="line"><span class="keyword">WHERE</span> buy_date <span class="operator">&gt;=</span> <span class="string">&#x27;2011-01-01&#x27;</span> <span class="keyword">AND</span> buy_date <span class="operator">&lt;</span> <span class="string">&#x27;2011-02-01&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>即使查询条件中只用到联合索引的第二列 <code>buy_date</code>，但因为查询是统计操作，且能完全由索引提供数据，优化器依然会选择 <code>(userid, buy_date)</code> 联合索引作为覆盖索引使用。</p>
+<h3 id="前缀索引"><a href="#前缀索引" class="headerlink" title="前缀索引"></a>前缀索引</h3><p>当字段类型为 varchar，text 等时，有时候需要索引很长的字符串，这会让索引变得很大，查询时消费大量的磁盘 I&#x2F;O。因此我们可对字符串的<strong>前缀</strong>建立索引，可极大节省索引空间，提高索引效率。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> index idx_xxx <span class="keyword">on</span> table_name(column_name(n));</span><br></pre></td></tr></table></figure>
+
+<p>前缀长度选择：根据索引的选择性（和区分度类似）来决定，选择性是指不重复的索引值和数据表的记录总数的比值，索引选择性越高则查询效率越高（选择性最高为 1）。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="built_in">count</span>(<span class="keyword">distinct</span> email) <span class="operator">/</span> <span class="built_in">count</span>(<span class="operator">*</span>) <span class="keyword">from</span> table_name;</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="built_in">count</span>(<span class="keyword">distinct</span> <span class="built_in">substring</span>(email, <span class="keyword">start</span>, <span class="keyword">end</span>)) <span class="operator">/</span> <span class="built_in">count</span>(<span class="operator">*</span>) <span class="keyword">from</span> table_name;</span><br></pre></td></tr></table></figure>
+
+<p>查询流程</p>
+<ol>
+<li>构建聚集索引和 email 指定长度的前缀索引。</li>
+<li>获取 where 后的条件查询字符串的指定长度的前缀，在对应 email 的索引中匹配获取对应行的 id，回表查询获取完整行。</li>
+<li>比较该行中的 email 字符串是否等于查询字符串；如果是，则返回结果，之后查询 B+Tree 中下一个元素是否匹配 email 前缀，重复操作。</li>
+<li>组装数据。</li>
+</ol>
+<h3 id="优化器选择不使用索引的情况"><a href="#优化器选择不使用索引的情况" class="headerlink" title="优化器选择不使用索引的情况"></a>优化器选择不使用索引的情况</h3><p>在某些场景下，即使有可用索引，执行 EXPLAIN 会发现优化器 没有选择索引，而是采用了全表扫描（table scan）或聚集索引扫描（PRIMARY key scan），而不是使用辅助索引。</p>
+<p>查询语句如下：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> orderdetails <span class="keyword">WHERE</span> orderid <span class="operator">&gt;</span> <span class="number">10000</span> <span class="keyword">AND</span> orderid <span class="operator">&lt;</span> <span class="number">102000</span>;</span><br></pre></td></tr></table></figure>
+
+<p>该语句选择扫描聚集索引，也就是全表扫描。</p>
+<p>原因分析</p>
+<ol>
+<li>索引无法覆盖查询字段<ul>
+<li>由于 <code>SELECT *</code> 需要返回整行记录，而 OrderID 是辅助索引，无法覆盖所有字段，导致必须回表。</li>
+<li>回表的过程需要通过主键访问聚集索引数据页，这会产生额外的 I&#x2F;O。</li>
+</ul>
+</li>
+<li>顺序读 vs 随机读<ul>
+<li>聚集索引在磁盘上是物理顺序存储的，直接扫描比辅助索引 + 回表更高效（尤其当命中率低时）。</li>
+<li>特别是在机械硬盘环境下，顺序读（聚集索引）性能远优于多次随机读（回表）。</li>
+</ul>
+</li>
+<li>数据访问比例高时<ul>
+<li>当查询返回的数据行占总行数较大（例如 &gt;20%）时，优化器认为直接顺序扫描整张表更快。</li>
+</ul>
+</li>
+</ol>
+<p>对于机械硬盘来说，顺序读取（聚集索引或全表扫描）远快于随机读（辅助索引 + 回表）。因此，当查询返回的行数占表的较大比例（≈20％ 或更高）时，优化器往往选择全表扫描，而不是使用辅助索引。</p>
+<p>如果底层存储是固态硬盘（SSD），随机读性能就足够高，且对性能的影响较小，我们可以强制使用辅助索引来减少扫描行数。</p>
+<p><code>USE INDEX</code> 只是告诉优化器可以选择该索引，但实际上优化器还是会根据自己的判断进行选择。</p>
+<p><code>FORCE INDEX</code> 则强制优化器必须使用该索引。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> <span class="keyword">table</span> use index(idx) <span class="keyword">where</span> ...;</span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> <span class="keyword">table</span> ignore index(idx) <span class="keyword">where</span> ...;</span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> <span class="keyword">table</span> force index(idx) <span class="keyword">where</span> ...;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Multi-Range-Read-MRR-优化"><a href="#Multi-Range-Read-MRR-优化" class="headerlink" title="Multi-Range Read (MRR) 优化"></a>Multi-Range Read (MRR) 优化</h3><p>从 MySQL 5.6.0 开始，InnoDB 和 MyISAM 存储引擎支持 MRR（多范围读取）优化。</p>
+<p>目标：尽可能减少磁盘的随机读，将随机访问转换为相对顺序的访问，以提升 I&#x2F;O 密集型查询的性能。</p>
+<p>适用场景：对索引范围（range）、引用（ref）或等值引用（<code>eq_ref</code>）类型查询，尤其是在需要根据辅助索引快速定位大量匹配行，然后回表查数据的场景。</p>
+<p>MRR 优化的几个好处：</p>
+<p><strong>使数据访问变得更顺序</strong></p>
+<ul>
+<li><p>首先通过辅助索引找出所有符合条件的索引键值，把它们缓存在内存里（已经是按索引顺序排列的）。</p>
+</li>
+<li><p>然后按照主键（或聚簇索引）顺序对这些键值进行排序，最后再一次性按排好序的顺序访问实际数据页，从而将随机 I&#x2F;O 转为顺序 I&#x2F;O。</p>
+</li>
+</ul>
+<p><strong>减少缓冲池中页被置换的次数</strong></p>
+<ul>
+<li>由于访问顺序更可预测，针对热点数据页的重复访问更集中，降低了缓存页被逐出后又立刻被读回的情况。</li>
+</ul>
+<p><strong>批量处理对键值的查询操作</strong></p>
+<ul>
+<li>将多个单独的索引查找合并成一次批量处理，更好地利用缓存和预取，提高吞吐量。</li>
+</ul>
+<p>MRR 的工作流程（以 InnoDB 和 MyISAM 为例）</p>
+<ol>
+<li>收集辅助索引键值<ul>
+<li>执行范围或引用类型的索引查找时，先把所有满足条件的辅助索引键值（包含对应的 RowID 或主键）一次性读到一个临时缓冲区中。此时缓冲区中的键值已经是按辅助索引顺序排列的。</li>
+</ul>
+</li>
+<li>对键值进行排序<ul>
+<li>根据读到的所有主键（RowID）值，对缓冲区内记录按主键顺序排序（这一步把索引顺序转换为主键顺序）。</li>
+</ul>
+</li>
+<li>按主键顺序批量访问数据页<ul>
+<li>根据排好序的主键顺序依次访问 InnoDB&#x2F; MyISAM 数据文件，从而尽可能采用顺序读，减少随机 I&#x2F;O。</li>
+</ul>
+</li>
+<li>注意缓冲池大小的影响<ul>
+<li>如果 InnoDB 或 MyISAM 的缓冲池&#x2F;缓存（Buffer Pool &#x2F; Key Cache）足够大，可以一次性容纳整个表或者大部分热数据页，则 MRR 优化效果最明显。</li>
+<li>若缓冲池不足以存放大量页，那么在批量读回过程中仍可能引起页被换出和换入，导致性能下降。</li>
+</ul>
+</li>
+</ol>
+<p>MRR 还可以将 <strong>复合索引</strong>（联合索引）上的多列范围查询拆分为一系列更细粒度的“键值对”，并对它们批量执行查询，从而在拆分过程中进一步“过滤”掉不符合条件的记录，避免不必要的回表。</p>
+<p>假设 t 表有联合索引 <code>(key_part1, key_part2)</code>，当执行以下查询时：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">FROM</span> t</span><br><span class="line"><span class="keyword">WHERE</span> key_part1 <span class="operator">&gt;=</span> <span class="number">1000</span></span><br><span class="line"><span class="keyword">AND</span> key_part1 <span class="operator">&lt;</span> <span class="number">2000</span></span><br><span class="line"><span class="keyword">AND</span> key_part2 <span class="operator">=</span> <span class="number">10000</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>若不启用 MRR</strong>，优化器会先做一个 <strong>范围（Range）索引扫描</strong>：</p>
+<ol>
+<li>从联合索引按照 <code>key_part1 &gt;= 1000 AND key_part1 &lt; 2000</code> 条件，扫描出所有满足第一个条件的叶子节点记录，无视 <code>key_part2</code> 是否等于 10000；</li>
+<li>读出这些记录后，再在应用层对 <code>key_part2 = 10000</code> 做过滤。<br> 这种做法可能会将大量 <code>key_part2 ≠ 10000</code> 的行读到缓冲区，却最终被丢弃，导致“无用 I&#x2F;O”。</li>
+</ol>
+<p><strong>若启用 MRR</strong>，优化器会把原来的查询拆分成一系列“点查”——也就是把范围 <code>[1000, 2000)</code> 细分为多个 <code>(key_part1, key_part2)</code> 对，例如 <code>(1000, 10000)</code>、<code>(1001, 10000)</code>、<code>(1002, 10000)</code> … <code>(1999, 10000)</code>；</p>
+<ol>
+<li>这些拆分出的 <code>(key_part1, key_part2)</code> 对本质上是更小的等值查询或等值范围查询的组合；</li>
+<li>引擎对每个 <code>(key_part1, key_part2)</code> 直接通过索引查找，而不是先把所有 <code>key_part1</code> 的记录读出再过滤 <code>key_part2</code>；</li>
+<li>最终在索引页上就能剪掉那些 <code>key_part2 ≠ 10000</code> 的记录，不会将它们读出到排序&#x2F;回表阶段；</li>
+<li>这样做等价于把先按 <code>key_part1</code> 范围 → 再过滤 <code>key_part2</code> 改成先将范围拆为 <code>(key_part1, key_part2)</code> → 直接点查，避免无用读。</li>
+</ol>
+<h3 id="Index-Condition-Pushdown（索引条件下推）"><a href="#Index-Condition-Pushdown（索引条件下推）" class="headerlink" title="Index Condition Pushdown（索引条件下推）"></a>Index Condition Pushdown（索引条件下推）</h3><p>MySQL 数据库会在取出索引的同时判断是否可以进行 WHERE 条件的过滤，也就是将 WHERE 的部分过滤操作放在了存储引擎层。在某些查询下，可以大大减少上层 SQL 层对记录的索取，从而提高数据库的整体性能。</p>
+<p>Index Condition Pushdown 优化支持 range、ref、<code>eq_ref</code>、<code>ref_or_null</code> 类型的查询，当前支持 MyISAM 和 InnoDB 存储引擎。当优化器选择 Index Condition Pushdown 优化时，可在执行计划的 Extra 列看到 Using index condition 提示。</p>
+<p>假设某张表有联合索引 <code>(zip_code, last_name, first_name)</code>，并且查询语句如下：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> people</span><br><span class="line"><span class="keyword">WHERE</span> zipcode <span class="operator">=</span> <span class="string">&#x27;95054&#x27;</span></span><br><span class="line"><span class="keyword">AND</span> lastname <span class="keyword">LIKE</span> <span class="string">&#x27;%etrunia%&#x27;</span></span><br><span class="line"><span class="keyword">AND</span> address <span class="keyword">LIKE</span> <span class="string">&#x27;%Main Street%&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>对于上述语句，MySQL 数据库可以通过索引定位 <code>zipcode = &#39;95054&#39;</code> 的记录，但是索引对 WHERE 条件的 <code>lastname LIKE &#39;%etrunia%&#39;</code> 和 <code>address LIKE &#39;%Main Street%&#39;</code> 没有任何帮助。若不支持 Index Condition Pushdown 优化，则数据库需要先通过索引取出所有 <code>zipcode = &#39;95054&#39;</code> 的记录，然后再对这部分记录执行 <code>lastname LIKE &#39;%etrunia%&#39; AND address LIKE &#39;%Main Street%&#39;</code> 的过滤，才能最终得到结果。</p>
+<p>若支持 Index Condition Pushdown 优化，则在索引扫描阶段，MySQL 存储引擎会先判断 <code>zipcode = &#39;95054&#39;</code> 这一部分（因为这是索引的第一列条件），然后在“取出”符合该索引前缀的行时，立即在存储引擎层对 <code>lastname LIKE &#39;%etrunia%&#39; AND address LIKE &#39;%Main Street%&#39;</code> 这两个条件进行过滤，只把同时满足三个条件的记录交给上层 SQL 层做最终读取。这样就极大地减少了上层 SQL 层对行的 fetch 次数，从而提高查询效率。当然，WHERE 中被下推的条件必须是“索引范围能够覆盖到”的列，否则无法下推。例如 <code>lastname LIKE &#39;%abc%&#39; 或者 address LIKE &#39;%xyz%&#39;</code> 带有前缀通配符（前面有 %），在大多数情况下并不属于索引可下推的范围；只有当索引是覆盖该列并且能够使用“范围扫描”或“等值比较”时，条件下推才有效。</p>
+<h2 id="InnoDB-中的哈希算法"><a href="#InnoDB-中的哈希算法" class="headerlink" title="InnoDB 中的哈希算法"></a>InnoDB 中的哈希算法</h2><p><strong>哈希表基本结构与冲突解决</strong></p>
+<ul>
+<li>InnoDB 在缓冲池中维护一个哈希表，用于物理页号 → 缓冲池页地址的快速映射。</li>
+<li>哈希冲突时采用链表方式：每个缓冲池页有一个指向同一哈希值下链上下一个页的指针，形成冲突链。</li>
+</ul>
+<p><strong>哈希函数：除法散列法（Division Method）</strong></p>
+<ul>
+<li>InnoDB 选取的哈希函数为 <strong>除法散列</strong>，即：<br>$hash_value  &#x3D;  K   mod   m$ 其中，<ul>
+<li>K 是查询页标识的整数键；</li>
+<li>m 是哈希表大小（槽位数）。</li>
+</ul>
+</li>
+<li>为了尽量均匀分布并减少冲突，InnoDB 通常将 m 选为略大于 <code>缓冲池页总数 × 2</code> 的<strong>质数</strong>。<ul>
+<li>例如，若 <code>innodb_buffer_pool_size = 10 MB</code>，则缓冲池中总页数约为 $10MB÷16KB&#x3D;640$ 页。</li>
+<li>按 2 倍页数原则，需要 $640×2&#x3D;1280$ 个槽位，但 1280 不是质数，于是取下一个比 1280 稍大的质数 1399 作为哈希表槽数。</li>
+</ul>
+</li>
+</ul>
+<p><strong>构造查询键 K</strong></p>
+<ul>
+<li>InnoDB 中，每个页都有两个重要标识：<ol>
+<li><strong><code>space_id</code></strong>：表示该页所属的表空间（tablespace）编号；</li>
+<li><strong><code>offset</code></strong>：表示该页在表空间内的偏移量（即第几个 16 KB 页）。</li>
+</ol>
+</li>
+<li>InnoDB 将这两个值合并成一个整数键 K，其计算公式通常为：$K  &#x3D;  (space_id  ≪  20)  +  offset$。</li>
+<li>得到的 K 用于与哈希表槽数 m 做除法取余运算，确定该页在哈希表中对应的槽。</li>
+</ul>
+<h3 id="哈希索引"><a href="#哈希索引" class="headerlink" title="哈希索引"></a>哈希索引</h3><p><img src="/../../images/MySQL/mysql_index_hash.drawio.png" alt="img"></p>
+<p>该索引采用哈希算法把键值换算成新的 hash 值，映射到对应的位置上，然后存储在 hash 表中。</p>
+<ul>
+<li>特点<ul>
+<li>只能用于对等比较（&#x3D;，in），不支持范围查询（between，&gt;，&lt;，…）；</li>
+<li>无法利用索引完成排序操作；</li>
+<li>查询效率高，通常只需要一次索引就可以了，效率通常要高于 B+Tree 索引（不发生 hash 冲突的情况下）。</li>
+</ul>
+</li>
+<li>存储引擎支持<ul>
+<li>支持 hash 索引的是 Memory 和 NDB 存储引擎，而 InnoDB 中具有<strong>自适应 hash 索引</strong>。</li>
+</ul>
+</li>
+</ul>
+<p><strong>Hash 索引和 B+ 树索引的区别</strong></p>
+<ol>
+<li>B+ 树索引可以进行范围查询，Hash 索引不能。</li>
+<li>B+ 树索引支持联合索引的最左侧原则，Hash 索引不支持。</li>
+<li>B+ 树索引支持 order by 排序，Hash 索引不支持。</li>
+<li>B+ 树使用 like 进行模糊查询的时候，LIKE ‘abc%’ 的话可以起到索引优化的作用，Hash 索引无法进行模糊查询。</li>
+<li>Hash 索引在等值查询上比 B+ 树索引效率更高。</li>
+</ol>
+<h3 id="自适应哈希索引"><a href="#自适应哈希索引" class="headerlink" title="自适应哈希索引"></a>自适应哈希索引</h3><p>自适应哈希索引（Adaptive Hash Index，AHI）是 <strong>InnoDB 存储引擎在运行时自动创建的一种轻量级哈希结构</strong>，用于加速对 B+ 树叶子页中热点记录的等值查找。InnoDB 会监测查询模式，一旦检测到某个叶子页或某条索引项的访问频率过高，便在 Buffer Pool 中为该叶子页构造哈希表节点，使后续对该页的等值查找可以通过哈希函数直接定位，而无需再遍历 B+ 树路径。</p>
+<p><strong>适用场景</strong></p>
+<ul>
+<li>等值查询：AHI 仅对形如 <code>SELECT * FROM table WHERE indexed_col = constant</code> 的等值匹配操作有效。如果是范围查询（BETWEEN、&gt;, &lt; 等）或排序（ORDER BY）、模糊匹配（LIKE ‘%…%’），则不能使用 AHI，只能回退到常规的 B+ 树扫描或其他索引操作。</li>
+<li>热点数据页：在大表中，如果某个 B+ 树叶子页承载了大量相同或相近的等值访问（例如同一个二级索引项被频繁查询），AHI 能极大减少 B+ 树遍历的层级开销，将随机 I&#x2F;O 降低为直接在内存哈希表查找。</li>
+</ul>
+<h2 id="全文检索"><a href="#全文检索" class="headerlink" title="全文检索"></a>全文检索</h2><p>MySQL 的全文检索（Full-Text Search）功能主要基于倒排索引实现，在 MyISAM 和 InnoDB 存储引擎中均提供了不同的支持方式。其核心原理是在数据写入时将文本字段拆分成词汇单元，并建立一个词–文档或词–行号的映射表，从而使得在查询时能够快速检索包含指定关键词的记录。虽然 MySQL 的全文检索功能对于轻量级应用已经十分实用，但与专业搜索引擎（如 Lucene、Solr、Elasticsearch 等）相比，功能较为基础。</p>
+<h2 id="创建索引的注意点"><a href="#创建索引的注意点" class="headerlink" title="创建索引的注意点"></a>创建索引的注意点</h2><ul>
+<li>使用合适的列作为索引<ul>
+<li>经常作为查询条件（WHERE 子句）、排序条件（ORDER BY 子句）、分组条件（GROUP BY 子句）的列是建立索引的好候选。</li>
+<li>区分度低（唯一值比例低）的字段，例如性别，不要建索引。</li>
+<li>频繁更新的字段，不要作为主键或者索引。</li>
+<li>不建议用无序的值(例如身份证、UUID )作为索引，当主键具有不确定性，会造成叶子节点频繁分裂，出现磁盘存储的碎片化。</li>
+</ul>
+</li>
+<li>避免过多的索引<ul>
+<li>每个索引都需要占用额外的磁盘空间。</li>
+<li>更新表（INSERT、UPDATE、DELETE 操作）时，所有的索引都需要被更新。</li>
+<li>维护索引文件需要成本；还会导致页分裂，IO 次数增多。</li>
+</ul>
+</li>
+<li>利用前缀索引和索引列的顺序<ul>
+<li>对于字符串类型的列，可以考虑使用前缀索引来减少索引大小。</li>
+<li>在创建复合索引时，应该根据查询条件将最常用作过滤条件的列放在前面。</li>
+</ul>
+</li>
+</ul>
+<h2 id="使用索引的注意点"><a href="#使用索引的注意点" class="headerlink" title="使用索引的注意点"></a>使用索引的注意点</h2><ul>
+<li>最左前缀法则<ul>
+<li>如果索引了多列（联合索引），要遵循最左前缀法则。最左前缀法则指的是查询从索引的最左列开始，并且不跳过索引中的列。如果跳过了某一列，索引将部分失效（后面的字段索引失效）。</li>
+</ul>
+</li>
+<li>范围查询<ul>
+<li>联合索引中出现范围查询（&gt;, &lt;），范围查询右侧的列索引失效。因为范围查询会存在一次性获取大量符合条件的指针，这些指针指向 B+ 树中的子节点。这些子节点中都可能会包含右侧的列索引键，因此无法使用索引。<strong>规避方法：业务允许的情况下，使用 &gt;&#x3D;, &lt;&#x3D;。</strong></li>
+</ul>
+</li>
+<li>索引列运算：在索引列上进行运算操作（各种函数），索引将失效。</li>
+<li>字符串不加引号：使用字符串类型字段时，不加引号（会造成<strong>隐式类型转换</strong>），索引将失效。</li>
+<li>模糊查询：如果仅仅是尾部模糊匹配，索引不会失效，如果是<strong>头部模糊匹配</strong>，索引失效。因为索引无法确定开头部分是什么内容。</li>
+<li>or 连接的条件：用 or 分割开的条件，如果 or 前面的条件中的列有索引，而后面的列中没有索引，那么涉及的索引都不会被用到。</li>
+<li>数据分布的影响<ul>
+<li>如果 MySQL 评估使用索引比全表更慢，则不使用索引。</li>
+<li>如果某个数据占比小，那么使用索引；否则，使用全表查询。</li>
+</ul>
+</li>
+</ul>
+<h2 id="索引设计原则"><a href="#索引设计原则" class="headerlink" title="索引设计原则"></a>索引设计原则</h2><ol>
+<li>数据量较大（数据行超过 1M 条），查询操作频繁的表建立索引。</li>
+<li>经常作为查询条件（where），排序（order by），分组（group by）操作的字段建立索引。</li>
+<li>区分度高的列建立索引（区分度高，索引效率高）。</li>
+<li>长字符串、大文本字段建立前缀索引。</li>
+<li>尽量使用联合索引（覆盖索引），减少单列索引，避免回表。</li>
+<li>控制索引数量，维护大量索引代价高。</li>
+<li>如果索引列不能存储 NULL 值，请对其使用 NOT NULL 约束（方便优化器确定哪个索引更高效）。</li>
+</ol>
+<h2 id="索引失效的情况"><a href="#索引失效的情况" class="headerlink" title="索引失效的情况"></a>索引失效的情况</h2><ul>
+<li>在索引列上<strong>使用函数或表达式</strong>，索引可能无法使用，因为数据库无法预先计算出函数或表达式的结果。例如：<code>SELECT * FROM table_name WHERE YEAR(date_column) = 2021</code>。</li>
+<li>使用<strong>不等于（&lt;&gt;）或者 NOT 操作</strong>通常会使索引失效，因为它们会扫描全表。</li>
+<li>如果 LIKE 的模式串是<strong>以“%”或者“_”开头的</strong>，那么索引也无法使用。例如：<code>SELECT * FROM table_name WHERE column LIKE &#39;%abc&#39;</code>。</li>
+<li>如果查询条件中使用了 <strong>OR</strong>，并且 OR 两边的条件分别涉及不同的索引，那么这些索引可能都无法使用。</li>
+<li>如果 MySQL 估计使用全表扫描比使用索引更快时（通常是小表或者大部分行都满足 WHERE 子句），也不会使用索引。</li>
+<li>联合索引不满足最左前缀原则时，索引会失效。</li>
+</ul>
+<p><strong>百万级别以上的数据如何删除？</strong></p>
+<p>先删除索引，然后删除其中的无用数据，删除完成后重新创建索引。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
     <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/MySQL/2024/10/28/MySQL/%E6%96%87%E4%BB%B6/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1230,110 +2133,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/MySQL/2024/10/20/MySQL/%E8%A7%A6%E5%8F%91%E5%99%A8/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Yihang Wei">
-      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="EthanWeee">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/undefined/MySQL/2024/10/20/MySQL/%E8%A7%A6%E5%8F%91%E5%99%A8/" class="post-title-link" itemprop="url">触发器</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-10-20 00:00:00" itemprop="dateCreated datePublished" datetime="2024-10-20T00:00:00-07:00">2024-10-20</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-06-17 22:19:44" itemprop="dateModified" datetime="2025-06-17T22:19:44-07:00">2025-06-17</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>在 insert &#x2F; update &#x2F; delete 之前或之后，触发并执行触发器中定义的 SQL 语句集合。</p>
-<p>确保数据完整性，日志记录，数据校验等操作。</p>
-<p>使用别名 OLD 和 NEW 来引用触发器中发生变化的记录内容。</p>
-<table>
-<thead>
-<tr>
-<th>触发器类型</th>
-<th>NEW 和 OLD</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Insert 型</td>
-<td>NEW 表示将要或已经新增的数据</td>
-</tr>
-<tr>
-<td>Update 型</td>
-<td>OLD 表示修改之前的数据，NEW 表示将要或已经修改后的数据</td>
-</tr>
-<tr>
-<td>Delete 型</td>
-<td>OLD 表示将要或已经删除的数据</td>
-</tr>
-</tbody></table>
-<p>行级触发器：触发次数等于影响的行数。</p>
-<p>语句级触发器：不论影响的行数，只触发一次。</p>
-<p>MySQL触发器只支持<strong>行级触发</strong>，不支持语句级触发。</p>
-<p>创建</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">trigger</span> trigger_name</span><br><span class="line">before <span class="operator">/</span> after <span class="keyword">insert</span> <span class="operator">/</span> <span class="keyword">update</span> <span class="operator">/</span> <span class="keyword">delete</span></span><br><span class="line"><span class="keyword">on</span> table_name <span class="keyword">for</span> <span class="keyword">each</span> <span class="type">row</span></span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">	<span class="keyword">SQL</span> 语句;</span><br><span class="line"><span class="keyword">end</span>;</span><br></pre></td></tr></table></figure>
-
-<p>查看：<code>show triggers;</code></p>
-<p>删除：<code>drop trigger [schema_name]trigger_name;</code></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1403,7 +2202,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">44</span>
+          <span class="site-state-item-count">45</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

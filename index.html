@@ -593,7 +593,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/25/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20AnalyticDB%20Real-time%20OLAP%20Database%20System%20at%20Alibaba%20Cloud/">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/30/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -607,7 +607,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/25/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20AnalyticDB%20Real-time%20OLAP%20Database%20System%20at%20Alibaba%20Cloud/" class="post-title-link" itemprop="url">AnalyticDB - 阿里云的实时 OLAP 数据库系统</a>
+            <a href="/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/30/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/" class="post-title-link" itemprop="url">查询优化</a>
         </h2>
 
         <div class="post-meta">
@@ -617,14 +617,14 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2025-01-25 00:00:00" itemprop="dateCreated datePublished" datetime="2025-01-25T00:00:00-08:00">2025-01-25</time>
+              <time title="创建时间：2025-01-30 00:00:00" itemprop="dateCreated datePublished" datetime="2025-01-30T00:00:00-08:00">2025-01-30</time>
             </span>
               <span class="post-meta-item">
                 <span class="post-meta-item-icon">
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-06-20 16:52:00" itemprop="dateModified" datetime="2025-06-20T16:52:00-07:00">2025-06-20</time>
+                <time title="修改时间：2025-06-24 18:30:36" itemprop="dateModified" datetime="2025-06-24T18:30:36-07:00">2025-06-24</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -647,37 +647,329 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h1><p>该论文解决了三个问题：</p>
+          <p>查询优化是构建高性能数据库管理系统时最困难的部分之一，它需要在大量等价的查询执行方案中找到资源消耗最小的那个方案。其核心目标是以某种成本函数衡量每个候选计划，并选择估算成本最低的计划。</p>
+<p>查询优化的首要目标就是在可行的计划中选出“最低成本”的一个，通常采用成本模型对 I&#x2F;O、CPU、网络等资源进行加权求和，得出一个标量成本值，不同系统也可能纳入缓冲区命中率、并行度等额外因素。</p>
+<h2 id="成本评估"><a href="#成本评估" class="headerlink" title="成本评估"></a>成本评估</h2><p>在关系型数据库的**代价优化器（Cost-Based Optimizer）**中，会将一个查询计划的总代价定义为其所有算子（Operator）估算代价的累加：<br>$$<br>Cost:Plan &#x3D; ∑ (Cost:of:each:Plan:Operator)<br>$$<br>而每个算子的估算代价又通常与该算子所处理的输入规模成正比：<br>$$<br>Cost(Operator) ∝ Size:of:Operator:Input<br>$$<br>以上两条公式构成了代价估算的基础：先通过输入规模得出算子代价，然后累加得到整个执行计划的成本。接下来，需要详细说明如何确定算子输入规模，以及如何基于选取性（Selectivity）估算非基表算子的输出规模。</p>
+<p>对于基表扫描（Table Scan）或索引扫描（Index Scan），输入规模通常等于表或索引在磁盘上的物理存储量（页数或行数）。</p>
+<blockquote>
+<p>[!NOTE]</p>
+<p>对于此类扫描操作，我们可以在有索引的情况下，可将过滤条件下推至索引层，只读取满足谓词的行或页，以减少输入规模和 I&#x2F;O 操作，也就是进行索引下推。</p>
+</blockquote>
+<p>对于投影（Project）、选择（Filter）等算子，优化器首先根据输入规模和选取性估算输出规模；连接（Join）算子则需基于两侧子计划的输出规模与连接选取性共同计算其输出规模，也就是：<br>$$<br>Output:Size &#x3D; Selectivity × (|Left| × |Right|)<br>$$</p>
+<blockquote>
+<p>选取性（Selectivity）是算子发出数据量与接收数据量之比，取值范围 0–1，表示谓词或连接条件对数据的过滤强度。<br>$$<br>Output:Size &#x3D; Selectivity × Input:Size<br>$$</p>
+</blockquote>
+<p>假设我们针对有 100 条记录的部门表 dept，10000 条记录的职员表 emp，30000 条记录的儿童表 kids，执行如下 SQL 语句：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> </span><br><span class="line"><span class="keyword">FROM</span> emp, dept, kids</span><br><span class="line"><span class="keyword">WHERE</span> sal <span class="operator">&gt;</span> <span class="number">10000</span> </span><br><span class="line">  <span class="keyword">AND</span> emp.dno <span class="operator">=</span> dept.dno </span><br><span class="line">  <span class="keyword">AND</span> emp.eid <span class="operator">=</span> kids.eid;</span><br></pre></td></tr></table></figure>
+
+<p>其中，每 100 条记录是一个页面，10 KB 是一个页面的大小，内存大小是 10 个页面。</p>
+<p>对于每种执行计划，我们可以进行如下步骤：</p>
+<p>第一步，评估表（关系）的大小：</p>
+<ul>
+<li>dept 只有 100 条记录，占用 1 页（10 KB&#x2F;页）；</li>
+<li>emp 有 10000 条记录，占用 100 页（10 KB&#x2F;页）；</li>
+<li>kids 有 30000 条记录，占用 300 页（10 KB&#x2F;页）。</li>
+</ul>
+<p>第二步，评估选择性：</p>
+<ul>
+<li><code>WHERE sal &gt; 10k</code> 的选择性为 0.1；</li>
+<li>dept 和 emp 的 JOIN 操作的选择性为 0.01，产生结果集 A；</li>
+<li>A 和 kids 的 JOIN 操作的选择性为 0.0001，产生结果 B。</li>
+</ul>
+<p>第三步，计算中间结果的大小，如下执行计划树所示，其中冒号右边的数据为此次操作得到的结果集的大小：</p>
+<p><img src="/../../images/MySQL/db_adv_query_optimize_eg1.drawio.png" alt="img"></p>
+<p>需要注意的是，整棵树的阅读顺序推荐从叶子到根。</p>
+<p>第四步，评估各个执行计划的成本并选出最低的。</p>
+<p>以上只是一个简单的流程，下面基于 Selinger 等人提出的 System R 成本优化器框架给出每个步骤的详细解释，该框架迄今仍被主流关系型数据库（如 DB2、PostgreSQL、MySQL 等）沿用。</p>
+<p>第一步，评估关系的大小，其中的统计量如下：</p>
+<ul>
+<li><strong>NCARD(T)</strong>：关系 T 的基数，即元组总数；</li>
+<li><strong>TCARD(T)</strong>：关系 T 所占用的数据页数；</li>
+<li><strong>ICARD(I)</strong>：索引 I 中不同键值的数量；</li>
+<li><strong>NINDX(I)</strong>：索引 I 在磁盘上占用的页数。</li>
+</ul>
+<blockquote>
+<p>[!NOTE]</p>
+<p>现代数据库在 System R 的统计量基础上引入多种增强策略：</p>
 <ol>
-<li>如何以低延迟处理用户更复杂多样的查询；</li>
-<li>如何设计一种友好且统一的数据布局，使其兼容列式存储和行式存储，能够处理复杂数据类型，并保持低延迟；</li>
-<li>如何以低延迟处理每秒海量请求。</li>
+<li><p><strong>直方图（Histograms）</strong></p>
+<ul>
+<li><strong>等宽直方图（Equi-width）</strong>：将值域划分为固定宽度的 k 个区间，区间内数据不均匀时易失真 。</li>
+<li><strong>等深直方图（Equi-depth）</strong>：保证每个桶内的元组数近似相同，可更准确估算范围谓词 。</li>
+</ul>
+</li>
+<li><p><strong>最常见值列表（Frequency List）</strong>：维护出现频率最高的 m 个键值及其频率分布，对高频值谓词（如 <code>col IN (…)</code>）提供精确估算。</p>
+</li>
+<li><p><strong>聚簇因子（Clustering Factor）</strong>：描述索引键值在数据块中的物理聚集度，值越低表示更紧密的簇集，有助于优化随机 vs 顺序 I&#x2F;O 的成本估算。</p>
+</li>
+<li><p><strong>分区增量统计</strong>：对于分区表，会为每个分区单独收集统计信息，并维护全局统计，通过分区修剪（Partition Pruning）显著降低查询开销。</p>
+</li>
+<li><p><strong>分层采样</strong>：在全表采样成本过高时，数据库可基于分区或分层样本抽样（如 1% 分区样本），动态更新统计，同时避免全表扫描统计带来的停机与高 I&#x2F;O 负载。</p>
+</li>
 </ol>
-<p>该论文提出了 5 个创新性想法，并详细阐述了每个想法的实现方法：</p>
+</blockquote>
+<p>第二步，评估选择性：</p>
+<p>我们这里先定义 F 或者 F(pred) &#x3D; 谓词的选择性 &#x3D; 没有被过滤掉的记录的占比。</p>
+<p>那么，对于<strong>等值谓词</strong> <code>col == val</code>：若有索引，则假设均匀分布，选取性 $F &#x3D; 1 &#x2F; ICARD$；否则粗略取 1&#x2F;10。</p>
+<p>对于<strong>范围谓词</strong> <code>col &gt; val</code> 或类似开区间比较：若有索引，则线性插值计算 $F &#x3D; (high_key – val) &#x2F; (high_key – low_key)$；否则取 1&#x2F;3。</p>
+<p>对于<strong>列间相等谓词</strong> <code>col1 = col2</code>：若两列均有索引，取两索引基数（ICARD）较大值的倒数 $F &#x3D; \frac{1}{\max\bigl(\text{ICARD}(col₁),,\text{ICARD}(col₂)\bigr)}$；若只有单列有索引，则 $F &#x3D; 1&#x2F;ICARD$；否则取 1&#x2F;10。</p>
+<p>此外，在查询中常有多重谓词组合，Selinger 优化器使用以下规则在<strong>逻辑优化</strong>和<strong>成本估算</strong>阶段快速合成最终选取性 F：</p>
+<p><strong>逻辑与（AND）</strong>：$F_{\text{and}} &#x3D; F(p_1),\times,F(p_2)$</p>
+<p><strong>逻辑或（OR）</strong>：$F_{\text{or}} &#x3D; 1 - F_{\text{and}} &#x3D; F(p_1) + F(p_2) - F(p_1),F(p_2)$</p>
+<p><strong>逻辑非（NOT）</strong>：$F_{\text{not}} &#x3D; 1 - F(p)$</p>
+<p>思考：</p>
+<p>为什么等值谓词在没有索引的时候要取 1&#x2F;10？</p>
+<p>在缺乏精确统计时，优化器宁可假设谓词对数据的过滤效果<strong>较弱</strong>（即选取性估算偏大），也不轻易假设它过滤得非常彻底。</p>
+<p>如果低估谓词效果（认为它能过滤掉更多行），某些访问路径（如索引扫描）看起来成本极低，以至于优化器可能跳过对其他方案的评估；而高估则保证几乎所有可行方案都被保留用于比较，从而不至于因估算过于乐观而错过实测可能更优的计划。</p>
+<p>假设有两种访问 emp 表的方案：</p>
 <ol>
-<li><strong>读写分离：</strong> 工作节点专用于处理读操作或写操作，确保读操作不会干扰写操作。在实时读模式下，引入版本验证机制（<code>最新版本 = max(V₁, V₂)</code>）以保证每次查询都能检索到最新数据。此外，每次写操作完成后，写节点会主动将最新版本拉取到相应的读节点，以避免后续读操作出现高延迟。</li>
-<li><strong>混合行列存储：</strong> 用于存储复杂类型数据。一个明细文件 (detail file) 由 <code>n</code> 个行组 (row group) 组成；一个行组由 <code>k</code> 个数据块组成；一个数据块由 <code>p</code> 个 FBlock 组成；一个 FBlock 存储一个或多个行的部分行中某一列的 <code>x</code> 个值。</li>
-<li><strong>高效索引管理：</strong> 包括对基线数据和增量数据的索引构建与维护。对于基线数据，AnalyticDB 构建倒排索引并引入过滤比 (filter ratio) 来优化读操作。对于增量数据，AnalyticDB 在读节点上构建轻量级的排序索引，以加速在完成该类型数据的倒排索引异步构建之前的读操作。</li>
-<li><strong>优化器：</strong> AnalyticDB 引入了 STARs 框架来同时评估存储能力和关系代数能力，并采用动态规划技术，以实现高效的谓词下推 (predicate push-down)。该数据库最小化了联接下推 (join push-down) 所需的表重排 (shuffling) 成本。对于基于索引的联接和聚合，它采用左深树 (LeftDeepTree) 来高效利用全列索引 (index-on-all-columns)，同时下推谓词和聚合操作。此外，优化器和执行引擎采用基于采样的基数估计 (cardinality estimation)，辅以缓存先前采样结果、优化的采样算法和改进的派生基数 (derived cardinality)。</li>
-<li><strong>执行引擎：</strong> 能够直接在序列化的二进制数据上操作，而非 Java 对象，从而消除了在大数据重排过程中序列化和反序列化的高昂开销。</li>
+<li><strong>索引扫描+连接</strong>：若低估谓词效果（认为只过滤 1%），算出极低的中间行数，导致优化器只评估此方案并剪掉全表扫描方案。</li>
+<li><strong>高估策略</strong>（假设过滤 10%）：使得索引扫描方案看起来代价更高，全表扫描的成本也被评估，优化器才会真正比较两者。</li>
 </ol>
-<p><strong>分析与实验结果：</strong> 在 1TB 数据集上，AnalyticDB 的性能优于 PrestoDB、Druid、Spark SQL 和 Greenplum，并且在扩展到 10TB 数据集时，其性能未受到显著影响。随着写节点数量的增加，AnalyticDB 的写入吞吐量呈现稳定增长。在 TPC-H 基准测试中，AnalyticDB 在 22 个查询中的 20 个上，其完成时间仅为次快数据库所需时间的一半。然而，对于查询 2，由于选择了不同的联接顺序，AnalyticDB 的速度慢于 PrestoDB 和 Greenplum。</p>
-<h1 id="论文优势"><a href="#论文优势" class="headerlink" title="论文优势"></a>论文优势</h1><ul>
-<li>论文中概述的 3 项挑战精准地指向了 OLAP 系统在实现实时高效响应时所面临的关键障碍。解决这些挑战不仅能显著提升数据库对多样化查询和复杂数据类型的兼容性，还能改善其在生产环境中的响应能力，突显了其高度的研究价值。读写分离与版本验证的结合确保了读写操作的隔离性，同时始终为读查询提供最新数据。混合数据布局和索引的设计融入了对 JSON、全文和向量数据等复杂数据类型的支持，为多样化的数据操作提供了统一的访问接口。这极大地拓宽了 AnalyticDB 在更广泛用例中的适用性。此外，执行引擎将基于采样的基数估计与缓存、优化的采样算法等技术相结合，以低开销和最小延迟实现了高精度的估计。总而言之，AnalyticDB 引入的改进和优化方案代表了在增强 OLAP 系统数据多样性和实时响应能力方面迈出的重要一步，其综合性解决方案将在高并发电商场景中充分展现其能力。</li>
-<li>论文提供了全面的文献综述。第 2 节 Related Work 讨论了不同数据库的不足。例如，OLTP 数据库中昂贵的索引更新会降低吞吐量并增加延迟；而 OLAP 数据库（如 TeradataDB 和 Greenplum）中的列式存储会导致点查 (point-lookup) 查询产生高昂的随机 I&#x2F;O 成本。上述问题在 AnalyticDB 中得到了有效解决。此外，论文还概述了 AnalyticDB 相较于 Amazon Redshift 的改进，以及与 Google BigQuery 在查询和聚合方面的差异。</li>
-<li>论文详细描述了 AnalyticDB 中各项功能的过程，包括：<ol>
-<li>从读和写两个角度对读写分离过程进行了透彻的解释，并附有流程图专门说明更复杂的读操作。</li>
-<li>查询执行 (Query Execution) 涉及的 3 个算法的关键指令的伪代码和注释。</li>
-<li>将基线数据与增量数据合并过程分解为 3 个阶段的示意图。</li>
+<p>最终在实际运行中，全表扫描+哈希连接可能因顺序 I&#x2F;O 更快而胜出，但若一开始就剪掉它，就永远不会被考虑。</p>
+<p>第三步，计算中间结果的大小，该步骤的内容之前已经叙述过。</p>
+<p>第四步，评估每个执行计划的成本：</p>
+<p>在基于成本的优化器中，每个物理算子的总代价通常由以下两部分构成：</p>
+<ul>
+<li><strong>I&#x2F;O 代价</strong>：以读取页面的次数为单位，乘以相应的 I&#x2F;O 权重（如顺序读取 <code>seq_page_cost</code> 或随机读取 <code>random_page_cost</code>） 。</li>
+<li><strong>CPU 代价</strong>：以处理记录或执行谓词的次数为单位，乘以对应的 CPU 权重（如 <code>cpu_tuple_cost</code>、<code>cpu_operator_cost</code>） 。</li>
+</ul>
+<p>最终，优化器对算子代价取页读次数与记录处理次数的线性组合来估算：<br>$$<br>\text{Cost} &#x3D; (\text{pages read}) + W \times (\text{records evaluated})<br>$$<br>其中 W 表示单位记录的 CPU 权重 。</p>
+<p>对于<strong>带唯一索引的等值谓词</strong>，访问路径通常为：</p>
+<ol>
+<li><strong>B-Tree 索引查找</strong>：读取根到叶的路径上若干索引页（假设固定深度），通常记为 “1 页 I&#x2F;O” 来表示一次查找操作的近似代价。</li>
+<li><strong>堆表行定位</strong>（Heap File lookup）：利用索引返回的行定位信息，再读取对应数据页，平均也是一次 I&#x2F;O 操作。</li>
 </ol>
+<p>综合起来，此算子的总代价可表示为：<br>$$<br>1\ (\text{索引页读}) ;+; 1\ (\text{数据页读}) ;+; W\ (\text{CPU})<br>$$<br>该模型假设索引组织为聚簇或近似聚簇结构，因此每次索引查找可定位到唯一一条记录。</p>
+<p>对于<strong>聚簇索引的范围扫描</strong>，算子需扫描多个索引条目并可能访问多条数据行，<strong>I&#x2F;O 代价</strong>为 $F \times (\text{NINDX} + \text{TCARD})$，<strong>CPU 代价</strong>为 $W \times (\text{tuples read})$，因此整体成本为：<br>$$<br>F \times (\text{NINDX} + \text{TCARD}) + W \times (\text{tuples read})<br>$$<br>其中 NINDX 为索引页数，TCARD 为表的总页数，F 为谓词选取性；每个匹配索引条目对应一次数据页顺序 I&#x2F;O。</p>
+<p>对于<strong>非聚簇索引的范围扫描</strong>，CPU 成本和聚簇索引的一致，但是 I&#x2F;O 成本为：$F \times (\text{NINDX} + \text{NCARD})$​，因此整体成本为：<br>$$<br>F \times (\text{NINDX} + \text{NCARD}) + W \times (\text{tuples read})<br>$$<br>此时每个匹配条目都可能落在不同的数据页上，平均需一次随机 I&#x2F;O，因此用 NCARD（行数）来近似页数。</p>
+<p>对于<strong>分段顺序扫描</strong>，不利用索引，需读取表的所有页并评估所有行：<br>$$<br>\text{Cost} &#x3D; \text{TCARD} + W \times \text{NCARD}<br>$$<br>其中 TCARD 为全表页数，NCARD 为元组总数；顺序扫描的 I&#x2F;O 可享有预取（prefetch）与缓冲优势，故只计算页面读取的总数。</p>
+<p>接着，我们来看 JOIN 的成本计算，以<strong>嵌套循环连接</strong>（Nested-Loop Join）为例。</p>
+<p>它的<strong>总代价公式</strong>：<br>$$<br>\mathrm{Cost}_{\text{NLJ}}(A,B,p) &#x3D; \mathrm{Cost}(A) ;+;\mathrm{NCARD}(A)\times \mathrm{Cost}(B)<br>$$<br>其中 A 为外层计划，B 为内层基表，NCARD(A) 为外层输出元组数。</p>
+<p>为了控制连接顺序的枚举复杂度，System R 优化器仅考虑<strong>左深树</strong>：</p>
+<ul>
+<li>每一步连接的右子树 B 必须为尚未使用的基表，而非先前连接出的中间子树。</li>
+<li>这样能保证枚举过程中只需维护基表之间的累积连接，而无需考虑更复杂的树形拓扑，大幅减少计划数量（从 $O(N!)$ 降到约 $O(2^N)$)。</li>
+</ul>
+<blockquote>
+<p>[!NOTE]</p>
+<p>之前例子中的图就是一棵左深树。</p>
+</blockquote>
+<p>对于谓词形如 <code>B.key = A.key</code>，且在 B 的 key 列上存在<strong>唯一或聚簇索引</strong>，优化器近似认为：</p>
+<ol>
+<li>一次 B+Tree 索引查找需 “1 页” I&#x2F;O（从根到叶路径平均代价）。</li>
+<li>根据索引返回的行定位信息，再一次 Heap File lookup 也需 “1 页” I&#x2F;O。</li>
+<li>最后对该行执行谓词或投影等操作，产生 W 单位的 CPU 代价。</li>
+</ol>
+<p>综合得到：<br>$$<br>\mathrm{Cost}(B) &#x3D; 1 ;+; 1 ;+; W<br>$$<br>该模型忽略了缓存预取及并行扫描等复杂因素，但其简洁性足以支撑海量计划的快速比较。</p>
+<p>若内层无可用索引，则只能顺序扫描整个表：</p>
+<ul>
+<li><strong>I&#x2F;O 代价</strong>：需读取 TCARD(B) 页（表在磁盘上的总页数）；</li>
+<li><strong>CPU 代价</strong>：对 NCARD(B) 条元组逐一评估谓词和产生输出，共 $W\times \mathrm{NCARD}(B)$。</li>
+</ul>
+<p>因此：<br>$$<br>\mathrm{Cost}(B) &#x3D; \mathrm{TCARD}(B);+;W,\times \mathrm{NCARD}(B)<br>$$<br>该模型同样简化了缓冲与批量读写等优化手段，但体现了顺序扫描的典型开销。</p>
+<p>如果是 Sort-Merge Join 的话，代价模型：<br>$$<br>Cost &#x3D; Cost(A) + Cost(B) + sort:cost<br>$$</p>
+<ol>
+<li><strong>Cost(A)</strong>：外层子计划（子树）A 的总代价；</li>
+<li><strong>Cost(B)</strong>：内层子计划 B（可以是基表或中间结果）的总代价；</li>
+<li><strong>sort cost</strong>：对 A 和 B 各自执行排序的代价之和。</li>
+</ol>
+<blockquote>
+<p>排序—归并连接是一种基于将两输入关系各自按连接键排序，随后线性归并扫描输出匹配对的算法。</p>
+<ul>
+<li><strong>阶段一：排序（Sort）</strong><ul>
+<li>对输入关系 A、B 按连接属性（pred 中指定的字段）各自进行排序。</li>
+<li>如果输入已经部分或完全有序，则可跳过或简化排序步骤。</li>
+</ul>
+</li>
+<li><strong>阶段二：归并（Merge）</strong><ul>
+<li>维护两个游标，分别指向 A、B 的当前最小键值记录。</li>
+<li>比较当前 A、B 键值：<ul>
+<li>若 A.key &lt; B.key，则将 A 游标前移；</li>
+<li>若 A.key &gt; B.key，则将 B 游标前移；</li>
+<li>若相等，则输出所有相同键值的配对（可能需要在一个输入保留缓冲区中暂存重复键值），并前移游标。</li>
+</ul>
+</li>
+<li>该归并过程只需一次顺序扫描，两边各推进，故 I&#x2F;O 和 CPU 都相对高效。</li>
+</ul>
+</li>
+<li><strong>适用场景</strong><ul>
+<li>两输入均可顺序访问或已排序，且连接键上无合适哈希索引时最优；</li>
+<li>特别适合大批量数据输出且需要顺序结果的场景。</li>
+</ul>
 </li>
 </ul>
-<h1 id="论文不足"><a href="#论文不足" class="headerlink" title="论文不足"></a>论文不足</h1><ul>
-<li>论文中对某些功能的描述不够完整。在论文第 3.4 节 Read&#x2F;Write Decoupling 中，仅提到了实时读 (real-time read)，而遗漏了有限延迟读 (bounded-staleness read)。对于 OLAP 而言，读取过时数据是可以接受的，有限延迟读允许读节点在写操作完成后的特定延迟之后才访问写节点上的最新数据，因此它在一定程度上确保了 AnalyticDB 的快速响应。然而，论文中并未解释这种读取模式。</li>
-<li>论文对某些新引入概念的描述不够清晰。在第 5.1.1 节中，关于谓词下推的讨论仅对 STARs 框架做了简要概述，没有解释它如何应用关系代数、如何进行成本计算，以及优化器如何使用动态规划来封装关系代数运算符。这些遗漏可能会让读者感到困惑。</li>
-<li>论文中的性能评估实验相对简单。首先，仅测试了 3 条 SQL 语句，覆盖的查询类型范围狭窄，且仅针对特定的表分区策略、特定的表和字段以及特定的数据类型。测试并未涉及如 JSON 等复杂数据类型。其次，实验仅测试了 1TB 和 10TB 的数据集。然而，在生产环境中，每日新增数据量可达数十甚至数百 PB。在双 11 或 618 等高峰促销日，每日数据处理量可达数百甚至数千 PB。例如，在 2022 年双 11 期间，淘宝和天猫的订单支付峰值达到每秒 583,000 笔。因此，实验所用的数据集远远不足以反映真实场景的规模。第三，基于 TPC-H 基准的测试仅评估了 22 个查询，不足以全面反映这 5 个数据库的真实性能。因此，建议纳入生产环境中涉及的所有数据和查询，例如 MySQL binlog、ElasticSearch 索引日志和 Kafka 日志等，并在这 5 个数据库上开展为期一周或更长时间的稳定性测试，以提供更真实的评估。</li>
+</blockquote>
+<p>如果后续操作涉及选取最大最小值，那么最好使用 Sort-Merge Join 先得出排序后的 JOIN 结果。</p>
+<p>第五步，选出成本最低的执行计划：</p>
+<p>若对所有可能的联接树与交叉产品一一枚举，计划数目将呈阶乘级增长，无法承受 。System R（Selinger 优化器）的核心思想是，通过<strong>启发式剪枝</strong>大幅减少搜索空间，同时用<strong>自底向上动态规划</strong>保证在受限空间内选出最优左深计划。</p>
+<ul>
+<li><strong>全空间规模</strong>：对 n 个基表，所有可能的联接树数约为 n!（叶深树）。例如 6 表联接时有 6! &#x3D; 720 种联接顺序；10 表时增至 3 628 800 种。</li>
+<li><strong>启发式目标</strong>：在保证生成足够优质计划的前提下，剪掉绝大多数计划，避免枚举交叉组合、子查询作为内层的树形连接等无效情况。</li>
 </ul>
-<p>参考文献：<a target="_blank" rel="noopener" href="https://www.vldb.org/pvldb/vol12/p2059-zhan.pdf">https://www.vldb.org/pvldb/vol12/p2059-zhan.pdf</a></p>
+<p>这里展示<strong>三大启发式规则</strong>：</p>
+<ol>
+<li><p><strong>谓词下推</strong></p>
+<p>越早执行过滤谓词，可最大程度减少后续算子的输入规模与 I&#x2F;O 或 CPU 代价。</p>
+<p>在构建执行计划时，把每个谓词 $\sigma$ 尽可能下推到最接近基表扫描或索引扫描的层面，不把过滤延迟到后面再算。</p>
+</li>
+<li><p><strong>避免笛卡尔积</strong></p>
+<p>对无关联谓词的表进行笛卡尔积会产生极大中间结果，通常不可接受。</p>
+<p>仅在<strong>所有过滤条件均已消耗殆尽</strong>（即查询本质需要交叉连接）时，才枚举产生交叉产品的计划；否则只枚举带有有效联接谓词的表对。</p>
+</li>
+<li><p><strong>仅枚举左深树</strong></p>
+<p>在左深树中，每次联接的右子树必须是一个<strong>基表</strong>，而不能是先前联接所得的中间子树。</p>
+<p>这样可以使得<strong>搜索空间大幅缩减</strong>：从全空间的 $O(n!)$ 降至约 $O(2^n)$ 或更小；以及<strong>流水线执行</strong>：左深树可实现完全流水线（pipelining），中间结果无需写入磁盘临时表；对大多数算子（NLJ、Hash Join、Merge Join）均适用。</p>
+</li>
+</ol>
+<p><strong>自底向上的动态规划</strong></p>
+<p>以上的三种启发式规则带来的提升有限，所以 System R 还引入了动态规划。</p>
+<p>动态规划算法利用了<strong>最优子结构</strong>的性质：如果在所有包含关系集 {A,B,C} 的计划中，连接 A、B、C 最优的顺序是 $(A\Join B)\Join C$，那么无论这个三表子集在更大计划中如何出现，$(A\Join B)$ 必然是 {A,B} 的最优子计划之一，不需要再次枚举.</p>
+<p>由于子计划不依赖于外部上下文，其最优性是全局性的，只需计算一次，即可复用到所有包含该子集的更大计划中。这一思想即 “不要在更大的计划中重新考虑子计划”。</p>
+<p>System R 优化器按照子计划包含的基表数目，从小到大分层枚举：</p>
+<ol>
+<li><strong>第 1 轮</strong>（1-表计划）：分别为每个基表 $R_i$ 选择成本最低的访问路径（全表扫描或索引扫描）并记录其成本与输出行数。</li>
+<li><strong>第 2 轮</strong>（2-表计划）：对第 1 轮中的每个单表计划 P（作为外层），将尚未使用的每个基表 $R_j$ 作为内层，计算连接成本，并在所有方案中保留最优者。</li>
+<li><strong>…</strong></li>
+<li><strong>第 k 轮</strong>（k-表计划）：对所有包含 k-1 表的最优子计划 S，尝试将每个剩余基表 R 连接进来，更新并保留每个大小为 k 的子集的最优左深计划，直至包含所有 n 张表。</li>
+</ol>
+<p>如此，算法以 n 轮完成枚举，每轮仅对上一轮的最优子计划进行扩展，不必遍历所有 $O(n!)$ 种联接树，空间和时间复杂度可控制在指数级但远低于阶乘级别。</p>
+<p>用伪代码来表示就是：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">R ← <span class="built_in">set</span> of relations to join</span><br><span class="line"><span class="keyword">for</span> i in &#123;<span class="number">1</span>…|R|&#125;:                              <span class="comment">// 按子集大小自底向上</span></span><br><span class="line">  <span class="keyword">for</span> S in &#123;all subsets of R of size i&#125;:</span><br><span class="line">    optcost_S = ∞</span><br><span class="line">    optjoin_S = ∅</span><br><span class="line">    <span class="keyword">for</span> a in S:                              <span class="comment">// 枚举将 a 作为最后连接的基表</span></span><br><span class="line">      c_sa = optcost_&#123;S–&#123;a&#125;&#125;</span><br><span class="line">             + min_cost_to_join((S–&#123;a&#125;), a)</span><br><span class="line">             + min_access_cost(a)</span><br><span class="line">      <span class="keyword">if</span> c_sa &lt; optcost_S:</span><br><span class="line">        optcost_S = c_sa</span><br><span class="line">        optjoin_S  = optjoin_&#123;S–&#123;a&#125;&#125; ⨝ a</span><br><span class="line">    <span class="comment">// 计算并缓存 S 的最优子计划，包括 optcost_* 和 optjoin_*</span></span><br></pre></td></tr></table></figure>
+
+<p>该算法默认只搜索左深树，因为可以在子集拆分的时候采用 $S - a + a$ 的方式来选取已有的子树和要 JOIN 的基表，并大幅减小搜索空间。</p>
+<p>以 PostgreSQL 中的最优子计划复用为例：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 第一次：emp ⋈ kids 的最低成本执行计划</span></span><br><span class="line">Hash <span class="keyword">Join</span>  (cost<span class="operator">=</span><span class="number">347292.59</span>.<span class="number">.498019</span><span class="number">.60</span> <span class="keyword">rows</span><span class="operator">=</span><span class="number">3000001</span> width<span class="operator">=</span><span class="number">36</span>)</span><br><span class="line"> Hash Cond: (kids.eno <span class="operator">=</span> emp.eno)</span><br><span class="line">   <span class="operator">-</span><span class="operator">&gt;</span> Seq Scan <span class="keyword">on</span> kids         (cost<span class="operator">=</span><span class="number">0.00</span>.<span class="number">.49099</span><span class="number">.01</span> <span class="keyword">rows</span><span class="operator">=</span><span class="number">3000001</span> width<span class="operator">=</span><span class="number">18</span>)</span><br><span class="line">   <span class="operator">-</span><span class="operator">&gt;</span> Hash                   (cost<span class="operator">=</span><span class="number">163696.15</span>.<span class="number">.163696</span><span class="number">.15</span> <span class="keyword">rows</span><span class="operator">=</span><span class="number">10000115</span> width<span class="operator">=</span><span class="number">22</span>)</span><br><span class="line">        <span class="operator">-</span><span class="operator">&gt;</span> Seq Scan <span class="keyword">on</span> emp    (cost<span class="operator">=</span><span class="number">0.00</span>.<span class="number">.163696</span><span class="number">.15</span> <span class="keyword">rows</span><span class="operator">=</span><span class="number">10000115</span> width<span class="operator">=</span><span class="number">22</span>)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 第二次：dept ⋈ (emp ⋈ kids) 的最低成本执行计划</span></span><br><span class="line">Hash <span class="keyword">Join</span>  (cost<span class="operator">=</span><span class="number">350376.61</span>.<span class="number">.556245</span><span class="number">.96</span> <span class="keyword">rows</span><span class="operator">=</span><span class="number">3000001</span> width<span class="operator">=</span><span class="number">40</span>)</span><br><span class="line"> Hash <span class="keyword">Join</span>  (cost<span class="operator">=</span><span class="number">347292.59</span>.<span class="number">.498019</span><span class="number">.60</span> <span class="keyword">rows</span><span class="operator">=</span><span class="number">3000001</span> width<span class="operator">=</span><span class="number">36</span>) <span class="comment">-- 最优子结构复用</span></span><br><span class="line">  Hash Cond: (kids.eno <span class="operator">=</span> emp.eno)</span><br><span class="line">    <span class="operator">-</span><span class="operator">&gt;</span> Seq Scan <span class="keyword">on</span> kids </span><br><span class="line">    <span class="operator">-</span><span class="operator">&gt;</span> Hash </span><br><span class="line">         <span class="operator">-</span><span class="operator">&gt;</span> Seq Scan <span class="keyword">on</span> emp <span class="comment">-- 最优子结构复用结束</span></span><br><span class="line">   <span class="operator">-</span><span class="operator">&gt;</span> Hash  (cost<span class="operator">=</span><span class="number">1443.01</span>.<span class="number">.1443</span><span class="number">.01</span> <span class="keyword">rows</span><span class="operator">=</span><span class="number">100001</span> width<span class="operator">=</span><span class="number">8</span>)</span><br><span class="line">        <span class="operator">-</span><span class="operator">&gt;</span> Seq Scan <span class="keyword">on</span> dept</span><br></pre></td></tr></table></figure>
+
+<p>假设有四个表 A、B、C、D，它们通过动态规划选出最优执行计划的步骤如下：</p>
+<p>当前计算出 A 的最优执行计划是索引扫描，B 是顺序扫描（C 和 D 这里不展示），那么 {A, B} &#x3D; AB or BA，{A, C} &#x3D; AC or CA，{B, C} &#x3D; BC or CB。</p>
+<p>经过一系列计算，我们可以在动态规划中得出如下的备忘录：</p>
+<table>
+<thead>
+<tr>
+<th>Relations</th>
+<th>Best Plan</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A</td>
+<td>Index Scan</td>
+<td>5</td>
+</tr>
+<tr>
+<td>B</td>
+<td>Seq Scan</td>
+<td>15</td>
+</tr>
+<tr>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+</tr>
+<tr>
+<td>{A, B}</td>
+<td>B ⨝ A</td>
+<td>75</td>
+</tr>
+<tr>
+<td>{A, C}</td>
+<td>A ⨝ C</td>
+<td>12</td>
+</tr>
+<tr>
+<td>{B, C}</td>
+<td>C ⨝ B</td>
+<td>22</td>
+</tr>
+<tr>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+</tr>
+</tbody></table>
+<p>之后，我们要计算 {A, B, C}，那么就是要计算：</p>
+<ol>
+<li>不包含 A 的：比较 A({B, C}) 和 ({B, C})A；</li>
+<li>不包含 B 的：比较 ({A, C})B 和 B({A, C})；</li>
+<li>不包含 C 的：比较 C({A, B}) 和 ({A, B})C。</li>
+</ol>
+<p>这个时候我们发现 {A, B}、{A, C}、{B, C} 的最优执行计划已经被缓存起来了，可以直接复用。perfecto！</p>
+<p>最终，我们可以得出如下的备忘录表：</p>
+<table>
+<thead>
+<tr>
+<th>Relations</th>
+<th>Best Plan</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A</td>
+<td>Index Scan</td>
+<td>5</td>
+</tr>
+<tr>
+<td>B</td>
+<td>Seq Scan</td>
+<td>15</td>
+</tr>
+<tr>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+</tr>
+<tr>
+<td>{A, B}</td>
+<td>B ⨝ A</td>
+<td>75</td>
+</tr>
+<tr>
+<td>{A, C}</td>
+<td>A ⨝ C</td>
+<td>12</td>
+</tr>
+<tr>
+<td>{B, C}</td>
+<td>C ⨝ B</td>
+<td>22</td>
+</tr>
+<tr>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+</tr>
+<tr>
+<td>{A, B, C}</td>
+<td>(CB) ⨝ A</td>
+<td>35</td>
+</tr>
+<tr>
+<td>{B, C, D}</td>
+<td>(CB) ⨝ D</td>
+<td>42</td>
+</tr>
+<tr>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+</tr>
+<tr>
+<td>{A, B, C, D}</td>
+<td>((CB) ⨝ D) ⨝ A</td>
+<td>57</td>
+</tr>
+</tbody></table>
+<p>因此，我们可以知道 JOIN ABCD 这四个表的最低成本和最优执行计划了。</p>
+<p>并且该算法在最差情况下需要枚举所有表子集并对每个子集尝试所有可能的最后加入表，因此具有指数级时间复杂度：$O(n·2ⁿ)$。</p>
+<p>我们可以将该问题等价成类似 01 子集问题，也就是 n 张表对应一串长度为 n 的二进制串，第 i 位为 1 代表关系 i 已经被 JOIN 了，因此有 $2ⁿ - 1$ 个子集。而且每个子集要进行 n 次状态转移计算，也就是尝试去除集合中的某一个表来构建连接计划。最终两者相乘可得出如上的时间复杂度。</p>
+<p><strong>有趣排序（interesting order）</strong></p>
+<p>查询优化器在枚举左深执行计划时，除了比较不同访问路径和连接算法的代价外，还要考虑输出结果的排序属性——若某计划天然生成了对后续算子（如 Merge Join、ORDER BY、GROUP BY、去重等）有用的顺序，则称该排序为有趣排序。优化器会为每个子集在<strong>每种</strong>有趣排序下各自缓存最优子计划，从而保证后续算子能够直接利用已有排序，避免额外排序或物化开销，但这也会使枚举空间按有趣排序数量 k 成倍增长，总体复杂度增加 k+1 倍。</p>
+<p>尽管枚举空间增加，优化器借此能提前利用排序属性，减少后续全局排序及临时物化，往往在整体查询时间上取得收益，尤其在多级排序或多次归并连接链中更为明显。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> each subset S of relations:</span><br><span class="line">  <span class="keyword">for</span> each interesting order o in &#123;unordered&#125; ∪ Orders(S):</span><br><span class="line">    compute min-cost plan producing S with order o</span><br><span class="line">    keep plan <span class="keyword">if</span> cost smaller than previous best <span class="title function_">for</span> <span class="params">(S,o)</span></span><br></pre></td></tr></table></figure>
+
 
       
     </div>
@@ -762,7 +1054,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">44</span>
+          <span class="site-state-item-count">45</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

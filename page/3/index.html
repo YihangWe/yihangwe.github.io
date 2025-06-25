@@ -181,6 +181,300 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/MySQL/2024/11/30/MySQL/%E5%A4%87%E4%BB%BD%E4%B8%8E%E6%81%A2%E5%A4%8D/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/undefined/MySQL/2024/11/30/MySQL/%E5%A4%87%E4%BB%BD%E4%B8%8E%E6%81%A2%E5%A4%8D/" class="post-title-link" itemprop="url">备份与恢复</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-11-30 00:00:00" itemprop="dateCreated datePublished" datetime="2024-11-30T00:00:00-08:00">2024-11-30</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-06-23 14:18:57" itemprop="dateModified" datetime="2025-06-23T14:18:57-07:00">2025-06-23</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>数据库的备份与恢复是一项最基本的操作与工作。在意外情况下（如服务器宕机、磁盘损坏、RAID 卡损坏等）要保证数据不丢失，或者是最小程度地丢失，每个开发者应该时刻关心所负责的数据库备份情况。</p>
+<p>可以根据不同的类型来划分备份的方法。根据备份的方法不同可以将备份分为：</p>
+<ul>
+<li>Hot Backup（热备）</li>
+<li>Cold Backup（冷备）</li>
+<li>Warm Backup（温备）</li>
+</ul>
+<p><strong>Hot Backup</strong> 是指数据库运行中直接备份，对正在运行的数据库操作没有任何的影响。这种方式在 MySQL 官方手册中称为 <strong>Online Backup（在线备份）</strong>。<strong>Cold Backup</strong> 是指备份操作是在数据库停止的情况下，这种备份最为简单，一般只需要复制相关的数据库物理文件即可。这种方式在 MySQL 官方手册中称为 <strong>Offline Backup（离线备份）</strong>。<strong>Warm Backup</strong> 备份同样是在数据库运行中进行的，但是会对当前数据库的操作有所影响，如加一个全局读锁以保证备份数据的一致性。</p>
+<p>按照备份后文件的内容，备份又可以分为：</p>
+<ul>
+<li>逻辑备份</li>
+<li>裸文件备份</li>
+</ul>
+<p>在 MySQL 数据库中，逻辑备份是指备份出的文件内容是可读的，一般是文本文件。内容一般是一条条 SQL 语句，或者是表内实际数据组成。如 mysqldump 和 <code>SELECT * INTO OUTFILE</code> 的方法。这类方法的好处是可以观察导出文件的内容，一般适用于数据库的升级、迁移等工作。但其缺点是恢复所需要的时间往往较长。</p>
+<p>裸文件备份是指复制数据库的物理文件，既可以是在数据库运行中的复制（如 ibbackup, xtrabackup 这些工具），也可以是在数据库停止运行时直接的数据文件复制。这类备份的恢复时间往往较逻辑备份短很多。</p>
+<p>若按照备份数据库的内容来分，备份又可以分为：</p>
+<ul>
+<li>完全备份</li>
+<li>增量备份</li>
+<li>日志备份</li>
+</ul>
+<p><strong>完全备份</strong> 是指对数据库进行一个完整的备份。<strong>增量备份</strong> 是指在上次完全备份的基础上，对下次更改的数据进行备份。<strong>日志备份</strong> 主要是指对 MySQL 数据库二进制日志的备份，通过对一个完全备份做完二进制日志的重做（replay）来完成数据库的 point-in-time 的恢复工作。MySQL 数据库复制（replication）的原理就是异步实时地将二进制日志重做传送并应用到从（slave&#x2F;standby）数据库。</p>
+<p>对于 MySQL 数据库来说，官方没有提供真正的增量备份的方法，大部分是通过二进制日志完成增量备份的工作。这种备份较之真正的增量备份来说，效率还是很低的。假设有一个 100GB 的数据库，要通过二进制日志完成备份，可能同一个页面要执行十多次的 SQL 语句完成真正做的工作。但是对于真正的增量备份来说，只需要记录当前页或最后的检查点的 LSN，如果大于之前全备时的 LSN，则备份该页，否则不用备份，这大大加快了备份的速度和恢复的时间，同时这也是 xtrabackup 工具增量备份的原理。</p>
+<p>此外还需要理解数据库备份的一致性，这种备份要求在备份的时候数据在这一时间点上是一致的。举例来说，在一个网络游戏中有一个玩家购买了道具，这个事务的过程是：先扣除相应的金钱，然后向其装备表中插入道具，确保扣费和得到道具是互相一致的。否则，在恢复时，可能出现金钱被扣除了而道具丢失的问题。</p>
+<p>对于 InnoDB 存储引擎来说，因为其支持 MVCC 功能，因此实现一致的备份比较简单。用户可以先开启一个事务，然后导出一组相关的表，最后提交。当然用户的事务隔离级别必须设置为 <strong>REPEATABLE READ</strong>，这种做法就可以给出一个完美的一致性备份。然而这个方法的前提是需要用户事先设计应用程序。对于上述的购买道具的过程，不可以分为两个事务来完成，如一个完成扣费，一个完成道具的购买。若备份读操作发生在这两者之间，则由于逻辑设计的问题，导致备份出的数据依然不是一致的。</p>
+<p>对于 mysqldump 备份工具来说，可以通过添加 <code>--single-transaction</code> 选项获得 InnoDB 存储引擎的一致性备份，原理和之前所说的相同，也就是，这时的备份是在一个执行时间很长的只读事务中完成的，来保证所有导出的表处于同一时间点的数据视图中。另外，对于 InnoDB 存储引擎的备份，务必加上 -<code>-single-transaction</code> 的选项。如果不加这个选项，mysqldump 会对每个表分别 <code>LOCK TABLES</code> 并导出，会导致数据之间不一致（因为表导出存在先后顺序，前面表导出完了，后面表导出前可能已经被修改）。</p>
+<p>最后，任何时候都需要做好远程异地备份，也就是容灾的防范。只是同一机房的两台服务器的备份是远远不够的。</p>
+<h2 id="冷备份"><a href="#冷备份" class="headerlink" title="冷备份"></a>冷备份</h2><p>对于 <strong>InnoDB 存储引擎</strong> 的冷备非常简单，只需要备份 MySQL 数据库的 frm 文件、共享表空间文件、独立表空间文件（<code>*.ibd</code>）、重做日志文件。另外建议定期备份 MySQL 数据库的配置文件 <code>my.cnf</code>，这样有利于恢复的操作。</p>
+<p>通常我们会写一个脚本来进行冷备的操作，可能还会对备份完成的数据库进行打包和压缩。关键在于不要遗漏原本需要备份的物理文件，如共享表空间和重做日志文件，少了这些文件可能数据库都无法启动。另一种经常发生的情况是由于磁盘空间已满而导致的备份失败，我们可能习惯性地认为运行脚本的备份是没有问题的，少了检验的机制。</p>
+<p>正如前面所说的，在同一台机器上对数据库进行冷备是远远不够的，至少还需要将本地产生的备份存放到一台远程的服务器中，确保不会因为本地数据库的宕机而影响备份文件的使用。</p>
+<p>冷备的优点是：</p>
+<ul>
+<li>备份简单，只要复制相关文件即可。</li>
+<li>备份文件易于在不同操作系统、不同 MySQL 版本上进行恢复。</li>
+<li>恢复相当简单，只需要把文件恢复到指定位置即可。</li>
+<li>恢复速度快，不需要执行任何 SQL 语句，也不需要重建索引。</li>
+</ul>
+<p>冷备的缺点是：</p>
+<ul>
+<li>InnoDB 存储引擎冷备的文件通常比逻辑文件大很多，因为表空间中存放着很多其他的数据，如 undo 区、插入缓冲等信息。</li>
+<li>冷备也不总是可以轻易地跨平台。操作系统、MySQL 的版本、文件大小写敏感和浮点数格式都可能成为问题。</li>
+</ul>
+<h2 id="逻辑备份"><a href="#逻辑备份" class="headerlink" title="逻辑备份"></a>逻辑备份</h2><h3 id="mysqldump"><a href="#mysqldump" class="headerlink" title="mysqldump"></a>mysqldump</h3><p>mysqldump 是 MySQL 官方提供的逻辑备份工具，用于将数据库中的结构和数据导出为 SQL 语句或其它文本格式，便于恢复、迁移或复制库。它支持单库、多库、单表或全库的备份，也能生成 CSV、XML 等格式文件。导出的文件可以在目标服务器上直接重执行，从而重建原始数据库对象和数据。</p>
+<p>基本语法：<code>mysqldump [连接选项] [备份选项] 库名 [表名...] &gt; 备份文件.sql</code></p>
+<p>如果要备份单库，可使用：<code>mysqldump -u root -p --single-transaction mydb &gt; mydb_backup.sql</code></p>
+<p>如果要备份多库，可使用：<code>mysqldump -u root -p --databases db1 db2 &gt; multi_backup.sql</code></p>
+<p>如果要备份全库，可使用：<code>mysqldump -u root -p --all-databases &gt; alldb.sql</code></p>
+<p>如果是备份单表并按条件导出，可使用：<code>mysqldump -u root -p mydb orders --where=&quot;order_date &gt;= &#39;2025-01-01&#39;&quot; &gt; orders_jan.sql</code></p>
+<p>如果是流式压缩备份，可使用：<code>mysqldump -u root -p mydb | gzip &gt; mydb.sql.gz</code></p>
+<p>如果要恢复数据，可使用：<code>mysql -u root -p mydb &lt; mydb_backup.sql</code></p>
+<h3 id="mysqlpump"><a href="#mysqlpump" class="headerlink" title="mysqlpump"></a>mysqlpump</h3><p>mysqlpump 采用队列 + 线程模型，对象级并行：</p>
+<ul>
+<li><strong>队列</strong>：可通过 <code>--parallel-schemas</code> 创建多个队列，每个队列可绑定一个或多个数据库。<ul>
+<li><strong>线程</strong>：在每个队列下可指定线程数（<code>--default-parallelism</code>），对同一队列内的对象（表、视图、存储过程等）并行导出。</li>
+</ul>
+</li>
+</ul>
+<p>导出对象为一系列可执行的 SQL 语句，包括 CREATE、INSERT、GRANT、CREATE TRIGGER&#x2F;EVENT 等，可跨平台重现数据库结构与数据。</p>
+<p>支持对象过滤：通过 <code>--exclude-databases</code>、<code>--include-tables</code>、<code>--exclude-users</code> 等选项灵活选择导出范围。</p>
+<p>如果要全库并行备份，可使用：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">mysqlpump \</span><br><span class="line"> --default-parallelism=4 \</span><br><span class="line"> --parallel-schemas=2 \</span><br><span class="line"> --add-drop-database \</span><br><span class="line"> --routines --triggers --events \</span><br><span class="line"> --users \</span><br><span class="line"> --compress \</span><br><span class="line"> --exclude-databases=information_schema,performance_schema \</span><br><span class="line"><span class="meta prompt_"> &gt; </span><span class="language-bash">full_backup.sql.gz</span></span><br></pre></td></tr></table></figure>
+
+<p>恢复的操作和 mysqldump 的方法一致。</p>
+<h3 id="SELECT-…-INTO-OUTFILE"><a href="#SELECT-…-INTO-OUTFILE" class="headerlink" title="SELECT … INTO OUTFILE"></a>SELECT … INTO OUTFILE</h3><p><code>SELECT … INTO OUTFILE</code> 用于将查询结果直接写入服务器主机上的文件，生成的文件可用于后续的批量导入或数据交换。该语句创建的文件必须在服务器文件系统中不存在，并且需要具备 FILE 权限才可执行。</p>
+<p>如果要导出为 CSV 格式，可使用：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> customer_id, firstname, surname</span><br><span class="line"><span class="keyword">INTO</span> OUTFILE <span class="string">&#x27;/var/lib/mysql-files/customers.csv&#x27;</span></span><br><span class="line">FIELDS TERMINATED <span class="keyword">BY</span> <span class="string">&#x27;,&#x27;</span></span><br><span class="line">OPTIONALLY ENCLOSED <span class="keyword">BY</span> <span class="string">&#x27;&quot;&#x27;</span></span><br><span class="line">LINES TERMINATED <span class="keyword">BY</span> <span class="string">&#x27;\n&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>如果要恢复备份，可使用：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">LOAD DATA INFILE <span class="string">&#x27;/var/lib/mysql-files/customers.csv&#x27;</span></span><br><span class="line"><span class="keyword">INTO</span> <span class="keyword">TABLE</span> mytable</span><br><span class="line">FIELDS TERMINATED <span class="keyword">BY</span> <span class="string">&#x27;\t&#x27;</span></span><br><span class="line">LINES TERMINATED <span class="keyword">BY</span> <span class="string">&#x27;\n&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>或者</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">mysqlimport \</span><br><span class="line"> --local \              </span><br><span class="line"> --fields-terminated-by=&#x27;,&#x27; \</span><br><span class="line"> --fields-enclosed-by=&#x27;&quot;&#x27; \</span><br><span class="line"> --lines-terminated-by=&#x27;\r\n&#x27; \</span><br><span class="line"> -u 用户 -p 数据库名 /var/lib/mysql-files/customers.csv</span><br></pre></td></tr></table></figure>
+
+<h2 id="二进制日志的备份"><a href="#二进制日志的备份" class="headerlink" title="二进制日志的备份"></a>二进制日志的备份</h2><p>二进制日志是 MySQL 实现 point-in-time 恢复和异步复制的关键：</p>
+<p>point-in-time 恢复：在发生故障后，可以将完全备份与二进制日志配合，重放指定时间段或位置的变更，实现回滚到任意时间点。<br>复制：主库将写入的二进制日志发送给从库，从库重放日志以保持数据同步。</p>
+<p>默认情况下 MySQL 并不启用二进制日志，必须在 <code>my.cnf</code> 中添加：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[mysqld]</span><br><span class="line">log-bin = mysql-bin</span><br></pre></td></tr></table></figure>
+
+<p>仅启用 log-bin 不够保险，建议在 <code>my.cnf</code> 中也加上：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[mysqld]</span><br><span class="line">log<span class="operator">-</span>bin <span class="operator">=</span> mysql<span class="operator">-</span>bin</span><br><span class="line">sync_binlog <span class="operator">=</span> <span class="number">1</span></span><br><span class="line">innodb_support_xa <span class="operator">=</span> <span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<p><code>sync_binlog=1</code>：每次提交时强制将二进制日志刷盘，防止故障时丢失已提交的事务。</p>
+<p><code>innodb_support_xa=1</code>：开启 InnoDB 的 XA（分布式事务）支持，保证 binlog 与 InnoDB redo-log 在发生崩溃恢复时的一致性。</p>
+<p>在备份二进制日志文件前，可通过 FLUSH LOGS 关闭当前日志文件并新建一个 binlog 文件，便于把之前那些日志一起备份。之后将 <code>mysql-bin.00000*</code> 等文件拷贝到安全位置，与完全备份一起存档。</p>
+<p><strong>恢复二进制日志</strong></p>
+<p><code>shell&gt; mysqlbinlog [options] mysql-bin.000001 | mysql -u root -p test</code> 可以将指定日志内容通过管道重放到目标库 test。<br>如果要同时恢复多文件，可以使用：<code>shell&gt; mysqlbinlog mysql-bin.00000[1-10] | mysql -u root -p test</code></p>
+<p>先导出再 SOURCE 导入：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">shell<span class="operator">&gt;</span> mysqlbinlog mysql<span class="operator">-</span>bin<span class="number">.000001</span> <span class="operator">&gt;</span> <span class="operator">/</span>tmp<span class="operator">/</span>stmts.sql</span><br><span class="line">shell<span class="operator">&gt;</span> mysqlbinlog mysql<span class="operator">-</span>bin<span class="number">.000002</span> <span class="operator">&gt;&gt;</span> <span class="operator">/</span>tmp<span class="operator">/</span>stmts.sql</span><br><span class="line">shell<span class="operator">&gt;</span> mysql <span class="operator">-</span>u root <span class="operator">-</span>p <span class="operator">-</span>e &quot;SOURCE /tmp/stmts.sql&quot;</span><br></pre></td></tr></table></figure>
+
+<p>我们也可以指定恢复的起始点：</p>
+<p>按照偏移量：<code>mysqlbinlog --start-position=107856 mysql-bin.000001 | mysql -u root -p test</code></p>
+<p>按照时间：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mysqlbinlog <span class="comment">--start-datetime=&quot;2025-06-14 12:00:00&quot; \</span></span><br><span class="line">       			<span class="comment">--stop-datetime=&quot;2025-06-14 18:00:00&quot; \</span></span><br><span class="line">       			mysql<span class="operator">-</span>bin<span class="number">.000001</span> <span class="operator">|</span> mysql <span class="operator">-</span>u root <span class="operator">-</span>p test</span><br></pre></td></tr></table></figure>
+
+<p>偏移量和时间选项的效果类似，都能实现仅重放二进制日志的部分内容。</p>
+<h2 id="热备份"><a href="#热备份" class="headerlink" title="热备份"></a>热备份</h2><h3 id="ibbackup"><a href="#ibbackup" class="headerlink" title="ibbackup"></a>ibbackup</h3><p>ibbackup 是 InnoDB 存储引擎官方提供的热备工具，可以同时备份 MyISAM 存储引擎和 InnoDB 存储引擎表。对于 InnoDB 存储引擎表，其备份工作原理如下：</p>
+<ol>
+<li>记录备份开始时，InnoDB 存储引擎重做日志文件检查点的 LSN。</li>
+<li>复制共享表空间文件以及独立表空间文件。</li>
+<li>记录复制完表空间文件后，InnoDB 存储引擎重做日志文件检查点的 LSN。</li>
+<li>复制在备份时产生的重做日志。</li>
+</ol>
+<p>对于事务型数据库，如 Microsoft SQL Server 数据库和 Oracle 数据库，热备的原理大致相同。可以发现，在备份期间不会对数据库本身有任何影响，所做操作只是复制数据库文件，因此任何对数据库的正常操作都是允许的，不会被阻塞。</p>
+<p>ibbackup 的优点有：</p>
+<ul>
+<li>在线备份，不阻塞任何 SQL 语句。</li>
+<li>备份性能好，实质上是复制数据库文件和重做日志文件。</li>
+<li>支持压缩备份，通过选项可实现不同级别的压缩。</li>
+<li>跨平台支持，可运行于 Linux、Windows 及主流 UNIX 平台。</li>
+</ul>
+<p>ibbackup 对 InnoDB 存储引擎表的恢复步骤为：</p>
+<ol>
+<li>恢复表空间文件。</li>
+<li>应用重做日志文件。</li>
+</ol>
+<p>ibbackup 提供了一种高性能的热备方式，是 InnoDB 存储引擎备份的首选方式。不过它是收费软件，并非免费。好在开源社区力量强大，Percona 公司推出了开源、免费的 XtraBackup 热备工具，它不仅实现了 ibbackup 的所有功能，还扩展了真正的增量备份能力。因此，更好的选择是使用 XtraBackup 来完成热备工作。</p>
+<p>XtraBackup 文档请参考：<a target="_blank" rel="noopener" href="https://docs.percona.com/percona-xtrabackup/8.4/">https://docs.percona.com/percona-xtrabackup/8.4/</a></p>
+<h2 id="快照备份"><a href="#快照备份" class="headerlink" title="快照备份"></a>快照备份</h2><p>MySQL 数据库本身不支持快照功能，因此快照备份是指通过文件系统支持的快照功能对数据库进行备份。备份的前提是将所有数据库文件放在同一个文件分区中，然后对该分区进行快照操作。支持快照功能的文件系统和设备包括 FreeBSD 的 UFS 文件系统、Solaris 的 ZFS 文件系统、GNU&#x2F;Linux 的逻辑管理器（Logical Volume Manager，LVM）等。这里以 LVM 为例进行介绍。</p>
+<p>LVM 是 LINUX 系统下对磁盘分区进行管理的一种机制。LVM 在硬盘和分区之上建立一个逻辑层，来提高磁盘分区管理的灵活性。管理员可以通过 LVM 系统轻松管理磁盘分区，例如，将若干个磁盘分区连接为一个整体的卷组（Volume Group），形成一个存储池。管理员可以在卷组上随意创建逻辑卷（Logical Volumes），并进一步在逻辑卷上创建文件系统。管理人员通过 LVM 可以方便地调整卷组的大小，并且可以对磁盘存储按照组的方式进行命名、管理和分配。简单地说，用户可以通过 LVM 由物理块设备（如硬盘等）创建物理卷，由一个或多个物理卷创建卷组，最后从卷组中创建任意个逻辑卷（不超过卷组大小），如下图所示。</p>
+<p><img src="/../../images/MySQL/mysql_backup_snap.png" alt="img"></p>
+<p>下图显示了由多块物理磁盘分区组成的逻辑卷 LV0。</p>
+<p><img src="/../../images/MySQL/mysql_backup_LV0.drawio.png" alt="img"></p>
+<ul>
+<li><strong>Physical disk 0</strong> 拥有分区 <code>/dev/hda1</code>, <code>/dev/hda2</code>, <code>/dev/hda3</code>, <code>/dev/hda4</code>；</li>
+<li><strong>Physical disk 1</strong> 拥有分区 <code>/dev/hdb</code>；</li>
+<li><strong>Physical disk 2</strong> 拥有分区 <code>/dev/hdd</code>。</li>
+</ul>
+<p>这些所有物理分区一起被加入到卷组 VG0 中，VG0 上划分出一个逻辑卷 LV0（图中左侧已分配区域），其余空间则作为 free space（图中右侧虚线区域）可供以后创建更多逻辑卷或扩展现有逻辑卷使用。</p>
+<p>LVM 使用了写时复制（Copy-on-write）技术来创建快照。当创建一个快照时，仅复制原始卷中数据的元数据，并不会有数据的物理操作，因此快照的创建过程是非常快的。当快照创建完成，原始卷上有写操作时，快照会跟踪原始卷块的改变，将要改变的数据在改变之前复制到快照预留的空间里，因此这个原理的实现叫做写时复制。而对于快照的读取操作，如果读取的数据块是创建快照后没有修改过的，那么会将读取操作直接定向到原始卷上；如果读取的是已修改过的块，则将读取保存在快照中该块在原始卷上改变之前的数据。因此，采用写时复制机制保证了读取快照时得到的数据与快照创建时一致。</p>
+<p>下图显示了 LVM 的快照读取，可见 B 区块被修改了，因此历史数据放入了快照区域。读取快照数据时，A、C、D 块还是从原有卷中读取，而 B 块就需要从快照读取了。</p>
+<p><img src="/../../images/MySQL/mysql_backup_LVM.drawio.png" alt="img"></p>
+<p>快照在最初创建时总是很小，当数据源卷的数据不断被修改时，这些数据才会放入快照空间，这时快照的大小才会慢慢增大。</p>
+<p>为了让快照包含所有必要的数据，只要把 InnoDB 的所有相关文件（共享表空间文件、独立表空间文件、redo log 文件等）都放在同一个逻辑卷里。创建快照时，就会对整个逻辑卷进行一次时间点一致性的镜像。</p>
+<p>在创建和使用 LVM 快照备份时，MySQL &#x2F; InnoDB 不需要停机，应用仍可以继续正常读写。虽然备份过程中还有写操作在往磁盘上提交，但快照机制会保证备份那一刻的数据完整性，不会捕获到部分写入的脏状态。</p>
+<p>当你用 LVM 快照恢复文件后，InnoDB 会像意外断电重启那样：自动扫描数据页和 redo log，决定哪些事务需要重做或回滚，最后恢复到一个一致的、可用的数据库状态。因此，用 LVM 快照做备份，恢复后就像给数据库做了一次意外重启，但数据完全一致且不会丢失已提交的事务。</p>
+<h2 id="复制"><a href="#复制" class="headerlink" title="复制"></a>复制</h2><p>复制（replication）是 MySQL 数据库提供的一种高可用高性能的解决方案，一般用来建立大型的应用。总体来说，replication 的工作原理分为以下 3 个步骤：</p>
+<p>1）主服务器把数据更改记录到二进制日志中。</p>
+<p>2）从服务器把主服务器的二进制日志复制到自己的中继日志（relay log）中。</p>
+<p>3）从服务器重做中继日志中的日志项，把更改应用到自己的数据库上，以达到数据的最终一致性。</p>
+<p>复制的工作原理并不复杂，其实就是一个完全备份加上二进制日志备份的还原。不同的是这个二进制日志的还原操作基本上实时在进行中。这里特别需要注意的是，复制不是完全实时地进行同步，而是异步实时。这中间存在主从服务器之间的执行延时，如果主服务器的压力很大，则可能导致主从服务器延时较大。复制的工作原理如下图所示。</p>
+<p><img src="/../../images/MySQL/mysql_replic_ms.drawio.png" alt="img"></p>
+<p>从服务器有 2 个线程，一个是 I&#x2F;O 线程，负责读取主服务器的二进制日志，并将其保存为中继日志；另一个是 SQL 线程，复制执行中继日志。因此如果查看一个从服务器的状态，应该可以看到类似如下内容：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SHOW</span> <span class="keyword">FULL</span> PROCESSLIST\G</span><br><span class="line"><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span> <span class="number">1.</span> <span class="type">row</span> <span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span></span><br><span class="line">  Id: <span class="number">1</span></span><br><span class="line">  <span class="keyword">User</span>: <span class="keyword">system</span> <span class="keyword">user</span></span><br><span class="line">  Host:</span><br><span class="line">  db: <span class="keyword">NULL</span></span><br><span class="line">	Command: <span class="keyword">Connect</span></span><br><span class="line">  <span class="type">Time</span>: <span class="number">6501</span></span><br><span class="line"> 	State: Waiting <span class="keyword">for</span> master <span class="keyword">to</span> send event</span><br><span class="line">  Info: <span class="keyword">NULL</span></span><br><span class="line"><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span> <span class="number">2.</span> <span class="type">row</span> <span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span></span><br><span class="line">  Id: <span class="number">2</span></span><br><span class="line">  <span class="keyword">User</span>: <span class="keyword">system</span> <span class="keyword">user</span></span><br><span class="line">  Host:</span><br><span class="line">  db: <span class="keyword">NULL</span></span><br><span class="line">	Command: <span class="keyword">Connect</span></span><br><span class="line">  <span class="type">Time</span>: <span class="number">0</span></span><br><span class="line"> 	State: Has read <span class="keyword">all</span> relay log; waiting <span class="keyword">for</span> the slave I<span class="operator">/</span>O thread <span class="keyword">to</span> <span class="keyword">update</span> it</span><br><span class="line">  Info: <span class="keyword">NULL</span></span><br><span class="line"><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span> <span class="number">3.</span> <span class="type">row</span> <span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span></span><br><span class="line">  Id: <span class="number">206</span></span><br><span class="line">  <span class="keyword">User</span>: root</span><br><span class="line">  Host: localhost</span><br><span class="line">  db: <span class="keyword">NULL</span></span><br><span class="line">	Command: Query</span><br><span class="line">  <span class="type">Time</span>: <span class="number">0</span></span><br><span class="line"> 	State: <span class="keyword">NULL</span></span><br><span class="line">  Info: <span class="keyword">SHOW</span> <span class="keyword">FULL</span> PROCESSLIST</span><br><span class="line"><span class="number">3</span> <span class="keyword">rows</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+
+<p>可以看到 ID 为 1 的线程就是 I&#x2F;O 线程，当前的状态是等待主服务器发送二进制日志。 </p>
+<p>ID 为 2 的线程是 SQL 线程，负责读取中继日志并执行。目前的状态是已读取所有的中继日志，等待中继日志被 I&#x2F;O 线程更新。 </p>
+<p>在 replication 的主服务器上应该可以看到一个线程负责发送二进制日志，类似内容如下：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SHOW</span> <span class="keyword">FULL</span> PROCESSLIST\G </span><br><span class="line">…… </span><br><span class="line"><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span> <span class="number">65.</span> <span class="type">row</span> <span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span> </span><br><span class="line">  Id: <span class="number">26541</span> </span><br><span class="line">  <span class="keyword">User</span>: rep </span><br><span class="line">  Host: <span class="number">192.168</span><span class="number">.190</span><span class="number">.98</span>:<span class="number">39549</span> </span><br><span class="line">  db: <span class="keyword">NULL</span> </span><br><span class="line">	Command: Binlog Dump </span><br><span class="line">  <span class="type">Time</span>: <span class="number">6857</span> </span><br><span class="line"> 	State: Has sent <span class="keyword">all</span> binlog <span class="keyword">to</span> slave; waiting <span class="keyword">for</span> binlog <span class="keyword">to</span> be updated </span><br><span class="line">  Info: <span class="keyword">NULL</span> </span><br><span class="line">…… </span><br></pre></td></tr></table></figure>
+
+<p>之前提到 MySQL 的复制是异步实时的，并非完全的主从同步。若用户要想得知当前的延迟，可以通过命令 <code>SHOW SLAVE STATUS</code> 和 <code>SHOW MASTER STATUS</code> 得知。</p>
+<p>示例：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SHOW</span> SLAVE STATUS\G</span><br><span class="line"><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span> <span class="number">1.</span> <span class="type">row</span> <span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span></span><br><span class="line">   Slave_IO_State: Waiting <span class="keyword">for</span> master <span class="keyword">to</span> send event</span><br><span class="line">   Master_Host: <span class="number">192.168</span><span class="number">.190</span><span class="number">.10</span></span><br><span class="line">   Master_User: rep</span><br><span class="line">   Master_Port: <span class="number">3306</span></span><br><span class="line">   Connect_Retry: <span class="number">60</span></span><br><span class="line">   Master_Log_File: mysql<span class="operator">-</span>bin<span class="number">.000007</span></span><br><span class="line">   Read_Master_Log_Pos: <span class="number">555176471</span></span><br><span class="line">   Relay_Log_File: gamedb<span class="operator">-</span>relay<span class="operator">-</span>bin<span class="number">.000048</span></span><br><span class="line">   Relay_Log_Pos: <span class="number">224355889</span></span><br><span class="line">   Relay_Master_Log_File: mysql<span class="operator">-</span>bin<span class="number">.000007</span></span><br><span class="line">   Slave_IO_Running: Yes</span><br><span class="line">   Slave_SQL_Running: Yes</span><br><span class="line">   Replicate_Do_DB:</span><br><span class="line">   Replicate_Ignore_DB:</span><br><span class="line">   Replicate_Do_Table:</span><br><span class="line">   Replicate_Ignore_Table:</span><br><span class="line">   Replicate_Wild_Do_Table:</span><br><span class="line">	 Replicate_Wild_Ignore_Table: mysql.<span class="operator">%</span>,DBA.<span class="operator">%</span></span><br><span class="line">   Last_Errno: <span class="number">0</span></span><br><span class="line">   Last_Error:</span><br><span class="line">   Skip_Counter: <span class="number">0</span></span><br><span class="line">   Exec_Master_Log_Pos: <span class="number">555176471</span></span><br><span class="line">   Relay_Log_Space: <span class="number">224356045</span></span><br><span class="line">   Until_Condition: <span class="keyword">None</span></span><br><span class="line">   Until_Log_File:</span><br><span class="line">   Until_Log_Pos: <span class="number">0</span></span><br><span class="line">   Master_SSL_Allowed: <span class="keyword">No</span></span><br><span class="line">   Master_SSL_CA_File:</span><br><span class="line">   Master_SSL_CA_Path:</span><br><span class="line">   Master_SSL_Cert:</span><br><span class="line">   Master_SSL_Cipher:</span><br><span class="line">   Master_SSL_Key:</span><br><span class="line"> 	 Seconds_Behind_Master: <span class="number">0</span></span><br><span class="line">	 Master_SSL_Verify_Server_Cert: <span class="keyword">No</span></span><br><span class="line">   Last_IO_Errno: <span class="number">0</span></span><br><span class="line">   Last_IO_Error:</span><br><span class="line">   Last_SQL_Errno: <span class="number">0</span></span><br><span class="line">   Last_SQL_Error:</span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+
+<p>以上结果中的各个字段的含义如下所示：</p>
+<table>
+<thead>
+<tr>
+<th><strong>变量</strong></th>
+<th><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Slave_IO_State</td>
+<td>当前 I&#x2F;O 线程的状态，此例为 “Waiting for master to send event”（等待主库发送新的 binlog 事件）</td>
+</tr>
+<tr>
+<td>Master_Log_File</td>
+<td>当前从库正在读取的主库 binlog 文件名，本例为 mysql-bin.000007</td>
+</tr>
+<tr>
+<td>Read_Master_Log_Pos</td>
+<td>从库已读取到的主库 binlog 偏移位置（字节）；本例 555176471 表示已读入约 529 MB（555176471&#x2F;1024²）</td>
+</tr>
+<tr>
+<td>Relay_Master_Log_File</td>
+<td>从库中继日志对应的主库 binlog 文件名</td>
+</tr>
+<tr>
+<td>Relay_Log_File</td>
+<td>当前写入的中继日志文件名</td>
+</tr>
+<tr>
+<td>Relay_Log_Pos</td>
+<td>已执行到中继日志的偏移位置（字节）</td>
+</tr>
+<tr>
+<td>Slave_IO_Running</td>
+<td>从库 I&#x2F;O 线程运行状态，YES 表示正常</td>
+</tr>
+<tr>
+<td>Slave_SQL_Running</td>
+<td>从库 SQL 线程运行状态，YES 表示正常</td>
+</tr>
+<tr>
+<td>Exec_Master_Log_Pos</td>
+<td>SQL 线程已执行到的主库 binlog 偏移位置；Read_Master_Log_Pos - Exec_Master_Log_Pos 即 I&#x2F;O 与 SQL 线程之间的“字节延迟”</td>
+</tr>
+</tbody></table>
+<p><code>SHOW MASTER STATUS</code> 可以用来查看主服务器中二进制日志的状态，如：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SHOW</span> MASTER STATUS\G</span><br><span class="line"><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span> <span class="number">1.</span> <span class="type">row</span> <span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span></span><br><span class="line"> File: mysql<span class="operator">-</span>bin<span class="number">.000007</span></span><br><span class="line"> Position: <span class="number">606181078</span></span><br><span class="line"> Binlog_Do_DB:</span><br><span class="line"> Binlog_Ignore_DB:</span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.01</span> sec)</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，当前二进制日志记录了偏移量 606181078 的位置，该值减去这一时间点时从服务器上的 <code>Read_Master_Log_Pos</code>，就可以得知 I&#x2F;O 线程的延时。</p>
+<p>，用户不应仅监控从服务器上 I&#x2F;O 线程和 SQL 线程是否运行正常，同时也应监控从服务器与主服务器之间的延迟，确保从服务器上的数据尽可能接近主服务器上的状态。</p>
+<h3 id="快照-复制的备份架构"><a href="#快照-复制的备份架构" class="headerlink" title="快照 + 复制的备份架构"></a>快照 + 复制的备份架构</h3><p>复制可以用来作为备份，但功能不仅限于备份，其主要功能如下： </p>
+<ul>
+<li>数据分布。由于 MySQL 数据库提供的复制并不需要很大的带宽要求，因此可以在不同的数据中心之间实现数据的复制。 </li>
+<li>读取的负载平衡。通过建立多个从服务器，可将读取平均地分布到这些从服务器中，并且减少了主服务器的压力。一般通过 DNS 的 Round-Robin 和 Linux 的 LVS 功能都可以实现负载平衡。 </li>
+<li>数据库备份。复制对备份很有帮助，但是从服务器不是备份，不能完全代替备份。 </li>
+<li>高可用性和故障转移。通过复制建立的从服务器有助于故障转移，减少故障的停机时间和恢复时间。</li>
+</ul>
+<p>可见，只是用复制来进行备份是远远不够的。也就是说，<strong>仅靠主从复制无法完全防护数据丢失或误操作</strong>，需要结合<strong>从库的存储快照</strong>和<strong>二进制日志重放</strong>来实现对任意时间点的恢复与一致性保障。</p>
+<p>假设当前应用采用了主从的复制架构，从服务器作为备份。此时，一个开发人员执行了误操作，如 <code>DROP DATABASE</code> 或 <code>DROP TABLE</code>，这时从服务器也跟着运行了。用户怎样从从服务器进行恢复呢？ </p>
+<p>因此，一个比较好的方法是通过对从服务器上的数据库所在分区做快照，以此来避免误操作对复制造成影响。当发生主服务器上的误操作时，只需要将从服务器上的快照进行恢复，然后再根据二进制日志进行 point-in-time 的恢复即可。因此快照 + 复制的备份架构如下图所示。 </p>
+<p><img src="/../../images/MySQL/mysql_replic_snap_binlog.drawio.png" alt="img"></p>
+<p>还有一些其他的方法来调整复制，比如采用延时复制，即间歇性地开启从服务器上的同步，保证大约一小时的延时，可对抗误操作。这的确也是一个方法，只是数据库在高峰和非高峰期间每小时产生的二进制日志量是不同的，用户很难精确地控制。另外，这种方法也不能完全起到对误操作的防范作用。 </p>
+<p>此外，建议在从服务器上启用 read-only 选项，这样能保证从服务器上的数据仅与主服务器进行同步，避免其他线程修改数据。如： </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[mysqld]</span><br><span class="line">read-only</span><br></pre></td></tr></table></figure>
+
+<p>在启用 read-only 选项后，如果操作从服务器的用户没有 SUPER 权限，则对从服务器进行任何的修改操作会抛出一个错误，如：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">INSERT INTO</span> z <span class="keyword">SELECT</span> <span class="number">2</span>; </span><br><span class="line">ERROR <span class="number">1290</span> (HY000): The MySQL server <span class="keyword">is</span> <span class="keyword">running</span> <span class="keyword">with</span> the <span class="comment">--read-only option so it cannot execute this statement</span></span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
     <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/MySQL/2024/11/26/MySQL/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1435,223 +1729,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/MySQL/2024/11/14/MySQL/MySQL%20%E6%9E%B6%E6%9E%84/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Yihang Wei">
-      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="EthanWeee">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/undefined/MySQL/2024/11/14/MySQL/MySQL%20%E6%9E%B6%E6%9E%84/" class="post-title-link" itemprop="url">MySQL 架构</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-11-14 00:00:00" itemprop="dateCreated datePublished" datetime="2024-11-14T00:00:00-08:00">2024-11-14</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-06-21 15:20:18" itemprop="dateModified" datetime="2025-06-21T15:20:18-07:00">2025-06-21</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>MySQL 默认 InnoDB 存储引擎，擅长事务处理，具有崩溃恢复特性。</p>
-<h2 id="内存结构"><a href="#内存结构" class="headerlink" title="内存结构"></a>内存结构</h2><p><img src="/../../images/MySQL/innodb-architecture-8-0.png" alt="InnoDB architecture diagram showing in-memory and on-disk structures. In-memory structures include the buffer pool, adaptive hash index, change buffer, and log buffer. On-disk structures include tablespaces, redo logs, and doublewrite buffer files."></p>
-<h3 id="缓冲池"><a href="#缓冲池" class="headerlink" title="缓冲池"></a>缓冲池</h3><p>InnoDB 存储引擎是基于磁盘存储的，并将其中的记录按照页的方式进行管理。</p>
-<p>缓冲池是一块内存区域，通过内存的速度来弥补磁盘速度较慢对数据库性能的影响。</p>
-<p>如果要读取页面，首先从磁盘读到的页面放在缓冲池中，之后再读相同的页时，先判断该页是否在缓冲池中。若在缓冲池中则被命中，直接读取改页，否则就读取磁盘上的页。</p>
-<p>对于修改操作，先修改缓冲池中的页，然后再以一定频率刷新到磁盘。</p>
-<p>依据时间局部性原理与空间局部性原理，Buffer Pool 在存储当前活动数据页的时候，也会以预读的方式缓存目标数据页临近的其他数据页。对于 Buffer Pool 中数据的查询，InnoDB 直接读取返回；对于 Buffer Pool 中数据的修改，InnoDB 直接在 Buffer Pool 中修改，并在此之前将修改写入 Redo Log 中。<strong>当数据页被 LRU 算法淘汰时写入磁盘</strong>。若持久化前系统崩溃，则在重启后使用 Redo Log 进行恢复。</p>
-<p>注意：页从缓冲池刷新回磁盘的操作并不是在每次页发生更新时触发，而是基于 Checkpoint 定时刷新回磁盘。</p>
-<p>缓冲池以页为存储单位，采用双向链表数据结构管理缓存页，页的大小默认为 16KB，使用分区 LRU 算法淘汰数据页。</p>
-<p><img src="/../../images/MySQL/mysql_arch_buffer_pool.drawio.png" alt="img"></p>
-<p>按照数据类型：索引页、数据页、Undo 页、更改缓冲页、自适应哈希索引页、锁信息页、数据字典页等。</p>
-<p>按照页面的修改状态：</p>
-<ul>
-<li>Free page：空闲页面，未被使用过。</li>
-<li>Clean page：被使用（读取）过的页面，但是数据未被修改过。</li>
-<li>Dirty page：脏页面，被使用并且数据被修改过，导致页中数据与磁盘产生了不一致。</li>
-</ul>
-<p>而且 InnoDB 允许存在多个缓冲池实例。每个页根据哈希值被分配到不同的缓冲池实例中，这样可以减少数据库内部的资源竞争，增加数据库的并发能力。</p>
-<p><strong>LRU List，Free List 和 Flush List</strong></p>
-<p>LRU 列表中加入了 midpoint 位置，位于 LRU 列表长度的 5&#x2F;8 处，新加载的页会被直接放入这个位置。 midpoint 之后的列表被称为 old 列表，之前的列表就是 young 列表。young 列表中的页都是最为活跃的热点数据。</p>
-<blockquote>
-<p>[!NOTE]</p>
-<p>为什么不直接将读取的页放入 LRU 列表的头部呢？</p>
-<p>因为一些操作，如索引或整张表的扫描操作，会使很多包含热点数据的缓冲页被淘汰掉。因此下次需要读取这些热点数据时，InnoDB 还需要再次访问磁盘。也就是说，将插入点设置在 LRU 列表中间的某个位置可以防止处于 young 区域的热点页面被某些大数据量的操作给淘汰掉。</p>
-</blockquote>
-<p>缓冲池还设置了在页被加入到 midpoint 位置之后要等待多久才会被加入到 LRU 列表的热区 young 中，防止短期时间内被高频访问的节点进入 young 区域。</p>
-<p>LRU 列表用来管理已经加载的页面，但是当数据库刚启动时，LRU 列表是空的，这时候缓存页都被存放在 Free 列表中。当有新的数据加载到缓冲池中时，首先从 Free 列表中查找是否有可用的空闲页，若有则将该页从 Free 列表中删除并放入 LRU 列表中；否则，根据 LRU 算法，淘汰 LRU 列表末尾的页，并将对应的内存空间分配给新的页。</p>
-<p>当 Free List 页数低于 <code>innodb_lru_scan_depth</code>（默认为1024）时，后台清理线程会扫描 LRU List，从 old 链表底部开始淘汰干净页。</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Buffer pool size        8191</span><br><span class="line">Free buffers            6513</span><br><span class="line">Database pages          1654</span><br><span class="line">Old database pages      604</span><br><span class="line">Modified db pages       0</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>[!NOTE]</p>
-<p>为什么 Free buffers + Database pages 不等于 Buffer pool size？</p>
-<p>Free buffers 和 Database pages 分别表示空闲列表和 LRU 列表中的页面数。</p>
-<p>但是缓冲池中的页还可能会被分配给自适应哈希索引元数据页，Lock 信息页，压缩页等，这些页不需要基于普通的 LRU 列表进行维护。</p>
-</blockquote>
-<p>缓冲是通过 <code>unzip_LRU</code> 来管理压缩页，因为压缩页的大小可能是 1KB、2KB、4KB、8KB 这些小于 16KB的页面。</p>
-<p><code>unzip_LRU</code> 是怎样从缓冲池中分配内存的呢？</p>
-<p>⾸先，在 <code>unzip_LRU</code> 列表中对不同压缩页⼤⼩的页进⾏分别管理。其次，通过伙伴算法进⾏内存的分配。例如对需要从缓冲池中申请页为 4KB 的⼤⼩，其过程如下：</p>
-<ol>
-<li>检查 4KB 的 <code>unzip_LRU</code> 列表是否有可用的空闲页；</li>
-<li>若有，则直接使用；</li>
-<li>否则，检查 8KB 的 <code>unzip_LRU</code> 列表；</li>
-<li>若能得到空闲页，将页分成 2 个 4KB 页，存放到 4KB 的 unzip_LRU 列表；</li>
-<li>若不能，从 LRU 列表中申请一个 16KB 的页，将页分为 1 个 8KB 的页和 2 个 4KB 的页，分别存放到对应的 <code>unzip_LRU</code> 列表中。</li>
-</ol>
-<p>在 LRU 列表中的页被修改之后，该页变成脏页，即该缓冲池页和磁盘页中的数据产生了不一致。之后数据库回通过 checkpoint 机制将脏页刷新到磁盘，Flush 列表就是脏页列表。脏页既存在于 LRU 列表中，也存在于 Flush 列表中。LRU 列表用来管理缓冲页的可用性，Flush 列表用来管理缓冲页的刷新，二者互不影响。</p>
-<blockquote>
-<p>[!NOTE]</p>
-<p>InnoDB 中，页面清理线程会周期性地从 LRU List 和 Flush List 中刷写脏页；当进行日志文件轮转或日志文件即将填满时，检查点机制也会触发对 Flush List 中脏页的批量刷新以推进 Redo 日志的检查点位置。</p>
-<p>这里的日志文件轮换指的是当重做日志写入到当前日志文件达到一定容量或达到指定条件时，MySQL 会停止往这个文件继续写，而是切换到下一个预先配置好的日志文件上继续写入。</p>
-<p>检查点刷新与页面清理线程共享 Flush List，区别在于检查点会关注推进 redo log 写入位置，而页面清理线程更关注缓冲池空间管理。</p>
-</blockquote>
-<p><strong>更改缓冲</strong></p>
-<p>该缓冲也是缓冲池中的一部分，但是只针对非唯一二级索引的插入、删除标记和物理删除操作，不支持聚簇主键索引、唯一索引（除删除标记）及其他特殊索引类型（如全文、空间索引）<strong>。</strong></p>
-<p>在执行 DML 语句时，如果该语句要查找的<strong>索引页</strong>未在缓冲池中，系统不会直接操作磁盘，而是将数据变更存放在更改缓冲区中；当未来数据被读取时将数据合并恢复到缓冲池中，再将合并后的数据刷新到磁盘中。</p>
-<p>Change Buffer 大小默认占 Buffer Pool 的 25%，在引擎启动时便初始化完成，其物理结构为一棵名为 ibuf 的 B-Tree。Change Buffer 的生效条件为：</p>
-<ul>
-<li><strong><code>innodb_change_buffering</code></strong> <strong>已启用</strong>：若将该变量设置为 none，则关闭所有缓冲；否则可选择性缓冲 inserts、deletes、purges 等操作。</li>
-<li><strong>目标二级索引页不在缓冲池中</strong>：只有在索引页不在 Buffer Pool 时，才将修改缓存到 ibuf；若页已在内存，则直接修改页本身。</li>
-<li><strong>表或索引页未被强制合并</strong>：在发生强制合并（如慢速关闭 <code>--innodb-fast-shutdown=0</code>）前，缓冲仍被保留；合并后 ibuf 会将缓存应用到 B-Tree 页。</li>
-</ul>
-<p>该缓冲合并变更到数据的时机为：</p>
-<ul>
-<li><strong>页被读入缓冲池时（On-demand Merge）</strong>：当后续查询需要读取某个被缓冲修改的二级索引页时，InnoDB 会在返回数据前先将 ibuf 中对应的缓存记录合并到页内。</li>
-<li><strong>主线程空闲时（Background Merge）</strong>：InnoDB 的主线程（Master Thread）在系统空闲或后台作业期间，会批量合并 ibuf，以减少 IO 峰值对 OLTP 性能的影响。</li>
-<li><strong>慢速关闭时（Slow Shutdown）</strong>：若以 <code>innodb_fast_shutdown=0</code> 重启或关闭，系统会进行全量合并，确保提交前所有缓冲都应用到磁盘页中。</li>
-<li><strong>ibuf B-Tree 分裂时</strong>：当 ibuf 树或其位图页分裂，或下一次合并会导致超出 <code>innodb_change_buffer_max_size</code> 限制时，InnoDB 会触发部分合并以释放空间。</li>
-</ul>
-<p><img src="/../../images/MySQL/innodb-change-buffer.png" alt="Content is described in the surrounding text."></p>
-<p>数据页：发生 DML 时立即更新。</p>
-<p>非唯一的二级索引页：发生 DML 时，变更会先存储在 Change Buffer 中，延迟合并。</p>
-<p>唯一的二级索引页：由于需要立即检查唯一性，变更不会存储在 Change Buffer 中。</p>
-<p><strong>自适应哈希索引</strong></p>
-<p>InnoDB 监控对索引页的访问频度，当检测某些页频繁被访问且 B-Tree 查找性能不足时，会动态建立哈希索引，以加速查询；与 Change Buffer 机制互不干扰。</p>
-<h3 id="Redo-日志缓冲"><a href="#Redo-日志缓冲" class="headerlink" title="Redo 日志缓冲"></a>Redo 日志缓冲</h3><p>Redo log 重做日志用于记录事务对磁盘数据页的修改，用于崩溃恢复，可实现持久性。</p>
-<p>InnoDB 的<strong>日志缓冲区</strong>（log buffer）只用于缓存 <strong>redo log</strong> 的生成数据，默认大小为 16 MB，用来在事务提交前暂时保留日志，减少对磁盘的频繁写入。</p>
-<p>InnoDB 除了包含缓冲池之外，还有 Redo 日志缓冲。InnoDB 首先将 Redo 日志信息放入该缓冲区，之后按一定频率将其刷新到磁盘的 Redo 日志文件中，这个频率一般情况下是一秒一次。</p>
-<p>也就是说，Redo log 由两部分构成：</p>
-<ol>
-<li>重做日志缓冲（内存中）：用于暂时存储事务修改的日志。当日志量达到一定程度或事务提交时，InnoDB 会将这些日志刷新到磁盘上的 Redo Log 文件。</li>
-<li>重做日志文件（磁盘中）：用于持久化保存事务修改的日志。</li>
-</ol>
-<p>写入和刷新策略：</p>
-<table>
-<thead>
-<tr>
-<th><strong>值</strong></th>
-<th><strong>写入（write）</strong></th>
-<th><strong>刷新（flush）</strong></th>
-<th><strong>特点</strong></th>
-</tr>
-</thead>
-<tbody><tr>
-<td>0</td>
-<td>每秒将日志缓冲区内容写入 redo 日志文件</td>
-<td>每秒将 redo 日志文件刷新到磁盘（fsync）；<strong>事务提交时不执行</strong></td>
-<td>性能最佳；在 mysqld 崩溃会丢失最多 1s 日志。</td>
-</tr>
-<tr>
-<td>1</td>
-<td>每次事务提交时写入 redo 日志文件</td>
-<td>每次事务提交时刷新 redo 日志文件到磁盘</td>
-<td>最安全，符合严格 ACID；写入开销最大。</td>
-</tr>
-<tr>
-<td>2</td>
-<td>每次事务提交时写入 redo 日志文件</td>
-<td>每秒将 redo 日志文件刷新到磁盘；<strong>提交时不 fsync</strong></td>
-<td>性能优于 1、安全性优于 0；可丢失最多 1s 日志。</td>
-</tr>
-</tbody></table>
-<p>补充：</p>
-<ul>
-<li>write 指将缓冲区内容写入到操作系统文件缓存中；</li>
-<li>flush 指调用 <code>fsync()</code> 等系统调用，将操作系统缓存的内容真正写到磁盘；</li>
-<li>若想同时保证二进制日志（binlog）和 redo 日志的同步，可结合 <code>sync_binlog=1</code> 使用，以避免 binlog 丢失。</li>
-</ul>
-<p>下列三种情况会导致 Redo 日志缓冲中的内存刷新到磁盘的 Redo 日志文件中：</p>
-<ol>
-<li>Master Thread 每秒将 Redo 日志缓冲刷新到 Redo 日志文件中；</li>
-<li>每个事务提交时会将 Redo 日志缓冲刷新到 Redo 日志文件中；</li>
-<li>当 Redo 日志缓冲的剩余空间小于 1&#x2F;2 时，Redo 日志缓冲刷新到 Redo 日志文件中。</li>
-</ol>
-<p>注意：<strong>Undo Log</strong> 记录事务的回滚信息和 MVCC 版本，不经日志缓冲区，而是直接写入 undo 表空间中的数据页。</p>
-<p><img src="/../../images/MySQL/mysql_arch_redo.drawio.png" alt="img"></p>
-<p>当 MySQL 意外宕机后，InnoDB 会在启动时自动执行崩溃恢复，其中包括读取并应用 redo log 的操作，以将那些已经提交但尚未刷写到磁盘的数据页修改重做到磁盘上，从而保证数据的持久性与一致性。整个恢复分为分析、重做（Redo）和回滚（Undo）三个阶段：在重做阶段，InnoDB 会对比日志记录与磁盘页上的 LSN，将丢失的已提交修改应用回去；在回滚阶段，则撤销所有未提交的事务，以确保数据库最终处于一致状态。</p>
-<h3 id="额外的内存池"><a href="#额外的内存池" class="headerlink" title="额外的内存池"></a>额外的内存池</h3><p>InnoDB 中对内存的管理通过内存堆来实现额。在对一些数据结构本身的内存进行分配时，需要从额外的内存池中进行申请，当该区域的内存不足时，会从缓冲池中进行申请。</p>
-<h2 id="磁盘结构"><a href="#磁盘结构" class="headerlink" title="磁盘结构"></a>磁盘结构</h2><p><img src="/../../images/MySQL/mysql_arch_disk_struct.drawio.png" alt="img"></p>
-<p>System tablespace（系统表空间）是默认的共享存储区域，通常由数据目录下名为 ibdata1 的文件（或多个通过 <code>innodb_data_file_path</code> 定义的文件）组成，用于保存 InnoDB 的数据字典、undo 日志和更改缓冲区；如果没有启用独立表空间或通用表空间，部分表和索引的数据也会存储在此处。该表空间在自动扩展（autoextend）模式下可按需增长，但在表被截断或删除后不会自动回收操作系统层面的空间。</p>
-<p>**数据字典：**数据字典是由各种表对象的元数据信息（表结构，索引，列信息等）组成的内部表。</p>
-<p>**修改缓冲：**内存中 Change Buffer 对应的持久化区域，同样为了数据完整性而设置。</p>
-<p>InnoDB 的独立表空间（file-per-table）为每个数据库在数据目录下创建单独的子文件夹，每个表对应一个 .ibd 文件来存放该表的所有行数据、索引结构和变更缓冲（原插入缓冲）页；与此同时，每张表的结构定义仍保存在同名的 <code>.frm</code> 文件（MySQL 8.0 之后改为数据字典存储）。尽管表的数据和索引被分离到各自的 <code>.ibd</code> 文件中，诸如回滚日志、系统事务信息、双写缓冲等元数据仍持续写入共享的系统表空间（ibdata1），因此启用独立表空间后，系统表空间也不会停止增长。每个新创建的独立表空间文件初始大小约为 96 KB，并会根据表的需要自动扩展。</p>
-<p>**通用表空间（General Tablespace）是指可以用于存储多个表的表空间，它位于用户自定义的位置，可以存储来自不同数据库的表和索引。**通用表空间是一个由 CREATE TABLESPACE 命令创建的共享表空间，创建时必须指定该表空间名称和 ibd 文件位置，ibd 文件可以放置于任何 MySQL 实例有权限的地方。<strong>通用表空间存在的目的是为了在系统表空间与独立表空间之间作出平衡</strong>。系统表空间与独立表空间中的表可以向通用表空间移动，反之亦可，但系统表空间中的表无法直接与独立表空间中的表相互转化。每个共享表空间初始大小为 64KB。</p>
-<p>通用表空间允许多个表共享一个表空间文件，这与传统的每个表单独使用自己的表空间（独立表空间）不同。通过这种方式，可以更灵活地管理数据文件，特别是在管理存储多个小表时。通用表空间提供了以下好处：</p>
-<ul>
-<li><strong>减少小表空间碎片</strong>：如果每个表都有独立的表空间，那么大量的小表会导致存储碎片。而使用通用表空间可以集中管理这些小表，减少碎片。</li>
-<li><strong>灵活的存储分配</strong>：通用表空间可以跨多个文件存储表的数据，这使得人们能够更灵活地管理磁盘空间，避免单一表空间文件过大或过小的问题。</li>
-</ul>
-<p>创建共享表空间：<code>create tablespace space_name add datafile file_name engine=engine_name;</code></p>
-<p>为某个表指定表空间：<code>create table table_name ... tablespace space_name;</code></p>
-<p>**Undo tablespace 撤销表空间：**在 MySQL 8.0 及更高版本中，InnoDB 在实例首次初始化时会自动创建 两个 独立的 Undo 表空间（默认为 <code>undo_001.ibu</code> 和 <code>undo_002.ibu</code>），以保证在事务回滚和一致性读（MVCC）过程中有至少两个回滚段可供轮换；每个表空间的初始大小均为 16 MB，并可按需自动扩展（最小扩展步长 16 MB，最大至 256 MB），当表空间超过 <code>innodb_max_undo_log_size</code> 后会被标记并截断以回收旧日志空间；这些 Undo 表空间专用于存储撤销日志，从而将大量长事务的日志写入负载与系统表空间分离，提升 I&#x2F;O 并发性能并防止 ibdata1 无限增长。</p>
-<p>系统表空间是默认的共享存储区域，早期版本中所有的撤销日志都存放其中；而从 MySQL 5.7 开始，可以通过配置独立 Undo 表空间，将撤销日志与系统表空间中的数据字典、change buffer 等内容分离，从而改进 I&#x2F;O 分布和空间管理。</p>
-<p>InnoDB 的临时表空间分为<strong>会话临时表空间</strong>（Session Temporary Tablespaces）和<strong>全局临时表空间</strong>（Global Temporary Tablespace），两者分别用于存储用户显式创建的临时表、优化器内部创建的临时表，以及这些表的回滚段。当你在 SQL 中使用子查询且需要落盘临时表（例如数据量超出内存限制或 optimizer 决定使用 on-disk 临时表）时，这些临时表会被创建到会话临时表空间中，而其回滚信息则存储在全局临时表空间中。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1721,7 +1798,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">44</span>
+          <span class="site-state-item-count">45</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
