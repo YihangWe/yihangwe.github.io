@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="zh-CN,en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yihangwe.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="查询执行在数据库查询执行中，查询管道（pipelining）和物化（materialization）是两种核心的执行模型。查询管道通过让元组在操作符之间持续流动，实现了流水线式的处理，从而减少了中间结果的写入和读取开销；而物化模型则在每个操作之后将中间结果保存为临时表，再由下一个操作读取，便于管理和重用，但会引入额外的 I&#x2F;O 和存储成本。 在数据库查询执行中，要在既定的查询计划不变的前">
+<meta property="og:type" content="article">
+<meta property="og:title" content="查询管道和物化">
+<meta property="og:url" content="https://yihangwe.github.io/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/02/03/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/%E6%9F%A5%E8%AF%A2%E7%AE%A1%E9%81%93%E5%92%8C%E7%89%A9%E5%8C%96/index.html">
+<meta property="og:site_name" content="EthanWeee">
+<meta property="og:description" content="查询执行在数据库查询执行中，查询管道（pipelining）和物化（materialization）是两种核心的执行模型。查询管道通过让元组在操作符之间持续流动，实现了流水线式的处理，从而减少了中间结果的写入和读取开销；而物化模型则在每个操作之后将中间结果保存为临时表，再由下一个操作读取，便于管理和重用，但会引入额外的 I&#x2F;O 和存储成本。 在数据库查询执行中，要在既定的查询计划不变的前">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yihangwe.github.io/images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_query_exec_1.drawio.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_query_exec_iterator.drawio.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_query_exec_materialization.drawio.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_query_exec_vectorization.drawio.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_query_exec_push.drawio.png">
+<meta property="article:published_time" content="2025-02-03T08:00:00.000Z">
+<meta property="article:modified_time" content="2025-06-27T21:02:57.564Z">
+<meta property="article:author" content="Yihang Wei">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yihangwe.github.io/images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_query_exec_1.drawio.png">
+
+<link rel="canonical" href="https://yihangwe.github.io/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/02/03/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/%E6%9F%A5%E8%AF%A2%E7%AE%A1%E9%81%93%E5%92%8C%E7%89%A9%E5%8C%96/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>查询管道和物化 | EthanWeee</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<!-- hexo injector head_end start --><script>(function() {function calculateHeight(element) {let height = 0;const items = element.children;for (let i = 0; i < items.length; i++) {height += items[i].offsetHeight || 25;const child = items[i].querySelector(".nav-child");if (child && child.style.display !== "none") {height += calculateHeight(child);}}return height;}function generateToc(lang, container) {const content = document.getElementById(lang + "-content");if (!content) return;const headers = Array.from(content.querySelectorAll("h1, h2, h3, h4, h5, h6"));if (headers.length === 0) return;const ol = document.createElement("ol");ol.className = "nav";let currentLevel = 1;let currentOl = ol;let stack = [ol];let counters = [0, 0, 0, 0, 0, 0];headers.forEach((header, index) => {const level = parseInt(header.tagName[1]);counters[level - 1]++;for (let i = level; i < 6; i++) counters[i] = 0;const li = document.createElement("li");li.className = "nav-item nav-level-" + level;if (level === 1 && index === 0) {li.classList.add("active", "active-current");}const link = document.createElement("a");link.className = "nav-link";if (level === 1 && index === 0) link.classList.add("active");link.href = "#" + header.id;const numSpan = document.createElement("span");numSpan.className = "nav-number";numSpan.textContent = counters.slice(0, level).filter(n => n > 0).join(".");const textSpan = document.createElement("span");textSpan.className = "nav-text";textSpan.textContent = header.textContent;link.appendChild(numSpan);link.appendChild(document.createTextNode(" "));link.appendChild(textSpan);li.appendChild(link);if (level > currentLevel) {const newOl = document.createElement("ol");newOl.className = "nav-child";if (currentLevel === 1) {newOl.style.display = "block";stack[currentLevel - 1].lastElementChild.classList.add("active");}stack[currentLevel - 1].lastElementChild.appendChild(newOl);stack[level - 1] = newOl;currentOl = newOl;} else if (level < currentLevel) {currentOl = stack[level - 1];}currentOl.appendChild(li);currentLevel = level;});container.appendChild(ol);setTimeout(() => {const navHeight = calculateHeight(ol);ol.style.setProperty("--height", navHeight + "px");const navChilds = ol.getElementsByClassName("nav-child");Array.from(navChilds).forEach(child => {if (child.style.display === "block") {const childHeight = calculateHeight(child);child.style.setProperty("--height", childHeight + "px");}});}, 0);return ol;}function updateActiveHeading() {const activeLang = document.getElementById("en-content").style.display === "block" ? "en" : "zh";const content = document.getElementById(activeLang + "-content");const toc = document.getElementById(activeLang + "-toc");if (!content || !toc) return;const headers = Array.from(content.querySelectorAll("h1, h2, h3, h4, h5, h6"));const scrollPos = window.scrollY + window.innerHeight / 3;let activeHeader = null;for (let i = headers.length - 1; i >= 0; i--) {const header = headers[i];const headerTop = header.getBoundingClientRect().top + window.scrollY;if (headerTop <= scrollPos) {activeHeader = header;break;}}const links = toc.getElementsByClassName("nav-link");Array.from(links).forEach(link => {link.classList.remove("active");const parentLi = link.parentElement;if (parentLi) {parentLi.classList.remove("active", "active-current");}});if (activeHeader) {const activeLink = toc.querySelector(`a[href="#${activeHeader.id}"]`);if (activeLink) {activeLink.classList.add("active");let parent = activeLink.parentElement;while (parent && parent.classList) {if (parent.classList.contains("nav-item")) {parent.classList.add("active");if (parent.classList.contains("nav-level-1")) {parent.classList.add("active-current");}}parent = parent.parentElement;}}}}function initTippy() {document.querySelectorAll(".refplus-num").forEach((ref) => {if (ref._tippy) {ref._tippy.destroy();}let refid = ref.firstChild.href.replace(location.origin+location.pathname,"");let refel = document.querySelector(refid);if (!refel) return;let refnum = refel.dataset.num;let ref_content = refel.innerText.replace(`[${refnum}]`,"");tippy(ref, {content: ref_content,});});}function initToc() {const originalToc = document.querySelector(".post-toc-wrap");if (!originalToc || !document.getElementById("langToggle")) return;const tocContainer = document.createElement("div");tocContainer.className = "post-toc-wrap sidebar-panel sidebar-panel-active";const enToc = document.createElement("div");enToc.id = "en-toc";enToc.className = "post-toc motion-element";enToc.style.display = "block";const zhToc = document.createElement("div");zhToc.id = "zh-toc";zhToc.className = "post-toc motion-element";zhToc.style.display = "none";generateToc("en", enToc);generateToc("zh", zhToc);tocContainer.appendChild(enToc);tocContainer.appendChild(zhToc);originalToc.parentNode.replaceChild(tocContainer, originalToc);window.addEventListener("scroll", updateActiveHeading);setTimeout(updateActiveHeading, 0);}window.toggleLanguage = function() {const enContent = document.getElementById("en-content");const zhContent = document.getElementById("zh-content");const enToc = document.getElementById("en-toc");const zhToc = document.getElementById("zh-toc");const button = document.getElementById("langToggle");if (!enContent || !zhContent || !enToc || !zhToc || !button) return;const isEnglish = enContent.style.display === "block";enContent.style.display = isEnglish ? "none" : "block";zhContent.style.display = isEnglish ? "block" : "none";enToc.style.display = isEnglish ? "none" : "block";zhToc.style.display = isEnglish ? "block" : "none";button.querySelector(".button-text").textContent = isEnglish ? "Switch to English" : "切换中文";setTimeout(updateActiveHeading, 0);setTimeout(initTippy, 100);};document.addEventListener("DOMContentLoaded", function() {initToc();setTimeout(initTippy, 3000);});})();</script><style>.post-toc { transition: all 0.2s ease-in-out; }.post-toc .nav { padding-left: 0; }.post-toc .nav-child { padding-left: 1em; }.post-toc .nav-item { line-height: 1.8; }.post-toc .nav-link { color: #555; }.post-toc .nav-link:hover { color: #222; }.post-toc .nav-link.active { color: #fc6423; }.post-toc .active > .nav-link { color: #fc6423; }.post-toc .active-current > .nav-link { color: #fc6423; }</style><!-- hexo injector head_end end --><style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">EthanWeee</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/02/03/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/%E6%9F%A5%E8%AF%A2%E7%AE%A1%E9%81%93%E5%92%8C%E7%89%A9%E5%8C%96/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          查询管道和物化
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-02-03 00:00:00" itemprop="dateCreated datePublished" datetime="2025-02-03T00:00:00-08:00">2025-02-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-06-27 14:02:57" itemprop="dateModified" datetime="2025-06-27T14:02:57-07:00">2025-06-27</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/" itemprop="url" rel="index"><span itemprop="name">高级数据存储</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><h2 id="查询执行"><a href="#查询执行" class="headerlink" title="查询执行"></a>查询执行</h2><p>在数据库查询执行中，查询管道（pipelining）和物化（materialization）是两种核心的执行模型。查询管道通过让元组在操作符之间持续流动，实现了流水线式的处理，从而减少了中间结果的写入和读取开销；而物化模型则在每个操作之后将中间结果保存为临时表，再由下一个操作读取，便于管理和重用，但会引入额外的 I&#x2F;O 和存储成本。</p>
+<p>在数据库查询执行中，要在既定的查询计划不变的前提下进一步提升性能，常见的三大技术杠杆正好对应经典的 <strong>CPU 性能方程</strong>：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mtext><mi mathvariant="normal">C</mi><mi mathvariant="normal">P</mi><mi mathvariant="normal">U</mi><mtext> </mtext><mi mathvariant="normal">T</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">e</mi></mtext><mo>=</mo><mtext><mi mathvariant="normal">I</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">n</mi><mtext> </mtext><mi mathvariant="normal">C</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mtext><mo>×</mo><mtext><mi mathvariant="normal">C</mi><mi mathvariant="normal">y</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">s</mi><mtext> </mtext><mi mathvariant="normal">P</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">r</mi><mtext> </mtext><mi mathvariant="normal">I</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">n</mi></mtext><mo>×</mo><mtext><mi mathvariant="normal">C</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">k</mi><mtext> </mtext><mi mathvariant="normal">C</mi><mi mathvariant="normal">y</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">e</mi><mtext> </mtext><mi mathvariant="normal">T</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">e</mi></mtext></mrow><annotation encoding="application/x-tex">
+\text{CPU Time} = \text{Instruction Count} \times \text{Cycles Per Instruction} \times \text{Clock Cycle Time}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="base displaystyle textstyle uncramped"><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">C</span><span class="mord mathrm">P</span><span class="mord mathrm">U</span><span class="mord mspace"> </span><span class="mord mathrm">T</span><span class="mord mathrm">i</span><span class="mord mathrm">m</span><span class="mord mathrm">e</span></span><span class="mrel">=</span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">I</span><span class="mord mathrm">n</span><span class="mord mathrm">s</span><span class="mord mathrm">t</span><span class="mord mathrm">r</span><span class="mord mathrm">u</span><span class="mord mathrm">c</span><span class="mord mathrm">t</span><span class="mord mathrm">i</span><span class="mord mathrm">o</span><span class="mord mathrm">n</span><span class="mord mspace"> </span><span class="mord mathrm">C</span><span class="mord mathrm">o</span><span class="mord mathrm">u</span><span class="mord mathrm">n</span><span class="mord mathrm">t</span></span><span class="mbin">×</span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">C</span><span class="mord mathrm" style="margin-right:0.01389em;">y</span><span class="mord mathrm">c</span><span class="mord mathrm">l</span><span class="mord mathrm">e</span><span class="mord mathrm">s</span><span class="mord mspace"> </span><span class="mord mathrm">P</span><span class="mord mathrm">e</span><span class="mord mathrm">r</span><span class="mord mspace"> </span><span class="mord mathrm">I</span><span class="mord mathrm">n</span><span class="mord mathrm">s</span><span class="mord mathrm">t</span><span class="mord mathrm">r</span><span class="mord mathrm">u</span><span class="mord mathrm">c</span><span class="mord mathrm">t</span><span class="mord mathrm">i</span><span class="mord mathrm">o</span><span class="mord mathrm">n</span></span><span class="mbin">×</span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">C</span><span class="mord mathrm">l</span><span class="mord mathrm">o</span><span class="mord mathrm">c</span><span class="mord mathrm">k</span><span class="mord mspace"> </span><span class="mord mathrm">C</span><span class="mord mathrm" style="margin-right:0.01389em;">y</span><span class="mord mathrm">c</span><span class="mord mathrm">l</span><span class="mord mathrm">e</span><span class="mord mspace"> </span><span class="mord mathrm">T</span><span class="mord mathrm">i</span><span class="mord mathrm">m</span><span class="mord mathrm">e</span></span></span></span></span></span>
+
+<p>。</p>
+<p>基于这一方程，我们可以通过以下三种途径分别作用于各项，从而整体降低查询的执行时间。</p>
+<ol>
+<li><p><strong>减少指令数</strong>：通过让同样的计算工作消耗更少的指令，直接降低方程中的 <strong>Instruction Count</strong>。</p>
+<p>解决方案：</p>
+<ul>
+<li><strong>算法与逻辑优化</strong>：在查询执行层面，合并相邻的过滤或算子，避免产生冗余的中间操作，如将多重过滤合并成单次扫描中的复合条件。</li>
+<li><strong>编译器与JIT优化</strong>：利用现代数据库的即时编译（JIT）技术，将高频 SQL 模板编译成高效机器码，去除不必要的抽象层次。</li>
+<li><strong>简化控制流</strong>：减少分支与函数调用，利用内联（inlining）与分支预测友好的代码组织，降低分支错判带来的指令重执行。</li>
+</ul>
+</li>
+<li><p><strong>降低每条指令的平均周期数</strong>：在保证指令数大致不变的情况下，通过加速每条指令的执行来降低平均周期数，使得每个周期内能执行更多的指令。</p>
+<p>解决方案：</p>
+<ul>
+<li><strong>向量化执行</strong>：一次处理多个数据元素（SIMD），使单条指令能够并行作用于多份数据，显著减少每元素的平均周期开销。</li>
+<li><strong>缓存友好布局</strong>：优化内存访问模式、减少缓存未命中、利用预取（prefetch）技术，降低内存访问延迟对 CPI 的影响。</li>
+<li><strong>流水线与乱序执行</strong>：让 CPU 同时处理多条指令的不同阶段，掩盖指令间的依赖与等待，提高指令吞吐能力。</li>
+</ul>
+</li>
+<li><p><strong>并行化执行</strong>：利用多线程／多进程将查询拆分为若干可并行处理的子任务，以共享整个系统的计算资源。</p>
+<p>解决方案：</p>
+<ul>
+<li><strong>并行扫描 (Parallel Scan)</strong>：将表或分区划分为多个数据块，每个 worker 进程或线程独立扫描其负责的数据块。</li>
+<li><strong>并行聚合 (Parallel Aggregation)</strong>：类似 MapReduce，在每个节点本地先做部分聚合，再在汇总阶段合并结果，降低网络与锁竞争开销。</li>
+<li><strong>动态分区与调度</strong>：根据实时负载与数据分布，自动调整任务划分与调度策略，避免因数据倾斜或节点瓶颈造成性能倒挂。</li>
+</ul>
+</li>
+</ol>
+<p>在现代关系型数据库中，**查询执行（Query Execution）**依赖于三个核心概念：查询计划、操作符实例和任务&#x2F;流水线。查询计划被表示成一个操作符的有向无环图（DAG），它定义了不同运算节点及数据流依赖；操作符实例则是将某一操作符应用到数据的具体调用；任务（也称流水线）由一个或多个操作符实例顺序组成，在同一执行上下文中连续运行，从而实现元组的流式处理和高效并行执行。</p>
+<p>假设我们要执行如下 SQL 命令：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> A.id, B.val</span><br><span class="line"><span class="keyword">FROM</span> A <span class="keyword">JOIN</span> B</span><br><span class="line"><span class="keyword">ON</span> A.id <span class="operator">=</span> B.id</span><br><span class="line"><span class="keyword">WHERE</span> A.val <span class="operator">&lt;</span> <span class="number">88</span> <span class="keyword">AND</span> B.val <span class="operator">&gt;</span> <span class="number">214</span>;</span><br></pre></td></tr></table></figure>
+
+<p>此时的查询执行的示意图如下：</p>
+<p><img src="/../../images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_query_exec_1.drawio.png" alt="img"></p>
+<p>但是在以上的查询执行中，会出现两种普遍发生的性能瓶颈：</p>
+<ol>
+<li><p><strong>指令依赖</strong>：当一条指令的操作数依赖于前一条指令的输出时，就会出现数据依赖，导致后续指令必须等待前一指令完成写回，才能安全地执行。这会导致流水线停顿（Pipeline Stall），也就是依赖链未解除之前，流水线必须插入空周期，暂停取指与执行，直到数据可用。每出现一次停顿，均减少了可用的执行周期，尤其在长依赖链或深度流水线中，性能损失更为显著。</p>
+<p>解决方案：</p>
+<ol>
+<li><strong>前递（Forwarding&#x2F;Bypassing）</strong>：处理器在执行阶段即可将尚未写回的结果转发给下游指令，减少等待时间。</li>
+<li><strong>指令重新排序（Out-of-Order Execution）</strong>：乱序发射允许非依赖指令先行执行，填补停顿周期，提高资源利用率。</li>
+<li><strong>软件优化</strong>：编译器或 JIT 在生成代码时，通过指令调度将依赖指令错开，或插入无关指令填充空档，降低数据冒险带来的停顿。</li>
+</ol>
+</li>
+<li><p><strong>分支预测</strong>：处理器在遇到分支指令时，会猜测分支是否成立，并预取／预执行分支路径上的指令，以保持流水线连续。这会导致<strong>流水线冲刷（Pipeline Flush）</strong>：若预测错误，必须将已加载但未提交的指令全部作废，并重新从正确目标地址逐级取指，造成数十至上百个周期的空闲；以及<strong>分支惩罚随流水线深度增加而增大</strong>：深度更高的流水线需要冲刷更多级的指令，带来更高的性能损失。</p>
+<p>缓解方案：</p>
+<ol>
+<li><strong>动态分支预测</strong>：利用分支历史表（Branch History Table）等硬件结构根据过去执行情况进行预测，大幅提高准确率。</li>
+<li><strong>无分支代码</strong>：使用位运算和逻辑运算消除显式的 <code>if</code> 判断语句，从而让 CPU 不依赖分支预测。</li>
+<li><strong>索引下推</strong>：将分支条件判断尽量前移到索引扫描阶段，减少进入后续流水线的无效数据。</li>
+<li><strong>向量化执行</strong>：批量处理多条记录，将过滤逻辑应用于整个向量数组，在单条循环中执行多次条件判断并记录掩码，减少分支次数。</li>
+</ol>
+<blockquote>
+<p>[!NOTE]</p>
+<p><strong>数据库中的分支失误：过滤操作</strong></p>
+<p>在顺序扫描过程中，每访问一行记录，都要执行对该行是否满足过滤条件的判断（<code>if</code> 语句），这构成了 DBMS 中<strong>最频繁</strong>的分支指令序列。由于行数据的分布通常不可预测，过滤条件的真&#x2F;假结果几乎是随机的，硬件分支预测器难以积累稳定的历史。</p>
+<p>对于这种情况，我们可以采用无分支代码来解决。假设我们要执行如下命令：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> <span class="keyword">user</span> <span class="keyword">WHERE</span> age <span class="operator">&gt;</span> $(low) <span class="keyword">AND</span> age <span class="operator">&lt;</span> $(high);</span><br></pre></td></tr></table></figure>
+
+<p>那么这个 SQL 命令对应的有分支的代码如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">i = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">for</span> (t <span class="keyword">in</span> table) &#123;</span><br><span class="line">  key = t.key;</span><br><span class="line">  <span class="keyword">if</span> ((key &gt; low) &amp;&amp; (key &lt; high)) &#123;</span><br><span class="line">    copy(t, output[i]);</span><br><span class="line">    i = i + <span class="number">1</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在以上代码中，每次 if 检查都生成一条或多条分支，过滤条件结果依赖于数据值分布，通常呈随机模式，硬件分支预测器难以积累有效历史，同时预测错误时需刷新流水线，放弃已取但未执行完的指令，造成 10–20 个周期的空洞。</p>
+<p>因此我们可以将其改成无分支的代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">i = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">for</span> (t <span class="keyword">in</span> table) &#123;</span><br><span class="line">  copy(t, output[i]);</span><br><span class="line">  key = t.key;</span><br><span class="line">  delta = (key &gt; low ? <span class="number">1</span> : <span class="number">0</span>) &amp; (key &lt; high ? <span class="number">1</span> : <span class="number">0</span>);</span><br><span class="line">  i = i + delta;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这段代码使用三目运算符和按位与（&amp;）生成布尔掩码（0 或 1），避免 if 分支，消除了流水线刷新风险，可保持稳定的指令流，而且无分支的循环更符合 SIMD 自动向量化特性，编译器和 JIT 能将单条循环转换为批量处理指令，并利用 AVX&#x2F;SSE 等向量指令集。</p>
+</blockquote>
+</li>
+</ol>
+<h2 id="处理模型"><a href="#处理模型" class="headerlink" title="处理模型"></a>处理模型</h2><p>在关系型数据库中，**处理模型（Processing Model）**决定了执行器如何遍历并执行优化器生成的查询计划树。不同处理模型在函数调用开销、中间结果管理、内存与 I&#x2F;O 使用等方面各有取舍，因而对 OLTP（短事务、小结果集）与 OLAP（大批量分析查询）场景会产生截然不同的性能影响。</p>
+<h3 id="迭代器模型（Iterator-Volcano-Model）"><a href="#迭代器模型（Iterator-Volcano-Model）" class="headerlink" title="迭代器模型（Iterator &#x2F; Volcano Model）"></a>迭代器模型（Iterator &#x2F; Volcano Model）</h3><p>每个查询计划算子实现一个 <code>next()</code> 方法：调用时返回一个元组或标记结束（<code>null</code>），而且 <code>next()</code> 内部通常是一个循环：对子算子连续调用 <code>next()</code> 以获取下一个元组并进行处理，实现<strong>拉取式（pull-based）流水线</strong>。</p>
+<p>在该模型中，<code>JOIN</code>、<code>ORDER BY</code> 和子查询等算子却会一直被阻塞直到子算子发送完了所有的元祖。</p>
+<p>下图展示了迭代器模型的执行流程，其中绿色箭头大小控制流，红色箭头代表数据流，之后的图都是如此：</p>
+<p><img src="/../../images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_query_exec_iterator.drawio.png" alt="img"></p>
+<p>上图中，在系统层面，这两个流水线各自由不同的执行线程或调度实体运行，可以在硬件资源（CPU 核、线程）许可下同时活跃。但<strong>哈希连接的建表阶段</strong>是一个<strong>管道断裂点（pipeline breaker）</strong>：建表阶段只依赖 R 表，与 Pipeline #2 无关，因此当建表线程在后台扫描 R 时，Pipeline #2 可以同时并发进行 S 表的过滤。一旦建表完成，Pipeline #2 的探测阶段才会真正开始消费 Filter 的输出；如果 Filter 还没产出下一个符合条件的行，探测就会等待。反之，如果过滤很快，探测也会快速拉取并处理。</p>
+<blockquote>
+<p>[!NOTE]</p>
+<p>拉取式流水线中，调用者（上层算子或执行引擎）通过自顶向下的递归调用不断拉取数据，直到叶子算子从底层存储读取到元组并逐层返回。这种设计将控制流和数据流分离，上层算子负责驱动执行进程，下层算子被动提供数据，适合行级的管道处理。</p>
+</blockquote>
+<p>优点：</p>
+<ol>
+<li><strong>内存占用小</strong>：元组生成后可立即沿计划树上下游传递，无需完整物化中间结果。</li>
+<li><strong>早期返回</strong>：可以在部分数据处理完后就立即返回这部分的结果。</li>
+</ol>
+<p>缺点：</p>
+<ol>
+<li><strong>函数调用开销</strong>：深度计划树和高频 <code>next()</code> 调用在高并行度或大结果集场景下带来显著开销。</li>
+<li><strong>难以并行化</strong>：对多核或批处理的支持不够友好。</li>
+</ol>
+<p>因此，该模型在 OLTP 场景中表现优异。</p>
+<h3 id="物化模型（Materialization-Model）"><a href="#物化模型（Materialization-Model）" class="headerlink" title="物化模型（Materialization Model）"></a><strong>物化模型（Materialization Model）</strong></h3><p>Materialization 模型是数据库管理系统中常见的查询执行模型之一，其中每个操作符一次性处理所有输入并一次性输出所有结果，称为物化操作 。该模型适用于 OLTP 场景，因其函数调用较少、协调开销低，能够快速返回少量元组；但对于中间结果集庞大的 OLAP 查询，则可能因临时结果需要写入磁盘而导致性能下降 。DBMS 可通过下推诸如 LIMIT 的执行提示（hints）来避免扫描过多元组，并支持行式存储或列式存储的物化输出方式。</p>
+<p><img src="/../../images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_query_exec_materialization.drawio.png" alt="img"></p>
+<p><strong>向量化模型（Vectorization Model）</strong></p>
+<p>Vectorization 模型是一种批量处理的查询执行策略，其中每个操作符在内部循环中一次性读取并处理一批（batch）的元组，然后一次性向外输出该批结果。这种方式通过利用现代 CPU 的 SIMD 指令加速批量数据处理，显著降低函数调用次数并提升缓存命中率，因而特别适合 OLAP 查询；但对于需要低延迟、逐一元组处理的 OLTP 工作负载，则并不理想。该模型的批大小可根据硬件能力（如 AVX 寄存器宽度）和查询属性动态调整，以实现最优性能。 </p>
+<p>每个查询操作符实现一个 <code>next()</code> 函数，但不是返回单个元组，而是返回一批元组。操作符的内部循环一次性在向量或批量数据上执行相同的操作，而非逐个元组调用。</p>
+<p><img src="/../../images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_query_exec_vectorization.drawio.png" alt="img"></p>
+<p>需要强调的是，以上的三种处理模型都是属于 pull-based 的。</p>
+<p>Pull 模型从根节点发起，通过连续调用 next() 向下拉取数据，适合传统行式、阻塞操作较多的场景；Push 模型则从叶子节点开始，将处理结果推送给父节点，并可在单一循环内融合多个算子，减少中间结果存储，更适合 OLAP 工作负载。</p>
+<p>Push-based 模型的示意图如下：</p>
+<p><img src="/../../images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_query_exec_push.drawio.png" alt="img"></p>
+<p><strong>Pull-based 和 Push-based 模型的对比</strong>：</p>
+<table>
+<thead>
+<tr>
+<th><strong>特性／模型</strong></th>
+<th><strong>Pull（Top-to-Bottom）</strong></th>
+<th><strong>Push（Bottom-to-Top）</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>输出控制</strong></td>
+<td>易于对 LIMIT、TOP-N 等操作进行控制，父算子可随时停止拉取</td>
+<td>不易实现 LIMIT，消费者难以及时通知生产者停止推送</td>
+</tr>
+<tr>
+<td><strong>管道阻塞支持</strong></td>
+<td>原生支持排序、聚合等阻塞算子</td>
+<td>复杂算子需额外物化或流水线断点才能正确执行</td>
+</tr>
+<tr>
+<td><strong>函数调用开销</strong></td>
+<td>每条元组多次调用 <code>next()</code>，虚拟函数和分支跳转较多</td>
+<td>同一循环内推送，函数和分支开销更低</td>
+</tr>
+<tr>
+<td><strong>缓存 &amp; SIMD 利用</strong></td>
+<td>难以批量处理，SIMD 和缓存局部性利用有限</td>
+<td>算子融合后易于批量处理，充分利用缓存和 SIMD</td>
+</tr>
+<tr>
+<td><strong>实现复杂度</strong></td>
+<td>基于 Volcano 模型，逻辑清晰、易于实现与维护</td>
+<td>需算子融合、回调机制和调度框架，开发调试成本高</td>
+</tr>
+<tr>
+<td><strong>适用场景</strong></td>
+<td>OLTP、交互式小批量查询，带 LIMIT 的场景</td>
+<td>OLAP、大规模扫描与聚合，列式存储与 MPP 系统</td>
+</tr>
+</tbody></table>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/30/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/" rel="prev" title="查询优化">
+      <i class="fa fa-chevron-left"></i> 查询优化
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/02/11/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Orca/" rel="next" title="Orca - 面向大数据的模块化查询优化器架构">
+      Orca - 面向大数据的模块化查询优化器架构 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E6%89%A7%E8%A1%8C"><span class="nav-number">1.</span> <span class="nav-text">查询执行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%84%E7%90%86%E6%A8%A1%E5%9E%8B"><span class="nav-number">2.</span> <span class="nav-text">处理模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%AD%E4%BB%A3%E5%99%A8%E6%A8%A1%E5%9E%8B%EF%BC%88Iterator-Volcano-Model%EF%BC%89"><span class="nav-number">2.1.</span> <span class="nav-text">迭代器模型（Iterator &#x2F; Volcano Model）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%89%A9%E5%8C%96%E6%A8%A1%E5%9E%8B%EF%BC%88Materialization-Model%EF%BC%89"><span class="nav-number">2.2.</span> <span class="nav-text">物化模型（Materialization Model）</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Yihang Wei</p>
+  <div class="site-description" itemprop="description">聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">46</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="languages">
+    <label class="lang-select-label">
+      <i class="fa fa-language"></i>
+      <span>简体中文</span>
+      <i class="fa fa-angle-up" aria-hidden="true"></i>
+    </label>
+    <select class="lang-select" data-canonical="">
+      
+        <option value="zh-CN" data-href="/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/02/03/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/%E6%9F%A5%E8%AF%A2%E7%AE%A1%E9%81%93%E5%92%8C%E7%89%A9%E5%8C%96/" selected="">
+          简体中文
+        </option>
+      
+        <option value="en" data-href="/en/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/02/03/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/%E6%9F%A5%E8%AF%A2%E7%AE%A1%E9%81%93%E5%92%8C%E7%89%A9%E5%8C%96/" selected="">
+          English
+        </option>
+      
+    </select>
+  </div>
+
+        
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">京ICP备2025131880号-1 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yihang Wei</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '50%',
+  right: '32px',
+  left: 'unset',
+  time: '0.5s',
+  mixColor: '#fff',
+  backgroundColor: '#fff',
+  buttonColorDark: '#100f2c',
+  buttonColorLight: '#fff',
+  saveInCookies: true,
+  label: '明暗',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+</body>
+</html>

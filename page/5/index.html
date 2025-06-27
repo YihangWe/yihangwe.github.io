@@ -182,6 +182,481 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/CAMP/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/undefined/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/CAMP/" class="post-title-link" itemprop="url">CAMP</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-11-01 00:00:00" itemprop="dateCreated datePublished" datetime="2024-11-01T00:00:00-07:00">2024-11-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-05-31 20:59:33" itemprop="dateModified" datetime="2025-05-31T20:59:33-07:00">2025-05-31</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">数据库系统</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><h1 id="Greedy-Dual-Size-GDS-algorithm"><a href="#Greedy-Dual-Size-GDS-algorithm" class="headerlink" title="Greedy Dual Size (GDS) algorithm"></a>Greedy Dual Size (GDS) algorithm</h1><p>Key Concepts:</p>
+<ol>
+<li><strong>Variable Size and Cost</strong>:<ul>
+<li>Unlike simple algorithms that treat all objects equally, GDS takes into account:<ul>
+<li><strong>Size of the object</strong> (<code>size(p)</code>): Larger objects take up more space in memory.</li>
+<li><strong>Cost of the object</strong> (<code>cost(p)</code>): This can represent factors like time to retrieve the object, computational effort, or other resource usage.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>Score H(p)</strong>:<ul>
+<li>Each key-value pair ppp in the cache is assigned a score H(p). This score reflects the <strong>benefit of keeping the object</strong> in memory and is calculated using:<ul>
+<li>A <strong>global parameter L</strong>, which adjusts dynamically based on cache state.</li>
+<li>The <strong>size(p)</strong> of the object.</li>
+<li>The <strong>cost(p)</strong> associated with the object.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>Eviction Strategy</strong>:<ul>
+<li>When the cache is full, and a new object needs to be added, GDS removes the object with the <strong>lowest score H(p)</strong>. This process continues until there is enough space for the new object.</li>
+</ul>
+</li>
+</ol>
+<h2 id="Proposition-1"><a href="#Proposition-1" class="headerlink" title="Proposition 1"></a>Proposition 1</h2><p><strong>L is non-decreasing over time.</strong></p>
+<ul>
+<li>The global parameter L, which reflects the minimum priority H(p) among all key-value pairs in the KVS, will either stay the same or increase with each operation. This ensures stability and helps prioritize eviction decisions consistently.</li>
+</ul>
+<p>For any key-value pair ppp in the KVS, the relationship holds:</p>
+<p><strong>L ≤ H(p) ≤ L + cost(p) &#x2F; size(p)</strong></p>
+<ul>
+<li>H(p), the priority of p, always lies between the global minimum L and L + cost(p) &#x2F; size(p), ensuring H(p) reflects both its retrieval cost and size relative to other elements.</li>
+</ul>
+<p><strong>Intuition Behind Proposition 1:</strong></p>
+<ul>
+<li>As L increases over time (reflecting the minimum H(p)), less recently used or less “valuable” pairs become increasingly likely to be evicted. This ensures that newer and higher-priority pairs stay in the KVS longer.</li>
+</ul>
+<p><strong>Key Insights from Proposition 1:</strong></p>
+<ol>
+<li><strong>Delayed Eviction:</strong><ul>
+<li>When p is requested again while in memory, its H(p) increases to L + cost(p) &#x2F; size(p), delaying its eviction.</li>
+</ul>
+</li>
+<li><strong>Impact of Cost-to-Size Ratio:</strong><ul>
+<li>Pairs with higher cost(p) &#x2F; size(p) stay longer in the KVS. For example, if one pair’s ratio is c times another’s, it will stay approximately c times longer.</li>
+</ul>
+</li>
+</ol>
+<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/chart3.png" alt="img"></p>
+<h2 id="Key-Points-in-the-Diagram"><a href="#Key-Points-in-the-Diagram" class="headerlink" title="Key Points in the Diagram"></a>Key Points in the Diagram</h2><ol>
+<li><strong>Cost-to-Size Ratios</strong>:<ol>
+<li>Key-value pairs are grouped into <strong>queues</strong> according to their cost-to-size ratio.</li>
+<li>Each queue corresponds to a specific cost-to-size ratio.</li>
+</ol>
+</li>
+<li><strong>Grouping by Ratio</strong>:<ol>
+<li>Within each queue, key-value pairs are managed using the <strong>Least Recently Used (LRU)</strong> strategy.</li>
+</ol>
+</li>
+<li><strong>Priority Management</strong>:<ol>
+<li>The <strong>priority (H-value)</strong> of a key-value pair is based on: <strong>H(p) &#x3D; L + cost(p) &#x2F; size(p)</strong><ol>
+<li>L: The global non-decreasing variable.</li>
+<li>cost(p) &#x2F; size(p): The cost-to-size ratio of the key-value pair.</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><strong>Efficient Eviction</strong>:<ol>
+<li>CAMP maintains a <strong>heap</strong> that points to the <strong>head of each queue</strong>, storing the minimum H(p) from every queue.</li>
+<li>To identify the next key-value pair for eviction:<ol>
+<li><strong>The algorithm checks the heap to find the queue with the smallest H(p).</strong></li>
+<li><strong>It then evicts the key-value pair at the front of that queue (i.e., the least recently used pair in that cost-to-size group).</strong></li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<h2 id="Rounding-in-CAMP"><a href="#Rounding-in-CAMP" class="headerlink" title="Rounding in CAMP"></a>Rounding in CAMP</h2><p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/bg_bm_rounding.png" alt="img"></p>
+<ol>
+<li><strong>Purpose</strong>: To improve performance, CAMP <strong>reduces the number of LRU queues</strong> by grouping key-value pairs with <strong>similar cost-to-size ratios</strong> into the same queue.</li>
+<li><strong>Key Idea</strong>: Preserve the most significant bits proportional to the value’s size.</li>
+</ol>
+<h2 id="Proposition-2-Explanation-of-Rounding-and-Distinct-Values"><a href="#Proposition-2-Explanation-of-Rounding-and-Distinct-Values" class="headerlink" title="Proposition 2: Explanation of Rounding and Distinct Values"></a>Proposition 2: Explanation of Rounding and Distinct Values</h2><h3 id="Implications"><a href="#Implications" class="headerlink" title="Implications"></a>Implications</h3><ol>
+<li><p><strong>Trade-Off Between Precision and Efficiency</strong>:</p>
+<ul>
+<li><p>A higher p preserves more precision but increases the number of distinct values (and thus computational complexity).</p>
+</li>
+<li><p>Lower p reduces the number of distinct values, making CAMP more efficient but less precise.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Rounding Efficiency</strong>:</p>
+<ul>
+<li>By limiting the number of distinct values, CAMP minimizes the number of LRU queues, reducing overhead while still approximating GDS closely.</li>
+</ul>
+</li>
+</ol>
+<h2 id="Proposition-3-Competitive-Ratio-of-CAMP"><a href="#Proposition-3-Competitive-Ratio-of-CAMP" class="headerlink" title="Proposition 3: Competitive Ratio of CAMP"></a>Proposition 3: Competitive Ratio of CAMP</h2><h3 id="Practical-Implications"><a href="#Practical-Implications" class="headerlink" title="Practical Implications"></a>Practical Implications</h3><ol>
+<li><p><strong>Precision ppp</strong>:</p>
+<ul>
+<li><p>The smaller the ϵ (higher ppp), the closer CAMP approximates GDS.</p>
+</li>
+<li><p>For sufficiently large p, CAMP performs nearly as well as GDS.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Trade-off</strong>:</p>
+<ul>
+<li>Higher p increases precision but also increases the number of distinct cost-to-size ratios and computational overhead.</li>
+</ul>
+</li>
+</ol>
+<h3 id="CAMP’s-Improvement-Over-GDS"><a href="#CAMP’s-Improvement-Over-GDS" class="headerlink" title="CAMP’s Improvement Over GDS:"></a>CAMP’s Improvement Over GDS:</h3><ol>
+<li><strong>Approximation:</strong> CAMP simplifies H(p) by <strong>rounding</strong> the cost-to-size ratio, reducing the precision but making the algorithm more efficient.</li>
+<li><strong>Grouping:</strong> Key-value pairs are <strong>grouped</strong> by similar cost-to-size ratios, reducing the number of queues and simplifying priority management.</li>
+<li><strong>Tie-Breaking:</strong> CAMP uses <strong>LRU within each group</strong> to determine the eviction order, making it computationally cheaper.</li>
+</ol>
+<h3 id="Figure-4-Heap-Node-Visits"><a href="#Figure-4-Heap-Node-Visits" class="headerlink" title="Figure 4: Heap Node Visits"></a>Figure 4: Heap Node Visits</h3><p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/chart4.png" alt="img"></p>
+<p>This figure compares the number of heap node visits for GDS and CAMP as a function of cache size:</p>
+<ol>
+<li><p><strong>GDS</strong>:</p>
+<ul>
+<li><p><strong>Heap size equals the total number of key-value pairs in the cache.</strong></p>
+</li>
+<li><p>Every heap update (insertion, deletion, or priority change) requires visiting O(log⁡n) nodes, where n is the number of cache entries.</p>
+</li>
+<li><p>As cache size increases, GDS’s overhead grows significantly.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>CAMP</strong>:</p>
+<ul>
+<li><p><strong>Heap size equals the number of non-empty LRU queues, which is much smaller than the total number of cache entries.</strong></p>
+</li>
+<li><p>Heap updates occur only when:</p>
+<ul>
+<li><p>The priority of the head of an LRU queue changes.</p>
+</li>
+<li><p>A new LRU queue is created.</p>
+</li>
+</ul>
+</li>
+<li><p>As cache size increases, the number of non-empty LRU queues remains relatively constant, resulting in fewer heap updates.</p>
+</li>
+</ul>
+</li>
+</ol>
+<h1 id="Evaluation"><a href="#Evaluation" class="headerlink" title="Evaluation"></a>Evaluation</h1><p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/chart5.png" alt="img"></p>
+<p><strong>(a) Cost-Miss Ratio vs Precision</strong></p>
+<ul>
+<li><strong>横轴</strong>：精度（Precision），从低到高。</li>
+<li><strong>纵轴</strong>：成本未命中比（Cost-Miss Ratio）。</li>
+<li><strong>结果</strong>：<ul>
+<li>不同的缓存大小比（0.01、0.1 和 0.3）在较低精度下表现一致。</li>
+<li>提高精度后，成本未命中比没有显著变化。</li>
+<li>说明即使使用较低精度，CAMP 的成本未命中比也能接近 GDS（标准实现）。</li>
+</ul>
+</li>
+</ul>
+<p><strong>(b) LRU Queues vs Precision</strong></p>
+<ul>
+<li><strong>横轴</strong>：精度（Precision）。</li>
+<li><strong>纵轴</strong>：CAMP 维护的非空 LRU 队列数量。</li>
+<li><strong>结果</strong>：<ul>
+<li><strong>低精度</strong>（1-5）：CAMP 维持稳定的少量 LRU 队列（约 5 个）。</li>
+<li><strong>高精度</strong>（&gt;10）：队列数增加，尤其是在较大的缓存大小比（如 1.0）下。</li>
+<li><strong>结论</strong>：<ul>
+<li>在较低精度下，CAMP 能保持较低的计算开销，同时维持高效的队列管理。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>(c) Cost-Miss Ratio vs Cache Size Ratio</strong></p>
+<ul>
+<li><strong>横轴</strong>：缓存大小比（Cache Size Ratio），即缓存大小与 trace 文件中唯一键值对总大小的比值。</li>
+<li><strong>纵轴</strong>：成本未命中比（Cost-Miss Ratio）。</li>
+<li><strong>结果</strong>：<ul>
+<li><strong>CAMP</strong>：<ul>
+<li>在所有缓存大小下，成本未命中比最低。</li>
+<li>说明 CAMP 在高成本键值对管理上更具效率。</li>
+</ul>
+</li>
+<li><strong>Pooled LRU</strong>：<ul>
+<li>在较小缓存下表现稍差，但随着缓存增加，接近 CAMP。</li>
+</ul>
+</li>
+<li><strong>LRU</strong>：<ul>
+<li>成本未命中比始终最高。</li>
+</ul>
+</li>
+<li><strong>结论</strong>：<ul>
+<li>CAMP 优于 LRU 和 Pooled LRU，尤其是在小缓存下。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>(d) Miss Rate vs Cache Size Ratio</strong></p>
+<ul>
+<li><strong>横轴</strong>：缓存大小比（Cache Size Ratio）。</li>
+<li><strong>纵轴</strong>：未命中率（Miss Rate）。</li>
+<li><strong>结果</strong>：<ul>
+<li><strong>CAMP</strong>：<ul>
+<li>未命中率显著低于 LRU 和 Pooled LRU，尤其在小缓存下表现最优。</li>
+</ul>
+</li>
+<li><strong>Pooled LRU</strong>：<ul>
+<li>未命中率随着缓存增大而下降，但始终高于 CAMP。</li>
+<li>最低成本池（cheapest pool）未命中率接近 100%，次低成本池未命中率达到 65%。</li>
+</ul>
+</li>
+<li><strong>LRU</strong>：<ul>
+<li>始终高于 CAMP 和 Pooled LRU。</li>
+</ul>
+</li>
+<li><strong>结论</strong>：<ul>
+<li>CAMP 在多种缓存大小下都保持较低的未命中率，且比 Pooled LRU 更均衡。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="CAMP-的适应能力：访问模式变化的分析"><a href="#CAMP-的适应能力：访问模式变化的分析" class="headerlink" title="CAMP 的适应能力：访问模式变化的分析"></a>CAMP 的适应能力：访问模式变化的分析</h1><p>实验设置：</p>
+<ul>
+<li>使用 10 个不同的 trace 文件，每个文件包含 400 万个键值对引用。</li>
+<li>每个 trace 文件（如 TF1、TF2 等）中的请求在其结束后不会再被引用，模拟访问模式的突然变化。</li>
+<li>访问模式具有倾斜分布（如 Zipf 分布），每个 trace 文件中的高成本对象可能在下一次访问中完全无效。</li>
+</ul>
+<p>目标：</p>
+<ul>
+<li>比较 <strong>CAMP</strong>、<strong>Pooled LRU</strong> 和 <strong>LRU</strong> 在不同缓存大小下对访问模式突变的适应能力。</li>
+<li>评估三种算法在突然变化后清除旧的高成本键值对的效率，以及对总体性能（如成本未命中比和未命中率）的影响。</li>
+</ul>
+<p>不同算法的行为分析</p>
+<ol>
+<li><p><strong>LRU</strong>：</p>
+<ul>
+<li><p>按最近使用排序，当新请求的总大小超过缓存大小时清除旧数据。</p>
+</li>
+<li><p>当缓存大小比为 1 时，清除 TF1 数据的时间点对应于 TF3 开始请求的第一个键值对。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Pooled LRU</strong>：</p>
+<ul>
+<li><p>将键值对按成本分组，每组分配固定比例的缓存空间。</p>
+</li>
+<li><p>高成本池占据 99% 的缓存空间，因此在每个新 trace 开始时会突然清除一批旧数据。</p>
+</li>
+<li><p>对于缓存大小比 2&#x2F;3 或更高的情况，直到 TF4（约 800 万请求后）才会清除所有 TF1 数据。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>CAMP</strong>：</p>
+<ul>
+<li><p>对每个成本-大小比维护 LRU 队列，这些队列的大小可以动态调整。</p>
+</li>
+<li><p><strong>优先淘汰较低优先级的数据，但高成本数据即使来自旧 trace，也具有一定保留优先级。</strong></p>
+</li>
+<li><p><strong>当新数据的总大小超过缓存时，旧 trace 的高成本数据才会被逐步清除。</strong></p>
+</li>
+</ul>
+</li>
+</ol>
+<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/chart6.png" alt="img"></p>
+<p><strong>图 6c：缓存比 0.25（小缓存）</strong></p>
+<ol>
+<li><p><strong>LRU</strong>：</p>
+<ul>
+<li><p>清除最快，仅需 <strong>2.1 万次请求</strong> 即完全清除 Trace 1 的所有键值对。</p>
+</li>
+<li><p>由于 LRU 优先淘汰最久未使用的数据，小缓存下表现最佳。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Pooled LRU</strong>：</p>
+<ul>
+<li><p>清除速度较慢，需要 <strong>13.1 万次请求</strong>。</p>
+</li>
+<li><p>原因：Pooled LRU 按成本对键值对分组，高成本池占用较多缓存空间，导致清除滞后。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>CAMP</strong>：</p>
+<ul>
+<li><p>初期清除速度比 Pooled LRU 更快，但最后完全清除所有键值对需到 <strong>TF3 结束（770 万次请求）</strong>。</p>
+</li>
+<li><p>然而，这些未被清除的 Trace 1 数据仅占缓存的 <strong>2%</strong>，说明 CAMP 优先保留了高成本键值对。</p>
+</li>
+</ul>
+</li>
+</ol>
+<p><strong>图 6d：缓存比 0.75（大缓存）</strong></p>
+<ol>
+<li><p><strong>LRU</strong>：</p>
+<ul>
+<li><p>同样清除最快，几乎在 Trace 2 开始时就清除掉大部分 Trace 1 的数据。</p>
+</li>
+<li><p>说明即使缓存较大，LRU 仍然倾向淘汰旧数据。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Pooled LRU</strong>：</p>
+<ul>
+<li><p>清除延迟显著，需要 <strong>730 万次请求</strong>，接近 TF3 结束。</p>
+</li>
+<li><p>原因：高成本池占用过多缓存空间，延迟清除低成本和无用数据。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>CAMP</strong>：</p>
+<ul>
+<li><p>大部分 Trace 1 数据在较早阶段被淘汰，仅保留少量最昂贵的键值对（占缓存比小于 <strong>0.6%</strong>）。</p>
+</li>
+<li><p>即使在 <strong>4000 万次请求</strong>后，这些高成本键值对仍在缓存中，但对整体缓存利用影响极小。</p>
+</li>
+</ul>
+</li>
+</ol>
+<p>针对不同大小但成本相同的键值对，CAMP 优先保留较小的键值对，从而降低未命中率和成本未命中比。</p>
+<p>针对相同大小但成本不同的键值对，CAMP 优先保留高成本键值对，在成本未命中比上显著优于其他算法。</p>
+<p>与其他算法的对比：</p>
+<ul>
+<li><p>LRU：适用于简单场景，但无法处理成本差异。</p>
+</li>
+<li><p>Pooled LRU：小缓存情况下表现不错，但静态分区策略限制了其大缓存场景的效率。</p>
+</li>
+</ul>
+<p>CAMP 的适应性：在处理多样化的成本分布时，通过动态调整和四舍五入策略，CAMP 在复杂负载下表现出更高的灵活性和效率。</p>
+<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>What is the time complexity of LRU to select a victim?</strong></p>
+<p><strong>O(1)</strong> because the least recently used item is always at the tail of the list.</p>
+<p><strong>What is the time complexity of CAMP to select a victim?</strong></p>
+<p><strong>O(logk)</strong> CAMP identifies the key-value pair with the smallest priority from the heap, deletes it and then <strong>heapifies</strong>.</p>
+<p><strong>Why does CAMP do rounding using the high order bits?</strong></p>
+<ul>
+<li>CAMP rounds cost-to-size ratios to <strong>reduce the number of distinct ratios (or LRU queues)</strong>.</li>
+<li>High-order bits are retained because they represent the <strong>most significant portion of the value</strong>, ensuring that <strong>approximate prioritization is maintained</strong>.</li>
+</ul>
+<p><strong>How does BG generate social networking actions that are always valid?</strong></p>
+<p><strong>Pre-Validation of Actions:</strong></p>
+<ul>
+<li>Before generating an action, BG <strong>checks</strong> the current state of the database to ensure the action is valid. For instance:<ul>
+<li>A friend request is only generated if the two users are not already friends or in a “pending” relationship.</li>
+<li>A comment can only be posted on a resource if the resource exists.</li>
+</ul>
+</li>
+</ul>
+<p><strong>Avoiding Concurrent Modifications:</strong></p>
+<ul>
+<li>BG <strong>prevents multiple threads from concurrently modifying the same user’s state</strong>.</li>
+</ul>
+<p><strong>How does BG scale to a large number of nodes?</strong></p>
+<p>BG employs <strong>a shared-nothing architecture</strong> with the following mechanisms to scale effectively:</p>
+<ol>
+<li><p><strong>Partitioning Members and Resources:</strong></p>
+<ul>
+<li><p>BGCoord <strong>partitions</strong> the database into <strong>logical fragments</strong>, each containing <strong>a unique subset</strong> of members, their resources, and relationships.</p>
+</li>
+<li><p>These fragments are assigned to individual BGClients.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Multiple BGClients:</strong></p>
+<ul>
+<li><p>Each BGClient operates <strong>independently</strong>, generating workloads for its assigned logical fragment.</p>
+</li>
+<li><p>By running <strong>multiple</strong> BGClients <strong>in parallel</strong> across different nodes, BG can scale horizontally to handle millions of requests.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>D-Zipfian Distribution:</strong></p>
+<ul>
+<li><p>To ensure realistic and scalable workloads, BG uses a decentralized Zipfian distribution (D-Zipfian) that <strong>dynamically assigns</strong> requests to BGClients based on node performance.</p>
+</li>
+<li><p>Faster nodes receive a larger share of the logical fragments, ensuring even workload distribution.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Concurrency Control:</strong></p>
+<ul>
+<li>BG <strong>prevents simultaneous threads from issuing actions for the same user</strong>, maintaining the integrity of modeled user interactions and avoiding resource contention.</li>
+</ul>
+</li>
+</ol>
+<p><strong>True or False: BG quantifies the amount of unpredictable data produced by a data store?</strong></p>
+<p>True.</p>
+<p>This is achieved through:</p>
+<ul>
+<li><strong>Validation Phase:</strong><ul>
+<li>BG uses <strong>read and write log records</strong> to detect instances where a read operation observes a value <strong>outside the acceptable range</strong>, classifying it as “unpredictable data.”</li>
+</ul>
+</li>
+<li><strong>Metrics Collection:</strong><ul>
+<li>The percentage of requests that observe unpredictable data (τ) is a key metric used to evaluate the data store’s consistency.</li>
+</ul>
+</li>
+</ul>
+<p><strong>How is BG’s SoAR different than its Socialites rating?</strong></p>
+<p>SoAR (Social Action Rating): Represents the <strong>maximum throughput</strong> (actions per second) a data store can achieve while meeting a given SLA.</p>
+<p>Socialites Rating: Represents the <strong>maximum number of concurrent threads</strong> <strong>(users)</strong> a data store can support while meeting the SLA.</p>
+<p>Reference: <a target="_blank" rel="noopener" href="https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=d6f9678772a09ca29101f5efce583960ecf53745">https://citeseerx.ist.psu.edu/document?repid=rep1&amp;type=pdf&amp;doi=d6f9678772a09ca29101f5efce583960ecf53745</a></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
     <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/MySQL/2024/10/31/MySQL/%E7%B4%A2%E5%BC%95/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1976,168 +2451,10 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/MySQL/2024/10/23/MySQL/%E6%97%A5%E5%BF%97/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Yihang Wei">
-      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="EthanWeee">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/undefined/MySQL/2024/10/23/MySQL/%E6%97%A5%E5%BF%97/" class="post-title-link" itemprop="url">日志</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-10-23 00:00:00" itemprop="dateCreated datePublished" datetime="2024-10-23T00:00:00-07:00">2024-10-23</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-06-17 22:29:30" itemprop="dateModified" datetime="2025-06-17T22:29:30-07:00">2025-06-17</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><p><strong>错误日志（Error Log）</strong> 用于记录在服务 <strong>启动、运行及停止</strong> 过程中遇到的各种错误信息。该日志功能默认启用，且默认保存在 Linux 系统的 <code>/var/log/mysqld.log</code>（或 <code>/var/log/mysql/error.log</code>）路径下，也可能在 data 目录中以主机名为 .err 后缀的文件方式存在。若想查看或修改该路径，可通过 MySQL 命令：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> VARIABLES <span class="keyword">LIKE</span> <span class="string">&#x27;%log_error%&#x27;</span>;</span><br></pre></td></tr></table></figure>
-
-<p>该命令会显示当前 log_error 变量的值，即错误日志所在路径。如果该变量为空，通常默认日志会被输出到 stderr，或由系统服务（如 systemd）转至系统日志（如 <code>/var/log/messages</code> 或由 journalctl 管理）。</p>
-<p><strong>二进制日志（Binary Log）</strong> 会记录所有成功执行的 <strong>DDL</strong>（结构定义语句）和 <strong>DML</strong>（数据操作语句），但不会包含纯查询类语句（如 SELECT、SHOW）。它以 <strong>Event</strong> 形式记录，并且保存每条语句执行的时间戳。默认情况下启用二进制日志，并常用于数据备份以及主从复制场景。</p>
-<p>二进制日志系统包括两类文件：</p>
-<ul>
-<li><strong>索引文件（.index）</strong>：跟踪所有二进制日志文件的路径；</li>
-<li><strong>日志文件（形如 .00000*）</strong>：具体记录 DDL 与 DML 的事件。</li>
-</ul>
-<p>日志的记录格式有三种：</p>
-<ul>
-<li><strong>STATEMENT</strong>：以文本形式记录每条 SQL，并不包含事务上下文、权限或系统状态；</li>
-<li><strong>ROW</strong>：以二进制形式记录行数据的变化（旧值和新值）；</li>
-<li><strong>MIXED</strong>（MySQL 8.0 以上默认）：通常使用 STATEMENT，在涉及非确定性函数（如 <code>NOW()</code>、<code>UUID()</code> 等）时自动切换到 ROW 格式。</li>
-</ul>
-<p>针对日志清理，常用命令如下：</p>
-<ul>
-<li><code>RESET BINARY LOGS;</code>（或旧版本的 <code>RESET MASTER;</code>）将删除所有二进制日志，并将索引重置，只保留一个新的空日志文件（编号从 .000001 开始）；</li>
-<li><code>PURGE BINARY LOGS TO &#39;binlog.xxx&#39;;</code> 删除指定日志文件之前的所有日志；</li>
-<li><code>PURGE BINARY LOGS BEFORE &#39;YYYY‑MM‑DD hh:mm:ss&#39;;</code> 删除该时间之前生成的所有日志。</li>
-</ul>
-<p>此外，可以设置系统变量（如 <code>binlog_expire_logs_seconds</code> 或旧版的 <code>expire_logs_days</code>）实现自动清理过期日志，默认保留期为 30 天。</p>
-<p>更多关于 binlog 的信息，可参考：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/rickiyang/p/13841811.html">https://www.cnblogs.com/rickiyang/p/13841811.html</a></p>
-<p><strong>二进制日志（binlog）</strong> 功能可以通过在 <code>my.cnf</code> 或启动参数中设置来进行全面配置，下面是一些常用选项与管理方法：</p>
-<p>启用与路径配置：<code>log‑bin=/home/mysql/binlog/</code></p>
-<p>该参数不仅开启 binlog 功能，还指定日志文件的存放目录。如果不指定路径，MySQL 默认将日志保存在数据目录，并以主机名或 binlog 为基础名生成一系列 <code>.00000*</code> 日志文件。</p>
-<p>文件大小与保留周期：</p>
-<ul>
-<li><code>max_binlog_size=104857600</code> 将单个日志文件最大限制为 100 MB。</li>
-<li><code>expire_logs_days=7</code> 设置日志自动保留时限为 7 天，超过该时长的日志文件会被系统定期清理。</li>
-</ul>
-<p>过滤数据库：</p>
-<p>可以通过以下参数控制哪些库的更新被记录到 binlog：</p>
-<ul>
-<li><code>binlog-do-db=db_name</code>：仅记录指定数据库的变更。</li>
-<li><code>binlog-ignore-db=db_name</code>：忽略指定数据库的更新，不写入日志。</li>
-</ul>
-<p>同步策略：</p>
-<p><code>sync_binlog=0</code> 表示不强制让 MySQL 将日志立即同步到磁盘，交由操作系统定期执行。该配置提高性能，但在主机崩溃时可能丢失最后一部分日志；若设为 1，则在每次提交时都 fsync，一致性高但性能略受影响。</p>
-<p>查看当前设置：</p>
-<p>可以执行以下命令确认配置状态：</p>
-<ul>
-<li><code>SHOW BINARY LOGS;</code>：列出当前所有 binlog 文件；</li>
-<li><code>SHOW MASTER STATUS;</code>：查看主服务器正在使用的最新日志名称与位置；</li>
-<li><code>SHOW VARIABLES LIKE &#39;%log_bin%&#39;;</code>：确认二进制日志是否已启用及其路径；</li>
-<li><code>SHOW VARIABLES LIKE &#39;%binlog_format%&#39;;</code>：查看当前记录格式（STATEMENT、ROW 或 MIXED）；</li>
-<li><code>SHOW VARIABLES LIKE &#39;%binlog_expire_logs_seconds%&#39;;</code>：检查自动过期设置（通常是以秒为单位）。</li>
-</ul>
-<p>手动恢复流程：</p>
-<ol>
-<li>停止 MySQL 服务；</li>
-<li>利用 mysqlbinlog 工具分析 <code>.00000*</code> 中的日志，确认误操作发生前的起始与结束位置；</li>
-<li>清空当前数据库以准备恢复；</li>
-<li>执行命令：<code>mysqlbinlog --start-position=xxx --stop-position=yyy bin-log.00000x &gt; recover.sql</code>，其中 start-position 为误操作前最近一次安全点，stop-position 为误前最后一条正常语句的位置；</li>
-<li>将导出的 recover.sql 文件导入数据库，恢复指定段的变更。</li>
-</ol>
-<p><strong>一般查询日志</strong>记录了MySQL 服务器的<strong>所有连接信息</strong>和客户端的<strong>所有操作语句</strong>，默认是不开启的。</p>
-<p><strong>慢查询日志</strong>用于记录执行时间超过 <code>long_query_time</code>（默认 10 秒）并且扫描记录数不少于 <code>min_examined_row_limit</code> 的 SQL 语句，以帮助识别并优化效率低下的查询。注意，这一功能默认处于关闭状态，开启后不包含管理语句（如 ALTER、CREATE INDEX）及未使用索引的查询，除非你通过以下两个系统变量特别配置：</p>
-<ul>
-<li><code>log_slow_admin_statements</code>：启用后，允许记录管理类语句；</li>
-<li><code>log_queries_not_using_indexes</code>：启用后，记录所有不使用索引的查询（并不限于慢查询）。</li>
-</ul>
-<p>日志触发条件的判断顺序如下（MySQL 8.0+）：</p>
-<ol>
-<li>是不是管理语句，或已启用 <code>log_slow_admin_statements</code>；</li>
-<li>查询执行时间 ≥ long_query_time，或启用 <code>log_queries_not_using_indexes</code> 并且未使用索引；</li>
-<li>扫描的行数 ≥ min_examined_row_limit；</li>
-<li>若启用了该选项，还会受 <code>log_throttle_queries_not_using_indexes</code>（对未用索引查询加速限流）的影响。</li>
-</ol>
-<p>简而言之，慢查询日志只有在 SQL 足够慢或扫描量大时才会记录，且默认不记录管理或索引缺失的语句，除非明确启用相关变量。若需全面监控优化目标，建议根据实际情况调整这三项核心参数。</p>
-<p><strong>重做日志（redo log）</strong> 专门记录已提交事务所做的页面级别修改，以确保在崩溃或异常关机后能够快速恢复数据一致性。与完整行记录不同，redo log 只保存页号（Page ID）和偏移量（Offset）处的数据从旧值到新值的变化，例如在页面 12345 的偏移量 256 位置，将值从 25 修改为 30，既紧凑又高效。这些日志文件通常组成一个循环队列：当当前日志文件写满后，InnoDB 会切换到下一个文件，直到用尽后再回到第一个文件，覆盖最早的日志。</p>
-<p>其工作流程如下：</p>
-<ol>
-<li><strong>事务开始与修改缓冲</strong>：当事务对表中数据进行修改时，InnoDB 先将修改记录写入内存中的 redo log buffer；</li>
-<li><strong>事务提交与刷盘</strong>：提交时，buffer 中的内容根据 <code>innodb_flush_log_at_trx_commit</code> 参数设置，或直接刷入磁盘（值为 1）、或先写入操作系统缓冲区后由系统决定何时落盘（值为 2）、或不强制落盘以提升性能但有丢失风险（值为 0）；</li>
-<li><strong>Checkpoint 协同</strong>：后台 Checkpoint 进程周期性地将内存中的脏数据页同步到表空间文件（<code>*.ibd</code>），并将对应的 redo log 日志标记为可覆写，维持循环日志的持续运作。</li>
-</ol>
-<p>通过这种设计，InnoDB 能够在最短时间内重做已提交的事务修改，快速恢复数据库到故障发生前的一致状态。</p>
-<p>假设在表空间 <strong>1</strong> 中，对页 <strong>42</strong> 的偏移 <strong>128</strong> 处的某条记录的第 <strong>3</strong> 个字段（如 age）执行更新，将其从 <strong>25</strong> 改为 <strong>30</strong>，则对应的 redo 日志项可示意如下：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[MLOG_REC_UPDATE_IN_PLACE]</span><br><span class="line">Type:        MLOG_REC_UPDATE_IN_PLACE</span><br><span class="line">Space ID:      1</span><br><span class="line">Page Number:    42</span><br><span class="line">Record Offset:   128</span><br><span class="line">Update Field Count: 1</span><br><span class="line"> └ Field Number:   3</span><br><span class="line">  Field Data Length: 4</span><br><span class="line">  Field Data:    0x0000001E</span><br></pre></td></tr></table></figure>
-
-<p>binlog 和 redo log 的区别如下表：</p>
-<p><img src="/../../images/MySQL/redo_bin_comp.png" alt="img"></p>
-<p><strong>回滚日志（Undo Log）</strong> 用于在事务回滚和多版本并发控制（MVCC）中保存数据修改前的旧值。当事务开始时，InnoDB 会初始化事务上下文；在执行更新、删除等修改操作时，它首先将当前行的原始数据写入 undo log，同时将对应的物理改动记录到内存中的 redo log buffer；如果事务提交，则会将 redo 日志刷新到磁盘，并将该事务所产生的 undo 日志标记为无效，待后台清理；若事务选择回滚，则 InnoDB 会读取 undo log 中的旧值，将数据恢复到修改前的状态，并在回滚完成后清理相关的 redo 日志。这样既保证了未提交事务的可回滚性，也为 MVCC 提供了版本快照支持。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/4/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/9/">9</a><a class="extend next" rel="next" href="/page/6/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <a class="extend prev" rel="prev" href="/page/4/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/6/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -2203,7 +2520,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">45</span>
+          <span class="site-state-item-count">46</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

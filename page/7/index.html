@@ -182,6 +182,298 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/MySQL/2024/10/09/MySQL/SQL%20%E4%BC%98%E5%8C%96/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/undefined/MySQL/2024/10/09/MySQL/SQL%20%E4%BC%98%E5%8C%96/" class="post-title-link" itemprop="url">SQL 优化</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-10-09 00:00:00" itemprop="dateCreated datePublished" datetime="2024-10-09T00:00:00-07:00">2024-10-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-06-17 22:01:44" itemprop="dateModified" datetime="2025-06-17T22:01:44-07:00">2025-06-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><p>在阐述 SQL 的优化方案之前，我们需要先了解 SQL 的执行流程，如下：</p>
+<ol>
+<li><p>客户端发送 SQL 语句给 MySQL 服务器。</p>
+</li>
+<li><p>如果查询缓存打开则会优先查询缓存，如果缓存中有对应的结果，直接返回给客户端。不过，MySQL 8.0 版本已经移除了查询缓存。</p>
+</li>
+<li><p>分析器对 SQL 语句进行语法分析，判断是否有语法错误。</p>
+</li>
+<li><p>明确 SQL 语句的目的后，MySQL 通过优化器生成执行计划。优化器通过成本计算预估出执行效率最高的方式，基本的预估维度为：</p>
+</li>
+<li><p>IO 成本：</p>
+<ol>
+<li>数据量越大，IO 成本越高，所以要避免 <code>select *</code>；尽量分页查询。</li>
+<li>尽量通过索引加快查询。</li>
+</ol>
+</li>
+<li><p>CPU 成本：</p>
+<ol>
+<li>尽量避免复杂的查询条件，如有必要，考虑对子查询结果进行过滤。</li>
+<li>尽量缩减计算成本，比如说为排序字段加上索引，提高排序效率；比如说使用 union all 替代 union，减少去重处理。</li>
+</ol>
+</li>
+<li><p>执行器调用存储引擎的接口，执行 SQL 语句。</p>
+</li>
+</ol>
+<h2 id="SQL-性能分析工具"><a href="#SQL-性能分析工具" class="headerlink" title="SQL 性能分析工具"></a>SQL 性能分析工具</h2><p>如果要查询某一类 SQL 语句的执行频率，比如查看当前数据库的增删改查操作的访问频次，我们可以使用如下命令：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> [<span class="keyword">GLOBAL</span> <span class="operator">|</span> SESSION] STATUS <span class="keyword">LIKE</span> <span class="string">&#x27;Com_%&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>慢查询日志</strong>记录了执行时间超过指定参数（<code>long_query_time</code>，单位：秒，默认 10 秒）的所有 SQL 语句。</p>
+<p>慢查询日志默认不开启，所以我们需要在配置文件 <code>/etc/my.cnf</code> 中配置如下信息来启动慢查询日志：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">slow_query_log = 1</span><br><span class="line"></span><br><span class="line">long_query_time = 2 # 执行时间超过 2s 的操作被记录到慢查询日志当中</span><br></pre></td></tr></table></figure>
+
+<p>profile 详情（默认关闭），该功能可以帮助了解 SQL 语句耗时的部分。比如：</p>
+<ul>
+<li>查看每一条 SQL 的耗时基本情况：<strong>SHOW</strong> <strong>PROFILES</strong>;</li>
+<li>查看指定 query_id 的 SQL 语句各个阶段的耗时情况（或CPU 使用情况）：<code>show profile [cpu] for query query_id;</code></li>
+<li>查看是否支持 profile 操作：<code>SELECT @@have_profiling;</code></li>
+</ul>
+<p>如果需要开启 profile 操作，我们可以设置：<code>SET profiling = 1;</code></p>
+<p><code>EXPLAIN SELECT SQL语句;</code> 可以获取 MySQL 如何执行 SELECT 语句的信息，包括 SELECT 语句执行过程中表如何连接和连接的顺序，也就是该 SQL 语句的执行计划的细节。</p>
+<p><img src="/../../images/MySQL/explain.png" alt="img"></p>
+<p>上图展示了 explain 语句的结果中的各个字段，这些字段的含义如下表：</p>
+<table>
+<thead>
+<tr>
+<th>列名</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>id</strong></td>
+<td>表示查询中执行 <code>SELECT</code> 子句或操作表的顺序。<br>– <code>id</code> 相同：按顺序从上到下执行。<br>– <code>id</code> 不同：数值越大越优先执行。</td>
+</tr>
+<tr>
+<td><strong>select_type</strong></td>
+<td>表示 <code>SELECT</code> 的类型：<br>– <code>SIMPLE</code>: 简单查询，不使用 <code>JOIN</code> 或子查询。<br>– <code>PRIMARY</code>: 主查询，即最外层查询。<br>– <code>UNION</code>: <code>UNION</code> 中第二个或后面的查询。<br>– <code>SUBQUERY</code>: 在 <code>SELECT</code> &#x2F; <code>WHERE</code> 后包含子查询。<br>– <code>DERIVED</code>: 派生表的 <code>SELECT</code>（<code>FROM</code> 子句中的子查询）。</td>
+</tr>
+<tr>
+<td><strong>table</strong></td>
+<td>查询的表名。</td>
+</tr>
+<tr>
+<td><strong>type</strong></td>
+<td>表示连接类型，性能由好到差：<br>– <code>system</code>: 表只有一行，通常是系统表，速度最快。<br>– <code>const</code>, <code>eq_ref</code>, <code>ref</code>: 使用索引查找单个行，<code>const</code> 最优。<br>– <code>range</code>: 检索给定范围的行。<br>– <code>index</code>: 遍历索引树读取。<br>– <code>ALL</code>: 全表扫描，效率最低。</td>
+</tr>
+<tr>
+<td><strong>possible_keys</strong></td>
+<td>显示该表可能会使用的索引（一个或多个），但不一定真的被使用。</td>
+</tr>
+<tr>
+<td><strong>key</strong></td>
+<td>实际使用的索引；如果为 <code>NULL</code>，则未使用索引。</td>
+</tr>
+<tr>
+<td><strong>key_len</strong></td>
+<td>索引中使用的字节数，是索引字段的最大可能长度，并非实际长度；值越短越好。</td>
+</tr>
+<tr>
+<td><strong>ref</strong></td>
+<td>用于与索引列比较的值来源：<br>– <code>const</code>: 常量（如 <code>WHERE column = &#39;value&#39;</code>）。<br>– 列名称：通常在 <code>JOIN</code> 操作中，表示 <code>JOIN</code> 条件依赖的字段。<br>– <code>NULL</code>: 未使用索引或全表扫描。</td>
+</tr>
+<tr>
+<td><strong>rows</strong></td>
+<td>估算为得到结果集需扫描的行数，越少越好。</td>
+</tr>
+<tr>
+<td><strong>filtered</strong></td>
+<td>表示返回结果行数占扫描行数的百分比，越大越好。</td>
+</tr>
+<tr>
+<td><strong>Extra</strong></td>
+<td>其他信息：<br>– <code>using index condition</code> &#x2F; <code>NULL</code>: 查找使用了索引，但需回表查询数据。<br>– <code>using where, using index</code>: 查找使用了索引，且所需数据都在索引列中，无需回表。<br>– <code>using temporary</code>: 使用临时表存储中间结果。</td>
+</tr>
+</tbody></table>
+<p>示例：</p>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>select_type</th>
+<th>table</th>
+<th>partitions</th>
+<th>type</th>
+<th>possible_keys</th>
+<th>key</th>
+<th>key_len</th>
+<th>ref</th>
+<th>rows</th>
+<th>filtered</th>
+<th>Extra</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>SIMPLE</td>
+<td>user</td>
+<td>NULL</td>
+<td>range</td>
+<td>PRIMARY</td>
+<td>PRIMARY</td>
+<td>4</td>
+<td>NULL</td>
+<td>6</td>
+<td>100.00</td>
+<td>Using where</td>
+</tr>
+</tbody></table>
+<p>通过 explain 命令，我们能分析出一些慢 SQL 的常见原因：</p>
+<p>首先是索引使用问题，我们可通过 possible_keys(预计使用的索引) 和 key(实际使用的索引) 两个字段查看 InnoDB 有没有使用索引，优化器是否选择了错误索引，以及有没有实现覆盖索引。</p>
+<p>接着是 I&#x2F;O 开销问题，通过 rows(执行当前查询要遍历的行数) 和 filtered(有效行数&#x2F;扫描行数比值) 字段来查看，是否扫描的行数过多，是否返回无用列且无用列有明显 I&#x2F;O 性能开销(比如text、blob、json 等类型）。</p>
+<p><code>optimizer_trace</code> 可用于跟踪执行语句的解析、优化、执行的全过程。</p>
+<p>使用步骤：</p>
+<ul>
+<li>查看系统变量信息：<code>show variables like &#39;%optimizer_trace%&#39;;</code></li>
+<li>打开 optimizer trace 开关：<code>set optimizer_trace=&quot;enabled=on&quot;;</code></li>
+<li>执行 SQL 语句。</li>
+<li>查看 INFORMATION_SCHEMA.OPTIMIZER_TRACE 表中跟踪结果：<code>select * from INFORMATION_SCHEMA.OPTIMIZER_TRACE;</code>，并分析执行树：<ul>
+<li><code>join_preparation</code>：准备阶段；</li>
+<li><code>join_optimization</code>：分析阶段；</li>
+<li><code>join_execution</code>：执行阶段。</li>
+</ul>
+</li>
+</ul>
+<p>关闭该功能：<code>set optimizer_trace=&quot;enabled=off&quot;;</code></p>
+<h2 id="定位慢-SQL"><a href="#定位慢-SQL" class="headerlink" title="定位慢 SQL"></a>定位慢 SQL</h2><p>定位和优化慢 SQL 是提升 MySQL 性能的关键环节。通常可通过以下四大步骤完成：</p>
+<ol>
+<li>慢查询日志：记录所有执行时间超过阈值的 SQL，并借助 mysqldumpslow 汇总分析；</li>
+<li>服务监控：在应用层面通过字节码插桩、连接池或 ORM 拦截对慢 SQL 进行实时监控与告警；</li>
+<li>SHOW PROCESSLIST：在数据库层面查看当前运行的会话及其执行时间，快速锁定长时间运行的语句；</li>
+<li>EXPLAIN：对疑似慢 SQL 执行 EXPLAIN，洞察查询执行计划，从而发现索引缺失、全表扫描等根本原因。</li>
+</ol>
+<p><img src="/../../images/MySQL/sql_optimize.png" alt="img"></p>
+<h2 id="索引优化"><a href="#索引优化" class="headerlink" title="索引优化"></a>索引优化</h2><p>覆盖索引指的是当查询所需字段全部存在于索引叶节点时，数据库可以仅依赖索引而无需回表读取，显著降低 I&#x2F;O 开销。因此我们需要避免不必要的列，只查询需要的列。</p>
+<p>创建联合索引能使多个查询字段同时被索引覆盖，从而避免回表和索引合并操作，且应遵循最左前缀规则以确保索引被有效利用。</p>
+<p>为了保持索引的可用性，应避免使用 <code>!=</code>、<code>&lt;&gt;</code> 等非等值算符以及在索引列上应用函数，因为这些写法会导致索引失效，全表扫描或全索引扫描，从而影响性能。</p>
+<p>当对较长字符串字段建立前缀索引时，可节省存储空间，但由于前缀索引无法存储完整值，MySQL 无法利用其实现排序或分组操作，依然可能触发 filesort 或临时表。</p>
+<p>此外，InnoDB 默认启用索引下推技术（ICP），能将部分过滤条件下放至存储引擎层，仅在满足索引列过滤的记录上执行回表，从而减少数据传输量与回表次数，进一步提升查询效率。</p>
+<p>假设我要执行如下命令：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> users <span class="keyword">WHERE</span> age <span class="operator">&gt;</span> <span class="number">30</span> <span class="keyword">AND</span> city <span class="operator">=</span> <span class="string">&#x27;Los Angeles&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>在未启用索引下推时，InnoDB 存储引擎仅依据 age &gt; 30 的索引范围扫描收集所有符合该条件的行，并将它们一股脑儿地返回给 MySQL 服务器层，由服务器再对 <code>city = &#39;Los Angeles&#39;</code> 条件逐行筛选；而启用索引下推后，存储引擎会在索引扫描阶段同时评估 <code>age &gt; 30</code> 与 <code>city = &#39;Los Angeles&#39;</code> 两个条件，只有同时满足的行才会被送到服务器层，从而避免了无谓的行回表和服务器级过滤，显著减少了 I&#x2F;O 操作并提升了查询性能。实际执行时，若在 EXPLAIN 的 Extra 列中看到 Using index condition 即表示已启用这一优化。</p>
+<h2 id="join-优化"><a href="#join-优化" class="headerlink" title="join 优化"></a>join 优化</h2><p>在实际生产环境中，为了避免子查询带来的性能瓶颈，我们通常将其改写为等价的 JOIN 操作，并让行数较少的小表首先驱动行数庞大的大表，从而缩小中间结果集，减少随机 I&#x2F;O；同时可以在业务表中适当增加冗余字段，将频繁关联的维度信息直接存储在事实表中，以降低 JOIN 次数；为控制单次查询的复杂度，通常不超过三张表联合查询，如若业务允许，还可将逻辑复杂的多表 JOIN 拆分为多个简单查询，再在应用层按需合并结果，以实现更稳定高效的查询性能。</p>
+<h2 id="insert-优化"><a href="#insert-优化" class="headerlink" title="insert 优化"></a>insert 优化</h2><p>在大规模数据写入场景下，将多条记录合并到单条 INSERT 语句中（例如一次提交 500–1000 条）能显著减少网络往返与语句解析开销，性能远超逐行插入；同时，关闭 AUTOCOMMIT 并使用 <code>START TRANSACTION…COMMIT</code> 手动提交事务，可以将多次写操作合并在一次事务中，避免频繁的事务开启与提交，从而进一步提升吞吐量；对于尤其庞大的数据集，采用 <code>LOAD DATA LOCAL INFILE</code> 命令从客户端文件批量导入，可利用服务器端的高速流式加载机制，其速度通常比批量 INSERT 快一个数量级以上；最后，确保插入数据按照主键单调递增的顺序写入 InnoDB 表，可减少聚簇索引中的页分裂与随机 I&#x2F;O，获得优于乱序插入的最佳写入性能。</p>
+<h2 id="主键优化"><a href="#主键优化" class="headerlink" title="主键优化"></a>主键优化</h2><p><strong>选择简短且固定长度的整型主键</strong>：主键长度越短，聚簇索引和二级索引的存储和缓存开销越小；建议使用 INT 或 BIGINT 类型，并尽量避免使用 UUID 等无序且长度较长的值。</p>
+<p><strong>采用自增（<code>AUTO_INCREMENT</code>）主键</strong>：自增主键保证插入顺序与唯一性，能够最大化页的填充率并避免频繁的页分裂；只要满足业务需求，应优先使用自增主键而非自然主键（如身份证号）。</p>
+<p><strong>避免修改主键值</strong>：主键一旦更新，InnoDB 必须删除旧记录并插入新记录，等同于一次删除加一次插入，极易导致页分裂和 B+ 树重组，严重影响写入性能和存储布局。</p>
+<p><strong>显式定义主键</strong>：即使表中已有唯一索引，仍应显式声明主键列；若未定义主键，InnoDB 会隐式创建一个隐藏的聚簇索引，增加不确定性，且可能浪费空间和管理成本。</p>
+<h2 id="order-by-优化"><a href="#order-by-优化" class="headerlink" title="order by 优化"></a>order by 优化</h2><p>在 MySQL 中，任何无法直接利用索引有序性完成的 ORDER BY 操作都会触发 <strong>filesort</strong>：存储引擎先全表（或范围）扫描读取所有匹配行，将它们放入排序缓冲区（<code>sort_buffer</code>）中完成内存（或磁盘）排序后再返回结果；而如果能建立一个正好覆盖排序字段并且包含查询所需列的索引（<strong>Using index</strong>），MySQL 则可通过顺序扫描该索引直接输出有序结果，无需额外排序，效率更高。例如：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> age, phone </span><br><span class="line"><span class="keyword">FROM</span> table_name </span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> age <span class="keyword">ASC</span>, phone <span class="keyword">DESC</span>;</span><br></pre></td></tr></table></figure>
+
+<p>若事先创建：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> INDEX idx_user_age_pho_ad </span><br><span class="line"><span class="keyword">ON</span> table_name(age <span class="keyword">ASC</span>, phone <span class="keyword">DESC</span>);</span><br></pre></td></tr></table></figure>
+
+<p>则该查询可通过索引顺序扫描直接返回，避免 filesort 和回表查询；否则，MySQL 在执行时仍需先回表取出 phone 字段，再对 age、phone 结果集进行 filesort，才能满足排序要求。对于多列排序，除了要遵循<strong>最左前缀</strong>原则以保证索引可用，还需在建索引时指定正确的 ASC&#x2F;DESC 顺序；当无法避免 filesort 时，可通过增大 <code>sort_buffer_size</code>（默认为 256 KB）来提升大数据量场景下的排序性能。</p>
+<h2 id="group-by-优化"><a href="#group-by-优化" class="headerlink" title="group by 优化"></a>group by 优化</h2><p>在 MySQL 中，如果将用于 GROUP BY 的列定义在符合<strong>最左前缀</strong>规则的复合 B+Tree 索引上，服务器就可以直接沿着索引的有序叶节点执行分组操作，而无需使用临时表或 filesort，从而显著提高聚合查询性能；例如对于 <code>GROUP BY(a, b)</code> 的场景，只要存在 <code>(a, b, …)</code> 这样的复合索引，MySQL 就能利用该索引在扫描叶节点时即完成对 (a,b) 键值的分组，而不是先拉取所有行再在服务器层排序和分组。</p>
+<h2 id="limit-优化"><a href="#limit-优化" class="headerlink" title="limit 优化"></a>limit 优化</h2><p>在面对海量数据分页时，传统的 <code>LIMIT … OFFSET</code> 会因数据库必须扫描并丢弃前 OFFSET 行而导致深度分页速度骤降；为此，可采用延迟关联（Deferred Join）技术——先在子查询中仅基于主键索引完成分页，再与主表 JOIN 获取完整行，以大幅缩减扫描量并保持深度分页的稳定性能；另一种常见做法是书签或键集分页（Keyset Pagination），即在每页结果中记录最后一行的排序键，下次查询以 <code>WHERE key &gt; last_key LIMIT N</code> 的方式继续，既避免了昂贵的 OFFSET 跳过开销，又能直接利用索引顺序扫描；总之，通过延迟关联减少笛卡尔积运算并使用游标式或书签式分页策略，可在保持简洁 SQL 的同时显著提升大数据量分页查询的执行效率。</p>
+<h2 id="count-优化"><a href="#count-优化" class="headerlink" title="count 优化"></a>count 优化</h2><p>在 MySQL 中，<code>COUNT(column)</code> 最慢，因为引擎要逐行取出指定列的值并判断是否为 NULL，只有非空值才累加；<code>COUNT(primary_key)</code> 略快一些，因为主键列本身有 NOT NULL 约束，无需判断空值即可累加；<code>COUNT(1)</code> 与 <code>COUNT(*)</code> 在现代 MySQL 中被优化为等价操作，它们都不实际读取任何列值，而是在服务层对每行隐式累加一个常量，性能十分接近，通常是最快的计数方式。</p>
+<p>大多数权威测试与官方文档都表明，COUNT(1) 与 COUNT(*) 在 MySQL&#x2F;InnoDB 上几乎没有性能差异，且二者优于其他形式的 COUNT（例如 COUNT(column)）。</p>
+<blockquote>
+<p>[!NOTE]</p>
+<p>如果我们需要在大数据量下统计唯一值，同时对处理速度要求很高，但是允许出现小幅度误差，这个时候我们可以使用 HyperLogLog 算法。</p>
+<p>HyperLogLog 是一种概率算法，通过统计哈希值中最长前导零长度来估算数据基数，误差一般在 1–2% 范围内。</p>
+<p>具体论文，可参考：<a target="_blank" rel="noopener" href="https://algo.inria.fr/flajolet/Publications/FlFuGaMe07.pdf">https://algo.inria.fr/flajolet/Publications/FlFuGaMe07.pdf</a></p>
+</blockquote>
+<h2 id="update-优化"><a href="#update-优化" class="headerlink" title="update 优化"></a>update 优化</h2><p>InnoDB 的行锁实际上是对索引记录（index record）加锁，而非对物理存储行本身加锁：当执行带有 WHERE 条件的 <code>UPDATE</code>、<code>DELETE</code> 或 <code>SELECT … FOR UPDATE</code> 时，InnoDB 会在匹配条件的索引叶节点上设置记录锁和必要的间隙锁，从而实现行级并发控制；但如果查询条件无法利用任何合适的索引，InnoDB 就必须扫描整个表并在聚簇索引（或隐式主键索引）上对所有记录加锁，这时就会退化为表级锁，阻塞全表写操作；同样地，若使用的索引失效（例如对非索引列做范围扫描或函数运算），也会触发锁粒度升级为表锁，导致并发性能急剧下降。因此，为了保持细粒度的行锁并避免意外的表锁锁阻塞，务必为常用的查询条件列创建合适且选择性高的索引。</p>
+<h2 id="union-优化"><a href="#union-优化" class="headerlink" title="union 优化"></a>union 优化</h2><p>在使用 UNION 语句时，为了让优化器更高效地执行查询，应将共同的过滤条件（如 WHERE）和分页限制（如 LIMIT）尽可能下推到各个子查询中，这样每个子查询只需处理满足自身子集条件的行，并在各自范围内完成截取与过滤，避免先将所有子查询结果合并后再做统一筛选，从而减少中间结果集的大小、降低 I&#x2F;O 与内存开销，并加快整体查询响应速度。</p>
+<p><strong>MySQL 数据库 cpu 飙升的话，要怎么处理呢？</strong></p>
+<p>在 MySQL 出现 CPU 飙升时，首先可借助操作系统工具（如 top 或 htop）确认是 mysqld 进程占用过高，接着在数据库层面执行 <code>SHOW PROCESSLIST</code> 或查询 <code>information_schema.processlist</code>，快速定位执行时间或状态异常的会话，并对最耗资源的 SQL 做 EXPLAIN 分析，检查是否缺失索引或数据量过大；发现可疑线程后，可使用 KILL 语句终止它们，同时观察 CPU 是否回落，然后针对性地优化（如新增索引、重写慢查询、调整内存参数等）并重新执行这些 SQL；此外，如果是大量会话瞬间涌入导致 CPU 突增，则需与应用方协同排查连接激增的原因，并可考虑设置最大连接数或在业务层做限流，以防过多并发请求压垮数据库服务器。</p>
+<p><strong>有一个查询需求，MySQL 中有两个表，一个表 1000W 数据，另一个表只有几千数据，要做一个关联查询，如何优化？</strong></p>
+<p>如果 orders 表是大表（比如 1000 万条记录），而 users 表是相对较小的表（比如几千条记录）。</p>
+<ol>
+<li><p>为关联字段建立索引，确保两个表中用于 JOIN 操作的字段都有索引。这是最基本的优化策略，避免数据库进行全表扫描，可以大幅度减少查找匹配行的时间。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> INDEX idx_user_id <span class="keyword">ON</span> users(user_id);</span><br><span class="line"><span class="keyword">CREATE</span> INDEX idx_user_id <span class="keyword">ON</span> orders(user_id);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>小表驱动大表，在执行 JOIN 操作时，先过滤小表中的数据，这样可以减少后续与大表进行 JOIN 时需要处理的数据量，从而提高查询效率。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> u.<span class="operator">*</span>, o.<span class="operator">*</span></span><br><span class="line"><span class="keyword">FROM</span> (</span><br><span class="line">  <span class="keyword">SELECT</span> user_id</span><br><span class="line">  <span class="keyword">FROM</span> users</span><br><span class="line">  <span class="keyword">WHERE</span> some_condition <span class="comment">-- 这里是对小表进行过滤的条件</span></span><br><span class="line">) <span class="keyword">AS</span> filtered_users</span><br><span class="line"><span class="keyword">JOIN</span> orders o <span class="keyword">ON</span> filtered_users.user_id <span class="operator">=</span> o.user_id</span><br><span class="line"><span class="keyword">WHERE</span> o.some_order_condition; <span class="comment">-- 如果需要，可以进一步过滤大表</span></span><br></pre></td></tr></table></figure></li>
+</ol>
+<p><strong>如何解决慢查询问题？</strong></p>
+<p>首先，开启慢查询日志，用于记录执行时间超过阈值的查询，帮助定位慢查询的 SQL 语句。</p>
+<p>开启方法如下：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SET</span> <span class="keyword">GLOBAL</span> slow_query_log <span class="operator">=</span> <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">SET</span> <span class="keyword">GLOBAL</span> long_query_time <span class="operator">=</span> <span class="number">1</span>; <span class="comment">-- 设置慢查询的阈值为1秒</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">SHOW</span> VARIABLES <span class="keyword">LIKE</span> <span class="string">&#x27;slow_query_log%&#x27;</span>; <span class="comment">-- 确认是否启用</span></span><br></pre></td></tr></table></figure>
+
+<p>之后检查慢查询日志文件，定位耗时较长的 SQL 语句，并使用 EXPLAIN 分析 SQL 的执行计划，判断是否使用了索引或是否存在全表扫描等问题。</p>
+<p>比如说：<code>EXPLAIN SELECT * FROM table_name WHERE column_name = &#39;value&#39;;</code>，该命令中的关键字段解释如下：</p>
+<ol>
+<li>type：查询类型，优化目标是避免 ALL（全表扫描），优先选择 index、range。</li>
+<li>key：实际使用的索引。</li>
+<li>rows：扫描的行数，值越小越好。</li>
+<li>extra：留意 Using temporary 或 Using filesort，这些会影响性能。</li>
+</ol>
+<p>如果缺少索引，那么我们需要为查询条件中的字段添加索引，特别是 WHERE、JOIN、GROUP BY、ORDER BY 中涉及的字段。<br>比如说：<code>CREATE INDEX idx_column ON table_name (column_name);</code></p>
+<p>如果大量数据出现回表操作，那么需要改成覆盖索引，减少回表操作。<br>比如说：<code>CREATE INDEX idx_multi_column ON table_name (column1, column2);</code></p>
+<p>同时，还要判断是否出现索引失效。对此，我们可以避免对索引列使用函数或表达式，避免隐式类型转换（如字符串与数字比较）。</p>
+<p>然后，我们可以重构查询语句，比如说使用 LIMIT 分页来避免返回大量数据：<code>SELECT * FROM table_name WHERE condition LIMIT 100;</code>，或者可以明确查询字段：<code>SELECT column1, column2 FROM table_name WHERE condition;</code>，避免运行 <code>SELECT *;</code>，再者可以在 JOIN 字段上设置索引，并尽量减少复杂的嵌套查询。</p>
+<p>最后，我们可以进行表结构优化。</p>
+<p>比如说可以使用分区表，也就是如果查询条件中经常使用时间或地理区域，可以将表按这些字段分区，减少扫描范围：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE TABLE</span> table_name (</span><br><span class="line">  id <span class="type">BIGINT</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line">  created_at <span class="type">DATE</span> <span class="keyword">NOT NULL</span></span><br><span class="line">) <span class="keyword">PARTITION</span> <span class="keyword">BY</span> <span class="keyword">RANGE</span> (<span class="keyword">YEAR</span>(created_at)) (</span><br><span class="line">  <span class="keyword">PARTITION</span> p2023 <span class="keyword">VALUES</span> LESS THAN (<span class="number">2024</span>),</span><br><span class="line">  <span class="keyword">PARTITION</span> p2024 <span class="keyword">VALUES</span> LESS THAN (<span class="number">2025</span>)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<p>或者如果单表数据量仍然过大，还可以按特定规则（如用户 ID）将表拆分为多个子表，降低单表数据量。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
     <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/MySQL/2024/10/06/MySQL/%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2047,448 +2339,10 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/27/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/FoundationDB/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Yihang Wei">
-      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="EthanWeee">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/undefined/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/27/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/FoundationDB/" class="post-title-link" itemprop="url">FoundationDB</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-09-27 00:00:00" itemprop="dateCreated datePublished" datetime="2024-09-27T00:00:00-07:00">2024-09-27</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-05-31 20:59:56" itemprop="dateModified" datetime="2025-05-31T20:59:56-07:00">2025-05-31</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">数据库系统</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><h1 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h1><p>FoundationDB的研究意义在于，它成功地将NoSQL的灵活性与ACID事务的强大功能结合在一起，提供了一种模块化的架构，使得各个子系统可以独立配置和扩展。这种设计不仅提高了系统的可扩展性和可用性，还增强了故障容忍能力。此外，FoundationDB采用了严格的模拟测试框架，确保了系统的稳定性和高效性，使得开发者能够快速引入和发布新特性。FoundationDB的快速恢复机制显著提高了系统的可用性，简化了软件升级和配置变更的过程，通常在几秒钟内完成。</p>
-<p>The main design principles are:</p>
-<ol>
-<li>Divide-and-Conquer (or separation of concerns). FDB decouples the transaction management system (write path) from the distributed storage (read path) and scales them independently. Within the transaction management system, processes are assigned various roles representing different aspects of transaction management. Furthermore, cluster-wide orchestrating tasks, such as overload control and load balancing are also divided and serviced by additional heterogeneous roles.</li>
-<li>Make failure a common case. For distributed systems, failure is a norm rather than an exception. To cope with failures in the transaction management system of FDB, we handle all failures through the recovery path: the transaction system proactively shuts down when it detects a failure. Thus, all failure handling is reduced to a single recovery operation, which becomes a common and well-tested code path. To improve availability, FDB strives to minimize Mean-Time-To-Recovery (MTTR). In our production clusters, the total time is usually less than five seconds.</li>
-<li>Simulation testing. FDB relies on a randomized, deterministic simulation framework for testing the correctness of its distributed database. Simulation tests not only expose deep bugs, but also boost developer productivity and the code quality of FDB.</li>
-</ol>
-<h1 id="Architecture"><a href="#Architecture" class="headerlink" title="Architecture"></a>Architecture</h1><p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/FDB_arch.png" alt="img"></p>
-<ul>
-<li><p>The control plane is responsible for persisting critical system metadata, that is, the configuration of transaction systems, on Coordinators.</p>
-<ul>
-<li><p>These <strong>Coordinators</strong> form a Paxos group and elect a ClusterController.</p>
-</li>
-<li><p>The <strong>ClusterController</strong> monitors all servers in the cluster and recruits three processes, Sequencer, DataDistributor, and Ratekeeper, which are re-recruited if they fail or crash.</p>
-</li>
-<li><p>The <strong>DataDistributor</strong> is responsible for monitoring failures and balancing data among StorageServers.</p>
-</li>
-<li><p><strong>Ratekeeper</strong> provides overload protection for the cluster.</p>
-</li>
-</ul>
-</li>
-<li><p>The data plane is responsible for transaction processing and data storage. FDB chooses an unbundled architecture:</p>
-<ul>
-<li><p>A distributed transaction management system (TS) consists of a Sequencer, Proxies, and Resolvers, all of which are stateless processes.</p>
-<ul>
-<li><p>The Sequencer assigns a read and a commit version to each transaction.</p>
-</li>
-<li><p>Proxies offer MVCC read versions to clients and orchestrate transaction commits.</p>
-</li>
-<li><p>Resolvers check for conflicts among transactions.</p>
-</li>
-</ul>
-</li>
-<li><p>A log system (LS) stores Write-Ahead-Log (WAL) for TS, and a separate distributed storage system (SS) is used for storing data and servicing reads. The LS contains a set of LogServers and the SS has a number of StorageServers. LogServers act as replicated, sharded, distributed persistent queues, each queue storing WAL data for a StorageServer.</p>
-</li>
-</ul>
-</li>
-</ul>
-<p><strong>Clients read from sharded StorageServers, so reads scale linearly with the number of StorageServers.</strong></p>
-<p><strong>Writes are scaled by adding more Proxies, Resolvers, and LogServers.</strong></p>
-<p>The control plane’s singleton processes (e.g., ClusterController and Sequencer) and Coordinators are not performance bottlenecks; they only perform limited metadata operations. 因为元数据操作少且简单，且与两者无关的数据读写是并行扩展的（如上面两行加粗字体所述）。</p>
-<h1 id="Bootstrapping"><a href="#Bootstrapping" class="headerlink" title="Bootstrapping"></a>Bootstrapping</h1><p>FDB has no dependency on external coordination services. All user data and most system metadata (keys that start with 0xFF prefix) are stored in StorageServers. The metadata about StorageServers is persisted in LogServers, and the LogServers configuration data is stored in all Coordinators.</p>
-<ol>
-<li>The Coordinators are a disk Paxos group; servers attempt to become the ClusterController if one does not exist.</li>
-<li>A newly elected ClusterController reads the old LS configuration from the Coordinators and spawns a new TS and LS.</li>
-<li>Proxies recover system metadata from the old LS, including information about all StorageServers.</li>
-<li>The Sequencer waits until the new TS finishes recovery, then writes the new LS configuration to all Coordinators. The new transaction system is then ready to accept client transactions.</li>
-</ol>
-<h1 id="Reconfiguration"><a href="#Reconfiguration" class="headerlink" title="Reconfiguration"></a>Reconfiguration</h1><p>The Sequencer process monitors the health of Proxies, Resolvers, and LogServers. Whenever there is a failure in the TS or LS, or the database configuration changes, the Sequencer terminates. The ClusterController detects the Sequencer failure, then recruits and bootstraps a new TS and LS. In this way, transaction processing is divided into epochs, where each epoch represents a generation of the transaction management system with its own Sequencer.</p>
-<h1 id="End-to-end-transaction-processing"><a href="#End-to-end-transaction-processing" class="headerlink" title="End-to-end transaction processing"></a>End-to-end transaction processing</h1><ol>
-<li><p><strong>Transaction Start and Read Operations:</strong></p>
-<ul>
-<li><p>A client starts a transaction by contacting a <strong>Proxy</strong> to obtain a read version (timestamp).</p>
-</li>
-<li><p>The <strong>Proxy</strong> requests a read version from the <strong>Sequencer</strong> that is greater than all previously issued commit versions and sends it to the client.</p>
-</li>
-<li><p>The client then reads from <strong>StorageServers</strong> at this specific read version.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Buffered Write Operations</strong>:</p>
-<ul>
-<li><p>Client writes are buffered locally and not sent to the cluster immediately.</p>
-</li>
-<li><p>Read-your-write semantics are preserved by combining the database lookups with the client’s uncommitted writes.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Transaction Commit</strong>:</p>
-<ul>
-<li><p>When the client commits, it sends the transaction data (read and write sets) to a <strong>Proxy</strong>, waiting for either a commit or abort response.</p>
-</li>
-<li><p>The <strong>Proxy</strong> commits a transaction in three steps:</p>
-<ol>
-<li><p><strong>Obtain Commit Version</strong>: The Proxy requests a commit version from the <strong>Sequencer</strong> that is larger than all current read or commit versions.</p>
-</li>
-<li><p><strong>Conflict Check</strong>: The Proxy sends transaction data to the partitioned <strong>Resolvers</strong>, which check for read-write conflicts. If no conflicts are found, the transaction proceeds; otherwise, it is aborted.</p>
-</li>
-<li><p><strong>Persist to Log Servers</strong>: The transaction is sent to <strong>LogServers</strong> for persistence, and after all LogServers acknowledge, the transaction is considered committed. The Proxy then reports the committed version to the <strong>Sequencer</strong> and sends the response back to the client.</p>
-</li>
-</ol>
-</li>
-</ul>
-</li>
-<li><p><strong>Applying Writes</strong>:</p>
-<ul>
-<li><strong>StorageServers</strong> continuously pull mutation logs from <strong>LogServers</strong> and apply the committed changes to disk.</li>
-</ul>
-</li>
-<li><p><strong>Read-Only Transactions and Snapshot Reads</strong>:</p>
-<ul>
-<li><p>Read-only transactions are <strong>serializable</strong> (at the read version) and <strong>high-performance</strong> (thanks to MVCC), allowing the client to commit locally without contacting the database, which is particularly important since most transactions are read-only.</p>
-</li>
-<li><p><strong>Snapshot reads</strong> relax the isolation property of a transaction, reducing conflicts by allowing concurrent writes without conflicting with snapshot reads.</p>
-</li>
-</ul>
-</li>
-</ol>
-<p><strong>FoundationDB (FDB) using Serializable Snapshot Isolation (SSI) by combining Optimistic Concurrency Control (OCC) with Multi-Version Concurrency Control (MVCC).</strong></p>
-<h2 id="Transaction-Versions"><a href="#Transaction-Versions" class="headerlink" title="Transaction Versions"></a>Transaction Versions</h2><ul>
-<li>Each transaction receives a <strong>read version</strong> and a <strong>commit version</strong> from the <strong>Sequencer</strong>.</li>
-<li>The read version ensures that the transaction observes the results of all previously committed transactions, and the commit version is greater than all current read or commit versions, establishing a serial order for transactions.</li>
-</ul>
-<h2 id="Log-Sequence-Number-LSN"><a href="#Log-Sequence-Number-LSN" class="headerlink" title="Log Sequence Number (LSN)"></a>Log Sequence Number (LSN)</h2><ul>
-<li>The <strong>commit version</strong> serves as the <strong>LSN</strong>, defining a serial history of transactions.</li>
-<li>To ensure no gaps between LSNs, the Sequencer also returns the previous LSN with each commit. Both the LSN and previous LSN are sent to <strong>Resolvers</strong> and <strong>LogServers</strong> to enforce serial processing of transactions.</li>
-</ul>
-<h2 id="Conflict-Detection"><a href="#Conflict-Detection" class="headerlink" title="Conflict Detection"></a>Conflict Detection</h2><ul>
-<li>FDB uses a lock-free conflict detection algorithm similar to <strong>write-snapshot isolation</strong>, but the commit version is chosen before conflict detection, enabling efficient batch processing of version assignments and conflict detection.</li>
-<li>The key space is divided among multiple <strong>Resolvers</strong>, allowing conflict detection to be parallelized. A transaction can commit only if all Resolvers confirm no conflicts.</li>
-</ul>
-<h2 id="Handling-Aborted-Transactions"><a href="#Handling-Aborted-Transactions" class="headerlink" title="Handling Aborted Transactions"></a>Handling Aborted Transactions</h2><ul>
-<li>If a transaction is aborted, some Resolvers may have already updated their history, leading to possible “false positive” conflicts for other transactions. However, this is rare because most transactions’ key ranges fall within one Resolver, and the effects of false positives are limited to a short MVCC window (5 seconds).</li>
-</ul>
-<h2 id="Efficiency-of-OCC"><a href="#Efficiency-of-OCC" class="headerlink" title="Efficiency of OCC"></a>Efficiency of OCC</h2><ul>
-<li>The OCC design avoids the complexity of acquiring and releasing locks, simplifying interactions between the <strong>Transaction System (TS)</strong> and <strong>Storage Servers (SS)</strong>.</li>
-<li>While OCC may result in some wasted work due to aborted transactions, FDB’s conflict rate in production is low (less than 1%), and clients can simply restart aborted transactions.</li>
-</ul>
-<h1 id="Logging-protocol"><a href="#Logging-protocol" class="headerlink" title="Logging protocol"></a>Logging protocol</h1><p>Commit Logging:</p>
-<ul>
-<li>Once a <strong>Proxy</strong> decides to commit a transaction, it sends the transaction’s changes (mutations) to the <strong>LogServers</strong> responsible for the modified key ranges. Other LogServers receive an empty message.</li>
-<li>The log message includes the current and previous <strong>Log Sequence Number (LSN)</strong> from the <strong>Sequencer</strong> and the largest known committed version (KCV) of the Proxy.</li>
-<li>The <strong>LogServers</strong> reply to the Proxy once the log data is durably stored. The Proxy updates its KCV if all replica LogServers acknowledge and the LSN is larger than the current KCV.</li>
-</ul>
-<p>Shipping Redo Logs:</p>
-<ul>
-<li>Shipping the redo log from LogServers to <strong>StorageServers</strong> happens in the background and is not part of the commit path, improving performance.</li>
-</ul>
-<p>Applying Redo Logs:</p>
-<ul>
-<li><strong>StorageServers</strong> apply non-durable redo logs from LogServers to an in-memory index. In most cases, this happens before any client reads are processed, ensuring low-latency multi-version reads.</li>
-<li>If the requested data is not yet available on a StorageServer, the client either waits or retries at another replica. If both reads time out, the client can restart the transaction.</li>
-</ul>
-<p>I&#x2F;O Efficiency:</p>
-<ul>
-<li>Since log data is already durable on LogServers, StorageServers can buffer updates in memory and write batches to disk periodically, improving input&#x2F;output (I&#x2F;O) efficiency.</li>
-</ul>
-<p><strong>What if a StorageServer is lagging behind on applying the redo logs and a client requests a version of a key pair it does not have?</strong></p>
-<ol>
-<li>Wait for a threshold for when known-committed-version is greater than or equal to the read version</li>
-<li>If timeout, the client asks another StorageServer that stores the key</li>
-<li>Return error “request for a future version” (FDB error code 1009)</li>
-</ol>
-<p><strong>What if there is no further transaction logs to redo?</strong></p>
-<ul>
-<li>Without new transactions issued from the client, proxies still generate empty transactions to advance the known-committed-version</li>
-<li>Known-committed-version and LSN of each transaction are sent to all LogServers (limit scalability on writes)</li>
-</ul>
-<h1 id="Transaction-system-recovery"><a href="#Transaction-system-recovery" class="headerlink" title="Transaction system recovery"></a>Transaction system recovery</h1><h2 id="Simplified-Recovery"><a href="#Simplified-Recovery" class="headerlink" title="Simplified Recovery"></a>Simplified Recovery</h2><ul>
-<li>Unlike traditional databases that require <strong>undo log processing</strong>, FoundationDB avoids this step by making the <strong>redo log processing</strong> the same as the normal log forward path. StorageServers pull logs from LogServers and apply them in the background.</li>
-</ul>
-<h2 id="Failure-Detection-and-New-Transaction-System-TS"><a href="#Failure-Detection-and-New-Transaction-System-TS" class="headerlink" title="Failure Detection and New Transaction System (TS)"></a>Failure Detection and New Transaction System (TS)</h2><ul>
-<li>Upon detecting a failure, a new TS is recruited. The new TS can start accepting transactions even before all old logs are fully processed. Recovery focuses on finding the end of the redo log, allowing StorageServers to asynchronously replay the logs from that point.</li>
-</ul>
-<h2 id="Epoch-based-Recovery"><a href="#Epoch-based-Recovery" class="headerlink" title="Epoch-based Recovery"></a>Epoch-based Recovery</h2><ul>
-<li>The recovery process is handled per <strong>epoch</strong>. The <strong>ClusterController</strong> locks the old TS configuration, stops old LogServers from accepting new transactions, recruits a new set of transaction components (Sequencer, Proxies, Resolvers, and LogServers), and writes the new TS configuration to the <strong>Coordinators</strong>.</li>
-<li>Stateless components like Proxies and Resolvers don’t require special recovery, but LogServers, which store committed transaction logs, must ensure all data is durable and retrievable by StorageServers.</li>
-</ul>
-<h2 id="Recovery-Version-RV"><a href="#Recovery-Version-RV" class="headerlink" title="Recovery Version (RV)"></a>Recovery Version (RV)</h2><ul>
-<li>The recovery focuses on determining the <strong>Recovery Version (RV)</strong>, which is essentially the end of the redo log. The <strong>Sequencer</strong> collects data from the old LogServers, specifically the <strong>Durable Version (DV)</strong> (maximum LSN persisted) and <strong>KCV</strong> (maximum committed version) from each.</li>
-<li>Once enough LogServers have responded, the <strong>Previous Epoch Version (PEV)</strong> is established (the maximum of all KCVs). The start version of the new epoch is <code>PEV + 1</code>, and the minimum DV becomes the <strong>RV</strong>.</li>
-</ul>
-<h2 id="Log-Copying-and-Healing"><a href="#Log-Copying-and-Healing" class="headerlink" title="Log Copying and Healing"></a>Log Copying and Healing</h2><ul>
-<li>Logs between <code>PEV + 1</code> and RV are copied from old LogServers to the new ones to restore replication in case of LogServer failures. This copying process is lightweight since it only covers a few seconds of logs.</li>
-</ul>
-<h2 id="Rollback-and-Transaction-Processing"><a href="#Rollback-and-Transaction-Processing" class="headerlink" title="Rollback and Transaction Processing"></a>Rollback and Transaction Processing</h2><ul>
-<li>The first transaction after recovery is a special <strong>recovery transaction</strong> that informs StorageServers of the RV, so they can discard in-memory multi-versioned data beyond the RV. StorageServers then pull data larger than the PEV from the new LogServers.</li>
-<li>The rollback process simply discards in-memory multi-versioned data, as persistent data is only written to disk once it leaves the MVCC window.</li>
-</ul>
-<h1 id="Replication"><a href="#Replication" class="headerlink" title="Replication"></a>Replication</h1><ol>
-<li><p><strong>Metadata Replication</strong>:</p>
-<ul>
-<li><strong>System metadata</strong> related to the control plane is stored on <strong>Coordinators</strong> using the <strong>Active Disk Paxos</strong> protocol. As long as a majority (quorum) of Coordinators are operational, the metadata can be recovered in case of failure.</li>
-</ul>
-</li>
-<li><p><strong>Log Replication</strong>:</p>
-<ul>
-<li>When a <strong>Proxy</strong> writes logs to <strong>LogServers</strong>, each log record is replicated synchronously across <strong>k &#x3D; f + 1</strong> LogServers (where <strong>f</strong> is the number of allowed failures). The Proxy only sends a commit response to the client after all <strong>k</strong> LogServers have successfully persisted the log. If a LogServer fails, a transaction system recovery is triggered.</li>
-</ul>
-</li>
-<li><p><strong>Storage Replication</strong>:</p>
-<ul>
-<li>Each <strong>key range (shard)</strong> is asynchronously replicated across <strong>k &#x3D; f + 1 StorageServers</strong>. These StorageServers form a <strong>team</strong>. A StorageServer typically hosts multiple shards, distributing its data across several teams. If a StorageServer fails, the <strong>DataDistributor</strong> moves the data from teams with the failed server to other healthy teams.</li>
-</ul>
-</li>
-</ol>
-<p>To prevent data loss in case of simultaneous failures, FoundationDB ensures that no more than one process in a replica group is placed within the same fault domain (e.g., a host, rack, or availability zone). As long as one process in each team is operational, no data is lost, provided at least one fault domain remains available.</p>
-<h1 id="Simulation-testing"><a href="#Simulation-testing" class="headerlink" title="Simulation testing"></a>Simulation testing</h1><ol>
-<li><p><strong>Deterministic Simulation</strong>:</p>
-<ul>
-<li><p>FoundationDB uses <strong>deterministic discrete-event simulation</strong> to test its distributed system. This simulation runs real database code along with <strong>randomized synthetic workloads</strong> and <strong>fault injection</strong> to uncover bugs.</p>
-</li>
-<li><p>Determinism ensures that bugs are reproducible and can be investigated thoroughly.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Fault Injection</strong>:</p>
-<ul>
-<li><p>The simulation tests system resilience by injecting various faults, such as <strong>machine, rack, or data center failures</strong>, network issues, disk corruption, and delays.</p>
-</li>
-<li><p>Randomization of these faults increases the diversity of tested states, allowing for a wide range of potential issues to be examined.</p>
-</li>
-<li><p><strong>“Buggification”</strong> is a technique used to deliberately introduce rare or unusual behaviors (e.g., unnecessary delays, errors) in the system to stress-test its handling of non-standard conditions.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Swarm Testing</strong>:</p>
-<ul>
-<li><p><strong>Swarm testing</strong> increases simulation diversity by using random cluster sizes, configurations, workloads, and fault injection parameters.</p>
-</li>
-<li><p>This ensures that a broad range of scenarios is covered in testing, allowing for the discovery of rare bugs.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Test Oracles</strong>:</p>
-<ul>
-<li><p><strong>Test oracles</strong> are built into the system to verify key properties like <strong>transaction atomicity</strong>, <strong>isolation</strong>, and <strong>recoverability</strong>. Assertions check these properties to detect failures during simulation.</p>
-</li>
-<li><p>They help confirm that the system’s expected behaviors are maintained, even under stressful conditions.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Bug Detection Efficiency</strong>:</p>
-<ul>
-<li><p>The simulation runs faster than real-time, allowing FoundationDB to quickly discover and trace bugs. The <strong>parallel</strong> nature of testing accelerates the process of finding bugs, particularly before major releases.</p>
-</li>
-<li><p>This approach uncovers bugs that may not appear during real-time testing, especially for issues that require long-running operations.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Limitations</strong>:</p>
-<ul>
-<li><p>Simulation cannot reliably detect <strong>performance issues</strong> (like imperfect load balancing).</p>
-</li>
-<li><p>It cannot test <strong>third-party libraries</strong> or <strong>external dependencies</strong>, focusing mainly on FoundationDB’s internal code and behaviors.</p>
-</li>
-</ul>
-</li>
-</ol>
-<h1 id="Lessons-learned"><a href="#Lessons-learned" class="headerlink" title="Lessons learned"></a>Lessons learned</h1><ol>
-<li><p><strong>Architecture Design</strong></p>
-<ul>
-<li><p><strong>Divide-and-Conquer Principle</strong>: Separating the transaction system from the storage layer allows for independent scaling and deployment of resources, enhancing both flexibility and performance.</p>
-</li>
-<li><p><strong>LogServers as Witness Replicas</strong>: In multi-region deployments, LogServers reduce the need for full StorageServer replicas while maintaining high availability.</p>
-</li>
-<li><p><strong>Role Specialization</strong>: The design enables the creation of specialized roles, like separating DataDistributor and Ratekeeper from the Sequencer, and separating Proxies into Get-Read-Version and Commit Proxies, which improves performance and makes the system extensible.</p>
-</li>
-<li><p><strong>Decoupling Enhances Extensibility</strong>: This design pattern allows features like replacing SQLite with RocksDB and adding new roles or functions without overhauling the entire system.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Simulation Testing</strong></p>
-<ul>
-<li><p><strong>High Productivity</strong>: FDB’s deterministic simulation testing enables bugs to be found and reproduced quickly. This approach has improved developer productivity and system reliability by reducing debugging time and improving test coverage.</p>
-</li>
-<li><p><strong>Reliability</strong>: FDB has operated without any data corruption over several years of deployment (e.g., CloudKit), thanks to rigorous simulation testing. Simulation has allowed ambitious rewrites and improvements to be made safely.</p>
-</li>
-<li><p><strong>Eliminating Dependencies</strong>: Simulation testing helped find bugs in external dependencies, leading to FDB replacing Apache Zookeeper with its own Paxos implementation. This change resulted in no further production bugs.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Fast Recovery</strong></p>
-<ul>
-<li><p><strong>Simplifies Upgrades</strong>: FDB allows fast recovery by restarting all processes simultaneously, typically within seconds, simplifying software upgrades and configuration changes. This method has been extensively tested and used in Apple’s production clusters.</p>
-</li>
-<li><p><strong>Bug Healing</strong>: Fast recovery can automatically resolve certain latent bugs, similar to software rejuvenation, by resetting system states.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>5-Second MVCC Window</strong></p>
-<ul>
-<li><p><strong>Memory Efficiency</strong>: FDB uses a 5-second MVCC (Multi-Version Concurrency Control) window to limit memory usage in transaction systems and storage servers. This time window is long enough for most OLTP workloads, exposing inefficiencies if the transaction exceeds 5 seconds.</p>
-</li>
-<li><p><strong>TaskBucket Abstraction</strong>: Long-running processes, like backups, are broken into smaller transactions that fit within the 5-second window. FDB implements this through an abstraction called TaskBucket, which simplifies splitting large transactions into manageable jobs.</p>
-</li>
-</ul>
-</li>
-</ol>
-<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>With FDB, what operations does a transaction commit perform when the transaction only reads the value of data items?</strong></p>
-<ul>
-<li><strong>Read Version Retrieval</strong>: The client requests a read version from a <strong>Proxy</strong> via the <strong>Sequencer</strong>, which guarantees the read version is greater than or equal to any committed version.</li>
-<li><strong>Read Operation</strong>: The client reads the requested data at this specific read version from the <strong>StorageServers</strong>. The reads are served by the StorageServers, which are guaranteed to provide data consistent with the requested version.</li>
-<li><strong>No Writes or Conflicts</strong>: Since the transaction is read-only, there is no write set or conflicts to check. The transaction simply ends, and no data is written or modified, meaning it does not interact with LogServers or commit any changes.</li>
-<li><strong>Commit</strong>: Even though no actual commit occurs (because there’s no data change), the transaction is marked as successfully completed after the reads are done.</li>
-</ul>
-<p><strong>With FDB, is it possible for multiple resolvers to participate in the decision whether to commit or abort a write transaction?</strong> </p>
-<p>Yes, multiple Resolvers can participate in the decision to commit or abort a write transaction in FDB. Here’s how it works:</p>
-<ul>
-<li><strong>Conflict Detection</strong>: When a transaction writes data, the write set (the keys it wants to write) is sent to a set of <strong>Resolvers</strong>. Each Resolver is responsible for a specific portion of the key space. Multiple Resolvers can be involved in checking the transaction’s read and write sets to detect <strong>conflicts</strong> (read-write conflicts or write-write conflicts).</li>
-<li><strong>Parallel Conflict Checking</strong>: Since the key space is partitioned, different Resolvers check different key ranges in parallel. A transaction can only commit if <strong>all</strong> Resolvers agree that there are no conflicts.</li>
-</ul>
-<p><strong>With FDB, what if a StorageServer is lagging behind on applying the redo logs and a client requests a version of a key pair it does not have?</strong></p>
-<ul>
-<li><strong>Client Waits</strong>: The client can choose to wait for the StorageServer to catch up by applying the redo logs. Once the StorageServer finishes replaying the logs and reaches the required version, it can serve the requested data.</li>
-<li><strong>Retry at Another Replica</strong>: If the StorageServer does not have the requested version yet, the client can try to read from another <strong>replica</strong> of the key. FDB typically stores multiple replicas of data across different StorageServers, so the client can retry the request from a replica that is up to date.</li>
-<li><strong>Transaction Restart</strong>: If neither replica has the requested version or the delay is too long, the client may restart the transaction. Since FoundationDB uses <strong>MVCC (Multi-Version Concurrency Control)</strong>, restarting the transaction allows it to obtain a fresh version of the key from an up-to-date StorageServer.</li>
-</ul>
-<p><strong>Consider a database for students enrolling in courses and professors teaching those courses. Provide a SDM model of this database?</strong></p>
-<p>Students: base concrete object class.</p>
-<p>member property: student_id, name, age, email, department_id.</p>
-<p>identifier: student_id.</p>
-<p>Professors: base concrete object class.</p>
-<p>member property: professor_id, name, age, email, department_id.</p>
-<p>identifier: professor_id.</p>
-<p>Courses: base concrete object class</p>
-<p>member property: course_id, name, location, start_time, end_time, department_id.</p>
-<p>derived member property: professor as Professors.professor_id.</p>
-<p>identifier: course_id.</p>
-<p>Enrollment: base duration event class.</p>
-<p>member property: enrollment_id, date_of_enrollment.</p>
-<p>member participant: student in Students, course in Courses.</p>
-<p>identifier: enrollment_id.</p>
-<p>Departments: abstract Students and Professors on common value of department_id.</p>
-<p>derived member property: department_id as distinct value of (Students.department_id union Professors.department_id).</p>
-<p><strong>What is the difference between a monolithic database management system and a disaggregated database management system?</strong> </p>
-<table>
-<thead>
-<tr>
-<th>Feature</th>
-<th>Monolithic DBMS</th>
-<th>Disaggregated DBMS</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Architecture</td>
-<td>All components tightly integrated into a single system</td>
-<td>Components like storage, computation, and query processing are separated</td>
-</tr>
-<tr>
-<td>Scalability</td>
-<td>Scales through vertical scaling (adding resources to the single server)</td>
-<td>Scales through horizontal scaling (independent scaling of storage and compute)</td>
-</tr>
-<tr>
-<td>Performance Bottlenecks</td>
-<td>May face bottlenecks as the system grows</td>
-<td>Components are independently optimized, reducing bottlenecks</td>
-</tr>
-<tr>
-<td>Resource Management</td>
-<td>Storage and compute resources are tightly coupled, hard to manage separately</td>
-<td>Storage and compute resources can be managed independently, offering flexibility</td>
-</tr>
-<tr>
-<td>Complexity</td>
-<td>Easier to deploy and manage initially, but complexity increases with scale</td>
-<td>More complex to manage and coordinate different components</td>
-</tr>
-<tr>
-<td>Cost</td>
-<td>Pay for all resources, even if they are not fully utilized</td>
-<td>Can optimize resource usage and costs by scaling components independently</td>
-</tr>
-<tr>
-<td>Consistency</td>
-<td>Strong data consistency due to tight integration</td>
-<td>Requires additional mechanisms to ensure consistency across components</td>
-</tr>
-</tbody></table>
-<p><strong>With Gamma and its data flow execution paradigm, how does the system know when the execution of a parallel query involving multiple operators is complete?</strong></p>
-<p>Data Dependency Graph: The query execution is modeled as a directed acyclic graph (DAG), where each node represents an operator (e.g., selection, join). Data flows between operators, and the system tracks the completion of each operator based on this graph.</p>
-<p>Completion Signals: Each parallel operator sends a “done” signal once it finishes processing its data partition. The system monitors these signals to determine when all operators have finished.</p>
-<p>Coordinator: A central coordinator tracks the progress of parallel tasks. When all tasks report completion, the system declares the query execution as complete.</p>
-<p>Reference: <a target="_blank" rel="noopener" href="https://sigmodrecord.org/publications/sigmodRecord/2203/pdfs/08_fdb-zhou.pdf">https://sigmodrecord.org/publications/sigmodRecord/2203/pdfs/08_fdb-zhou.pdf</a></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/6/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><span class="page-number current">7</span><a class="page-number" href="/page/8/">8</a><a class="page-number" href="/page/9/">9</a><a class="extend next" rel="next" href="/page/8/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <a class="extend prev" rel="prev" href="/page/6/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><span class="page-number current">7</span><a class="page-number" href="/page/8/">8</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/8/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -2554,7 +2408,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">45</span>
+          <span class="site-state-item-count">46</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

@@ -182,6 +182,774 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/30/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/30/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/" class="post-title-link" itemprop="url">查询优化</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-01-30 00:00:00" itemprop="dateCreated datePublished" datetime="2025-01-30T00:00:00-08:00">2025-01-30</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-06-25 17:03:15" itemprop="dateModified" datetime="2025-06-25T17:03:15-07:00">2025-06-25</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/" itemprop="url" rel="index"><span itemprop="name">高级数据存储</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><p>查询优化是构建高性能数据库管理系统时最困难的部分之一，它需要在大量等价的查询执行方案中找到资源消耗最小的那个方案。其核心目标是以某种成本函数衡量每个候选计划，并选择估算成本最低的计划。</p>
+<p>查询优化的首要目标就是在可行的计划中选出“最低成本”的一个，通常采用成本模型对 I&#x2F;O、CPU、网络等资源进行加权求和，得出一个标量成本值，不同系统也可能纳入缓冲区命中率、并行度等额外因素。</p>
+<h2 id="成本评估"><a href="#成本评估" class="headerlink" title="成本评估"></a>成本评估</h2><p>在关系型数据库的**代价优化器（Cost-Based Optimizer）**中，会将一个查询计划的总代价定义为其所有算子（Operator）估算代价的累加：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>C</mi><mi>o</mi><mi>s</mi><mi>t</mi><mspace width="0.22222em"></mspace><mi>o</mi><mi>f</mi><mspace width="0.22222em"></mspace><mi>P</mi><mi>l</mi><mi>a</mi><mi>n</mi><mo>=</mo><mo>∑</mo><mo>(</mo><mi>C</mi><mi>o</mi><mi>s</mi><mi>t</mi><mspace width="0.22222em"></mspace><mi>o</mi><mi>f</mi><mspace width="0.22222em"></mspace><mi>e</mi><mi>a</mi><mi>c</mi><mi>h</mi><mspace width="0.22222em"></mspace><mi>P</mi><mi>l</mi><mi>a</mi><mi>n</mi><mspace width="0.22222em"></mspace><mi>O</mi><mi>p</mi><mi>e</mi><mi>r</mi><mi>a</mi><mi>t</mi><mi>o</mi><mi>r</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">
+Cost\:of\:Plan = \sum (Cost\:of\:each\:Plan\:Operator)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:1.05em;"></span><span class="strut bottom" style="height:1.6000100000000002em;vertical-align:-0.55001em;"></span><span class="base displaystyle textstyle uncramped"><span class="mord mathit" style="margin-right:0.07153em;">C</span><span class="mord mathit">o</span><span class="mord mathit">s</span><span class="mord mathit">t</span><span class="mord mspace mediumspace"></span><span class="mord mathit">o</span><span class="mord mathit" style="margin-right:0.10764em;">f</span><span class="mord mspace mediumspace"></span><span class="mord mathit" style="margin-right:0.13889em;">P</span><span class="mord mathit" style="margin-right:0.01968em;">l</span><span class="mord mathit">a</span><span class="mord mathit">n</span><span class="mrel">=</span><span class="op-symbol large-op mop" style="top:-0.000004999999999977245em;">∑</span><span class="mopen">(</span><span class="mord mathit" style="margin-right:0.07153em;">C</span><span class="mord mathit">o</span><span class="mord mathit">s</span><span class="mord mathit">t</span><span class="mord mspace mediumspace"></span><span class="mord mathit">o</span><span class="mord mathit" style="margin-right:0.10764em;">f</span><span class="mord mspace mediumspace"></span><span class="mord mathit">e</span><span class="mord mathit">a</span><span class="mord mathit">c</span><span class="mord mathit">h</span><span class="mord mspace mediumspace"></span><span class="mord mathit" style="margin-right:0.13889em;">P</span><span class="mord mathit" style="margin-right:0.01968em;">l</span><span class="mord mathit">a</span><span class="mord mathit">n</span><span class="mord mspace mediumspace"></span><span class="mord mathit" style="margin-right:0.02778em;">O</span><span class="mord mathit">p</span><span class="mord mathit">e</span><span class="mord mathit" style="margin-right:0.02778em;">r</span><span class="mord mathit">a</span><span class="mord mathit">t</span><span class="mord mathit">o</span><span class="mord mathit" style="margin-right:0.02778em;">r</span><span class="mclose">)</span></span></span></span></span>
+
+<p>而每个算子的估算代价又通常与该算子所处理的输入规模成正比：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>C</mi><mi>o</mi><mi>s</mi><mi>t</mi><mo>(</mo><mi>O</mi><mi>p</mi><mi>e</mi><mi>r</mi><mi>a</mi><mi>t</mi><mi>o</mi><mi>r</mi><mo>)</mo><mo>∝</mo><mi>S</mi><mi>i</mi><mi>z</mi><mi>e</mi><mspace width="0.22222em"></mspace><mi>o</mi><mi>f</mi><mspace width="0.22222em"></mspace><mi>O</mi><mi>p</mi><mi>e</mi><mi>r</mi><mi>a</mi><mi>t</mi><mi>o</mi><mi>r</mi><mspace width="0.22222em"></mspace><mi>I</mi><mi>n</mi><mi>p</mi><mi>u</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">
+Cost(Operator) \propto Size\:of\:Operator\:Input
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base displaystyle textstyle uncramped"><span class="mord mathit" style="margin-right:0.07153em;">C</span><span class="mord mathit">o</span><span class="mord mathit">s</span><span class="mord mathit">t</span><span class="mopen">(</span><span class="mord mathit" style="margin-right:0.02778em;">O</span><span class="mord mathit">p</span><span class="mord mathit">e</span><span class="mord mathit" style="margin-right:0.02778em;">r</span><span class="mord mathit">a</span><span class="mord mathit">t</span><span class="mord mathit">o</span><span class="mord mathit" style="margin-right:0.02778em;">r</span><span class="mclose">)</span><span class="mrel">∝</span><span class="mord mathit" style="margin-right:0.05764em;">S</span><span class="mord mathit">i</span><span class="mord mathit" style="margin-right:0.04398em;">z</span><span class="mord mathit">e</span><span class="mord mspace mediumspace"></span><span class="mord mathit">o</span><span class="mord mathit" style="margin-right:0.10764em;">f</span><span class="mord mspace mediumspace"></span><span class="mord mathit" style="margin-right:0.02778em;">O</span><span class="mord mathit">p</span><span class="mord mathit">e</span><span class="mord mathit" style="margin-right:0.02778em;">r</span><span class="mord mathit">a</span><span class="mord mathit">t</span><span class="mord mathit">o</span><span class="mord mathit" style="margin-right:0.02778em;">r</span><span class="mord mspace mediumspace"></span><span class="mord mathit" style="margin-right:0.07847em;">I</span><span class="mord mathit">n</span><span class="mord mathit">p</span><span class="mord mathit">u</span><span class="mord mathit">t</span></span></span></span></span>
+
+<p>以上两条公式构成了代价估算的基础：先通过输入规模得出算子代价，然后累加得到整个执行计划的成本。接下来，需要详细说明如何确定算子输入规模，以及如何基于选取性（Selectivity）估算非基表算子的输出规模。</p>
+<p>对于基表扫描（Table Scan）或索引扫描（Index Scan），输入规模通常等于表或索引在磁盘上的物理存储量（页数或行数）。</p>
+<blockquote>
+<p>[!NOTE]</p>
+<p>对于此类扫描操作，我们可以在有索引的情况下，可将过滤条件下推至索引层，只读取满足谓词的行或页，以减少输入规模和 I&#x2F;O 操作，也就是进行索引下推。</p>
+</blockquote>
+<p>对于投影（Project）、选择（Filter）等算子，优化器首先根据输入规模和选取性估算输出规模；连接（Join）算子则需基于两侧子计划的输出规模与连接选取性共同计算其输出规模，也就是：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mi>u</mi><mi>t</mi><mi>p</mi><mi>u</mi><mi>t</mi><mspace width="0.22222em"></mspace><mi>S</mi><mi>i</mi><mi>z</mi><mi>e</mi><mo>=</mo><mi>S</mi><mi>e</mi><mi>l</mi><mi>e</mi><mi>c</mi><mi>t</mi><mi>i</mi><mi>v</mi><mi>i</mi><mi>t</mi><mi>y</mi><mo>×</mo><mo>(</mo><mi mathvariant="normal">∣</mi><mi>L</mi><mi>e</mi><mi>f</mi><mi>t</mi><mi mathvariant="normal">∣</mi><mo>×</mo><mi mathvariant="normal">∣</mi><mi>R</mi><mi>i</mi><mi>g</mi><mi>h</mi><mi>t</mi><mi mathvariant="normal">∣</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">
+Output\:Size = Selectivity \times (|Left| \times |Right|)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base displaystyle textstyle uncramped"><span class="mord mathit" style="margin-right:0.02778em;">O</span><span class="mord mathit">u</span><span class="mord mathit">t</span><span class="mord mathit">p</span><span class="mord mathit">u</span><span class="mord mathit">t</span><span class="mord mspace mediumspace"></span><span class="mord mathit" style="margin-right:0.05764em;">S</span><span class="mord mathit">i</span><span class="mord mathit" style="margin-right:0.04398em;">z</span><span class="mord mathit">e</span><span class="mrel">=</span><span class="mord mathit" style="margin-right:0.05764em;">S</span><span class="mord mathit">e</span><span class="mord mathit" style="margin-right:0.01968em;">l</span><span class="mord mathit">e</span><span class="mord mathit">c</span><span class="mord mathit">t</span><span class="mord mathit">i</span><span class="mord mathit" style="margin-right:0.03588em;">v</span><span class="mord mathit">i</span><span class="mord mathit">t</span><span class="mord mathit" style="margin-right:0.03588em;">y</span><span class="mbin">×</span><span class="mopen">(</span><span class="mord mathrm">∣</span><span class="mord mathit">L</span><span class="mord mathit">e</span><span class="mord mathit" style="margin-right:0.10764em;">f</span><span class="mord mathit">t</span><span class="mord mathrm">∣</span><span class="mbin">×</span><span class="mord mathrm">∣</span><span class="mord mathit" style="margin-right:0.00773em;">R</span><span class="mord mathit">i</span><span class="mord mathit" style="margin-right:0.03588em;">g</span><span class="mord mathit">h</span><span class="mord mathit">t</span><span class="mord mathrm">∣</span><span class="mclose">)</span></span></span></span></span>
+
+<p>选取性（Selectivity）是算子发出数据量与接收数据量之比，取值范围 0–1，表示谓词或连接条件对数据的过滤强度。</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mi>u</mi><mi>t</mi><mi>p</mi><mi>u</mi><mi>t</mi><mspace width="0.22222em"></mspace><mi>S</mi><mi>i</mi><mi>z</mi><mi>e</mi><mo>=</mo><mi>S</mi><mi>e</mi><mi>l</mi><mi>e</mi><mi>c</mi><mi>t</mi><mi>i</mi><mi>v</mi><mi>i</mi><mi>t</mi><mi>y</mi><mo>×</mo><mi>I</mi><mi>n</mi><mi>p</mi><mi>u</mi><mi>t</mi><mspace width="0.22222em"></mspace><mi>S</mi><mi>i</mi><mi>z</mi><mi>e</mi></mrow><annotation encoding="application/x-tex">
+Output\:Size = Selectivity \times Input\:Size
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="base displaystyle textstyle uncramped"><span class="mord mathit" style="margin-right:0.02778em;">O</span><span class="mord mathit">u</span><span class="mord mathit">t</span><span class="mord mathit">p</span><span class="mord mathit">u</span><span class="mord mathit">t</span><span class="mord mspace mediumspace"></span><span class="mord mathit" style="margin-right:0.05764em;">S</span><span class="mord mathit">i</span><span class="mord mathit" style="margin-right:0.04398em;">z</span><span class="mord mathit">e</span><span class="mrel">=</span><span class="mord mathit" style="margin-right:0.05764em;">S</span><span class="mord mathit">e</span><span class="mord mathit" style="margin-right:0.01968em;">l</span><span class="mord mathit">e</span><span class="mord mathit">c</span><span class="mord mathit">t</span><span class="mord mathit">i</span><span class="mord mathit" style="margin-right:0.03588em;">v</span><span class="mord mathit">i</span><span class="mord mathit">t</span><span class="mord mathit" style="margin-right:0.03588em;">y</span><span class="mbin">×</span><span class="mord mathit" style="margin-right:0.07847em;">I</span><span class="mord mathit">n</span><span class="mord mathit">p</span><span class="mord mathit">u</span><span class="mord mathit">t</span><span class="mord mspace mediumspace"></span><span class="mord mathit" style="margin-right:0.05764em;">S</span><span class="mord mathit">i</span><span class="mord mathit" style="margin-right:0.04398em;">z</span><span class="mord mathit">e</span></span></span></span></span>
+
+<p>假设我们针对有 100 条记录的部门表 dept，10000 条记录的职员表 emp，30000 条记录的儿童表 kids，执行如下 SQL 语句：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> </span><br><span class="line"><span class="keyword">FROM</span> emp, dept, kids</span><br><span class="line"><span class="keyword">WHERE</span> sal <span class="operator">&gt;</span> <span class="number">10000</span> </span><br><span class="line">  <span class="keyword">AND</span> emp.dno <span class="operator">=</span> dept.dno </span><br><span class="line">  <span class="keyword">AND</span> emp.eid <span class="operator">=</span> kids.eid;</span><br></pre></td></tr></table></figure>
+
+<p>其中，每 100 条记录是一个页面，10 KB 是一个页面的大小，内存大小是 10 个页面。</p>
+<p>对于每种执行计划，我们可以进行如下步骤：</p>
+<p>第一步，评估表（关系）的大小：</p>
+<ul>
+<li>dept 只有 100 条记录，占用 1 页（10 KB&#x2F;页）；</li>
+<li>emp 有 10000 条记录，占用 100 页（10 KB&#x2F;页）；</li>
+<li>kids 有 30000 条记录，占用 300 页（10 KB&#x2F;页）。</li>
+</ul>
+<p>第二步，评估选择性：</p>
+<ul>
+<li><code>WHERE sal &gt; 10k</code> 的选择性为 0.1；</li>
+<li>dept 和 emp 的 JOIN 操作的选择性为 0.01，产生结果集 A；</li>
+<li>A 和 kids 的 JOIN 操作的选择性为 0.0001，产生结果 B。</li>
+</ul>
+<p>第三步，计算中间结果的大小，如下执行计划树所示，其中冒号右边的数据为此次操作得到的结果集的大小：</p>
+<p><img src="/../../images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/db_adv_query_optimize_eg1.drawio.png" alt="img"></p>
+<p>需要注意的是，整棵树的阅读顺序推荐从叶子到根。</p>
+<p>第四步，评估各个执行计划的成本并选出最低的。</p>
+<p>以上只是一个简单的流程，下面基于 Selinger 等人提出的 System R 成本优化器框架给出每个步骤的详细解释，该框架迄今仍被主流关系型数据库（如 DB2、PostgreSQL、MySQL 等）沿用。</p>
+<p>第一步，评估关系的大小，其中的统计量如下：</p>
+<ul>
+<li><strong>NCARD(T)</strong>：关系 T 的基数，即元组总数；</li>
+<li><strong>TCARD(T)</strong>：关系 T 所占用的数据页数；</li>
+<li><strong>ICARD(I)</strong>：索引 I 中不同键值的数量；</li>
+<li><strong>NINDX(I)</strong>：索引 I 在磁盘上占用的页数。</li>
+</ul>
+<blockquote>
+<p>[!NOTE]</p>
+<p>现代数据库在 System R 的统计量基础上引入多种增强策略：</p>
+<ol>
+<li><p><strong>直方图（Histograms）</strong></p>
+<ul>
+<li><strong>等宽直方图（Equi-width）</strong>：将值域划分为固定宽度的 k 个区间，区间内数据不均匀时易失真 。</li>
+<li><strong>等深直方图（Equi-depth）</strong>：保证每个桶内的元组数近似相同，可更准确估算范围谓词 。</li>
+</ul>
+</li>
+<li><p><strong>最常见值列表（Frequency List）</strong>：维护出现频率最高的 m 个键值及其频率分布，对高频值谓词（如 <code>col IN (…)</code>）提供精确估算。</p>
+</li>
+<li><p><strong>聚簇因子（Clustering Factor）</strong>：描述索引键值在数据块中的物理聚集度，值越低表示更紧密的簇集，有助于优化随机 vs 顺序 I&#x2F;O 的成本估算。</p>
+</li>
+<li><p><strong>分区增量统计</strong>：对于分区表，会为每个分区单独收集统计信息，并维护全局统计，通过分区修剪（Partition Pruning）显著降低查询开销。</p>
+</li>
+<li><p><strong>分层采样</strong>：在全表采样成本过高时，数据库可基于分区或分层样本抽样（如 1% 分区样本），动态更新统计，同时避免全表扫描统计带来的停机与高 I&#x2F;O 负载。</p>
+</li>
+</ol>
+</blockquote>
+<p>第二步，评估选择性：</p>
+<p>我们这里先定义 F 或者 F(pred) &#x3D; 谓词的选择性 &#x3D; 没有被过滤掉的记录的占比。</p>
+<p>那么，对于<strong>等值谓词</strong> <code>col == val</code>：若有索引，则假设均匀分布，选取性</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>F</mi><mo>=</mo><mn>1</mn><mi mathvariant="normal">/</mi><mi>I</mi><mi>C</mi><mi>A</mi><mi>R</mi><mi>D</mi></mrow><annotation encoding="application/x-tex">
+F = 1 / ICARD
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base displaystyle textstyle uncramped"><span class="mord mathit" style="margin-right:0.13889em;">F</span><span class="mrel">=</span><span class="mord mathrm">1</span><span class="mord mathrm">/</span><span class="mord mathit" style="margin-right:0.07847em;">I</span><span class="mord mathit" style="margin-right:0.07153em;">C</span><span class="mord mathit">A</span><span class="mord mathit" style="margin-right:0.00773em;">R</span><span class="mord mathit" style="margin-right:0.02778em;">D</span></span></span></span></span>
+
+<p>；否则粗略取 1&#x2F;10。</p>
+<p>对于<strong>范围谓词</strong> <code>col &gt; val</code> 或类似开区间比较：若有索引，则线性插值计算</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>F</mi><mo>=</mo><mo>(</mo><mi>h</mi><mi>i</mi><mi>g</mi><mi>h</mi><mi mathvariant="normal">_</mi><mi>k</mi><mi>e</mi><mi>y</mi><mspace width="0.22222em"></mspace><mo>−</mo><mspace width="0.22222em"></mspace><mi>v</mi><mi>a</mi><mi>l</mi><mo>)</mo><mi mathvariant="normal">/</mi><mo>(</mo><mi>h</mi><mi>i</mi><mi>g</mi><mi>h</mi><mi mathvariant="normal">_</mi><mi>k</mi><mi>e</mi><mi>y</mi><mspace width="0.22222em"></mspace><mo>−</mo><mspace width="0.22222em"></mspace><mi>l</mi><mi>o</mi><mi>w</mi><mi mathvariant="normal">_</mi><mi>k</mi><mi>e</mi><mi>y</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">
+F = (high\_key\:-\:val) / (high\_key\:-\:low\_key)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1.06em;vertical-align:-0.31em;"></span><span class="base displaystyle textstyle uncramped"><span class="mord mathit" style="margin-right:0.13889em;">F</span><span class="mrel">=</span><span class="mopen">(</span><span class="mord mathit">h</span><span class="mord mathit">i</span><span class="mord mathit" style="margin-right:0.03588em;">g</span><span class="mord mathit">h</span><span class="mord mathrm" style="margin-right:0.02778em;">_</span><span class="mord mathit" style="margin-right:0.03148em;">k</span><span class="mord mathit">e</span><span class="mord mathit" style="margin-right:0.03588em;">y</span><span class="mord mspace mediumspace"></span><span class="mbin">−</span><span class="mord mspace mediumspace"></span><span class="mord mathit" style="margin-right:0.03588em;">v</span><span class="mord mathit">a</span><span class="mord mathit" style="margin-right:0.01968em;">l</span><span class="mclose">)</span><span class="mord mathrm">/</span><span class="mopen">(</span><span class="mord mathit">h</span><span class="mord mathit">i</span><span class="mord mathit" style="margin-right:0.03588em;">g</span><span class="mord mathit">h</span><span class="mord mathrm" style="margin-right:0.02778em;">_</span><span class="mord mathit" style="margin-right:0.03148em;">k</span><span class="mord mathit">e</span><span class="mord mathit" style="margin-right:0.03588em;">y</span><span class="mord mspace mediumspace"></span><span class="mbin">−</span><span class="mord mspace mediumspace"></span><span class="mord mathit" style="margin-right:0.01968em;">l</span><span class="mord mathit">o</span><span class="mord mathit" style="margin-right:0.02691em;">w</span><span class="mord mathrm" style="margin-right:0.02778em;">_</span><span class="mord mathit" style="margin-right:0.03148em;">k</span><span class="mord mathit">e</span><span class="mord mathit" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span></span>
+
+<p>；否则取 1&#x2F;3。</p>
+<p>对于<strong>列间相等谓词</strong> <code>col1 = col2</code>：</p>
+<p>若两列均有索引，取两索引基数（ICARD）较大值的倒数：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>F</mi><mo>=</mo><mfrac><mrow><mn>1</mn></mrow><mrow><mi>max</mi><mo fence="true">(</mo><mtext><mi mathvariant="normal">I</mi><mi mathvariant="normal">C</mi><mi mathvariant="normal">A</mi><mi mathvariant="normal">R</mi><mi mathvariant="normal">D</mi></mtext><mo>(</mo><mi>c</mi><mi>o</mi><msub><mi>l</mi><mn>1</mn></msub><mo>)</mo><mo separator="true">,</mo><mspace width="0.16667em"></mspace><mtext><mi mathvariant="normal">I</mi><mi mathvariant="normal">C</mi><mi mathvariant="normal">A</mi><mi mathvariant="normal">R</mi><mi mathvariant="normal">D</mi></mtext><mo>(</mo><mi>c</mi><mi>o</mi><msub><mi>l</mi><mn>2</mn></msub><mo>)</mo><mo fence="true">)</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex">
+F = \frac{1}{\max\bigl(\text{ICARD}(col_1),\,\text{ICARD}(col_2)\bigr)}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:1.32144em;"></span><span class="strut bottom" style="height:2.41145em;vertical-align:-1.09001em;"></span><span class="base displaystyle textstyle uncramped"><span class="mord mathit" style="margin-right:0.13889em;">F</span><span class="mrel">=</span><span class="mord reset-textstyle displaystyle textstyle uncramped"><span class="sizing reset-size5 size5 reset-textstyle textstyle uncramped nulldelimiter"></span><span class="mfrac"><span class="vlist"><span style="top:0.74em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:1em;">​</span></span><span class="reset-textstyle textstyle cramped"><span class="mord textstyle cramped"><span class="mop">max</span><span class="mopen"><span class="style-wrap reset-textstyle textstyle uncramped"><span class="delimsizing size1">(</span></span></span><span class="text mord textstyle cramped"><span class="mord mathrm">I</span><span class="mord mathrm">C</span><span class="mord mathrm">A</span><span class="mord mathrm">R</span><span class="mord mathrm">D</span></span><span class="mopen">(</span><span class="mord mathit">c</span><span class="mord mathit">o</span><span class="mord"><span class="mord mathit" style="margin-right:0.01968em;">l</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.01968em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathrm">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mclose">)</span><span class="mpunct">,</span><span class="mord mspace thinspace"></span><span class="text mord textstyle cramped"><span class="mord mathrm">I</span><span class="mord mathrm">C</span><span class="mord mathrm">A</span><span class="mord mathrm">R</span><span class="mord mathrm">D</span></span><span class="mopen">(</span><span class="mord mathit">c</span><span class="mord mathit">o</span><span class="mord"><span class="mord mathit" style="margin-right:0.01968em;">l</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.01968em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathrm">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mclose">)</span><span class="mclose"><span class="style-wrap reset-textstyle textstyle uncramped"><span class="delimsizing size1">)</span></span></span></span></span></span><span style="top:-0.22999999999999998em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:1em;">​</span></span><span class="reset-textstyle textstyle uncramped frac-line"></span></span><span style="top:-0.677em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:1em;">​</span></span><span class="reset-textstyle textstyle uncramped"><span class="mord textstyle uncramped"><span class="mord mathrm">1</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:1em;">​</span></span>​</span></span></span><span class="sizing reset-size5 size5 reset-textstyle textstyle uncramped nulldelimiter"></span></span></span></span></span></span>
+
+<p>；</p>
+<p>若只有单列有索引，则</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>F</mi><mo>=</mo><mn>1</mn><mi mathvariant="normal">/</mi><mi>I</mi><mi>C</mi><mi>A</mi><mi>R</mi><mi>D</mi></mrow><annotation encoding="application/x-tex">
+F = 1/ICARD
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base displaystyle textstyle uncramped"><span class="mord mathit" style="margin-right:0.13889em;">F</span><span class="mrel">=</span><span class="mord mathrm">1</span><span class="mord mathrm">/</span><span class="mord mathit" style="margin-right:0.07847em;">I</span><span class="mord mathit" style="margin-right:0.07153em;">C</span><span class="mord mathit">A</span><span class="mord mathit" style="margin-right:0.00773em;">R</span><span class="mord mathit" style="margin-right:0.02778em;">D</span></span></span></span></span>
+
+<p>；否则取 1&#x2F;10。</p>
+<p>此外，在查询中常有多重谓词组合，Selinger 优化器使用以下规则在<strong>逻辑优化</strong>和<strong>成本估算</strong>阶段快速合成最终选取性 F：</p>
+<p><strong>逻辑与（AND）</strong>：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>F</mi><mrow><mtext><mi mathvariant="normal">a</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">d</mi></mtext></mrow></msub><mo>=</mo><mi>F</mi><mo>(</mo><msub><mi>p</mi><mn>1</mn></msub><mo>)</mo><mspace width="0.16667em"></mspace><mo>×</mo><mspace width="0.16667em"></mspace><mi>F</mi><mo>(</mo><msub><mi>p</mi><mn>2</mn></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">
+F_{\text{and}} = F(p_1)\,\times\,F(p_2)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base displaystyle textstyle uncramped"><span class="mord"><span class="mord mathit" style="margin-right:0.13889em;">F</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.13889em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="text mord scriptstyle cramped"><span class="mord mathrm">a</span><span class="mord mathrm">n</span><span class="mord mathrm">d</span></span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mrel">=</span><span class="mord mathit" style="margin-right:0.13889em;">F</span><span class="mopen">(</span><span class="mord"><span class="mord mathit">p</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathrm">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mclose">)</span><span class="mord mspace thinspace"></span><span class="mbin">×</span><span class="mord mspace thinspace"></span><span class="mord mathit" style="margin-right:0.13889em;">F</span><span class="mopen">(</span><span class="mord"><span class="mord mathit">p</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathrm">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mclose">)</span></span></span></span></span>
+
+<p><strong>逻辑或（OR）</strong>：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>F</mi><mrow><mtext><mi mathvariant="normal">o</mi><mi mathvariant="normal">r</mi></mtext></mrow></msub><mo>=</mo><mn>1</mn><mo>−</mo><msub><mi>F</mi><mrow><mtext><mi mathvariant="normal">a</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">d</mi></mtext></mrow></msub><mo>=</mo><mi>F</mi><mo>(</mo><msub><mi>p</mi><mn>1</mn></msub><mo>)</mo><mo>+</mo><mi>F</mi><mo>(</mo><msub><mi>p</mi><mn>2</mn></msub><mo>)</mo><mo>−</mo><mi>F</mi><mo>(</mo><msub><mi>p</mi><mn>1</mn></msub><mo>)</mo><mspace width="0.16667em"></mspace><mi>F</mi><mo>(</mo><msub><mi>p</mi><mn>2</mn></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">
+F_{\text{or}} = 1 - F_{\text{and}} = F(p_1) + F(p_2) - F(p_1)\,F(p_2)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base displaystyle textstyle uncramped"><span class="mord"><span class="mord mathit" style="margin-right:0.13889em;">F</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.13889em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="text mord scriptstyle cramped"><span class="mord mathrm">o</span><span class="mord mathrm">r</span></span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mrel">=</span><span class="mord mathrm">1</span><span class="mbin">−</span><span class="mord"><span class="mord mathit" style="margin-right:0.13889em;">F</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.13889em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="text mord scriptstyle cramped"><span class="mord mathrm">a</span><span class="mord mathrm">n</span><span class="mord mathrm">d</span></span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mrel">=</span><span class="mord mathit" style="margin-right:0.13889em;">F</span><span class="mopen">(</span><span class="mord"><span class="mord mathit">p</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathrm">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mclose">)</span><span class="mbin">+</span><span class="mord mathit" style="margin-right:0.13889em;">F</span><span class="mopen">(</span><span class="mord"><span class="mord mathit">p</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathrm">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mclose">)</span><span class="mbin">−</span><span class="mord mathit" style="margin-right:0.13889em;">F</span><span class="mopen">(</span><span class="mord"><span class="mord mathit">p</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathrm">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mclose">)</span><span class="mord mspace thinspace"></span><span class="mord mathit" style="margin-right:0.13889em;">F</span><span class="mopen">(</span><span class="mord"><span class="mord mathit">p</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathrm">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mclose">)</span></span></span></span></span>
+
+<p><strong>逻辑非（NOT）</strong>：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>F</mi><mrow><mtext><mi mathvariant="normal">n</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">t</mi></mtext></mrow></msub><mo>=</mo><mn>1</mn><mo>−</mo><mi>F</mi><mo>(</mo><mi>p</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">
+F_{\text{not}} = 1 - F(p)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base displaystyle textstyle uncramped"><span class="mord"><span class="mord mathit" style="margin-right:0.13889em;">F</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.13889em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="text mord scriptstyle cramped"><span class="mord mathrm">n</span><span class="mord mathrm">o</span><span class="mord mathrm">t</span></span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mrel">=</span><span class="mord mathrm">1</span><span class="mbin">−</span><span class="mord mathit" style="margin-right:0.13889em;">F</span><span class="mopen">(</span><span class="mord mathit">p</span><span class="mclose">)</span></span></span></span></span>
+
+<p>思考：</p>
+<p>为什么等值谓词在没有索引的时候要取 1&#x2F;10？</p>
+<p>在缺乏精确统计时，优化器宁可假设谓词对数据的过滤效果<strong>较弱</strong>（即选取性估算偏大），也不轻易假设它过滤得非常彻底。</p>
+<p>如果低估谓词效果（认为它能过滤掉更多行），某些访问路径（如索引扫描）看起来成本极低，以至于优化器可能跳过对其他方案的评估；而高估则保证几乎所有可行方案都被保留用于比较，从而不至于因估算过于乐观而错过实测可能更优的计划。</p>
+<p>假设有两种访问 emp 表的方案：</p>
+<ol>
+<li><strong>索引扫描+连接</strong>：若低估谓词效果（认为只过滤 1%），算出极低的中间行数，导致优化器只评估此方案并剪掉全表扫描方案。</li>
+<li><strong>高估策略</strong>（假设过滤 10%）：使得索引扫描方案看起来代价更高，全表扫描的成本也被评估，优化器才会真正比较两者。</li>
+</ol>
+<p>最终在实际运行中，全表扫描+哈希连接可能因顺序 I&#x2F;O 更快而胜出，但若一开始就剪掉它，就永远不会被考虑。</p>
+<p>第三步，计算中间结果的大小，该步骤的内容之前已经叙述过。</p>
+<p>第四步，评估每个执行计划的成本：</p>
+<p>在基于成本的优化器中，每个物理算子的总代价通常由以下两部分构成：</p>
+<ul>
+<li><strong>I&#x2F;O 代价</strong>：以读取页面的次数为单位，乘以相应的 I&#x2F;O 权重（如顺序读取 <code>seq_page_cost</code> 或随机读取 <code>random_page_cost</code>） 。</li>
+<li><strong>CPU 代价</strong>：以处理记录或执行谓词的次数为单位，乘以对应的 CPU 权重（如 <code>cpu_tuple_cost</code>、<code>cpu_operator_cost</code>） 。</li>
+</ul>
+<p>最终，优化器对算子代价取页读次数与记录处理次数的线性组合来估算：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mtext><mi mathvariant="normal">C</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi></mtext><mo>=</mo><mo>(</mo><mtext><mi mathvariant="normal">p</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">g</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">s</mi><mtext> </mtext><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">d</mi></mtext><mo>)</mo><mo>+</mo><mi>W</mi><mo>×</mo><mo>(</mo><mtext><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">s</mi><mtext> </mtext><mi mathvariant="normal">e</mi><mi mathvariant="normal">v</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">d</mi></mtext><mo>)</mo></mrow><annotation encoding="application/x-tex">
+\text{Cost} = (\text{pages read}) + W \times (\text{records evaluated})
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base displaystyle textstyle uncramped"><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">C</span><span class="mord mathrm">o</span><span class="mord mathrm">s</span><span class="mord mathrm">t</span></span><span class="mrel">=</span><span class="mopen">(</span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">p</span><span class="mord mathrm">a</span><span class="mord mathrm" style="margin-right:0.01389em;">g</span><span class="mord mathrm">e</span><span class="mord mathrm">s</span><span class="mord mspace"> </span><span class="mord mathrm">r</span><span class="mord mathrm">e</span><span class="mord mathrm">a</span><span class="mord mathrm">d</span></span><span class="mclose">)</span><span class="mbin">+</span><span class="mord mathit" style="margin-right:0.13889em;">W</span><span class="mbin">×</span><span class="mopen">(</span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">r</span><span class="mord mathrm">e</span><span class="mord mathrm">c</span><span class="mord mathrm">o</span><span class="mord mathrm">r</span><span class="mord mathrm">d</span><span class="mord mathrm">s</span><span class="mord mspace"> </span><span class="mord mathrm">e</span><span class="mord mathrm" style="margin-right:0.01389em;">v</span><span class="mord mathrm">a</span><span class="mord mathrm">l</span><span class="mord mathrm">u</span><span class="mord mathrm">a</span><span class="mord mathrm">t</span><span class="mord mathrm">e</span><span class="mord mathrm">d</span></span><span class="mclose">)</span></span></span></span></span>
+
+<p>，其中 W 表示单位记录的 CPU 权重 。</p>
+<p>对于<strong>带唯一索引的等值谓词</strong>，访问路径通常为：</p>
+<ol>
+<li><strong>B-Tree 索引查找</strong>：读取根到叶的路径上若干索引页（假设固定深度），通常记为 “1 页 I&#x2F;O” 来表示一次查找操作的近似代价。</li>
+<li><strong>堆表行定位</strong>（Heap File lookup）：利用索引返回的行定位信息，再读取对应数据页，平均也是一次 I&#x2F;O 操作。</li>
+</ol>
+<p>综合起来，此算子的总代价可表示为：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>1</mn><mtext> </mtext><mo>(</mo><mtext><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">x</mi><mtext> </mtext><mi mathvariant="normal">p</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">g</mi><mi mathvariant="normal">e</mi><mtext> </mtext><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">d</mi></mtext><mo>)</mo><mspace width="0.277778em"></mspace><mo>+</mo><mspace width="0.277778em"></mspace><mn>1</mn><mtext> </mtext><mo>(</mo><mtext><mi mathvariant="normal">d</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">a</mi><mtext> </mtext><mi mathvariant="normal">p</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">g</mi><mi mathvariant="normal">e</mi><mtext> </mtext><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">d</mi></mtext><mo>)</mo><mspace width="0.277778em"></mspace><mo>+</mo><mspace width="0.277778em"></mspace><mi>W</mi><mtext> </mtext><mo>(</mo><mtext><mi mathvariant="normal">C</mi><mi mathvariant="normal">P</mi><mi mathvariant="normal">U</mi></mtext><mo>)</mo></mrow><annotation encoding="application/x-tex">
+1\ (\text{index page read}) \;+\; 1\ (\text{data page read}) \;+\; W\ (\text{CPU})
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base displaystyle textstyle uncramped"><span class="mord mathrm">1</span><span class="mord mspace"> </span><span class="mopen">(</span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">i</span><span class="mord mathrm">n</span><span class="mord mathrm">d</span><span class="mord mathrm">e</span><span class="mord mathrm">x</span><span class="mord mspace"> </span><span class="mord mathrm">p</span><span class="mord mathrm">a</span><span class="mord mathrm" style="margin-right:0.01389em;">g</span><span class="mord mathrm">e</span><span class="mord mspace"> </span><span class="mord mathrm">r</span><span class="mord mathrm">e</span><span class="mord mathrm">a</span><span class="mord mathrm">d</span></span><span class="mclose">)</span><span class="mord mspace thickspace"></span><span class="mbin">+</span><span class="mord mspace thickspace"></span><span class="mord mathrm">1</span><span class="mord mspace"> </span><span class="mopen">(</span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">d</span><span class="mord mathrm">a</span><span class="mord mathrm">t</span><span class="mord mathrm">a</span><span class="mord mspace"> </span><span class="mord mathrm">p</span><span class="mord mathrm">a</span><span class="mord mathrm" style="margin-right:0.01389em;">g</span><span class="mord mathrm">e</span><span class="mord mspace"> </span><span class="mord mathrm">r</span><span class="mord mathrm">e</span><span class="mord mathrm">a</span><span class="mord mathrm">d</span></span><span class="mclose">)</span><span class="mord mspace thickspace"></span><span class="mbin">+</span><span class="mord mspace thickspace"></span><span class="mord mathit" style="margin-right:0.13889em;">W</span><span class="mord mspace"> </span><span class="mopen">(</span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">C</span><span class="mord mathrm">P</span><span class="mord mathrm">U</span></span><span class="mclose">)</span></span></span></span></span>
+
+<p>。</p>
+<p>该模型假设索引组织为聚簇或近似聚簇结构，因此每次索引查找可定位到唯一一条记录。</p>
+<p>对于<strong>聚簇索引的范围扫描</strong>，算子需扫描多个索引条目并可能访问多条数据行，<strong>I&#x2F;O 代价</strong>为</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>F</mi><mo>×</mo><mo>(</mo><mtext><mi mathvariant="normal">N</mi><mi mathvariant="normal">I</mi><mi mathvariant="normal">N</mi><mi mathvariant="normal">D</mi><mi mathvariant="normal">X</mi></mtext><mo>+</mo><mtext><mi mathvariant="normal">T</mi><mi mathvariant="normal">C</mi><mi mathvariant="normal">A</mi><mi mathvariant="normal">R</mi><mi mathvariant="normal">D</mi></mtext><mo>)</mo></mrow><annotation encoding="application/x-tex">
+F \times (\text{NINDX} + \text{TCARD})
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base displaystyle textstyle uncramped"><span class="mord mathit" style="margin-right:0.13889em;">F</span><span class="mbin">×</span><span class="mopen">(</span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">N</span><span class="mord mathrm">I</span><span class="mord mathrm">N</span><span class="mord mathrm">D</span><span class="mord mathrm">X</span></span><span class="mbin">+</span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">T</span><span class="mord mathrm">C</span><span class="mord mathrm">A</span><span class="mord mathrm">R</span><span class="mord mathrm">D</span></span><span class="mclose">)</span></span></span></span></span>
+
+<p>，<strong>CPU 代价</strong>为</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>W</mi><mo>×</mo><mo>(</mo><mtext><mi mathvariant="normal">t</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">p</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">s</mi><mtext> </mtext><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">d</mi></mtext><mo>)</mo></mrow><annotation encoding="application/x-tex">
+W \times (\text{tuples read})
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base displaystyle textstyle uncramped"><span class="mord mathit" style="margin-right:0.13889em;">W</span><span class="mbin">×</span><span class="mopen">(</span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">t</span><span class="mord mathrm">u</span><span class="mord mathrm">p</span><span class="mord mathrm">l</span><span class="mord mathrm">e</span><span class="mord mathrm">s</span><span class="mord mspace"> </span><span class="mord mathrm">r</span><span class="mord mathrm">e</span><span class="mord mathrm">a</span><span class="mord mathrm">d</span></span><span class="mclose">)</span></span></span></span></span>
+
+<p>，因此整体成本为：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>F</mi><mo>×</mo><mo>(</mo><mtext><mi mathvariant="normal">N</mi><mi mathvariant="normal">I</mi><mi mathvariant="normal">N</mi><mi mathvariant="normal">D</mi><mi mathvariant="normal">X</mi></mtext><mo>+</mo><mtext><mi mathvariant="normal">T</mi><mi mathvariant="normal">C</mi><mi mathvariant="normal">A</mi><mi mathvariant="normal">R</mi><mi mathvariant="normal">D</mi></mtext><mo>)</mo><mo>+</mo><mi>W</mi><mo>×</mo><mo>(</mo><mtext><mi mathvariant="normal">t</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">p</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">s</mi><mtext> </mtext><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">d</mi></mtext><mo>)</mo></mrow><annotation encoding="application/x-tex">
+F \times (\text{NINDX} + \text{TCARD}) + W \times (\text{tuples read})
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base displaystyle textstyle uncramped"><span class="mord mathit" style="margin-right:0.13889em;">F</span><span class="mbin">×</span><span class="mopen">(</span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">N</span><span class="mord mathrm">I</span><span class="mord mathrm">N</span><span class="mord mathrm">D</span><span class="mord mathrm">X</span></span><span class="mbin">+</span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">T</span><span class="mord mathrm">C</span><span class="mord mathrm">A</span><span class="mord mathrm">R</span><span class="mord mathrm">D</span></span><span class="mclose">)</span><span class="mbin">+</span><span class="mord mathit" style="margin-right:0.13889em;">W</span><span class="mbin">×</span><span class="mopen">(</span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">t</span><span class="mord mathrm">u</span><span class="mord mathrm">p</span><span class="mord mathrm">l</span><span class="mord mathrm">e</span><span class="mord mathrm">s</span><span class="mord mspace"> </span><span class="mord mathrm">r</span><span class="mord mathrm">e</span><span class="mord mathrm">a</span><span class="mord mathrm">d</span></span><span class="mclose">)</span></span></span></span></span>
+
+<p>，其中 NINDX 为索引页数，TCARD 为表的总页数，F 为谓词选取性；每个匹配索引条目对应一次数据页顺序 I&#x2F;O。</p>
+<p>对于<strong>非聚簇索引的范围扫描</strong>，CPU 成本和聚簇索引的一致，但是 I&#x2F;O 成本为</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>F</mi><mo>×</mo><mo>(</mo><mtext><mi mathvariant="normal">N</mi><mi mathvariant="normal">I</mi><mi mathvariant="normal">N</mi><mi mathvariant="normal">D</mi><mi mathvariant="normal">X</mi></mtext><mo>+</mo><mtext><mi mathvariant="normal">N</mi><mi mathvariant="normal">C</mi><mi mathvariant="normal">A</mi><mi mathvariant="normal">R</mi><mi mathvariant="normal">D</mi></mtext><mo>)</mo></mrow><annotation encoding="application/x-tex">
+F \times (\text{NINDX} + \text{NCARD})
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base displaystyle textstyle uncramped"><span class="mord mathit" style="margin-right:0.13889em;">F</span><span class="mbin">×</span><span class="mopen">(</span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">N</span><span class="mord mathrm">I</span><span class="mord mathrm">N</span><span class="mord mathrm">D</span><span class="mord mathrm">X</span></span><span class="mbin">+</span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">N</span><span class="mord mathrm">C</span><span class="mord mathrm">A</span><span class="mord mathrm">R</span><span class="mord mathrm">D</span></span><span class="mclose">)</span></span></span></span></span>
+
+<p>，因此整体成本为：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>F</mi><mo>×</mo><mo>(</mo><mtext><mi mathvariant="normal">N</mi><mi mathvariant="normal">I</mi><mi mathvariant="normal">N</mi><mi mathvariant="normal">D</mi><mi mathvariant="normal">X</mi></mtext><mo>+</mo><mtext><mi mathvariant="normal">N</mi><mi mathvariant="normal">C</mi><mi mathvariant="normal">A</mi><mi mathvariant="normal">R</mi><mi mathvariant="normal">D</mi></mtext><mo>)</mo><mo>+</mo><mi>W</mi><mo>×</mo><mo>(</mo><mtext><mi mathvariant="normal">t</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">p</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">s</mi><mtext> </mtext><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">d</mi></mtext><mo>)</mo></mrow><annotation encoding="application/x-tex">
+F \times (\text{NINDX} + \text{NCARD}) + W \times (\text{tuples read})
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base displaystyle textstyle uncramped"><span class="mord mathit" style="margin-right:0.13889em;">F</span><span class="mbin">×</span><span class="mopen">(</span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">N</span><span class="mord mathrm">I</span><span class="mord mathrm">N</span><span class="mord mathrm">D</span><span class="mord mathrm">X</span></span><span class="mbin">+</span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">N</span><span class="mord mathrm">C</span><span class="mord mathrm">A</span><span class="mord mathrm">R</span><span class="mord mathrm">D</span></span><span class="mclose">)</span><span class="mbin">+</span><span class="mord mathit" style="margin-right:0.13889em;">W</span><span class="mbin">×</span><span class="mopen">(</span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">t</span><span class="mord mathrm">u</span><span class="mord mathrm">p</span><span class="mord mathrm">l</span><span class="mord mathrm">e</span><span class="mord mathrm">s</span><span class="mord mspace"> </span><span class="mord mathrm">r</span><span class="mord mathrm">e</span><span class="mord mathrm">a</span><span class="mord mathrm">d</span></span><span class="mclose">)</span></span></span></span></span>
+
+<p>，此时每个匹配条目都可能落在不同的数据页上，平均需一次随机 I&#x2F;O，因此用 NCARD（行数）来近似页数。</p>
+<p>对于<strong>分段顺序扫描</strong>，不利用索引，需读取表的所有页并评估所有行：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mtext><mi mathvariant="normal">C</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi></mtext><mo>=</mo><mtext><mi mathvariant="normal">T</mi><mi mathvariant="normal">C</mi><mi mathvariant="normal">A</mi><mi mathvariant="normal">R</mi><mi mathvariant="normal">D</mi></mtext><mo>+</mo><mi>W</mi><mo>×</mo><mtext><mi mathvariant="normal">N</mi><mi mathvariant="normal">C</mi><mi mathvariant="normal">A</mi><mi mathvariant="normal">R</mi><mi mathvariant="normal">D</mi></mtext></mrow><annotation encoding="application/x-tex">
+\text{Cost} = \text{TCARD} + W \times \text{NCARD}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.68333em;"></span><span class="strut bottom" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="base displaystyle textstyle uncramped"><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">C</span><span class="mord mathrm">o</span><span class="mord mathrm">s</span><span class="mord mathrm">t</span></span><span class="mrel">=</span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">T</span><span class="mord mathrm">C</span><span class="mord mathrm">A</span><span class="mord mathrm">R</span><span class="mord mathrm">D</span></span><span class="mbin">+</span><span class="mord mathit" style="margin-right:0.13889em;">W</span><span class="mbin">×</span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">N</span><span class="mord mathrm">C</span><span class="mord mathrm">A</span><span class="mord mathrm">R</span><span class="mord mathrm">D</span></span></span></span></span></span>
+
+<p>，其中 TCARD 为全表页数，NCARD 为元组总数；顺序扫描的 I&#x2F;O 可享有预取（prefetch）与缓冲优势，故只计算页面读取的总数。</p>
+<p>接着，我们来看 JOIN 的成本计算，以<strong>嵌套循环连接</strong>（Nested-Loop Join）为例。</p>
+<p>它的<strong>总代价公式</strong>：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi></mrow><mrow><mtext><mi mathvariant="normal">N</mi><mi mathvariant="normal">L</mi><mi mathvariant="normal">J</mi></mtext></mrow></msub><mo>(</mo><mi>A</mi><mo separator="true">,</mo><mi>B</mi><mo>)</mo><mo>=</mo><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi></mrow><mo>(</mo><mi>A</mi><mo>)</mo><mspace width="0.277778em"></mspace><mo>+</mo><mspace width="0.277778em"></mspace><mrow><mi mathvariant="normal">N</mi><mi mathvariant="normal">C</mi><mi mathvariant="normal">A</mi><mi mathvariant="normal">R</mi><mi mathvariant="normal">D</mi></mrow><mo>(</mo><mi>A</mi><mo>)</mo><mo>×</mo><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi></mrow><mo>(</mo><mi>B</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">
+\mathrm{Cost}_{\text{NLJ}}(A,B) = \mathrm{Cost}(A) \;+\;\mathrm{NCARD}(A)\times \mathrm{Cost}(B)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base displaystyle textstyle uncramped"><span class=""><span class="mord displaystyle textstyle uncramped"><span class="mord mathrm">C</span><span class="mord mathrm">o</span><span class="mord mathrm">s</span><span class="mord mathrm">t</span></span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="text mord scriptstyle cramped"><span class="mord mathrm">N</span><span class="mord mathrm">L</span><span class="mord mathrm">J</span></span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mopen">(</span><span class="mord mathit">A</span><span class="mpunct">,</span><span class="mord mathit" style="margin-right:0.05017em;">B</span><span class="mclose">)</span><span class="mrel">=</span><span class="mord displaystyle textstyle uncramped"><span class="mord mathrm">C</span><span class="mord mathrm">o</span><span class="mord mathrm">s</span><span class="mord mathrm">t</span></span><span class="mopen">(</span><span class="mord mathit">A</span><span class="mclose">)</span><span class="mord mspace thickspace"></span><span class="mbin">+</span><span class="mord mspace thickspace"></span><span class="mord displaystyle textstyle uncramped"><span class="mord mathrm">N</span><span class="mord mathrm">C</span><span class="mord mathrm">A</span><span class="mord mathrm">R</span><span class="mord mathrm">D</span></span><span class="mopen">(</span><span class="mord mathit">A</span><span class="mclose">)</span><span class="mbin">×</span><span class="mord displaystyle textstyle uncramped"><span class="mord mathrm">C</span><span class="mord mathrm">o</span><span class="mord mathrm">s</span><span class="mord mathrm">t</span></span><span class="mopen">(</span><span class="mord mathit" style="margin-right:0.05017em;">B</span><span class="mclose">)</span></span></span></span></span>
+
+<p>，其中 A 为外层计划，B 为内层基表，NCARD(A) 为外层输出元组数。</p>
+<p>为了控制连接顺序的枚举复杂度，System R 优化器仅考虑<strong>左深树</strong>：</p>
+<ul>
+<li>每一步连接的右子树 B 必须为尚未使用的基表，而非先前连接出的中间子树。</li>
+<li>这样能保证枚举过程中只需维护基表之间的累积连接，而无需考虑更复杂的树形拓扑，大幅减少计划数量（从 $O(N!)$ 降到约 $O(2^N)$)。</li>
+</ul>
+<blockquote>
+<p>[!NOTE]</p>
+<p>之前例子中的图就是一棵左深树。</p>
+</blockquote>
+<p>对于谓词形如 <code>B.key = A.key</code>，且在 B 的 key 列上存在<strong>唯一或聚簇索引</strong>，优化器近似认为：</p>
+<ol>
+<li>一次 B+Tree 索引查找需 “1 页” I&#x2F;O（从根到叶路径平均代价）。</li>
+<li>根据索引返回的行定位信息，再一次 Heap File lookup 也需 “1 页” I&#x2F;O。</li>
+<li>最后对该行执行谓词或投影等操作，产生 W 单位的 CPU 代价。</li>
+</ol>
+<p>综合得到：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi></mrow><mo>(</mo><mi>B</mi><mo>)</mo><mo>=</mo><mn>1</mn><mspace width="0.277778em"></mspace><mo>+</mo><mspace width="0.277778em"></mspace><mn>1</mn><mspace width="0.277778em"></mspace><mo>+</mo><mspace width="0.277778em"></mspace><mi>W</mi></mrow><annotation encoding="application/x-tex">
+\mathrm{Cost}(B) = 1 \;+\; 1 \;+\; W
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base displaystyle textstyle uncramped"><span class="mord displaystyle textstyle uncramped"><span class="mord mathrm">C</span><span class="mord mathrm">o</span><span class="mord mathrm">s</span><span class="mord mathrm">t</span></span><span class="mopen">(</span><span class="mord mathit" style="margin-right:0.05017em;">B</span><span class="mclose">)</span><span class="mrel">=</span><span class="mord mathrm">1</span><span class="mord mspace thickspace"></span><span class="mbin">+</span><span class="mord mspace thickspace"></span><span class="mord mathrm">1</span><span class="mord mspace thickspace"></span><span class="mbin">+</span><span class="mord mspace thickspace"></span><span class="mord mathit" style="margin-right:0.13889em;">W</span></span></span></span></span>
+
+<p>，该模型忽略了缓存预取及并行扫描等复杂因素，但其简洁性足以支撑海量计划的快速比较。</p>
+<p>若内层无可用索引，则只能顺序扫描整个表：</p>
+<ul>
+<li><p><strong>I&#x2F;O 代价</strong>：需读取 TCARD(B) 页（表在磁盘上的总页数）；</p>
+</li>
+<li><p><strong>CPU 代价</strong>：对 NCARD(B) 条元组逐一评估谓词和产生输出，共</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>W</mi><mo>×</mo><mrow><mi mathvariant="normal">N</mi><mi mathvariant="normal">C</mi><mi mathvariant="normal">A</mi><mi mathvariant="normal">R</mi><mi mathvariant="normal">D</mi></mrow><mo>(</mo><mi>B</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">
+W\times \mathrm{NCARD}(B)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base displaystyle textstyle uncramped"><span class="mord mathit" style="margin-right:0.13889em;">W</span><span class="mbin">×</span><span class="mord displaystyle textstyle uncramped"><span class="mord mathrm">N</span><span class="mord mathrm">C</span><span class="mord mathrm">A</span><span class="mord mathrm">R</span><span class="mord mathrm">D</span></span><span class="mopen">(</span><span class="mord mathit" style="margin-right:0.05017em;">B</span><span class="mclose">)</span></span></span></span></span>
+
+<p>。</p>
+</li>
+</ul>
+<p>因此：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi></mrow><mo>(</mo><mi>B</mi><mo>)</mo><mo>=</mo><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">C</mi><mi mathvariant="normal">A</mi><mi mathvariant="normal">R</mi><mi mathvariant="normal">D</mi></mrow><mo>(</mo><mi>B</mi><mo>)</mo><mspace width="0.277778em"></mspace><mo>+</mo><mspace width="0.277778em"></mspace><mi>W</mi><mspace width="0.16667em"></mspace><mo>×</mo><mrow><mi mathvariant="normal">N</mi><mi mathvariant="normal">C</mi><mi mathvariant="normal">A</mi><mi mathvariant="normal">R</mi><mi mathvariant="normal">D</mi></mrow><mo>(</mo><mi>B</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">
+\mathrm{Cost}(B) = \mathrm{TCARD}(B)\;+\;W\,\times \mathrm{NCARD}(B)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base displaystyle textstyle uncramped"><span class="mord displaystyle textstyle uncramped"><span class="mord mathrm">C</span><span class="mord mathrm">o</span><span class="mord mathrm">s</span><span class="mord mathrm">t</span></span><span class="mopen">(</span><span class="mord mathit" style="margin-right:0.05017em;">B</span><span class="mclose">)</span><span class="mrel">=</span><span class="mord displaystyle textstyle uncramped"><span class="mord mathrm">T</span><span class="mord mathrm">C</span><span class="mord mathrm">A</span><span class="mord mathrm">R</span><span class="mord mathrm">D</span></span><span class="mopen">(</span><span class="mord mathit" style="margin-right:0.05017em;">B</span><span class="mclose">)</span><span class="mord mspace thickspace"></span><span class="mbin">+</span><span class="mord mspace thickspace"></span><span class="mord mathit" style="margin-right:0.13889em;">W</span><span class="mord mspace thinspace"></span><span class="mbin">×</span><span class="mord displaystyle textstyle uncramped"><span class="mord mathrm">N</span><span class="mord mathrm">C</span><span class="mord mathrm">A</span><span class="mord mathrm">R</span><span class="mord mathrm">D</span></span><span class="mopen">(</span><span class="mord mathit" style="margin-right:0.05017em;">B</span><span class="mclose">)</span></span></span></span></span>
+
+<p>，该模型同样简化了缓冲与批量读写等优化手段，但体现了顺序扫描的典型开销。</p>
+<p>如果是 Sort-Merge Join 的话，代价模型：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>C</mi><mi>o</mi><mi>s</mi><mi>t</mi><mo>=</mo><mi>C</mi><mi>o</mi><mi>s</mi><mi>t</mi><mo>(</mo><mi>A</mi><mo>)</mo><mo>+</mo><mi>C</mi><mi>o</mi><mi>s</mi><mi>t</mi><mo>(</mo><mi>B</mi><mo>)</mo><mo>+</mo><mi>s</mi><mi>o</mi><mi>r</mi><mi>t</mi><mspace width="0.22222em"></mspace><mi>c</mi><mi>o</mi><mi>s</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">
+Cost = Cost(A) + Cost(B) + sort\:cost
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base displaystyle textstyle uncramped"><span class="mord mathit" style="margin-right:0.07153em;">C</span><span class="mord mathit">o</span><span class="mord mathit">s</span><span class="mord mathit">t</span><span class="mrel">=</span><span class="mord mathit" style="margin-right:0.07153em;">C</span><span class="mord mathit">o</span><span class="mord mathit">s</span><span class="mord mathit">t</span><span class="mopen">(</span><span class="mord mathit">A</span><span class="mclose">)</span><span class="mbin">+</span><span class="mord mathit" style="margin-right:0.07153em;">C</span><span class="mord mathit">o</span><span class="mord mathit">s</span><span class="mord mathit">t</span><span class="mopen">(</span><span class="mord mathit" style="margin-right:0.05017em;">B</span><span class="mclose">)</span><span class="mbin">+</span><span class="mord mathit">s</span><span class="mord mathit">o</span><span class="mord mathit" style="margin-right:0.02778em;">r</span><span class="mord mathit">t</span><span class="mord mspace mediumspace"></span><span class="mord mathit">c</span><span class="mord mathit">o</span><span class="mord mathit">s</span><span class="mord mathit">t</span></span></span></span></span>
+
+<ol>
+<li><strong>Cost(A)</strong>：外层子计划（子树）A 的总代价；</li>
+<li><strong>Cost(B)</strong>：内层子计划 B（可以是基表或中间结果）的总代价；</li>
+<li><strong>sort cost</strong>：对 A 和 B 各自执行排序的代价之和。</li>
+</ol>
+<blockquote>
+<p>排序—归并连接是一种基于将两输入关系各自按连接键排序，随后线性归并扫描输出匹配对的算法。</p>
+<ul>
+<li><strong>阶段一：排序（Sort）</strong><ul>
+<li>对输入关系 A、B 按连接属性（pred 中指定的字段）各自进行排序。</li>
+<li>如果输入已经部分或完全有序，则可跳过或简化排序步骤。</li>
+</ul>
+</li>
+<li><strong>阶段二：归并（Merge）</strong><ul>
+<li>维护两个游标，分别指向 A、B 的当前最小键值记录。</li>
+<li>比较当前 A、B 键值：<ul>
+<li>若 A.key &lt; B.key，则将 A 游标前移；</li>
+<li>若 A.key &gt; B.key，则将 B 游标前移；</li>
+<li>若相等，则输出所有相同键值的配对（可能需要在一个输入保留缓冲区中暂存重复键值），并前移游标。</li>
+</ul>
+</li>
+<li>该归并过程只需一次顺序扫描，两边各推进，故 I&#x2F;O 和 CPU 都相对高效。</li>
+</ul>
+</li>
+<li><strong>适用场景</strong><ul>
+<li>两输入均可顺序访问或已排序，且连接键上无合适哈希索引时最优；</li>
+<li>特别适合大批量数据输出且需要顺序结果的场景。</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<p>如果后续操作涉及选取最大最小值，那么最好使用 Sort-Merge Join 先得出排序后的 JOIN 结果。</p>
+<p>第五步，选出成本最低的执行计划：</p>
+<p>若对所有可能的联接树与交叉产品一一枚举，计划数目将呈阶乘级增长，无法承受 。System R（Selinger 优化器）的核心思想是，通过<strong>启发式剪枝</strong>大幅减少搜索空间，同时用<strong>自底向上动态规划</strong>保证在受限空间内选出最优左深计划。</p>
+<ul>
+<li><strong>全空间规模</strong>：对 n 个基表，所有可能的联接树数约为 n!（叶深树）。例如 6 表联接时有 6! &#x3D; 720 种联接顺序；10 表时增至 3 628 800 种。</li>
+<li><strong>启发式目标</strong>：在保证生成足够优质计划的前提下，剪掉绝大多数计划，避免枚举交叉组合、子查询作为内层的树形连接等无效情况。</li>
+</ul>
+<p>这里展示<strong>三大启发式规则</strong>：</p>
+<ol>
+<li><p><strong>谓词下推</strong></p>
+<p>越早执行过滤谓词，可最大程度减少后续算子的输入规模与 I&#x2F;O 或 CPU 代价。</p>
+<p>在构建执行计划时，把每个谓词 $\sigma$ 尽可能下推到最接近基表扫描或索引扫描的层面，不把过滤延迟到后面再算。</p>
+</li>
+<li><p><strong>避免笛卡尔积</strong></p>
+<p>对无关联谓词的表进行笛卡尔积会产生极大中间结果，通常不可接受。</p>
+<p>仅在<strong>所有过滤条件均已消耗殆尽</strong>（即查询本质需要交叉连接）时，才枚举产生交叉产品的计划；否则只枚举带有有效联接谓词的表对。</p>
+</li>
+<li><p><strong>仅枚举左深树</strong></p>
+<p>在左深树中，每次联接的右子树必须是一个<strong>基表</strong>，而不能是先前联接所得的中间子树。</p>
+<p>这样可以使得<strong>搜索空间大幅缩减</strong>：从全空间的 O(n!) 降至约 O(2ⁿ) 或更小；以及<strong>流水线执行</strong>：左深树可实现完全流水线（pipelining），中间结果无需写入磁盘临时表；对大多数算子（NLJ、Hash Join、Merge Join）均适用。</p>
+</li>
+</ol>
+<p><strong>自底向上的动态规划</strong></p>
+<p>以上的三种启发式规则带来的提升有限，所以 System R 还引入了动态规划。</p>
+<p>动态规划算法利用了<strong>最优子结构</strong>的性质：如果在所有包含关系集 {A,B,C} 的计划中，连接 A、B、C 最优的顺序是  (A ⋈ B) ⋈ C，那么无论这个三表子集在更大计划中如何出现，(A ⋈ B) 必然是 {A,B} 的最优子计划之一，不需要再次枚举.</p>
+<p>由于子计划不依赖于外部上下文，其最优性是全局性的，只需计算一次，即可复用到所有包含该子集的更大计划中。这一思想即 “不要在更大的计划中重新考虑子计划”。</p>
+<p>System R 优化器按照子计划包含的基表数目，从小到大分层枚举：</p>
+<ol>
+<li><strong>第 1 轮</strong>（1-表计划）：分别为每个基表 $R_i$ 选择成本最低的访问路径（全表扫描或索引扫描）并记录其成本与输出行数。</li>
+<li><strong>第 2 轮</strong>（2-表计划）：对第 1 轮中的每个单表计划 P（作为外层），将尚未使用的每个基表 $R_j$ 作为内层，计算连接成本，并在所有方案中保留最优者。</li>
+<li><strong>…</strong></li>
+<li><strong>第 k 轮</strong>（k-表计划）：对所有包含 k-1 表的最优子计划 S，尝试将每个剩余基表 R 连接进来，更新并保留每个大小为 k 的子集的最优左深计划，直至包含所有 n 张表。</li>
+</ol>
+<p>如此，算法以 n 轮完成枚举，每轮仅对上一轮的最优子计划进行扩展，不必遍历所有 O(n!) 种联接树，空间和时间复杂度可控制在指数级但远低于阶乘级别。</p>
+<p>用伪代码来表示就是：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">R ← <span class="built_in">set</span> of relations to join</span><br><span class="line"><span class="keyword">for</span> i in &#123;<span class="number">1</span>…|R|&#125;:                              <span class="comment">// 按子集大小自底向上</span></span><br><span class="line">  <span class="keyword">for</span> S in &#123;all subsets of R of size i&#125;:</span><br><span class="line">    optcost_S = ∞</span><br><span class="line">    optjoin_S = ∅</span><br><span class="line">    <span class="keyword">for</span> a in S:                              <span class="comment">// 枚举将 a 作为最后连接的基表</span></span><br><span class="line">      c_sa = optcost_&#123;S–&#123;a&#125;&#125;</span><br><span class="line">             + min_cost_to_join((S–&#123;a&#125;), a)</span><br><span class="line">             + min_access_cost(a)</span><br><span class="line">      <span class="keyword">if</span> c_sa &lt; optcost_S:</span><br><span class="line">        optcost_S = c_sa</span><br><span class="line">        optjoin_S  = optjoin_&#123;S–&#123;a&#125;&#125; ⨝ a</span><br><span class="line">    <span class="comment">// 计算并缓存 S 的最优子计划，包括 optcost_* 和 optjoin_*</span></span><br></pre></td></tr></table></figure>
+
+<p>该算法默认只搜索左深树，因为可以在子集拆分的时候采用 S - a + a 的方式来选取已有的子树和要 JOIN 的基表，并大幅减小搜索空间。</p>
+<p>以 PostgreSQL 中的最优子计划复用为例：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 第一次：emp ⋈ kids 的最低成本执行计划</span></span><br><span class="line">Hash <span class="keyword">Join</span>  (cost<span class="operator">=</span><span class="number">347292.59</span>.<span class="number">.498019</span><span class="number">.60</span> <span class="keyword">rows</span><span class="operator">=</span><span class="number">3000001</span> width<span class="operator">=</span><span class="number">36</span>)</span><br><span class="line"> Hash Cond: (kids.eno <span class="operator">=</span> emp.eno)</span><br><span class="line">   <span class="operator">-</span><span class="operator">&gt;</span> Seq Scan <span class="keyword">on</span> kids         (cost<span class="operator">=</span><span class="number">0.00</span>.<span class="number">.49099</span><span class="number">.01</span> <span class="keyword">rows</span><span class="operator">=</span><span class="number">3000001</span> width<span class="operator">=</span><span class="number">18</span>)</span><br><span class="line">   <span class="operator">-</span><span class="operator">&gt;</span> Hash                   (cost<span class="operator">=</span><span class="number">163696.15</span>.<span class="number">.163696</span><span class="number">.15</span> <span class="keyword">rows</span><span class="operator">=</span><span class="number">10000115</span> width<span class="operator">=</span><span class="number">22</span>)</span><br><span class="line">        <span class="operator">-</span><span class="operator">&gt;</span> Seq Scan <span class="keyword">on</span> emp    (cost<span class="operator">=</span><span class="number">0.00</span>.<span class="number">.163696</span><span class="number">.15</span> <span class="keyword">rows</span><span class="operator">=</span><span class="number">10000115</span> width<span class="operator">=</span><span class="number">22</span>)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 第二次：dept ⋈ (emp ⋈ kids) 的最低成本执行计划</span></span><br><span class="line">Hash <span class="keyword">Join</span>  (cost<span class="operator">=</span><span class="number">350376.61</span>.<span class="number">.556245</span><span class="number">.96</span> <span class="keyword">rows</span><span class="operator">=</span><span class="number">3000001</span> width<span class="operator">=</span><span class="number">40</span>)</span><br><span class="line"> Hash <span class="keyword">Join</span>  (cost<span class="operator">=</span><span class="number">347292.59</span>.<span class="number">.498019</span><span class="number">.60</span> <span class="keyword">rows</span><span class="operator">=</span><span class="number">3000001</span> width<span class="operator">=</span><span class="number">36</span>) <span class="comment">-- 最优子结构复用</span></span><br><span class="line">  Hash Cond: (kids.eno <span class="operator">=</span> emp.eno)</span><br><span class="line">    <span class="operator">-</span><span class="operator">&gt;</span> Seq Scan <span class="keyword">on</span> kids </span><br><span class="line">    <span class="operator">-</span><span class="operator">&gt;</span> Hash </span><br><span class="line">         <span class="operator">-</span><span class="operator">&gt;</span> Seq Scan <span class="keyword">on</span> emp <span class="comment">-- 最优子结构复用结束</span></span><br><span class="line">   <span class="operator">-</span><span class="operator">&gt;</span> Hash  (cost<span class="operator">=</span><span class="number">1443.01</span>.<span class="number">.1443</span><span class="number">.01</span> <span class="keyword">rows</span><span class="operator">=</span><span class="number">100001</span> width<span class="operator">=</span><span class="number">8</span>)</span><br><span class="line">        <span class="operator">-</span><span class="operator">&gt;</span> Seq Scan <span class="keyword">on</span> dept</span><br></pre></td></tr></table></figure>
+
+<p>假设有四个表 A、B、C、D，它们通过动态规划选出最优执行计划的步骤如下：</p>
+<p>当前计算出 A 的最优执行计划是索引扫描，B 是顺序扫描（C 和 D 这里不展示），那么 {A, B} &#x3D; AB or BA，{A, C} &#x3D; AC or CA，{B, C} &#x3D; BC or CB。</p>
+<p>经过一系列计算，我们可以在动态规划中得出如下的备忘录：</p>
+<table>
+<thead>
+<tr>
+<th>Relations</th>
+<th>Best Plan</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A</td>
+<td>Index Scan</td>
+<td>5</td>
+</tr>
+<tr>
+<td>B</td>
+<td>Seq Scan</td>
+<td>15</td>
+</tr>
+<tr>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+</tr>
+<tr>
+<td>{A, B}</td>
+<td>B ⨝ A</td>
+<td>75</td>
+</tr>
+<tr>
+<td>{A, C}</td>
+<td>A ⨝ C</td>
+<td>12</td>
+</tr>
+<tr>
+<td>{B, C}</td>
+<td>C ⨝ B</td>
+<td>22</td>
+</tr>
+<tr>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+</tr>
+</tbody></table>
+<p>之后，我们要计算 {A, B, C}，那么就是要计算：</p>
+<ol>
+<li>不包含 A 的：比较 A({B, C}) 和 ({B, C})A；</li>
+<li>不包含 B 的：比较 ({A, C})B 和 B({A, C})；</li>
+<li>不包含 C 的：比较 C({A, B}) 和 ({A, B})C。</li>
+</ol>
+<p>这个时候我们发现 {A, B}、{A, C}、{B, C} 的最优执行计划已经被缓存起来了，可以直接复用。perfecto！</p>
+<p>最终，我们可以得出如下的备忘录表：</p>
+<table>
+<thead>
+<tr>
+<th>Relations</th>
+<th>Best Plan</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A</td>
+<td>Index Scan</td>
+<td>5</td>
+</tr>
+<tr>
+<td>B</td>
+<td>Seq Scan</td>
+<td>15</td>
+</tr>
+<tr>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+</tr>
+<tr>
+<td>{A, B}</td>
+<td>B ⨝ A</td>
+<td>75</td>
+</tr>
+<tr>
+<td>{A, C}</td>
+<td>A ⨝ C</td>
+<td>12</td>
+</tr>
+<tr>
+<td>{B, C}</td>
+<td>C ⨝ B</td>
+<td>22</td>
+</tr>
+<tr>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+</tr>
+<tr>
+<td>{A, B, C}</td>
+<td>(CB) ⨝ A</td>
+<td>35</td>
+</tr>
+<tr>
+<td>{B, C, D}</td>
+<td>(CB) ⨝ D</td>
+<td>42</td>
+</tr>
+<tr>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+</tr>
+<tr>
+<td>{A, B, C, D}</td>
+<td>((CB) ⨝ D) ⨝ A</td>
+<td>57</td>
+</tr>
+</tbody></table>
+<p>因此，我们可以知道 JOIN ABCD 这四个表的最低成本和最优执行计划了。</p>
+<p>并且该算法在最差情况下需要枚举所有表子集并对每个子集尝试所有可能的最后加入表，因此具有指数级时间复杂度：O(n · 2ⁿ)。</p>
+<p>我们可以将该问题等价成类似 01 子集问题，也就是 n 张表对应一串长度为 n 的二进制串，第 i 位为 1 代表关系 i 已经被 JOIN 了，因此有 2ⁿ - 1 个子集。而且每个子集要进行 n 次状态转移计算，也就是尝试去除集合中的某一个表来构建连接计划。最终两者相乘可得出如上的时间复杂度。</p>
+<p><strong>有趣排序（interesting order）</strong></p>
+<p>查询优化器在枚举左深执行计划时，除了比较不同访问路径和连接算法的代价外，还要考虑输出结果的排序属性——若某计划天然生成了对后续算子（如 Merge Join、ORDER BY、GROUP BY、去重等）有用的顺序，则称该排序为有趣排序。优化器会为每个子集在<strong>每种</strong>有趣排序下各自缓存最优子计划，从而保证后续算子能够直接利用已有排序，避免额外排序或物化开销，但这也会使枚举空间按有趣排序数量 k 成倍增长，总体复杂度增加 k + 1 倍。</p>
+<p>尽管枚举空间增加，优化器借此能提前利用排序属性，减少后续全局排序及临时物化，往往在整体查询时间上取得收益，尤其在多级排序或多次归并连接链中更为明显。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> each subset S of relations:</span><br><span class="line">  <span class="keyword">for</span> each interesting order o in &#123;unordered&#125; ∪ Orders(S):</span><br><span class="line">    compute min-cost plan producing S with order o</span><br><span class="line">    keep plan <span class="keyword">if</span> cost smaller than previous best <span class="title function_">for</span> <span class="params">(S,o)</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="基数估算"><a href="#基数估算" class="headerlink" title="基数估算"></a>基数估算</h2><p>基数估算（Cardinality Estimation）是成本模型的核心环节，优化器需要对每一种可能的关联操作都进行行数估算；当查询涉及 8–16 张表关联时，由于关联顺序的组合数呈指数级增长，可能需要上百到上千次估算；为了避免优化阶段延迟过大，估算器通常要在毫秒级完成一次估算；因此，各数据库系统普遍采用各种快速而简化的假设或采样策略，在估算精度与执行开销之间做权衡。</p>
+<p>PostgreSQL 在 pg_statistic 系统目录中，为表的每一列收集的两大核心统计：</p>
+<ol>
+<li><strong>直方图边界（histogram_bounds）</strong>：按等频原则划分的区间边界，用于估算范围查询的选择性。</li>
+<li><strong>最常见值列表（most_common_vals）</strong>：出现频率最高的一组值及其对应频率，用于快速处理等值查询。查询优化器在生成执行计划时，会结合这两类统计信息来估算谓词的行数（selectivity），进而比较不同执行策略的成本。</li>
+</ol>
+<p>下面将介绍这两种方案。</p>
+<p>直方图又分为等宽和等深两种类型：</p>
+<ol>
+<li><p>等宽直方图（Equal-Width Histogram）是最简单的直方图类型，它将数据值范围等分成若干个固定宽度的桶（bins），并统计每个桶内数据所占的比例（selectivity）。下图将总共 7854 条记录分入等宽的若干个区间（比如 0–5K、5K–10K 等），并在每个桶上方标注该区间内记录占总量的比例（如 0–5K 桶占 61%）。查询优化器可以利用这些比例估算范围查询或不在最常见值列表中的等值查询的行数，从而评估不同执行计划的成本。</p>
+<p><img src="/../../images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_histo_equi_width.png" alt="img"></p>
+<p>根据上图，如果我们要选取小于 5000 的数据，那么操作的范围只局限于第一个桶中，因此估算的基数为 0.61 * 7854 &#x3D; 4796。</p>
+<p>但这里会有个问题：如果范围查找的数值不是某个同的边界呢？也就是比如我们想查找小于 7500 的数据，而这个值刚好在第二个桶的正中间。这个时候我们只能假设数据为均匀分布，但是实际情况并不总是如此：可能大部分数据都集中在第二个桶的 5-6K 这一部分，也可能集中在 9-10K 这一部分，因此会存在较大误差。同时为了减少误差，我们又不可能无限制地缩小每个桶的宽度，因为最终会导致大量的桶，反而会加剧查询和存储的开销。因此我们需要等深直方图。</p>
+</li>
+<li><p>等深直方图（Equal-Depth Histogram）通过保证每个桶内的<strong>行数（频数）大致相同</strong>来划分数据范围。下图仍然是针对 7854 条记录使用 100 个桶来划分，每个桶含有相似数量的值，因此即使值域跨度不均，桶高（selectivity）也差不多（≈0.008），更能反映底层数据分布的真实密度。</p>
+<p><img src="/../../images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_histo_equi_depth.png" alt="img"></p>
+<p>在上图中，如果我们要选取小于 195.5K 的数据，那么操作范围在最后两个桶中，因此估算的基数为 (0.008 + 0.008) * 7854 &#x3D;126。</p>
+<p>通常来说，等深直方图由于等宽直方图，因为它保证了每个桶的选取性的一致，从而导致数据分布更密集的桶更窄，数据分布更稀疏的桶更宽，这更好地反映出了数据分布。但是这样的维护成本也会更高，尤其是某些 DML 操作导致一个桶的高度变化时，它之后的桶需要不断地移动一些数据到这个桶直到选取性达到 0.008，之后的每个桶需要不断往前一个桶移动数据来保证每个桶的高度达到 0.008，每个桶的在 X 轴上的范围也可能会因此变化，甚至某些情况下的工作量不亚于从头构建。此外，每个桶中的数据倾斜仍然无法被避免。</p>
+<p>也就是，如果我们要选取小于 347866 的数据，那么仍然需要假设为均匀分布，这个时候遇到的问题和等宽直方图的是一样的。</p>
+</li>
+</ol>
+<p>通常情况下导致数据倾斜的大概率是一些极端离群值（outliers），我们可以通过下面这个方案来处理它。</p>
+<p><strong>等深直方图 + 最常见值（Most Common Values）</strong></p>
+<p>这个方案中，对于出现极高频率或明显偏斜的值，等深直方图会将它们剔除到最常见值列表，以免扭曲桶的划分边界和高度。</p>
+<p><img src="/../../images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_histo_equi_depth.png" alt="img"></p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th align="right">Selectivity</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td align="right">0.07</td>
+</tr>
+<tr>
+<td>1</td>
+<td align="right">0.0048</td>
+</tr>
+<tr>
+<td>2</td>
+<td align="right">0.00407</td>
+</tr>
+<tr>
+<td>…</td>
+<td align="right">…</td>
+</tr>
+<tr>
+<td>94</td>
+<td align="right">0.0002</td>
+</tr>
+<tr>
+<td>850</td>
+<td align="right">0.0007</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td align="right"><strong>0.14</strong></td>
+</tr>
+</tbody></table>
+<p>上面这个表格就是最常见值列表。</p>
+<p>如果我们要选取等于 0 的数据，那么直接从最常见值的表里获取 0.07，然后 0.07 * 7854 &#x3D; 550 就是预估的基数。</p>
+<p>如果我们要选取大于 812 且小于 860 的数据，那么估算的基数为 (0.008 + 0.0007) * 7854 &#x3D; 68.45。</p>
+<p>但是这个方案仍然存在问题：当我们对多字段（列）的谓词过滤进行基数预估的时候，往往会低估基数，也就是预估的基数往往会比真实操作的元组的基数要低。这是因为不同列的过滤谓词被假设彼此独立，即联合选择性等于各单列选择性的乘积。这种做法在实际数据分布中往往并不成立：当列之间存在相关性时，单列乘积往往远小于真实的联合选择性，导致估算行数被严重低估，从而可能选择次优的执行计划。</p>
+<p>为了克服完全独立性假设在多谓词估算中严重低估结果的问题，SQL Server 引入了三种谓词相关性假设：</p>
+<ol>
+<li><strong>完全独立</strong>：各谓词假设互不相关，联合选择性直接相乘。</li>
+<li><strong>完全相关</strong>：各谓词假设完全相关，联合选择性取最小者。</li>
+<li><strong>部分相关</strong>：折中假设，既不完全独立也不完全相关，通过对较低的选择性取根号后再相乘，减缓低估程度。</li>
+</ol>
+<p>而多列 MCV 是将单列 MCV 的思路扩展到多列组合上：在统计收集阶段，为常一起出现在 WHERE 条件中的列组建立一个联合 MCV 列表，记录这些组合值及其联合频率；查询时，若谓词中出现该组合值，优化器即可直接使用其真实联合选择性，而无需依赖独立性假设或柱状图估算，从而显著提升多谓词过滤的准确性。</p>
+<table>
+<thead>
+<tr>
+<th>balance</th>
+<th>age</th>
+<th>selectivity</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>4776</td>
+<td>34</td>
+<td>0.009</td>
+</tr>
+<tr>
+<td>76325</td>
+<td>41</td>
+<td>0.0005</td>
+</tr>
+<tr>
+<td>…</td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<p>但是这种方案的构建成本会随着查询涉及的列数的增长而增长。</p>
+<p>同样，多列直方图也面临多个列的组合的爆炸式增长问题。</p>
+<p>最后一种方案是 BayesCard：传统查询优化器常用<strong>独立直方图</strong>，对每列单独建模并将联合选择性取乘积 P(A)P(B)P(C)，这种方法速度极快但在列高度相关时严重低估真实结果；若对多列直接建立<strong>三维直方图</strong>，空间开销将成指数级 </p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mrow><mi mathvariant="script">O</mi></mrow><mo>(</mo><mi mathvariant="normal">∣</mi><mi>N</mi><msup><mi mathvariant="normal">∣</mi><mn>3</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">
+\mathcal{O}(|N|^3)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.8641079999999999em;"></span><span class="strut bottom" style="height:1.1141079999999999em;vertical-align:-0.25em;"></span><span class="base displaystyle textstyle uncramped"><span class="mord displaystyle textstyle uncramped"><span class="mord mathcal" style="margin-right:0.02778em;">O</span></span><span class="mopen">(</span><span class="mord mathrm">∣</span><span class="mord mathit" style="margin-right:0.10903em;">N</span><span class="mord"><span class="mord mathrm">∣</span><span class="vlist"><span style="top:-0.413em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle uncramped"><span class="mord mathrm">3</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mclose">)</span></span></span></span></span>
+
+<p>，也无法在生产环境中普及。<strong>图形模型</strong>（如 Bayesian 网络）通过学习列间条件依赖，并将联合分布因子化为若干局部条件概率：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>P</mi><mo>(</mo><mi>A</mi><mo>)</mo><mspace width="0.16667em"></mspace><mi>P</mi><mo>(</mo><mi>B</mi><mo>∣</mo><mi>A</mi><mo>)</mo><mspace width="0.16667em"></mspace><mi>P</mi><mo>(</mo><mi>C</mi><mo>∣</mo><mi>A</mi><mo separator="true">,</mo><mi>B</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">
+P(A)\,P(B\mid A)\,P(C\mid A,B)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base displaystyle textstyle uncramped"><span class="mord mathit" style="margin-right:0.13889em;">P</span><span class="mopen">(</span><span class="mord mathit">A</span><span class="mclose">)</span><span class="mord mspace thinspace"></span><span class="mord mathit" style="margin-right:0.13889em;">P</span><span class="mopen">(</span><span class="mord mathit" style="margin-right:0.05017em;">B</span><span class="mrel">∣</span><span class="mord mathit">A</span><span class="mclose">)</span><span class="mord mspace thinspace"></span><span class="mord mathit" style="margin-right:0.13889em;">P</span><span class="mopen">(</span><span class="mord mathit" style="margin-right:0.07153em;">C</span><span class="mrel">∣</span><span class="mord mathit">A</span><span class="mpunct">,</span><span class="mord mathit" style="margin-right:0.05017em;">B</span><span class="mclose">)</span></span></span></span></span>
+
+<p>，在保留关联性的前提下，将参数规模控制到 </p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mrow><mi mathvariant="script">O</mi></mrow><mo>(</mo><mn>2</mn><mi mathvariant="normal">∣</mi><mi>N</mi><msup><mi mathvariant="normal">∣</mi><mn>2</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">
+\mathcal{O}(2|N|^2)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.8641079999999999em;"></span><span class="strut bottom" style="height:1.1141079999999999em;vertical-align:-0.25em;"></span><span class="base displaystyle textstyle uncramped"><span class="mord displaystyle textstyle uncramped"><span class="mord mathcal" style="margin-right:0.02778em;">O</span></span><span class="mopen">(</span><span class="mord mathrm">2</span><span class="mord mathrm">∣</span><span class="mord mathit" style="margin-right:0.10903em;">N</span><span class="mord"><span class="mord mathrm">∣</span><span class="vlist"><span style="top:-0.413em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle uncramped"><span class="mord mathrm">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mclose">)</span></span></span></span></span>
+
+<p>，从而在毫秒级完成联合 Selectivity 推断，并在多项基准测试中显著降低估算误差，实现了精度与性能的平衡。</p>
+<p><img src="/../../images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/db_adv_query_optimize_bayes_card.drawio.png" alt="img"></p>
+<p>关于 BayesCard 的具体内容可参考：<a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2012.14743">https://arxiv.org/pdf/2012.14743</a></p>
+<p>传统关系型数据库对等值和范围谓词均有成熟的统计信息（如直方图、最常见值列表）支持，但对于 LIKE 和 UDF 这两类黑箱谓词，数据库优化器往往难以利用现有统计直接估算、只能退而求其次使用启发式规则或假定常数选择性，导致估算误差大、执行计划次优。近年来，研究界针对 LIKE 查询提出了<strong>模式&#x2F;序列模型</strong>（pattern-based 或 positional histograms）来改善精度，而 UDF 则几乎无法通过统计建模，只能依赖<strong>运行时采样</strong>或<strong>成本抑制</strong>策略。</p>
+<p><strong>模式&#x2F;序列直方图方法</strong></p>
+<p><strong>SPH（Sequential Pattern-based Histogram）</strong>：通过挖掘字符串的频繁子序列，将常见的子串模式构建成模式直方图，在优化时根据查询模式匹配度快速估算 selectivity，从而显著优于传统直方图和常数假定。</p>
+<p><strong>Positional Sequence Patterns</strong>：针对 SPH 偶尔会高估的问题，引入位置序列模式区分相邻匹配与可插入匹配，通过信息熵剔除冗余模式，再结合分区匹配策略，使 LIKE 查询的平均误差率降低约 20%。</p>
+<p><strong>深度学习方法</strong>：近期有工作利用神经网络对 LIKE 模式进行表征和回归预测，能够学习复杂通配符下的非线性分布，但目前仍处于研究阶段，工业界应用有限。</p>
+<p><strong>样本采样（Sampling）</strong></p>
+<p>样本采样是一种简单直接的基数估算方法：在数据库中为每张表维护一个小规模的随机样本（例如，1% 的行）并常驻内存；在优化阶段，针对查询谓词仅在样本上执行过滤，计算样本命中率，然后将其外推到全表数据，得到整体选择性和估算行数。</p>
+<p>该方案的优点是：</p>
+<p><strong>支持任意谓词</strong>：由于直接在样本上运行过滤运算，不依赖预先计算的直方图或分布假设，对<strong>任何</strong>运算符或 UDF 都有效。</p>
+<p><strong>摆脱独立性等假设</strong>：无需假设列间相互独立，也无需假设值在桶内均匀分布；样本大致反映真实分布，即可获取估算。</p>
+<p><strong>易于集成</strong>：只要在优化器中加入样本访问路径，就能在编译阶段快速完成过滤并计算比例，无需维护复杂的统计结构。</p>
+<p>缺点是：</p>
+<p><strong>可能遗漏极端值</strong>：如果查询谓词对应的行在样本中未出现（例如极端离群值或低频组合），会导致估算为零或极小，严重低估真实行数。</p>
+<p><strong>编译时开销</strong>：需要在优化阶段执行过滤运算，若样本量或谓词复杂度较高，编译时间可能显著增加；采样比例若过低，则准确度下降，否则延迟上升。</p>
+<p><strong>不适用于多表连接</strong>：在多表连接查询中，需要对多个表的样本进行笛卡尔组合或联动抽样，开销与实现复杂度呈指数级增长，因此通常<strong>不对连接</strong>使用样本采样估算，只针对单表谓词有效。</p>
+<p>下面展示 PostgreSQL 中是如何进行基数估算的：</p>
+<p>PostgreSQL（沿用 System R 的经典做法）对单列等值联结 R₁ ⋈ R₂ ON R₁.a &#x3D; R₂.a 估算行数时，先分别估算表过滤后行数 |R₁|、|R₂| 及各自该列的基数 (d₁、d₂)，然后假定联结属性在两表中同构分布并采用最保守的分母：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo fence="true">∣</mo><msub><mi>R</mi><mn>1</mn></msub><mo>⋈</mo><msub><mi>R</mi><mn>2</mn></msub><mo fence="true">∣</mo><mspace width="0.277778em"></mspace><mo>≈</mo><mspace width="0.277778em"></mspace><mfrac><mrow><mi mathvariant="normal">∥</mi><msub><mi>R</mi><mn>1</mn></msub><mi mathvariant="normal">∥</mi><mspace width="0.277778em"></mspace><mo>×</mo><mspace width="0.277778em"></mspace><mi mathvariant="normal">∥</mi><msub><mi>R</mi><mn>2</mn></msub><mi mathvariant="normal">∥</mi></mrow><mrow><mi>max</mi><mo>(</mo><msub><mi>d</mi><mn>1</mn></msub><mo separator="true">,</mo><mspace width="0.16667em"></mspace><msub><mi>d</mi><mn>2</mn></msub><mo>)</mo></mrow></mfrac><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">
+\bigl|R_1 \Join R_2\bigr| \;\approx\; \frac{\|R_1\|\;\times\;\|R_2\|}{\max(d_1,\,d_2)}.
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:1.427em;"></span><span class="strut bottom" style="height:2.363em;vertical-align:-0.936em;"></span><span class="base displaystyle textstyle uncramped"><span class="mopen"><span class="style-wrap reset-textstyle textstyle uncramped"><span class="delimsizing mult"><span class="vlist"><span style="top:0.35000999999999993em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="delimsizinginner delim-size1"><span>∣</span></span></span><span style="top:-0.25599000000000005em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="delimsizinginner delim-size1"><span>∣</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span><span class="mord"><span class="mord mathit" style="margin-right:0.00773em;">R</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.00773em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathrm">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mrel">⋈</span><span class="mord"><span class="mord mathit" style="margin-right:0.00773em;">R</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.00773em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathrm">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mclose"><span class="style-wrap reset-textstyle textstyle uncramped"><span class="delimsizing mult"><span class="vlist"><span style="top:0.35000999999999993em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="delimsizinginner delim-size1"><span>∣</span></span></span><span style="top:-0.25599000000000005em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="delimsizinginner delim-size1"><span>∣</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span><span class="mord mspace thickspace"></span><span class="mrel">≈</span><span class="mord mspace thickspace"></span><span class="mord reset-textstyle displaystyle textstyle uncramped"><span class="sizing reset-size5 size5 reset-textstyle textstyle uncramped nulldelimiter"></span><span class="mfrac"><span class="vlist"><span style="top:0.686em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle cramped"><span class="mord textstyle cramped"><span class="mop">max</span><span class="mopen">(</span><span class="mord"><span class="mord mathit">d</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathrm">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mpunct">,</span><span class="mord mspace thinspace"></span><span class="mord"><span class="mord mathit">d</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathrm">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mclose">)</span></span></span></span><span style="top:-0.2300000000000001em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle uncramped frac-line"></span></span><span style="top:-0.677em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle uncramped"><span class="mord textstyle uncramped"><span class="mord mathrm">∥</span><span class="mord"><span class="mord mathit" style="margin-right:0.00773em;">R</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.00773em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathrm">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mord mathrm">∥</span><span class="mord mspace thickspace"></span><span class="mbin">×</span><span class="mord mspace thickspace"></span><span class="mord mathrm">∥</span><span class="mord"><span class="mord mathit" style="margin-right:0.00773em;">R</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.00773em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathrm">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mord mathrm">∥</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="sizing reset-size5 size5 reset-textstyle textstyle uncramped nulldelimiter"></span></span><span class="mord mathrm">.</span></span></span></span></span>
+
+<p>，其中 <code>max(d₁,d₂)</code> 是两表中该列唯一值数量的较大者，用作平均每个值匹配行数的分母，以避免乘积模型在高度偏斜场景下的严重低估。</p>
+<p>假设有三个表 emp，dept，kids：</p>
+<p>emp：</p>
+<table>
+<thead>
+<tr>
+<th>eid</th>
+<th>employee</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>Lee</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Kim</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Sam</td>
+</tr>
+</tbody></table>
+<p>dept：</p>
+<table>
+<thead>
+<tr>
+<th>eid</th>
+<th>department</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>财务部</td>
+</tr>
+<tr>
+<td>2</td>
+<td>财务部</td>
+</tr>
+<tr>
+<td>3</td>
+<td>行政部</td>
+</tr>
+</tbody></table>
+<p>kids：</p>
+<table>
+<thead>
+<tr>
+<th>eid</th>
+<th>name</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>Neil</td>
+</tr>
+<tr>
+<td>1</td>
+<td>Lebron</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Justin</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Tom</td>
+</tr>
+</tbody></table>
+<p>如果执行 <code>SELECT * FROM emp, dept, kids WHERE eid = eid AND emp.eid = kids.eid;</code>，也就是没有过滤条件的情况，那么 </p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>∣</mo><mi>e</mi><mi>m</mi><mi>p</mi><mo>∣</mo><mo>=</mo><mn>3</mn><mspace width="1em"></mspace><mo>∣</mo><mi>d</mi><mi>e</mi><mi>p</mi><mi>t</mi><mo>∣</mo><mo>=</mo><mn>3</mn><mspace width="1em"></mspace><mo>∣</mo><mi>k</mi><mi>i</mi><mi>d</mi><mi>s</mi><mo>∣</mo><mo>=</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">
+\lvert emp\rvert = 3 \quad \lvert dept\rvert = 3 \quad \lvert kids\rvert = 4
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base displaystyle textstyle uncramped"><span class="mopen">∣</span><span class="mord mathit">e</span><span class="mord mathit">m</span><span class="mord mathit">p</span><span class="mclose">∣</span><span class="mrel">=</span><span class="mord mathrm">3</span><span class="mord mspace quad"></span><span class="mopen">∣</span><span class="mord mathit">d</span><span class="mord mathit">e</span><span class="mord mathit">p</span><span class="mord mathit">t</span><span class="mclose">∣</span><span class="mrel">=</span><span class="mord mathrm">3</span><span class="mord mspace quad"></span><span class="mopen">∣</span><span class="mord mathit" style="margin-right:0.03148em;">k</span><span class="mord mathit">i</span><span class="mord mathit">d</span><span class="mord mathit">s</span><span class="mclose">∣</span><span class="mrel">=</span><span class="mord mathrm">4</span></span></span></span></span>
+
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>d</mi><mrow><mi>e</mi><mo separator="true">,</mo><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">d</mi></mrow></mrow></msub><mo>=</mo><mn>3</mn><mspace width="1em"></mspace><msub><mi>d</mi><mrow><mi>d</mi><mo separator="true">,</mo><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">d</mi></mrow></mrow></msub><mo>=</mo><mn>3</mn><mspace width="1em"></mspace><msub><mi>d</mi><mrow><mi>k</mi><mo separator="true">,</mo><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">d</mi></mrow></mrow></msub><mo>=</mo><mn>3</mn></mrow><annotation encoding="application/x-tex">
+d_{e,\mathrm{eid}} = 3 \quad d_{d,\mathrm{eid}} = 3 \quad d_{k,\mathrm{eid}} = 3
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.980548em;vertical-align:-0.286108em;"></span><span class="base displaystyle textstyle uncramped"><span class="mord"><span class="mord mathit">d</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">e</span><span class="mpunct">,</span><span class="mord scriptstyle cramped"><span class="mord mathrm">e</span><span class="mord mathrm">i</span><span class="mord mathrm">d</span></span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mrel">=</span><span class="mord mathrm">3</span><span class="mord mspace quad"></span><span class="mord"><span class="mord mathit">d</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">d</span><span class="mpunct">,</span><span class="mord scriptstyle cramped"><span class="mord mathrm">e</span><span class="mord mathrm">i</span><span class="mord mathrm">d</span></span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mrel">=</span><span class="mord mathrm">3</span><span class="mord mspace quad"></span><span class="mord"><span class="mord mathit">d</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit" style="margin-right:0.03148em;">k</span><span class="mpunct">,</span><span class="mord scriptstyle cramped"><span class="mord mathrm">e</span><span class="mord mathrm">i</span><span class="mord mathrm">d</span></span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mrel">=</span><span class="mord mathrm">3</span></span></span></span></span>
+
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo fence="true">∣</mo><mtext><mi mathvariant="normal">e</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">p</mi></mtext><mo>⋈</mo><mtext><mi mathvariant="normal">d</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">p</mi><mi mathvariant="normal">t</mi></mtext><mo fence="true">∣</mo><mo>≈</mo><mfrac><mrow><mn>3</mn><mo>×</mo><mn>3</mn></mrow><mrow><mi>max</mi><mo>(</mo><mn>3</mn><mo separator="true">,</mo><mn>3</mn><mo>)</mo></mrow></mfrac><mo>=</mo><mfrac><mrow><mn>3</mn><mo>×</mo><mn>3</mn></mrow><mrow><mn>3</mn></mrow></mfrac><mo>=</mo><mn>3</mn></mrow><annotation encoding="application/x-tex">
+\bigl|\text{emp}\Join\text{dept}\bigr| \approx \frac{3\times3}{\max(3,3)} = \frac{3\times3}{3} = 3
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:1.32144em;"></span><span class="strut bottom" style="height:2.25744em;vertical-align:-0.936em;"></span><span class="base displaystyle textstyle uncramped"><span class="mopen"><span class="style-wrap reset-textstyle textstyle uncramped"><span class="delimsizing mult"><span class="vlist"><span style="top:0.35000999999999993em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="delimsizinginner delim-size1"><span>∣</span></span></span><span style="top:-0.25599000000000005em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="delimsizinginner delim-size1"><span>∣</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">e</span><span class="mord mathrm">m</span><span class="mord mathrm">p</span></span><span class="mrel">⋈</span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">d</span><span class="mord mathrm">e</span><span class="mord mathrm">p</span><span class="mord mathrm">t</span></span><span class="mclose"><span class="style-wrap reset-textstyle textstyle uncramped"><span class="delimsizing mult"><span class="vlist"><span style="top:0.35000999999999993em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="delimsizinginner delim-size1"><span>∣</span></span></span><span style="top:-0.25599000000000005em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="delimsizinginner delim-size1"><span>∣</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span><span class="mrel">≈</span><span class="mord reset-textstyle displaystyle textstyle uncramped"><span class="sizing reset-size5 size5 reset-textstyle textstyle uncramped nulldelimiter"></span><span class="mfrac"><span class="vlist"><span style="top:0.686em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle cramped"><span class="mord textstyle cramped"><span class="mop">max</span><span class="mopen">(</span><span class="mord mathrm">3</span><span class="mpunct">,</span><span class="mord mathrm">3</span><span class="mclose">)</span></span></span></span><span style="top:-0.2300000000000001em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle uncramped frac-line"></span></span><span style="top:-0.677em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle uncramped"><span class="mord textstyle uncramped"><span class="mord mathrm">3</span><span class="mbin">×</span><span class="mord mathrm">3</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="sizing reset-size5 size5 reset-textstyle textstyle uncramped nulldelimiter"></span></span><span class="mrel">=</span><span class="mord reset-textstyle displaystyle textstyle uncramped"><span class="sizing reset-size5 size5 reset-textstyle textstyle uncramped nulldelimiter"></span><span class="mfrac"><span class="vlist"><span style="top:0.686em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle cramped"><span class="mord textstyle cramped"><span class="mord mathrm">3</span></span></span></span><span style="top:-0.22999999999999998em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle uncramped frac-line"></span></span><span style="top:-0.677em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle uncramped"><span class="mord textstyle uncramped"><span class="mord mathrm">3</span><span class="mbin">×</span><span class="mord mathrm">3</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="sizing reset-size5 size5 reset-textstyle textstyle uncramped nulldelimiter"></span></span><span class="mrel">=</span><span class="mord mathrm">3</span></span></span></span></span>
+
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo fence="true">∣</mo><mtext><mi mathvariant="normal">e</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">p</mi></mtext><mo>⋈</mo><mtext><mi mathvariant="normal">k</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">s</mi></mtext><mo fence="true">∣</mo><mo>≈</mo><mfrac><mrow><mn>3</mn><mo>×</mo><mn>4</mn></mrow><mrow><mi>max</mi><mo>(</mo><mn>3</mn><mo separator="true">,</mo><mn>3</mn><mo>)</mo></mrow></mfrac><mo>=</mo><mfrac><mrow><mn>3</mn><mo>×</mo><mn>4</mn></mrow><mrow><mn>3</mn></mrow></mfrac><mo>=</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">
+\bigl|\text{emp}\Join\text{kids}\bigr| \approx \frac{3\times4}{\max(3,3)} = \frac{3\times4}{3} = 4
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:1.32144em;"></span><span class="strut bottom" style="height:2.25744em;vertical-align:-0.936em;"></span><span class="base displaystyle textstyle uncramped"><span class="mopen"><span class="style-wrap reset-textstyle textstyle uncramped"><span class="delimsizing mult"><span class="vlist"><span style="top:0.35000999999999993em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="delimsizinginner delim-size1"><span>∣</span></span></span><span style="top:-0.25599000000000005em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="delimsizinginner delim-size1"><span>∣</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">e</span><span class="mord mathrm">m</span><span class="mord mathrm">p</span></span><span class="mrel">⋈</span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">k</span><span class="mord mathrm">i</span><span class="mord mathrm">d</span><span class="mord mathrm">s</span></span><span class="mclose"><span class="style-wrap reset-textstyle textstyle uncramped"><span class="delimsizing mult"><span class="vlist"><span style="top:0.35000999999999993em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="delimsizinginner delim-size1"><span>∣</span></span></span><span style="top:-0.25599000000000005em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="delimsizinginner delim-size1"><span>∣</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span><span class="mrel">≈</span><span class="mord reset-textstyle displaystyle textstyle uncramped"><span class="sizing reset-size5 size5 reset-textstyle textstyle uncramped nulldelimiter"></span><span class="mfrac"><span class="vlist"><span style="top:0.686em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle cramped"><span class="mord textstyle cramped"><span class="mop">max</span><span class="mopen">(</span><span class="mord mathrm">3</span><span class="mpunct">,</span><span class="mord mathrm">3</span><span class="mclose">)</span></span></span></span><span style="top:-0.2300000000000001em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle uncramped frac-line"></span></span><span style="top:-0.677em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle uncramped"><span class="mord textstyle uncramped"><span class="mord mathrm">3</span><span class="mbin">×</span><span class="mord mathrm">4</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="sizing reset-size5 size5 reset-textstyle textstyle uncramped nulldelimiter"></span></span><span class="mrel">=</span><span class="mord reset-textstyle displaystyle textstyle uncramped"><span class="sizing reset-size5 size5 reset-textstyle textstyle uncramped nulldelimiter"></span><span class="mfrac"><span class="vlist"><span style="top:0.686em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle cramped"><span class="mord textstyle cramped"><span class="mord mathrm">3</span></span></span></span><span style="top:-0.22999999999999998em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle uncramped frac-line"></span></span><span style="top:-0.677em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle uncramped"><span class="mord textstyle uncramped"><span class="mord mathrm">3</span><span class="mbin">×</span><span class="mord mathrm">4</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="sizing reset-size5 size5 reset-textstyle textstyle uncramped nulldelimiter"></span></span><span class="mrel">=</span><span class="mord mathrm">4</span></span></span></span></span>
+
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo fence="true">∣</mo><mo>(</mo><mtext><mi mathvariant="normal">e</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">p</mi></mtext><mo>⋈</mo><mtext><mi mathvariant="normal">d</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">p</mi><mi mathvariant="normal">t</mi></mtext><mo>)</mo><mo>⋈</mo><mtext><mi mathvariant="normal">k</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">s</mi></mtext><mo fence="true">∣</mo><mo>≈</mo><mfrac><mrow><mn>3</mn><mo>×</mo><mn>4</mn></mrow><mrow><mi>max</mi><mo>(</mo><mn>3</mn><mo separator="true">,</mo><mn>3</mn><mo>)</mo></mrow></mfrac><mo>=</mo><mfrac><mrow><mn>3</mn><mo>×</mo><mn>4</mn></mrow><mrow><mn>3</mn></mrow></mfrac><mo>=</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">
+\bigl|(\text{emp}\Join\text{dept})\Join\text{kids}\bigr| \approx \frac{3\times4}{\max(3,3)} = \frac{3\times4}{3} = 4
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:1.32144em;"></span><span class="strut bottom" style="height:2.25744em;vertical-align:-0.936em;"></span><span class="base displaystyle textstyle uncramped"><span class="mopen"><span class="style-wrap reset-textstyle textstyle uncramped"><span class="delimsizing mult"><span class="vlist"><span style="top:0.35000999999999993em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="delimsizinginner delim-size1"><span>∣</span></span></span><span style="top:-0.25599000000000005em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="delimsizinginner delim-size1"><span>∣</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span><span class="mopen">(</span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">e</span><span class="mord mathrm">m</span><span class="mord mathrm">p</span></span><span class="mrel">⋈</span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">d</span><span class="mord mathrm">e</span><span class="mord mathrm">p</span><span class="mord mathrm">t</span></span><span class="mclose">)</span><span class="mrel">⋈</span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">k</span><span class="mord mathrm">i</span><span class="mord mathrm">d</span><span class="mord mathrm">s</span></span><span class="mclose"><span class="style-wrap reset-textstyle textstyle uncramped"><span class="delimsizing mult"><span class="vlist"><span style="top:0.35000999999999993em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="delimsizinginner delim-size1"><span>∣</span></span></span><span style="top:-0.25599000000000005em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="delimsizinginner delim-size1"><span>∣</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span><span class="mrel">≈</span><span class="mord reset-textstyle displaystyle textstyle uncramped"><span class="sizing reset-size5 size5 reset-textstyle textstyle uncramped nulldelimiter"></span><span class="mfrac"><span class="vlist"><span style="top:0.686em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle cramped"><span class="mord textstyle cramped"><span class="mop">max</span><span class="mopen">(</span><span class="mord mathrm">3</span><span class="mpunct">,</span><span class="mord mathrm">3</span><span class="mclose">)</span></span></span></span><span style="top:-0.2300000000000001em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle uncramped frac-line"></span></span><span style="top:-0.677em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle uncramped"><span class="mord textstyle uncramped"><span class="mord mathrm">3</span><span class="mbin">×</span><span class="mord mathrm">4</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="sizing reset-size5 size5 reset-textstyle textstyle uncramped nulldelimiter"></span></span><span class="mrel">=</span><span class="mord reset-textstyle displaystyle textstyle uncramped"><span class="sizing reset-size5 size5 reset-textstyle textstyle uncramped nulldelimiter"></span><span class="mfrac"><span class="vlist"><span style="top:0.686em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle cramped"><span class="mord textstyle cramped"><span class="mord mathrm">3</span></span></span></span><span style="top:-0.22999999999999998em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle uncramped frac-line"></span></span><span style="top:-0.677em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle uncramped"><span class="mord textstyle uncramped"><span class="mord mathrm">3</span><span class="mbin">×</span><span class="mord mathrm">4</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="sizing reset-size5 size5 reset-textstyle textstyle uncramped nulldelimiter"></span></span><span class="mrel">=</span><span class="mord mathrm">4</span></span></span></span></span>
+
+<p>，</p>
+<p>如果执行 <code>SELECT * FROM emp, dept, kids WHERE dept.department = &#39;财务部&#39; AND emp.eid = dept.eid AND emp.eid = kids.eid;</code>，那么 </p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>∣</mo><mi>e</mi><mi>m</mi><mi>p</mi><mo>∣</mo><mo>=</mo><mn>3</mn><mspace width="1em"></mspace><mo>∣</mo><mi>d</mi><mi>e</mi><mi>p</mi><mi>t</mi><mo>∣</mo><mo>=</mo><mn>1</mn><mspace width="1em"></mspace><mo>∣</mo><mi>k</mi><mi>i</mi><mi>d</mi><mi>s</mi><mo>∣</mo><mo>=</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">
+\lvert emp\rvert = 3 \quad \lvert dept\rvert = 1 \quad \lvert kids\rvert = 4
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base displaystyle textstyle uncramped"><span class="mopen">∣</span><span class="mord mathit">e</span><span class="mord mathit">m</span><span class="mord mathit">p</span><span class="mclose">∣</span><span class="mrel">=</span><span class="mord mathrm">3</span><span class="mord mspace quad"></span><span class="mopen">∣</span><span class="mord mathit">d</span><span class="mord mathit">e</span><span class="mord mathit">p</span><span class="mord mathit">t</span><span class="mclose">∣</span><span class="mrel">=</span><span class="mord mathrm">1</span><span class="mord mspace quad"></span><span class="mopen">∣</span><span class="mord mathit" style="margin-right:0.03148em;">k</span><span class="mord mathit">i</span><span class="mord mathit">d</span><span class="mord mathit">s</span><span class="mclose">∣</span><span class="mrel">=</span><span class="mord mathrm">4</span></span></span></span></span>
+
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>d</mi><mrow><mi>e</mi><mo separator="true">,</mo><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">d</mi></mrow></mrow></msub><mo>=</mo><mn>3</mn><mspace width="1em"></mspace><msub><mi>d</mi><mrow><mi>d</mi><mo separator="true">,</mo><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">d</mi></mrow></mrow></msub><mo>=</mo><mn>1</mn><mspace width="1em"></mspace><msub><mi>d</mi><mrow><mi>k</mi><mo separator="true">,</mo><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">d</mi></mrow></mrow></msub><mo>=</mo><mn>3</mn></mrow><annotation encoding="application/x-tex">
+d_{e,\mathrm{eid}} = 3 \quad d_{d,\mathrm{eid}} = 1 \quad d_{k,\mathrm{eid}} = 3
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.980548em;vertical-align:-0.286108em;"></span><span class="base displaystyle textstyle uncramped"><span class="mord"><span class="mord mathit">d</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">e</span><span class="mpunct">,</span><span class="mord scriptstyle cramped"><span class="mord mathrm">e</span><span class="mord mathrm">i</span><span class="mord mathrm">d</span></span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mrel">=</span><span class="mord mathrm">3</span><span class="mord mspace quad"></span><span class="mord"><span class="mord mathit">d</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">d</span><span class="mpunct">,</span><span class="mord scriptstyle cramped"><span class="mord mathrm">e</span><span class="mord mathrm">i</span><span class="mord mathrm">d</span></span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mrel">=</span><span class="mord mathrm">1</span><span class="mord mspace quad"></span><span class="mord"><span class="mord mathit">d</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit" style="margin-right:0.03148em;">k</span><span class="mpunct">,</span><span class="mord scriptstyle cramped"><span class="mord mathrm">e</span><span class="mord mathrm">i</span><span class="mord mathrm">d</span></span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mrel">=</span><span class="mord mathrm">3</span></span></span></span></span>
+
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo fence="true">∣</mo><mtext><mi mathvariant="normal">e</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">p</mi></mtext><mo>⋈</mo><mtext><mi mathvariant="normal">d</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">p</mi><mi mathvariant="normal">t</mi></mtext><mo fence="true">∣</mo><mo>≈</mo><mfrac><mrow><mn>3</mn><mo>×</mo><mn>1</mn></mrow><mrow><mi>max</mi><mo>(</mo><mn>3</mn><mo separator="true">,</mo><mn>1</mn><mo>)</mo></mrow></mfrac><mo>=</mo><mfrac><mrow><mn>3</mn><mo>×</mo><mn>1</mn></mrow><mrow><mn>3</mn></mrow></mfrac><mo>=</mo><mn>3</mn></mrow><annotation encoding="application/x-tex">
+\bigl|\text{emp}\Join\text{dept}\bigr| \approx \frac{3\times1}{\max(3,1)} = \frac{3\times1}{3} = 3
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:1.32144em;"></span><span class="strut bottom" style="height:2.25744em;vertical-align:-0.936em;"></span><span class="base displaystyle textstyle uncramped"><span class="mopen"><span class="style-wrap reset-textstyle textstyle uncramped"><span class="delimsizing mult"><span class="vlist"><span style="top:0.35000999999999993em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="delimsizinginner delim-size1"><span>∣</span></span></span><span style="top:-0.25599000000000005em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="delimsizinginner delim-size1"><span>∣</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">e</span><span class="mord mathrm">m</span><span class="mord mathrm">p</span></span><span class="mrel">⋈</span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">d</span><span class="mord mathrm">e</span><span class="mord mathrm">p</span><span class="mord mathrm">t</span></span><span class="mclose"><span class="style-wrap reset-textstyle textstyle uncramped"><span class="delimsizing mult"><span class="vlist"><span style="top:0.35000999999999993em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="delimsizinginner delim-size1"><span>∣</span></span></span><span style="top:-0.25599000000000005em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="delimsizinginner delim-size1"><span>∣</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span><span class="mrel">≈</span><span class="mord reset-textstyle displaystyle textstyle uncramped"><span class="sizing reset-size5 size5 reset-textstyle textstyle uncramped nulldelimiter"></span><span class="mfrac"><span class="vlist"><span style="top:0.686em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle cramped"><span class="mord textstyle cramped"><span class="mop">max</span><span class="mopen">(</span><span class="mord mathrm">3</span><span class="mpunct">,</span><span class="mord mathrm">1</span><span class="mclose">)</span></span></span></span><span style="top:-0.2300000000000001em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle uncramped frac-line"></span></span><span style="top:-0.677em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle uncramped"><span class="mord textstyle uncramped"><span class="mord mathrm">3</span><span class="mbin">×</span><span class="mord mathrm">1</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="sizing reset-size5 size5 reset-textstyle textstyle uncramped nulldelimiter"></span></span><span class="mrel">=</span><span class="mord reset-textstyle displaystyle textstyle uncramped"><span class="sizing reset-size5 size5 reset-textstyle textstyle uncramped nulldelimiter"></span><span class="mfrac"><span class="vlist"><span style="top:0.686em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle cramped"><span class="mord textstyle cramped"><span class="mord mathrm">3</span></span></span></span><span style="top:-0.22999999999999998em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle uncramped frac-line"></span></span><span style="top:-0.677em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle uncramped"><span class="mord textstyle uncramped"><span class="mord mathrm">3</span><span class="mbin">×</span><span class="mord mathrm">1</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="sizing reset-size5 size5 reset-textstyle textstyle uncramped nulldelimiter"></span></span><span class="mrel">=</span><span class="mord mathrm">3</span></span></span></span></span>
+
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo fence="true">∣</mo><mtext><mi mathvariant="normal">e</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">p</mi></mtext><mo>⋈</mo><mtext><mi mathvariant="normal">k</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">s</mi></mtext><mo fence="true">∣</mo><mo>≈</mo><mfrac><mrow><mn>3</mn><mo>×</mo><mn>4</mn></mrow><mrow><mi>max</mi><mo>(</mo><mn>3</mn><mo separator="true">,</mo><mn>3</mn><mo>)</mo></mrow></mfrac><mo>=</mo><mfrac><mrow><mn>3</mn><mo>×</mo><mn>4</mn></mrow><mrow><mn>3</mn></mrow></mfrac><mo>=</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">
+\bigl|\text{emp}\Join\text{kids}\bigr| \approx \frac{3\times4}{\max(3,3)} = \frac{3\times4}{3} = 4
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:1.32144em;"></span><span class="strut bottom" style="height:2.25744em;vertical-align:-0.936em;"></span><span class="base displaystyle textstyle uncramped"><span class="mopen"><span class="style-wrap reset-textstyle textstyle uncramped"><span class="delimsizing mult"><span class="vlist"><span style="top:0.35000999999999993em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="delimsizinginner delim-size1"><span>∣</span></span></span><span style="top:-0.25599000000000005em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="delimsizinginner delim-size1"><span>∣</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">e</span><span class="mord mathrm">m</span><span class="mord mathrm">p</span></span><span class="mrel">⋈</span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">k</span><span class="mord mathrm">i</span><span class="mord mathrm">d</span><span class="mord mathrm">s</span></span><span class="mclose"><span class="style-wrap reset-textstyle textstyle uncramped"><span class="delimsizing mult"><span class="vlist"><span style="top:0.35000999999999993em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="delimsizinginner delim-size1"><span>∣</span></span></span><span style="top:-0.25599000000000005em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="delimsizinginner delim-size1"><span>∣</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span><span class="mrel">≈</span><span class="mord reset-textstyle displaystyle textstyle uncramped"><span class="sizing reset-size5 size5 reset-textstyle textstyle uncramped nulldelimiter"></span><span class="mfrac"><span class="vlist"><span style="top:0.686em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle cramped"><span class="mord textstyle cramped"><span class="mop">max</span><span class="mopen">(</span><span class="mord mathrm">3</span><span class="mpunct">,</span><span class="mord mathrm">3</span><span class="mclose">)</span></span></span></span><span style="top:-0.2300000000000001em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle uncramped frac-line"></span></span><span style="top:-0.677em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle uncramped"><span class="mord textstyle uncramped"><span class="mord mathrm">3</span><span class="mbin">×</span><span class="mord mathrm">4</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="sizing reset-size5 size5 reset-textstyle textstyle uncramped nulldelimiter"></span></span><span class="mrel">=</span><span class="mord reset-textstyle displaystyle textstyle uncramped"><span class="sizing reset-size5 size5 reset-textstyle textstyle uncramped nulldelimiter"></span><span class="mfrac"><span class="vlist"><span style="top:0.686em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle cramped"><span class="mord textstyle cramped"><span class="mord mathrm">3</span></span></span></span><span style="top:-0.22999999999999998em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle uncramped frac-line"></span></span><span style="top:-0.677em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle uncramped"><span class="mord textstyle uncramped"><span class="mord mathrm">3</span><span class="mbin">×</span><span class="mord mathrm">4</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="sizing reset-size5 size5 reset-textstyle textstyle uncramped nulldelimiter"></span></span><span class="mrel">=</span><span class="mord mathrm">4</span></span></span></span></span>
+
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo fence="true">∣</mo><mo>(</mo><mtext><mi mathvariant="normal">e</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">p</mi></mtext><mo>⋈</mo><mtext><mi mathvariant="normal">d</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">p</mi><mi mathvariant="normal">t</mi></mtext><mo>)</mo><mo>⋈</mo><mtext><mi mathvariant="normal">k</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">s</mi></mtext><mo fence="true">∣</mo><mo>≈</mo><mfrac><mrow><mn>1</mn><mo>×</mo><mn>4</mn></mrow><mrow><mi>max</mi><mo>(</mo><mn>1</mn><mo separator="true">,</mo><mn>3</mn><mo>)</mo></mrow></mfrac><mo>=</mo><mfrac><mrow><mn>1</mn><mo>×</mo><mn>4</mn></mrow><mrow><mn>3</mn></mrow></mfrac><mo>=</mo><mn>1</mn><mi mathvariant="normal">.</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">
+\bigl|(\text{emp}\Join\text{dept})\Join\text{kids}\bigr| \approx \frac{1\times4}{\max(1,3)} = \frac{1\times4}{3} = 1.3
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:1.32144em;"></span><span class="strut bottom" style="height:2.25744em;vertical-align:-0.936em;"></span><span class="base displaystyle textstyle uncramped"><span class="mopen"><span class="style-wrap reset-textstyle textstyle uncramped"><span class="delimsizing mult"><span class="vlist"><span style="top:0.35000999999999993em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="delimsizinginner delim-size1"><span>∣</span></span></span><span style="top:-0.25599000000000005em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="delimsizinginner delim-size1"><span>∣</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span><span class="mopen">(</span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">e</span><span class="mord mathrm">m</span><span class="mord mathrm">p</span></span><span class="mrel">⋈</span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">d</span><span class="mord mathrm">e</span><span class="mord mathrm">p</span><span class="mord mathrm">t</span></span><span class="mclose">)</span><span class="mrel">⋈</span><span class="text mord displaystyle textstyle uncramped"><span class="mord mathrm">k</span><span class="mord mathrm">i</span><span class="mord mathrm">d</span><span class="mord mathrm">s</span></span><span class="mclose"><span class="style-wrap reset-textstyle textstyle uncramped"><span class="delimsizing mult"><span class="vlist"><span style="top:0.35000999999999993em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="delimsizinginner delim-size1"><span>∣</span></span></span><span style="top:-0.25599000000000005em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="delimsizinginner delim-size1"><span>∣</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span><span class="mrel">≈</span><span class="mord reset-textstyle displaystyle textstyle uncramped"><span class="sizing reset-size5 size5 reset-textstyle textstyle uncramped nulldelimiter"></span><span class="mfrac"><span class="vlist"><span style="top:0.686em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle cramped"><span class="mord textstyle cramped"><span class="mop">max</span><span class="mopen">(</span><span class="mord mathrm">1</span><span class="mpunct">,</span><span class="mord mathrm">3</span><span class="mclose">)</span></span></span></span><span style="top:-0.2300000000000001em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle uncramped frac-line"></span></span><span style="top:-0.677em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle uncramped"><span class="mord textstyle uncramped"><span class="mord mathrm">1</span><span class="mbin">×</span><span class="mord mathrm">4</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="sizing reset-size5 size5 reset-textstyle textstyle uncramped nulldelimiter"></span></span><span class="mrel">=</span><span class="mord reset-textstyle displaystyle textstyle uncramped"><span class="sizing reset-size5 size5 reset-textstyle textstyle uncramped nulldelimiter"></span><span class="mfrac"><span class="vlist"><span style="top:0.686em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle cramped"><span class="mord textstyle cramped"><span class="mord mathrm">3</span></span></span></span><span style="top:-0.22999999999999998em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle uncramped frac-line"></span></span><span style="top:-0.677em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle textstyle uncramped"><span class="mord textstyle uncramped"><span class="mord mathrm">1</span><span class="mbin">×</span><span class="mord mathrm">4</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="sizing reset-size5 size5 reset-textstyle textstyle uncramped nulldelimiter"></span></span><span class="mrel">=</span><span class="mord mathrm">1</span><span class="mord mathrm">.</span><span class="mord mathrm">3</span></span></span></span></span>
+
+<p>。</p>
+<p>思考：</p>
+<p>这里出现小数点有影响么？</p>
+<p>实际上是没有影响的，这个指标只用于基数评估并最终用于确定执行计划，实际的操作执行和这个无关。</p>
+<p><strong>基数的低估和高估问题</strong></p>
+<p>基数估算问题可分为<strong>低估（Under-Estimates）和高估（Over-Estimates）两类。两者均会导致选错执行计划，但低估往往更具破坏性</strong>：当优化器低估中间结果行数时，可能选择内存嵌套循环而不是外部哈希连接，导致大量磁盘溢写和 I&#x2F;O 阻塞，从而极度拖慢查询。独立性假设是导致低估的主要根源之一，因为真实数据中列间高度相关时，简单的乘积模型会大幅低估联合选择性。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
     <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/25/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/OLTP%20%E7%B4%A2%E5%BC%95/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1338,223 +2106,10 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/MySQL/2024/12/05/MySQL/%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Yihang Wei">
-      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="EthanWeee">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/undefined/MySQL/2024/12/05/MySQL/%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98/" class="post-title-link" itemprop="url">性能调优</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-12-05 00:00:00" itemprop="dateCreated datePublished" datetime="2024-12-05T00:00:00-08:00">2024-12-05</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-06-23 14:47:57" itemprop="dateModified" datetime="2025-06-23T14:47:57-07:00">2025-06-23</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><h2 id="选择合适的-CPU"><a href="#选择合适的-CPU" class="headerlink" title="选择合适的 CPU"></a>选择合适的 CPU</h2><p>一般而言，当前数据库的应用类型可分为两大类：OLTP（Online Transaction Processing，在线事务处理）和 OLAP（Online Analytical Processing，在线分析处理）。这是两种截然不同的数据库应用。OLAP 多用于数据仓库或数据集中，一般需要执行复杂的 SQL 语句来进行查询；OLTP 多用于日常的事务性应用中，如银行交易、在线商品交易、Blog、网络游戏等应用。相对于 OLAP，OLTP 应用中的数据库容量较小。</p>
-<p>InnoDB 存储引擎一般都应用于 OLTP 的数据库应用，这种应用的特点如下：</p>
-<ul>
-<li>用户操作的并发量大；</li>
-<li>事务处理的时间一般比较短；</li>
-<li>查询的语句较为简单，一般走索引；</li>
-<li>复杂的查询较少。</li>
-</ul>
-<p>可以看出，OLTP 的数据库应用本身对 CPU 的要求并不是很高，因为复杂的查询（如排序、连接等）非常耗费 CPU，而这些操作在 OLTP 应用中较少发生。因此，可以说：<strong>OLAP</strong> 是 <strong>CPU 密集型</strong>的操作，<strong>OLTP</strong> 是 <strong>I&#x2F;O 密集型</strong>的操作。建议在采购服务器时，将更多注意力放在 I&#x2F;O 性能的配置上。</p>
-<p><strong>OLTP 为主</strong>：优先关注存储子系统性能，CPU 核数 4–8 核即可满足大多数场景，多核有助于并发连接处理；单语句并行受限于 MySQL 内核，需依赖多会话并发提升吞吐。</p>
-<p><strong>OLAP 为主</strong>：建议选用多核高主频机器，如 16–32 核以上，同时配合支持并行查询的引擎（Aurora&#x2F;MySQL HeatWave）以充分发挥 CPU 性能。</p>
-<p>为了支持多核应用，我们可以考虑 InnoDB 并行特性与调优：</p>
-<p><strong>并行 I&#x2F;O 线程</strong></p>
-<ul>
-<li><p><code>innodb_read_io_threads</code> 与 <code>innodb_write_io_threads</code> 默认均为 4，或为可用逻辑处理器数的一半，且最小为 4；可手动增至与 CPU 核数相同，提升 I&#x2F;O 吞吐。</p>
-</li>
-<li><p>合理设置范围为 1–64，具体值需结合存储性能与并发需求测试。</p>
-</li>
-</ul>
-<p><strong>并行索引扫描</strong></p>
-<p>MySQL 8.0.14 起支持 <code>innodb_parallel_read_threads</code>，可并行扫描聚簇索引子树，加速诸如 <code>CHECK TABLE</code>、<code>COUNT(*)</code> 等操作。默认值为可用 CPU 数，或根据系统特性自动调整；在多核机上带来显著读取性能提升。</p>
-<p><strong>并行 DDL 构建</strong></p>
-<p>从 MySQL 8.0.27 起，<code>innodb_ddl_threads</code> 使在线创建二级索引时可并发执行多线程，显著缩短大表的 DDL 时间。</p>
-<h2 id="内存的重要性"><a href="#内存的重要性" class="headerlink" title="内存的重要性"></a>内存的重要性</h2><p>InnoDB 将数据和索引缓存在一个很大的缓冲池中，即 InnoDB Buffer Pool。因此，内存的大小直接影响了数据库的性能。</p>
-<p>Percona 公司的 CTO Vadim 对此做了一次测试，以此反映内存的重要性：数据和索引总大小为 18 GB，然后将缓冲池的大小分别设为 2 GB、4 GB、6 GB、8 GB、10 GB、12 GB、14 GB、16 GB、18 GB、20 GB、22 GB，再进行 sysbench 的测试。可以发现，随着缓冲池的增大，测试结果 TPS（Transactions Per Second）会线性增长。当缓冲池增大到 20 GB 和 22 GB 时，数据库的性能有了极大的提高，因为此时缓冲池的大小已经大于数据文件本身的大小，所有对数据文件的操作都可以在内存中进行。因此，这时的性能应该是最优的，再增大缓冲池并不能再提高数据库的性能。</p>
-<p>所以，<strong>应该在开发应用前预估活跃数据库的大小是多少，并以此确定数据库服务器内存的大小。当然，要使用更多的内存还必须使用 64 位的操作系统。</strong></p>
-<p>如何判断当前数据库的内存是否已经达到瓶颈了呢？可以通过查看当前服务器的状态，比较物理磁盘的读取和内存读取的比例来判断缓冲池的命中率，通常 InnoDB 存储引擎的缓冲池命中率不应该小于 99%，如：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SHOW</span> <span class="keyword">GLOBAL</span> STATUS <span class="keyword">LIKE</span> <span class="string">&#x27;innodb%read%&#x27;</span>\G</span><br><span class="line"><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span> <span class="number">1.</span> <span class="type">row</span> <span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span></span><br><span class="line">Variable_name: Innodb_buffer_pool_read_ahead</span><br><span class="line"><span class="keyword">Value</span>: <span class="number">0</span></span><br><span class="line"><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span> <span class="number">2.</span> <span class="type">row</span> <span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span></span><br><span class="line">Variable_name: Innodb_buffer_pool_read_ahead_evicted</span><br><span class="line"><span class="keyword">Value</span>: <span class="number">0</span></span><br><span class="line"><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span> <span class="number">3.</span> <span class="type">row</span> <span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span></span><br><span class="line">Variable_name: Innodb_buffer_pool_read_requests</span><br><span class="line"><span class="keyword">Value</span>: <span class="number">167051313</span></span><br><span class="line"><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span> <span class="number">4.</span> <span class="type">row</span> <span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span></span><br><span class="line">Variable_name: Innodb_buffer_pool_reads</span><br><span class="line"><span class="keyword">Value</span>: <span class="number">129236</span></span><br><span class="line"><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span> <span class="number">5.</span> <span class="type">row</span> <span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span></span><br><span class="line">Variable_name: Innodb_data_pending_reads</span><br><span class="line"><span class="keyword">Value</span>: <span class="number">0</span></span><br><span class="line"><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span> <span class="number">6.</span> <span class="type">row</span> <span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span></span><br><span class="line">Variable_name: Innodb_data_read</span><br><span class="line"><span class="keyword">Value</span>: <span class="number">2135642112</span></span><br><span class="line"><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span> <span class="number">7.</span> <span class="type">row</span> <span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span></span><br><span class="line">Variable_name: Innodb_data_reads</span><br><span class="line"><span class="keyword">Value</span>: <span class="number">130309</span></span><br><span class="line"><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span> <span class="number">8.</span> <span class="type">row</span> <span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span></span><br><span class="line">Variable_name: Innodb_pages_read</span><br><span class="line"><span class="keyword">Value</span>: <span class="number">130215</span></span><br><span class="line"><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span> <span class="number">9.</span> <span class="type">row</span> <span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span></span><br><span class="line">Variable_name: Innodb_rows_read</span><br><span class="line"><span class="keyword">Value</span>: <span class="number">17651085</span></span><br><span class="line"><span class="number">9</span> <span class="keyword">rows</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
-
-<p>上述参数的具体含义如下表所示：</p>
-<table>
-<thead>
-<tr>
-<th><strong>参数</strong></th>
-<th><strong>说明</strong></th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Innodb_buffer_pool_reads</td>
-<td>表示从物理磁盘读取页的次数</td>
-</tr>
-<tr>
-<td>Innodb_buffer_pool_read_ahead</td>
-<td>预读的次数</td>
-</tr>
-<tr>
-<td>Innodb_buffer_pool_read_ahead_evicted</td>
-<td>预读的页，但是没有被读取就从缓冲池中被替换的页的数量，一般用来判断预读的效率</td>
-</tr>
-<tr>
-<td>Innodb_buffer_pool_read_requests</td>
-<td>从缓冲池中读取页的次数</td>
-</tr>
-<tr>
-<td>Innodb_data_read</td>
-<td>总共读入的字节数</td>
-</tr>
-<tr>
-<td>Innodb_data_reads</td>
-<td>发起读请求的次数，每次读取可能需要读取多个页</td>
-</tr>
-</tbody></table>
-<p>以下公式可以计算各种对缓冲池的操作：<br>$$\text{缓冲池命中率} &#x3D;<br>  \frac{\text{Innodb_buffer_pool_read_requests}}<br>       {\text{Innodb_buffer_pool_read_requests} + \text{Innodb_buffer_pool_read_ahead} + \text{Innodb_buffer_pool_reads}}$$<br>$$\text{平均每次读取的字节数} &#x3D;<br>  \frac{\text{Innodb_data_read}}{\text{Innodb_data_reads}}$$</p>
-<p>从上面的例子看，<code>缓冲池命中率 = 167 051 313 / (167 051 313 + 129 236 + 0) ≈ 99.92%</code>。</p>
-<p>即使缓冲池的大小已经大于数据库文件的大小，这也并不意味着没有磁盘操作。数据库的缓冲池只是一个用来存放热点的区域，后台的线程还负责将脏页异步地写入到磁盘。此外，每次事务提交时还需要将日志写入重做日志文件。</p>
-<h2 id="硬盘的选择"><a href="#硬盘的选择" class="headerlink" title="硬盘的选择"></a>硬盘的选择</h2><h3 id="传统机械硬盘（HDD）"><a href="#传统机械硬盘（HDD）" class="headerlink" title="传统机械硬盘（HDD）"></a>传统机械硬盘（HDD）</h3><p>在现代数据库系统中，存储子系统的性能直接影响到应用的响应速度和吞吐能力。传统机械硬盘依赖旋转盘片和寻道臂，虽然成熟稳定，却在随机访问场景中存在较高的延迟；固态硬盘以闪存为存储介质，通过消除机械部件带来了数百倍的随机 I&#x2F;O 性能提升；而 NVMe 接口的固态硬盘则更进一步，通过 PCIe 通道实现更低的延迟和更高的并发吞吐。针对这些不同类型的硬盘，MySQL 提供了多项优化参数和社区方案，以充分利用闪存特性并扩展内存缓冲池，从而在 OLTP 和 OLAP 场景中都能获得优异的数据库性能。</p>
-<p>传统机械硬盘的主要性能指标包括寻道时间和转速。寻道时间指从发出读写指令到磁头到达目标扇区所需的时间，目前高端 SAS 硬盘的平均寻道时间约为三毫秒；转速以每分钟转数（RPM）计量，常见值为 7200RPM 和 15000RPM。由于机械硬盘在数据访问时需要进行磁头定位和盘片旋转，随机 I&#x2F;O 操作的响应时间通常在数毫秒级别，而顺序读写则能达到上百兆字节每秒的吞吐。为提高性能和可靠性，生产环境中常将多块机械硬盘通过 RAID 0 或 RAID 10 组合，以提升顺序吞吐和分散热点。</p>
-<h3 id="固态硬盘"><a href="#固态硬盘" class="headerlink" title="固态硬盘"></a>固态硬盘</h3><p>固态硬盘，也称基于闪存的固态硬盘，是近年来出现的一种新型存储设备，它内部由闪存颗粒（Flash Memory）组成，具有低延迟、低功耗和抗震性等优点。传统机械硬盘依赖磁头寻道和旋转延迟，固态硬盘无需机械移动部件，因而能提供一致的随机访问时间，一般小于0.1毫秒。闪存中的数据不可直接覆盖写入，只能通过扇区（sector）或块级的擦除（erase）操作来重写，在擦除前需要先对整个擦除块进行擦除，该擦除块大小通常是128KB或256KB，并且每个擦除块有写入次数的寿命限制，需要配合垃圾回收和磨损均衡算法来解决写入次数限制问题。固态硬盘的控制器会将主机的逻辑地址映射成实际的物理地址，写操作同时需要更新映射表，带来额外的开销，但相对于机械硬盘的寻道和旋转延迟，这些开销仍然较低。</p>
-<p>在数据库领域，尤其是 MySQL 的 InnoDB 存储引擎中，充分利用固态硬盘所带来的高 IOPS 特性是提升性能的重要手段之一。在 InnoDB 中，可以通过调整 <code>innodb_io_capacity</code> 和 <code>innodb_io_capacity_max</code> 参数来控制后台 I&#x2F;O 的并发数和速率，使得刷新操作更加均匀且高效，对于 SSD 存储，一般建议将这两个参数设置为几万甚至更高的值，以充分发挥闪存的并行读写能力。除此之外，还可以使用 InnoDB 8.0 系列中提供的 L2 Cache 解决方案，将 SSD 作为二级缓存层，以进一步扩充内存缓冲池的容量，从而降低对主存的依赖并提升数据库整体吞吐量。Facebook 推出的 Flash Cache 和 Percona 的 Flashcache 等方案也能在操作系统层面提供类似功能，但 InnoDB 原生的 L2 Cache 与存储引擎深度集成，能够获得更好的效果。</p>
-<p>优化 InnoDB 磁盘 I&#x2F;O 还可以从以下几个方面入手：首先，将 <code>innodb_buffer_pool_size</code> 设置为系统内存的 50% 到 75%，这样大部分热数据可以缓存在内存中，减少对磁盘的访问需求。其次，将 <code>innodb_flush_method</code> 设置为 O_DIRECT，避免文件系统缓存与 InnoDB 缓冲池之间的双重缓存带来的不必要 I&#x2F;O 开销。再者，根据操作系统和硬件特性，选择合适的 I&#x2F;O 调度器，例如在 Linux 上使用 noop 或 deadline 调度器，以减少调度延迟并配合 SSD 的并行特性。另外，当系统物理内存充足时，应尽量避免使用交换空间，因为即使是 SSD，频繁的交换也会缩短其寿命并带来不必要的写放大效应。</p>
-<h2 id="操作系统的选择"><a href="#操作系统的选择" class="headerlink" title="操作系统的选择"></a>操作系统的选择</h2><p>操作系统的选择和调优对数据库的响应速度、并发处理能力以及 I&#x2F;O 性能具有至关重要的影响。合适的 OS 及其配置不仅能够发挥底层硬件的最大性能，还能减少不必要的系统开销，从而提升 MySQL 的整体吞吐量与稳定性。</p>
-<p><strong>Linux vs. Windows vs. BSD</strong></p>
-<ul>
-<li>Linux：MySQL 在 Linux&#x2F;Unix 平台上经过了长期优化，社区与厂商（包括 Oracle）主要以 Linux 为开发和测试环境，因此在性能和兼容性方面通常优于 Windows。Linux 的轻量内核和丰富的工具链也有助于更精细的调优和故障排查。</li>
-<li>Windows：尽管 MySQL 支持 Windows，但在高并发、大规模生产环境下，不如 Linux 稳定，且 Windows Server 的授权费用和系统开销较高。</li>
-<li>BSD&#x2F;macOS：较少用于生产环境，社区支持与文档相对有限，调优经验不如 Linux 丰富。</li>
-</ul>
-<p>Linux 发行版与版本选择</p>
-<p>发行版推荐</p>
-<ul>
-<li>RHEL 及衍生版（CentOS、Rocky Linux、Oracle Linux）：长期支持（LTS）版本稳定，企业级特性丰富，文档与社区调优经验充足。</li>
-<li>Debian&#x2F;Ubuntu Server：包管理灵活，社区活跃，适合快速迭代与测试环境；Ubuntu LTS 版本也可用于生产，但需注意内核参数差异。</li>
-<li>其他（SUSE、Arch 等）：在特定场景下可用，但社区调优资料相对较少。</li>
-</ul>
-<p>内核版本的话，优先选择稳定的 LTS 内核（如 5.x 系列），以获得长期安全和性能更新；可根据硬件特性（如最新 NVMe SSD）适当测试更高版本内核的性能优势。</p>
-<h2 id="文件系统的选择"><a href="#文件系统的选择" class="headerlink" title="文件系统的选择"></a>文件系统的选择</h2><p>不同文件系统在并发 I&#x2F;O 性能、数据完整性保障、快照支持和对闪存设备的优化上各有侧重。一般而言，若以大文件吞吐和并发写入为主，可优先考虑 XFS；若追求成熟稳定和通用场景，可选用 ext4；若需要原生快照、子卷和校验功能，可考虑 Btrfs；若对数据完整性和自我修复有极致需求，可采用 ZFS；若存储介质为 NAND 闪存且写放大需严格控制，则 F2FS 是最佳方案。</p>
-<p>在需要处理海量大文件或日志聚合的场景下，XFS 拥有优异的并发写入性能和在线扩展能力，能够在多线程写入时保持稳定吞吐。</p>
-<p>对于大量小文件的创建、删除和元数据访问，ext4 表现更加均衡，元数据操作延迟较低，且社区支持度极高。</p>
-<p>Btrfs 和 ZFS 均内置数据与元数据校验和机制，可以在读写时检测并自动修复错误，显著提高数据完整性保障。</p>
-<p>ZFS 采用 Copy-On-Write 事务模型，所有写入先在新块上完成，元数据与数据层层校验后再引用，有助于避免因崩溃导致的不一致状态。</p>
-<p>Btrfs 原生支持轻量级子卷与快照，通过写时复制技术，创建快照几乎零成本，便于在线备份和回滚。</p>
-<p>ZFS 快照同样高效，一旦创建可立即生效且节省空间，并可通过 zfs send&#x2F;recv 在集群或异地环境中可靠地迁移数据集。</p>
-<p>Btrfs 支持透明在线压缩，既能节省存储空间，也能降低 SSD 写入量；ZFS 则提供多种压缩算法（如 LZ4），可根据性能与压缩率需求灵活选择。</p>
-<p>F2FS 是针对 NAND 闪存设计的日志结构文件系统，通过减少写放大和高效的清理机制，提高中低端 SSD 和 eMMC 的使用寿命与性能。</p>
-<h2 id="RAID-的设置"><a href="#RAID-的设置" class="headerlink" title="RAID 的设置"></a>RAID 的设置</h2><p>RAID（Redundant Array of Independent Disks，独立磁盘冗余阵列）的基本思想就是把多个相对便宜的硬盘组合起来，成为一个磁盘数组，使性能达到甚至超过一个价格昂贵、容量巨大的硬盘。由于将多个硬盘组合成一个逻辑扇区，RAID 看起来就像一个单独的硬盘或逻辑存储单元，因此操作系统只会把它当作一个硬盘。</p>
-<p>RAID 的作用是：</p>
-<ul>
-<li>增强数据集成度；</li>
-<li>增强容错功能；</li>
-<li>增加处理量或容量。</li>
-</ul>
-<p>根据不同磁盘的组合方式，常见的 RAID 组合方式可分为 RAID 0、RAID 1、RAID 5、RAID 10 和 RAID 50 等。</p>
-<p>RAID 0：将多个磁盘合并成一个大的磁盘，不会有冗余，并行 I&#x2F;O，速度最快。RAID 0 亦称为带区集（Striping），它将多个磁盘并列起来，使之成为一个大磁盘，如下图所示。</p>
-<p><img src="/../../images/MySQL/mysql_backup_raid0.drawio.png" alt="img"></p>
-<p>在存放数据时，会将数据按磁盘的个数进行分段，同时将这些分段并行写入各个磁盘。所以，在所有的 RAID 级别中，RAID 0 的速度是最快的。但是 RAID 0 没有冗余功能，如果一个磁盘（物理）损坏，则所有的数据都会丢失。</p>
-<p>理论上，多磁盘的效能等于（单一磁盘效能）×（磁盘数），但实际会受总线 I&#x2F;O 瓶颈及其他因素的影响，RAID 效能会随边际递减。也就是说，假设一个磁盘的效能是 50 MB&#x2F;s，两个磁盘的 RAID 0 效能约为 96 MB&#x2F;s，三个磁盘的 RAID 0 也许是 130 MB&#x2F;s 而不是理论值 150 MB&#x2F;s。</p>
-<p>RAID 1：两组以上的 N 个磁盘相互作为镜像（如下图所示）。在一些多线程操作系统中，RAID 1 能有很好的读取速度，但写入速度略有降低。除非主磁盘和镜像磁盘同时损坏，否则只要有一块磁盘正常就能维持运行，可靠性最高。RAID 1 就是镜像，其原理是在主硬盘上存放数据的同时，也在镜像硬盘上写入相同的数据。当主硬盘（物理）损坏时，镜像硬盘就顶替其工作。由于有镜像磁盘做数据备份，RAID 1 的数据安全性在所有 RAID 级别中最高。但是，无论用多少块磁盘作为 RAID 1，仅有一块磁盘有效，是所有 RAID 级别中磁盘利用率最低的一个级别。</p>
-<p><img src="/../../images/MySQL/mysql_backup_raid1.drawio.png" alt="img"></p>
-<p>RAID 5：是一种兼顾存储性能、数据安全和存储成本的存储解决方案。它使用 Disk Striping（硬盘分区）技术，至少需要三块硬盘。RAID 5 不对存储的数据进行完整备份，而是将数据和对应的奇偶校验信息存储到 RAID 5 的各个磁盘上，且奇偶校验信息和对应的数据分别存储在不同的磁盘上。当 RAID 5 中的一块磁盘发生故障后，可利用其余磁盘上的数据和奇偶校验信息，恢复丢失的数据。RAID 5 可视为 RAID 0 和 RAID 1 的折中方案，为系统提供数据安全保障，但其安全性低于镜像，磁盘空间利用率高于镜像。RAID 5 具有与 RAID 0 相近的读取速度，只是多了一条奇偶校验信息；写入速度相对较慢，若使用 Write Back 可有所改善。同时，由于多个数据块共用一条奇偶校验信息，RAID 5 的磁盘空间利用率高于 RAID 1，存储成本相对较低。RAID 5 的结构如下图所示。</p>
-<p><img src="/../../images/MySQL/mysql_backup_raid5.drawio.png" alt="img"></p>
-<p>RAID 10 是先镜像再分区数据，将所有硬盘分为两组，视为 RAID 0 的最低组合，然后将这两组各自视为 RAID 1 运行。RAID 10 有着不错的读取速度，而且拥有比 RAID 0 更高的数据保护性。RAID 01 则与 RAID 10 程序相反，先以 RAID 0 将数据划分到两组硬盘，RAID 1 将所有的硬盘分为两组，变成 RAID 1 的最低组合，而将两组硬盘各自视为 RAID 0 运行。RAID 01 比 RAID 10 有着更快的读写速度，不过也多了一些会让整个硬盘组停止运转的几率，因为只要同一组的硬盘全部损毁，RAID 01 就会停止运作，而 RAID 10 可以在牺牲 RAID 0 的优势下正常运作。RAID 10 巧妙地利用了 RAID 0 的速度及 RAID 1 的安全（保护）两种特性，它的缺点是需要较多的硬盘，因为至少必须拥有四个以上的偶数硬盘才能使用。RAID 10 和 RAID 01 的结构如下图所示。</p>
-<p><img src="/../../images/MySQL/mysql_backup_raid10.drawio.png" alt="img"></p>
-<p><img src="/../../images/MySQL/mysql_backup_raid01.drawio.png" alt="img"></p>
-<p>假设有 4 块磁盘 D0、D1、D2、D3：</p>
-<ul>
-<li>RAID 01<ul>
-<li>条带组 A：D0、D1 做 RAID 0</li>
-<li>镜像组 B：D2、D3 做 RAID 0，然后镜像 A←→B</li>
-</ul>
-</li>
-</ul>
-<p>一旦 D0、D1 同时损坏，A 组失效，整个逻辑盘挂掉——尽管 D2、D3 还健康，但无法自动接管。</p>
-<ul>
-<li>RAID 10<ul>
-<li>镜像对 1：D0⇄D1 做 RAID 1</li>
-<li>镜像对 2：D2⇄D3 做 RAID 1</li>
-<li>条带化：将数据交替写到 “对 1” 和 “对 2”</li>
-</ul>
-</li>
-</ul>
-<p>即便 D0、D2 同时故障，只要 D1、D3 健康，每个条带仍有一个副本存活，整个卷继续可用。</p>
-<p>条带的实现原理如下：系统首先将待存储的数据按预定义的条带大小（如 64 KB、128 KB）切分为若干数据块，每个数据块称为一个“条带”。分割后的条带按照轮询（round-robin）方式依次写入多块磁盘或 SSD。比如，第一条带写入设备 A，第二条带写入设备 B，第三条带再回到设备 A，依此循环。</p>
-<p>RAID 50：RAID 50 也被称为镜像阵列条带，由至少六块硬盘组成，像 RAID 0 一样，数据被分区成条带，在同一时间内向多块磁盘写入；像 RAID 5 一样，也是以数据和校验位来保证数据的安全，且校验条带均匀分布在各个磁盘上，其目的是提高 RAID 5 的读写性能。</p>
-<p><img src="/../../images/MySQL/mysql_backup_raid50.drawio.png" alt="img"></p>
-<p>对于数据库应用来说，RAID 10 是最好的选择，它同时兼顾了 RAID 1 和 RAID 0 的特性。但是，当一个磁盘失效时，性能可能会受到很大的影响，因为条带会成为瓶颈。也就是说，当 RAID 10 中的某块磁盘发生故障时，阵列不会像 RAID 0 那样整体挂掉，但其条带并行度会立刻下降，进而造成 I&#x2F;O 吞吐能力的衰减。具体来说，RAID 10 在正常状态下，将数据在多对镜像组之间条带化写入，可并行利用所有镜像对的读写能力；而一旦某个镜像对失去一块盘，整个镜像对的条带操作只能依赖剩余的单盘，导致该镜像对“窄化”，从而拖慢整组的并行访问速度。</p>
-<h3 id="RAID-Write-Back-功能"><a href="#RAID-Write-Back-功能" class="headerlink" title="RAID Write Back 功能"></a>RAID Write Back 功能</h3><p>RAID Write Back 功能是指 RAID 控制器能够将写入的数据放入自身的缓存中，并把它们安排到后面再执行。这样做的好处是，不用等待物理磁盘实际写入的完成，因此写入变得更快了。对于数据库来说，这显得十分重要。例如，对重做日志的写入，在将 <code>sync_binlog</code> 设置为 1 的情况下二进制日志的写入、脏页的刷新等都可以使得性能得到明显的提升。</p>
-<p>但是，当操作系统或数据库关机时，Write Back 功能可能会破坏数据库的数据。这是由于已经写入的数据可能还在 RAID 卡的缓存中，数据可能并没有完全写入磁盘，而这时故障发生了。为了解决这个问题，目前大部分的硬件 RAID 卡都提供了电池备份单元 (BBU, Battery Backup Unit)，因此可以放心地开启 Write Back 的功能。不过我发现每台服务器的出厂设置都不相同，应该将 RAID 设置要求告知服务器提供商，开启一些认为需要的参数。</p>
-<p>如果没有启用 Write Back 功能，那么在 RAID 卡设置中显示的就是 Write Through。Write Through 没有缓存写入，因此写入性能可能不是很好，但它却是最安全的写入。</p>
-<p>即使用户开启了 Write Back 功能，RAID 卡也可能只是在 Write Through 模式下工作。这是因为安全使用 Write Back 的前提是 RAID 卡有电池备份单元。为了确保电池的有效性，RAID 卡会定期检查电池状态，并在电池电量不足时对其进行充电，在充电的这段时间内会将 Write Back 功能切换为最为安全的 Write Through。</p>
-<p>用户可以在没有电池备份单元的情况下强制启用 Write Back 功能，也可以在电池充电时强制使用 Write Back 功能，只是写入是不安全的。用户在启用前应该确认这一点，否则不应该在没有电池备份单元的情况下启用 Write Back。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/9/">9</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -1620,7 +2175,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">45</span>
+          <span class="site-state-item-count">46</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
