@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="zh-CN,en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yihangwe.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="编程模型 (Programming Model)输入与输出 (Input and Output):  接收一组输入键&#x2F;值对 (input key&#x2F;value pairs)。 生成一组输出键&#x2F;值对 (output key&#x2F;value pairs)。  用户自定义函数 (User-Defined Functions):  映射函数 (Map Function):">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MapReduce">
+<meta property="og:url" content="https://yihangwe.github.io/undefined/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/2024/11/21/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/MapReduce/index.html">
+<meta property="og:site_name" content="EthanWeee 的个人日志">
+<meta property="og:description" content="编程模型 (Programming Model)输入与输出 (Input and Output):  接收一组输入键&#x2F;值对 (input key&#x2F;value pairs)。 生成一组输出键&#x2F;值对 (output key&#x2F;value pairs)。  用户自定义函数 (User-Defined Functions):  映射函数 (Map Function):">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yihangwe.github.io/images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/mapred_exe_overview.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/bg_bm_rounding.png">
+<meta property="article:published_time" content="2024-11-21T16:00:00.000Z">
+<meta property="article:modified_time" content="2025-06-27T23:19:55.801Z">
+<meta property="article:author" content="Yihang Wei">
+<meta property="article:tag" content="数据库, 分布式, OLTP, OLAP">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yihangwe.github.io/images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/mapred_exe_overview.png">
+
+<link rel="canonical" href="https://yihangwe.github.io/undefined/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/2024/11/21/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/MapReduce/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>MapReduce | EthanWeee 的个人日志</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<!-- hexo injector head_end start --><script>(function() {function calculateHeight(element) {let height = 0;const items = element.children;for (let i = 0; i < items.length; i++) {height += items[i].offsetHeight || 25;const child = items[i].querySelector(".nav-child");if (child && child.style.display !== "none") {height += calculateHeight(child);}}return height;}function generateToc(lang, container) {const content = document.getElementById(lang + "-content");if (!content) return;const headers = Array.from(content.querySelectorAll("h1, h2, h3, h4, h5, h6"));if (headers.length === 0) return;const ol = document.createElement("ol");ol.className = "nav";let currentLevel = 1;let currentOl = ol;let stack = [ol];let counters = [0, 0, 0, 0, 0, 0];headers.forEach((header, index) => {const level = parseInt(header.tagName[1]);counters[level - 1]++;for (let i = level; i < 6; i++) counters[i] = 0;const li = document.createElement("li");li.className = "nav-item nav-level-" + level;if (level === 1 && index === 0) {li.classList.add("active", "active-current");}const link = document.createElement("a");link.className = "nav-link";if (level === 1 && index === 0) link.classList.add("active");link.href = "#" + header.id;const numSpan = document.createElement("span");numSpan.className = "nav-number";numSpan.textContent = counters.slice(0, level).filter(n => n > 0).join(".");const textSpan = document.createElement("span");textSpan.className = "nav-text";textSpan.textContent = header.textContent;link.appendChild(numSpan);link.appendChild(document.createTextNode(" "));link.appendChild(textSpan);li.appendChild(link);if (level > currentLevel) {const newOl = document.createElement("ol");newOl.className = "nav-child";if (currentLevel === 1) {newOl.style.display = "block";stack[currentLevel - 1].lastElementChild.classList.add("active");}stack[currentLevel - 1].lastElementChild.appendChild(newOl);stack[level - 1] = newOl;currentOl = newOl;} else if (level < currentLevel) {currentOl = stack[level - 1];}currentOl.appendChild(li);currentLevel = level;});container.appendChild(ol);setTimeout(() => {const navHeight = calculateHeight(ol);ol.style.setProperty("--height", navHeight + "px");const navChilds = ol.getElementsByClassName("nav-child");Array.from(navChilds).forEach(child => {if (child.style.display === "block") {const childHeight = calculateHeight(child);child.style.setProperty("--height", childHeight + "px");}});}, 0);return ol;}function updateActiveHeading() {const activeLang = document.getElementById("en-content").style.display === "block" ? "en" : "zh";const content = document.getElementById(activeLang + "-content");const toc = document.getElementById(activeLang + "-toc");if (!content || !toc) return;const headers = Array.from(content.querySelectorAll("h1, h2, h3, h4, h5, h6"));const scrollPos = window.scrollY + window.innerHeight / 3;let activeHeader = null;for (let i = headers.length - 1; i >= 0; i--) {const header = headers[i];const headerTop = header.getBoundingClientRect().top + window.scrollY;if (headerTop <= scrollPos) {activeHeader = header;break;}}const links = toc.getElementsByClassName("nav-link");Array.from(links).forEach(link => {link.classList.remove("active");const parentLi = link.parentElement;if (parentLi) {parentLi.classList.remove("active", "active-current");}});if (activeHeader) {const activeLink = toc.querySelector(`a[href="#${activeHeader.id}"]`);if (activeLink) {activeLink.classList.add("active");let parent = activeLink.parentElement;while (parent && parent.classList) {if (parent.classList.contains("nav-item")) {parent.classList.add("active");if (parent.classList.contains("nav-level-1")) {parent.classList.add("active-current");}}parent = parent.parentElement;}}}}function initTippy() {document.querySelectorAll(".refplus-num").forEach((ref) => {if (ref._tippy) {ref._tippy.destroy();}let refid = ref.firstChild.href.replace(location.origin+location.pathname,"");let refel = document.querySelector(refid);if (!refel) return;let refnum = refel.dataset.num;let ref_content = refel.innerText.replace(`[${refnum}]`,"");tippy(ref, {content: ref_content,});});}function initToc() {const originalToc = document.querySelector(".post-toc-wrap");if (!originalToc || !document.getElementById("langToggle")) return;const tocContainer = document.createElement("div");tocContainer.className = "post-toc-wrap sidebar-panel sidebar-panel-active";const enToc = document.createElement("div");enToc.id = "en-toc";enToc.className = "post-toc motion-element";enToc.style.display = "block";const zhToc = document.createElement("div");zhToc.id = "zh-toc";zhToc.className = "post-toc motion-element";zhToc.style.display = "none";generateToc("en", enToc);generateToc("zh", zhToc);tocContainer.appendChild(enToc);tocContainer.appendChild(zhToc);originalToc.parentNode.replaceChild(tocContainer, originalToc);window.addEventListener("scroll", updateActiveHeading);setTimeout(updateActiveHeading, 0);}window.toggleLanguage = function() {const enContent = document.getElementById("en-content");const zhContent = document.getElementById("zh-content");const enToc = document.getElementById("en-toc");const zhToc = document.getElementById("zh-toc");const button = document.getElementById("langToggle");if (!enContent || !zhContent || !enToc || !zhToc || !button) return;const isEnglish = enContent.style.display === "block";enContent.style.display = isEnglish ? "none" : "block";zhContent.style.display = isEnglish ? "block" : "none";enToc.style.display = isEnglish ? "none" : "block";zhToc.style.display = isEnglish ? "block" : "none";button.querySelector(".button-text").textContent = isEnglish ? "Switch to English" : "切换中文";setTimeout(updateActiveHeading, 0);setTimeout(initTippy, 100);};document.addEventListener("DOMContentLoaded", function() {initToc();setTimeout(initTippy, 3000);});})();</script><style>.post-toc { transition: all 0.2s ease-in-out; }.post-toc .nav { padding-left: 0; }.post-toc .nav-child { padding-left: 1em; }.post-toc .nav-item { line-height: 1.8; }.post-toc .nav-link { color: #555; }.post-toc .nav-link:hover { color: #222; }.post-toc .nav-link.active { color: #fc6423; }.post-toc .active > .nav-link { color: #fc6423; }.post-toc .active-current > .nav-link { color: #fc6423; }</style><!-- hexo injector head_end end --><style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">EthanWeee 的个人日志</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/2024/11/21/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/MapReduce/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee 的个人日志">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          MapReduce
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-11-22 00:00:00" itemprop="dateCreated datePublished" datetime="2024-11-22T00:00:00+08:00">2024-11-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-06-28 07:19:55" itemprop="dateModified" datetime="2025-06-28T07:19:55+08:00">2025-06-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">数据库系统</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">分布式系统</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><h1 id="编程模型-Programming-Model"><a href="#编程模型-Programming-Model" class="headerlink" title="编程模型 (Programming Model)"></a>编程模型 (Programming Model)</h1><p><strong>输入与输出 (Input and Output):</strong></p>
+<ul>
+<li>接收一组<strong>输入键&#x2F;值对 (input key&#x2F;value pairs)</strong>。</li>
+<li>生成一组<strong>输出键&#x2F;值对 (output key&#x2F;value pairs)</strong>。</li>
+</ul>
+<p><strong>用户自定义函数 (User-Defined Functions):</strong></p>
+<ul>
+<li><strong>映射函数 (Map Function)</strong>:<ul>
+<li>由用户编写。</li>
+<li>处理每个输入键&#x2F;值对。</li>
+<li>生成一组<strong>中间键&#x2F;值对 (intermediate key&#x2F;value pairs)</strong>。</li>
+</ul>
+</li>
+<li><strong>归约函数 (Reduce Function)</strong>:<ul>
+<li>同样由用户编写。</li>
+<li>接收一个中间键 <code>I</code> 及其关联的<strong>值集合 (set of values)</strong>。</li>
+<li>合并这些值以产生一个<strong>更小集合 (smaller set)</strong> 的输出值，通常为零个或一个值。</li>
+</ul>
+</li>
+</ul>
+<p><strong>中间数据处理 (Intermediate Data Handling):</strong></p>
+<ul>
+<li><strong>MapReduce 库 (MapReduce library)</strong> 将中间值按其键 (<code>I</code>) 分组，并将它们发送给归约函数。</li>
+<li>中间值通过<strong>迭代器 (iterator)</strong> 提供给归约函数，从而能够高效处理因数据量过大而无法全部放入内存的数据集。</li>
+</ul>
+<p><strong>容错性与可扩展性 (Fault Tolerance and Scalability):</strong></p>
+<ul>
+<li>通过将任务分解成更小的独立计算单元，MapReduce 确保了即使在大型分布式环境中也能实现可扩展性和容错性。</li>
+</ul>
+<h1 id="实现-Implementation"><a href="#实现-Implementation" class="headerlink" title="实现 (Implementation)"></a>实现 (Implementation)</h1><p><a target="_blank" rel="noopener" href="https://../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F//mapred_exe_overview.png"><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/mapred_exe_overview.png" alt="img"></a></p>
+<p><strong>数据分割与任务分配 (Data Splitting and Task Assignment):</strong></p>
+<ul>
+<li><strong>输入数据划分</strong>: MapReduce 库自动将输入文件分割成 M 个片段（通常每个片段大小为 16MB 到 64MB，可由用户控制）。</li>
+<li><strong>启动程序实例</strong>: 在集群中启动多个程序副本。</li>
+<li><strong>角色分配</strong>: 其中一个程序实例被指定为<strong>主节点 (master)</strong>，其余的作为<strong>工作节点 (workers)</strong>。</li>
+</ul>
+<p><strong>任务调度 (Task Scheduling):</strong></p>
+<ul>
+<li><strong>主节点的职责</strong>: 主节点负责管理 M 个 map 任务和 R 个 reduce 任务。</li>
+<li><strong>任务分配</strong>: 主节点将空闲的工作节点分配给 map 任务或 reduce 任务。</li>
+</ul>
+<p><strong>Map 阶段 (Map Phase):</strong></p>
+<ul>
+<li><strong>读取数据</strong>: 被分配 map 任务的工作节点读取对应的输入片段。</li>
+<li><strong>处理数据</strong>: 解析出键&#x2F;值对，并将其传递给用户定义的 Map 函数。</li>
+<li><strong>生成中间结果</strong>: <strong>Map 函数产生的中间键&#x2F;值对会存储在本地磁盘中。</strong></li>
+</ul>
+<p><strong>中间数据处理 (Intermediate Data Processing):</strong></p>
+<ul>
+<li><strong>写入本地磁盘</strong>: **缓存的中间结果会定期写入本地磁盘，<strong>并根据分区函数划分为 R 个区域 (partitioned into R regions)。</strong></li>
+<li><strong>通知主节点</strong>: 工作节点将这些中间数据的位置告知主节点，主节点负责将这些信息传递给 reduce 工作节点。</li>
+</ul>
+<p><strong>Reduce 阶段准备 (Reduce Phase Preparation):</strong></p>
+<ul>
+<li><strong>读取中间数据</strong>: reduce 工作节点收到主节点的通知后，通过<strong>远程过程调用 (RPC - Remote Procedure Call)</strong> 从 map 工作节点的本地磁盘读取中间数据。</li>
+<li><strong>排序数据</strong>: reduce 工作节点将所有中间数据按键排序，以确保相同的键聚集在一起。如果数据量过大，无法全部加载到内存，会采用<strong>外部排序 (external sort)</strong>。</li>
+</ul>
+<p><strong>Reduce 阶段 (Reduce Phase):</strong></p>
+<ul>
+<li><strong>执行 Reduce 函数</strong>: reduce 工作节点遍历排序后的中间数据，对于每个唯一的中间键，将键和对应的值列表传递给用户定义的 Reduce 函数。</li>
+<li><strong>生成最终输出</strong>: Reduce 函数的输出被追加到该 reduce 分区的最终输出文件中。</li>
+</ul>
+<p><strong>任务完成与结果返回 (Task Completion and Result Retrieval):</strong></p>
+<ul>
+<li><strong>任务监控</strong>: 当所有的 map 和 reduce 任务都完成后，主节点会唤醒用户程序。</li>
+<li><strong>返回结果</strong>: 此时，用户程序中的 MapReduce 调用返回，用户可以获取 R 个输出文件（每个 reduce 任务对应一个输出文件）。</li>
+</ul>
+<p><strong>额外说明 (Additional Notes):</strong></p>
+<ul>
+<li><strong>数据处理链</strong>: 通常用户不需要将这 R 个输出文件合并成一个文件，因为这些文件可以直接作为下一个 MapReduce 调用的输入，或者被能够处理多文件输入的分布式应用程序使用。</li>
+<li><strong>流程图参考</strong>: 上图👆用于展示 MapReduce 操作的整体流程（对应上述 7 个步骤）。</li>
+</ul>
+<h2 id="主节点数据结构-Master-Data-Structure"><a href="#主节点数据结构-Master-Data-Structure" class="headerlink" title="主节点数据结构 (Master Data Structure)"></a>主节点数据结构 (Master Data Structure)</h2><p><strong>任务状态跟踪 (Task State Tracking):</strong></p>
+<ul>
+<li>对于每个 <strong>map</strong> 和 <strong>reduce 任务</strong>，主节点存储：<ul>
+<li><strong>状态</strong>:<ul>
+<li><code>idle</code> (空闲): 任务尚未分配。</li>
+<li><code>in-progress</code> (执行中): 任务正在被执行。</li>
+<li><code>completed</code> (已完成): 任务执行完毕。</li>
+</ul>
+</li>
+<li><strong>工作节点标识 (Worker Identity)</strong>: 处理该任务的工作机器（针对非空闲任务）。</li>
+</ul>
+</li>
+</ul>
+<p><strong>中间数据管理 (Intermediate Data Management):</strong></p>
+<ul>
+<li>主节点充当将中间数据从 map 任务传递到 reduce 任务的<strong>管道 (conduit)</strong>。</li>
+<li>对于每个已完成的 map 任务：<ul>
+<li>它记录所生成的 <code>R</code> 个中间文件区域的<strong>位置</strong> 和<strong>大小</strong>。</li>
+<li>这些数据对于 reduce 任务从相应的 map 工作节点获取中间结果至关重要。</li>
+</ul>
+</li>
+</ul>
+<p><strong>动态更新 (Dynamic Updates):</strong></p>
+<ul>
+<li>随着 map 任务完成，主节点持续更新其记录的中间文件位置和大小。</li>
+<li>这些更新会增量式地推送给当前正在执行中的 reduce 工作节点。</li>
+</ul>
+<h2 id="容错机制-Fault-Tolerance"><a href="#容错机制-Fault-Tolerance" class="headerlink" title="容错机制 (Fault Tolerance)"></a>容错机制 (Fault Tolerance)</h2><p><strong>工作节点故障 (Worker Failure)</strong></p>
+<ul>
+<li><strong>故障检测 (Failure Detection)</strong>:<ul>
+<li><strong>主节点</strong>定期向<strong>每个工作节点</strong>发送 <strong>ping</strong>。</li>
+<li>如果工作节点在特定时间窗口内未响应，主节点将其标记为<strong>故障</strong>。</li>
+</ul>
+</li>
+<li><strong>任务重新调度 (Task Rescheduling)</strong>:<ul>
+<li><strong>Map 任务 (Map Tasks)</strong>:<ul>
+<li><strong>已完成的 Map 任务 (Completed Map Tasks)</strong>:<ul>
+<li>如果故障工作节点已完成 map 任务，其输出将变得不可访问（存储在故障机器的本地磁盘上）。</li>
+<li>这些任务被重置为<strong>空闲状态 (idle state)</strong> 并在其他工作节点上重新执行。</li>
+</ul>
+</li>
+<li><strong>执行中的 Map 任务 (In-Progress Map Tasks)</strong>:<ul>
+<li>类似地，执行中的任务被标记为空闲并重新分配给可用的工作节点。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>Reduce 任务 (Reduce Tasks)</strong>:<ul>
+<li><strong>已完成的 Reduce 任务 (Completed Reduce Tasks)</strong>:<ul>
+<li>这些任务<strong>不需要</strong>重新执行，因为它们的输出存储在<strong>全局文件系统 (global file system)</strong> 中，即使发生故障也仍然可访问。</li>
+</ul>
+</li>
+<li><strong>执行中的 Reduce 任务 (In-Progress Reduce Tasks)</strong>:<ul>
+<li>如果某些 reduce 工作节点尚未读取中间数据，它们会从新的（重新执行的 map 任务的）结果中读取数据。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>数据协调 (Data Coordination)</strong>:<ul>
+<li>当 map 任务在新的工作节点上重新执行时：<ul>
+<li><strong>通知 (Notification)</strong>: 所有 reduce 工作节点会被告知该重新执行。</li>
+<li><strong>数据重定向 (Data Redirection)</strong>: 尚未从故障工作节点获取中间数据的 reduce 工作节点将改为从新的工作节点获取数据。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>主节点故障 (Master Failure)</strong></p>
+<ul>
+<li>可以很方便地让主节点定期将上述主节点数据结构写入<strong>检查点 (checkpoints)</strong>。如果主节点任务终止，可以从最后一个检查点状态启动一个新的副本。</li>
+<li>然而，考虑到只有一个主节点，其故障的可能性很低；<strong>因此我们当前的实现在主节点故障时会中止 MapReduce 计算。</strong> 客户端可以检测到此情况，并在需要时重试 MapReduce 操作。</li>
+</ul>
+<h2 id="数据本地化-Locality"><a href="#数据本地化-Locality" class="headerlink" title="数据本地化 (Locality)"></a>数据本地化 (Locality)</h2><ul>
+<li><strong>存储设计</strong>: 数据存储在 <strong>Google 文件系统 (GFS - Google File System)</strong> 中。GFS 将每个文件分割为 64 MB 的块 (blocks)，并在不同的机器上保存多个副本（通常是 3 个）。</li>
+<li><strong>任务调度优先级</strong>:<ul>
+<li><strong>优先本地化调度</strong>: 主节点优先将 map 任务分配给<strong>包含对应数据块副本的同一台机器</strong>上的工作节点。</li>
+<li><strong>次优调度</strong>: 如果本地调度不可行（例如，拥有数据块副本的工作节点繁忙），主节点将任务分配给靠近副本的机器，例如同一机架 (rack) 或数据中心 (data center) 内的机器。</li>
+</ul>
+</li>
+<li><strong>实际效果</strong>: 在运行大型 MapReduce 操作时，大部分输入数据会从本地磁盘读取。因为数据本地化，减少了跨网络传输的数据量，从而节省网络带宽。</li>
+</ul>
+<h2 id="任务粒度-Task-Granularity"><a href="#任务粒度-Task-Granularity" class="headerlink" title="任务粒度 (Task Granularity)"></a>任务粒度 (Task Granularity)</h2><ol>
+<li><strong>Map 和 Reduce 阶段的划分</strong><ul>
+<li><strong>任务数量 (M 和 R)</strong>: Map 阶段被划分为 M 个任务。Reduce 阶段被划分为 R 个任务。</li>
+<li><strong>划分原则</strong>: 理想情况下，M 和 R 的数量应该<strong>远大于</strong>工作节点的数量（即机器的数量）。</li>
+</ul>
+</li>
+<li><strong>多任务划分的好处</strong><ul>
+<li><strong>动态负载均衡</strong>: 每个工作节点可执行多个任务，这样可以动态调整任务分配，避免某些节点过载或闲置。</li>
+<li><strong>故障恢复加速</strong>: 如果某个工作节点失败，其已完成的多个任务可以分散到其他节点重新执行，恢复速度更快。</li>
+</ul>
+</li>
+<li><strong>任务划分的实际限制</strong><ul>
+<li><strong>调度开销</strong>: 主节点需要进行 O(M + R) 次调度决策，且需要存储 O(M × R) 的状态信息。虽然每对 map&#x2F;reduce 任务对仅占用约 1 字节内存，但过多任务会增加内存需求和调度复杂性。</li>
+<li><strong>输出文件限制</strong>: R 的大小往往受到用户需求限制，因为每个 reduce 任务会生成一个独立的输出文件。输出文件过多会导致文件管理复杂。</li>
+</ul>
+</li>
+<li><strong>实际任务大小选择</strong><ul>
+<li><strong>Map 阶段</strong>: 每个 map 任务通常处理 <strong>16 MB 到 64 MB</strong> 的输入数据。这样的任务大小可以充分利用<strong>数据本地化优化</strong>（即尽量从本地磁盘读取数据）。</li>
+<li><strong>Reduce 阶段</strong>: R 通常是工作节点数量的几倍，以充分利用并行能力。在一个典型的大规模 MapReduce 计算中：<ul>
+<li>M &#x3D; 200,000（Map 阶段任务数）。</li>
+<li>R &#x3D; 5,000（Reduce 阶段任务数）。</li>
+<li>工作节点 &#x3D; 2,000（机器数量）。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="备份任务-Backup-Tasks"><a href="#备份任务-Backup-Tasks" class="headerlink" title="备份任务 (Backup Tasks)"></a>备份任务 (Backup Tasks)</h2><ol>
+<li><strong>什么是拖后腿的任务（Straggler Tasks）？</strong><ul>
+<li><strong>定义</strong>: 拖后腿任务指的是 MapReduce 作业中运行速度<strong>远慢于</strong>其他任务的任务（map 或 reduce），从而<strong>延迟整个作业的完成</strong>。</li>
+</ul>
+</li>
+<li><strong>解决方法</strong>:<ul>
+<li><strong>备份任务机制</strong>: 当 MapReduce 计算接近完成时，主节点会为<strong>未完成的任务</strong>安排<strong>备份执行 (Backup Executions)</strong>。同一任务的多个副本在不同的工作节点上<strong>同时运行</strong>。只要其中一个副本完成，任务即被标记为完成。</li>
+<li><strong>资源开销</strong>: 调整后的机制只增加少量（通常是几个百分点）的计算资源使用。通过备份执行，能够<strong>显著缩短</strong>总执行时间。</li>
+</ul>
+</li>
+</ol>
+<h1 id="优化与增强-Refinement"><a href="#优化与增强-Refinement" class="headerlink" title="优化与增强 (Refinement)"></a>优化与增强 (Refinement)</h1><p><strong>分区函数 (Partitioning Function)</strong></p>
+<ol>
+<li><strong>Reduce 任务与分区</strong><ul>
+<li>用户通过设置 <strong>R</strong> 来指定需要的 reduce 任务数或输出文件数。</li>
+<li>数据在这些 reduce 任务之间分区，分区方式取决于<strong>分区函数</strong>。</li>
+</ul>
+</li>
+<li><strong>默认分区方式</strong><ul>
+<li>默认使用<strong>哈希函数</strong>。</li>
+<li><strong>分区规则</strong>: <code>hash(key) mod R</code>。</li>
+<li><strong>优势</strong>: 通常能实现较为<strong>均衡的分区</strong>（即数据均匀分布到不同 reduce 任务中）。</li>
+</ul>
+</li>
+<li><strong>自定义分区方式</strong><ul>
+<li>有时默认的哈希分区不满足实际需求，需要根据特定逻辑对数据进行分区。例如：数据的键是 URL，用户希望所有来自<strong>同一主机 (host)</strong> 的条目存储在同一个输出文件中。</li>
+<li><strong>解决方案</strong>: 用户可以定义自己的分区函数，例如：<code>hash(Hostname(urlkey)) mod R</code>：根据 URL 的<strong>主机名 (hostname)</strong> 分区。这样，来自同一主机的所有条目会被分配到<strong>相同的 reduce 任务</strong>中。</li>
+</ul>
+</li>
+</ol>
+<p><strong>排序保证 (Ordering Guarantees)</strong></p>
+<ol>
+<li><strong>排序保证</strong><ul>
+<li>在 MapReduce 的<strong>每个分区内</strong>，中间的键&#x2F;值对（key&#x2F;value pairs）会按照<strong>键的递增顺序</strong> 进行处理。</li>
+<li><strong>目标</strong>: 确保每个分区的输出文件是<strong>有序的</strong>。</li>
+</ul>
+</li>
+<li><strong>排序的作用</strong><ul>
+<li><strong>生成有序输出文件</strong>: 每个 reduce 任务生成的输出文件是按键排序的，直接支持有序数据的存储。</li>
+<li><strong>支持高效随机访问</strong>: 有序数据便于通过键值实现高效的随机访问。</li>
+<li><strong>用户便利</strong>: 用户使用这些输出文件时，通常不需要额外排序。</li>
+</ul>
+</li>
+</ol>
+<p><strong>合并函数 (Combiner Function)</strong></p>
+<ol>
+<li><strong>问题背景</strong><ul>
+<li>在某些情况下，中间键<strong>重复率较高</strong>，每个 map 任务可能会生成大量重复的中间键记录。<strong>示例</strong>: 在单词计数任务中（例如 <code>&lt;the, 1&gt;</code>），常见单词（如 “the”）会频繁出现。</li>
+<li><strong>结果</strong>: 这些重复记录需要通过网络传输到同一个 reduce 任务，增加了网络负载。</li>
+</ul>
+</li>
+<li><strong>Combiner 函数的解决方案</strong><ul>
+<li><strong>定义</strong>: Combiner 是一个<strong>可选的、局部的聚合函数</strong>，<strong>用于在 map 任务所在机器上对中间数据进行部分合并。</strong></li>
+<li><strong>工作原理</strong>:<ul>
+<li><strong>执行位置</strong>: Combiner 在 map 任务的机器上运行。</li>
+<li><strong>功能</strong>: 对<strong>重复键</strong>的中间结果进行<strong>局部汇总</strong>，减少需要传输的数据量。</li>
+<li><strong>例如</strong>: 将 <code>&lt;the, 1&gt;</code>、<code>&lt;the, 1&gt;</code>、<code>&lt;the, 1&gt;</code> 合并为 <code>&lt;the, 3&gt;</code>。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>Combiner 和 Reduce 的区别</strong><ul>
+<li><strong>相同点</strong>: 通常，Combiner 的代码与 Reduce 函数的代码<strong>相同</strong>。都用于对数据进行<strong>聚合处理</strong>。</li>
+<li><strong>不同点</strong>:<ul>
+<li><strong>Combiner</strong>: 输出的是<strong>中间结果</strong>，数据会<strong>继续传递</strong>给 Reduce 任务。</li>
+<li><strong>Reduce</strong>: 输出的是<strong>最终结果</strong>，数据写入最终的输出文件。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>优化效果</strong><ul>
+<li><strong>减少网络传输量</strong>: 通过提前合并数据，Combiner 显著减少了从 map 任务到 reduce 任务的数据量。例如，不传输 1000 条 <code>&lt;the, 1&gt;</code>，而是只传输 1 条 <code>&lt;the, 1000&gt;</code>。</li>
+<li><strong>提升性能</strong>: 对于重复率高的任务，Combiner 能显著加快 MapReduce 操作的速度。</li>
+</ul>
+</li>
+</ol>
+<p><strong>输入与输出类型 (Input and Output Types)</strong></p>
+<ol>
+<li><strong>输入数据格式的支持</strong><ul>
+<li><strong>预定义格式</strong>:<ul>
+<li><strong>文本模式</strong>: 每行数据被视为一个键&#x2F;值对。<ul>
+<li>键：文件中该行的<strong>偏移量</strong>。</li>
+<li>值：该行的<strong>内容</strong>。</li>
+</ul>
+</li>
+<li><strong>排序键&#x2F;值对模式 (sorted key&#x2F;value mode)</strong>: 存储的键&#x2F;值对按键排序，便于按范围处理。</li>
+</ul>
+</li>
+<li><strong>自动分割范围</strong>: 每种输入格式都有<strong>分割机制</strong>，可将输入数据划分为适合 map 任务处理的范围。例如，文本模式会确保分割发生在<strong>行边界</strong>，而不是行中间，保证数据的完整性。</li>
+<li><strong>用户自定义格式</strong>: 用户可以通过实现简单的<strong>读取接口 (reader interface)</strong>，支持新的输入类型。<ul>
+<li><strong>非文件输入</strong>: 数据可以来自其他来源，如数据库或内存中的数据结构，而不一定是文件。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>输出数据格式的支持</strong><ul>
+<li>类似输入格式，MapReduce 也支持多种输出格式：<ul>
+<li><strong>预定义格式</strong>: 提供了一些常用的输出格式。</li>
+<li><strong>自定义格式</strong>: 用户可以通过实现新的接口定义输出数据格式。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<p><strong>跳过错误记录 (Skipping Bad Records)</strong></p>
+<ol>
+<li><strong>问题背景</strong><ul>
+<li><strong>用户代码缺陷</strong>: Map 或 Reduce 函数中可能存在错误（如某些记录引发崩溃）。</li>
+<li><strong>确定性崩溃</strong>: 对特定记录，每次处理都会发生崩溃。</li>
+<li><strong>问题影响</strong>: 这类错误可能<strong>阻止整个 MapReduce 操作完成</strong>。</li>
+<li><strong>无法修复的情况</strong>: 错误可能在<strong>第三方库</strong>中，用户无法访问源代码。</li>
+</ul>
+</li>
+<li><strong>MapReduce 提供的解决方案</strong><ul>
+<li><strong>跳过问题记录</strong>: MapReduce 允许系统检测引发崩溃的记录，并跳过这些记录以继续操作。</li>
+<li><strong>实现机制</strong>:<ul>
+<li><strong>信号处理</strong>: 每个工作节点安装<strong>信号处理器</strong>，捕获<strong>段错误 (segmentation violations)</strong> 和<strong>总线错误 (bus errors)</strong>。</li>
+<li><strong>记录错误序号</strong>: 在调用用户的 Map 或 Reduce 函数之前，系统将参数的<strong>序列号 (sequence number)</strong> 存储在全局变量中。</li>
+<li><strong>发送错误报告</strong>: 如果用户代码触发错误，信号处理器会发送一个 <strong>“最后的喘息” (last gasp)</strong> UDP 数据包，包含引发错误的记录序号，通知主节点。</li>
+<li><strong>主节点决策</strong>: 如果一条记录多次导致失败，主节点指示在下次重试该任务时<strong>跳过 (skip)</strong> 这条记录。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<p><strong>本地执行 (Local Execution)</strong></p>
+<ol>
+<li><strong>分布式调试的挑战</strong><ul>
+<li><strong>复杂性</strong>: Map 和 Reduce 函数的实际计算是在分布式系统上完成，涉及数千台机器。主节点动态分配任务，调试难以直接定位问题。</li>
+<li><strong>常见问题</strong>: 分布式环境下的日志、任务状态和数据流使得问题排查更加困难。</li>
+</ul>
+</li>
+<li><strong>本地执行模式的设计</strong><ul>
+<li><strong>功能</strong>: MapReduce 提供了一种<strong>本地执行的替代实现</strong>，在<strong>单台机器</strong>上<strong>顺序执行</strong>整个 MapReduce 操作。</li>
+<li><strong>特点</strong>: 所有任务按顺序运行，无需分布式调度。用户可以<strong>限制计算范围</strong>，仅调试特定的 map 任务。</li>
+</ul>
+</li>
+</ol>
+<p><strong>计数器 (Counter)</strong></p>
+<ul>
+<li>计数器用于跟踪 MapReduce 操作期间特定事件的发生次数，例如：<ul>
+<li>用户定义的<strong>自定义事件</strong>（例如，单词计数、检测特定模式）。</li>
+<li><strong>系统定义的指标</strong>，如处理的输入&#x2F;输出键值对数量。</li>
+</ul>
+</li>
+</ul>
+<p><strong>计数器工作原理 (How Counters Work)</strong></p>
+<ul>
+<li><strong>传播到主节点 (Propagation to the Master)</strong>: 来自各个工作节点的计数器值通过 <strong>ping 响应</strong> 发送到<strong>主节点</strong>。</li>
+<li><strong>聚合 (Aggregation)</strong>:<ul>
+<li>主节点聚合所有已完成任务的计数器值。</li>
+<li>它通过忽略重复的任务执行（例如，由于重新执行或备份任务）来确保<strong>没有重复计数</strong>。</li>
+</ul>
+</li>
+</ul>
+<p><strong>监控与报告 (Monitoring and Reporting)</strong></p>
+<ul>
+<li><strong>实时监控 (Real-Time Monitoring)</strong>: 当前的计数器值显示在<strong>主节点状态页面</strong> 上，允许用户观察计算的进度。</li>
+<li><strong>最终报告 (Final Reporting)</strong>: 当 MapReduce 作业完成时，聚合后的计数器值返回给用户程序。</li>
+</ul>
+<h1 id="问题-Questions"><a href="#问题-Questions" class="headerlink" title="问题 (Questions)"></a>问题 (Questions)</h1><p><strong>假设 M&#x3D;10 且 R&#x3D;20，映射器 (mappers) 产生的文件总数是多少？</strong></p>
+<blockquote>
+<p>总文件数 &#x3D; M × R &#x3D; 10 × 20 &#x3D; 200</p>
+</blockquote>
+<p><strong>为什么 MapReduce 将 Reduce 的输出存储在 Google 文件系统 (GFS) 中？</strong></p>
+<blockquote>
+<ul>
+<li><strong>高可用性 (High Availability)</strong>: GFS 通过在多个机器上<strong>复制数据 (replicating data)</strong> 提供容错能力。这确保了即使一台机器故障，输出也不会丢失。</li>
+<li><strong>可扩展性 (Scalability)</strong>: GFS 专为处理大规模数据存储而设计，适用于 MapReduce 作业产生的大量输出。</li>
+</ul>
+</blockquote>
+<p><strong>拖后腿任务 (straggler) 的目的是什么？</strong></p>
+<blockquote>
+<ul>
+<li><strong>“拖后腿任务 (Straggler)” 指的是运行缓慢的任务</strong>，通常是 map 或 reduce 任务，它们会<strong>显著延迟</strong> MapReduce 作业的完成。</li>
+<li><strong>解决方法</strong>:<ul>
+<li><strong>备份执行 (Backup Execution)</strong>: 主节点在其它可用工作节点上为拖后腿任务安排备份执行。</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<p><strong>判断对错：可以在没有模式 (schema) 的情况下，对 CSV 数据文件使用 SQL++。</strong></p>
+<blockquote>
+<p><strong>正确 (True)</strong>: SQL++ 可以操作半结构化数据，包括 CSV 文件，而<strong>不需要</strong>预定义的模式。</p>
+</blockquote>
+<p><strong>在 SQL++ 中，pivot 和 unpivot 有什么区别？</strong></p>
+<blockquote>
+<p><strong>Pivot (透视)</strong>:</p>
+<ul>
+<li><strong>目的</strong>: 将<strong>行 (rows)</strong> 转换为<strong>属性 (attributes) &#x2F; 列 (columns)</strong>。</li>
+<li><strong>示例</strong>:<ul>
+<li>输入: <code>[ &#123; &quot;symbol&quot;: &quot;amzn&quot;, &quot;price&quot;: 1900 &#125;, &#123; &quot;symbol&quot;: &quot;goog&quot;, &quot;price&quot;: 1120 &#125;, &#123; &quot;symbol&quot;: &quot;fb&quot;, &quot;price&quot;: 180 &#125; ]</code></li>
+<li>查询: <code>PIVOT sp.price AT sp.symbol FROM today_stock_prices sp;</code></li>
+<li>输出: <code>&#123; &quot;amzn&quot;: 1900, &quot;goog&quot;: 1120, &quot;fb&quot;: 180 &#125;</code></li>
+</ul>
+</li>
+</ul>
+<p><strong>Unpivot (逆透视)</strong>:</p>
+<ul>
+<li><strong>目的</strong>: 将<strong>属性 (attributes) &#x2F; 列 (columns)</strong> 转换为<strong>行 (rows)</strong>。</li>
+<li><strong>示例</strong>:<ul>
+<li>输入: <code>&#123; &quot;date&quot;: &quot;4/1/2019&quot;, &quot;amzn&quot;: 1900, &quot;goog&quot;: 1120, &quot;fb&quot;: 180 &#125;</code></li>
+<li>查询: <code>UNPIVOT c AS price AT sym FROM closing_prices c WHERE sym != &#39;date&#39;;</code></li>
+<li>输出: <code>[ &#123; &quot;date&quot;: &quot;4/1/2019&quot;, &quot;symbol&quot;: &quot;amzn&quot;, &quot;price&quot;: 1900 &#125;, &#123; &quot;date&quot;: &quot;4/1/2019&quot;, &quot;symbol&quot;: &quot;goog&quot;, &quot;price&quot;: 1120 &#125;, &#123; &quot;date&quot;: &quot;4/1/2019&quot;, &quot;symbol&quot;: &quot;fb&quot;, &quot;price&quot;: 180 &#125; ]</code></li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<p><strong>使用 BG ，可以通过其 SoAR (Satisfaction of Agreement Ratio) 来总结数据存储的性能。计算数据存储 SoAR 的 BG 输入是什么？</strong></p>
+<blockquote>
+<p><strong>1. SLA 规范 (SLA Specifications)</strong></p>
+<p>服务等级协议 (SLA) 定义了计算 SoAR 的条件。SLA 包括：</p>
+<ul>
+<li><strong>α</strong>: 必须观察到响应时间小于或等于 β 的请求百分比（例如，95%）。</li>
+<li><strong>β</strong>: 最大可接受响应时间（例如，100 毫秒）。</li>
+<li><strong>τ</strong>: 观察到不可预测（过时或不一致）数据的请求的最大允许百分比（例如，0.01%）。</li>
+<li><strong>Δ</strong>: SLA 必须被满足的持续时间（例如，10 分钟）。</li>
+</ul>
+<p><strong>2. 数据库配置 (Database Configuration)</strong></p>
+<p>关于被测数据存储的详细信息：</p>
+<ul>
+<li><strong>逻辑模式 (Logical Schema)</strong>: 数据存储使用的数据模型（例如，关系模式、NoSQL 的类 JSON 模式）。</li>
+<li><strong>物理设置 (Physical Setup)</strong>: 硬件配置，包括：<ul>
+<li>节点数量。</li>
+<li>存储和内存资源。</li>
+<li>网络能力。</li>
+</ul>
+</li>
+<li><strong>数据量大小 (Population Size)</strong>:<ul>
+<li><strong>M</strong>: 数据库中的成员数量。</li>
+<li><strong>ϕ</strong>: 每个成员的关注者&#x2F;朋友数量。</li>
+<li><strong>ρ</strong>: 每个成员的资源数量。</li>
+</ul>
+</li>
+</ul>
+<p><strong>3. 工作负载参数 (Workload Parameters)</strong></p>
+<p>工作负载指定了 BG 将模拟的操作的性质和强度：</p>
+<ul>
+<li><strong>操作混合比例 (Mix of Actions)</strong>:<ul>
+<li>社交网络操作的类型（例如，查看个人资料、列出朋友、查看好友请求）。</li>
+<li>每种操作类型的百分比（读密集型、写密集型或混合工作负载）。</li>
+</ul>
+</li>
+<li><strong>思考时间 (ϵ - Think Time)</strong>: 单个线程执行连续操作之间的延迟。</li>
+<li><strong>到达间隔时间 (ψ - Inter-Arrival Time)</strong>: 新用户会话之间的延迟。</li>
+</ul>
+<p><strong>4. 环境参数 (Environmental Parameters)</strong></p>
+<p>关于 BG 如何生成和管理工作负载的详细信息：</p>
+<ul>
+<li><strong>BGClients 数量 (N)</strong>: 负责生成请求的实例数。</li>
+<li><strong>线程数量 (T)</strong>: 并发级别（每个 BGClient 的线程数）。</li>
+<li><strong>D-Zipfian 分布参数 (θ)</strong>: 定义访问模式（例如，热门数据与冷门数据的访问频率）。</li>
+</ul>
+</blockquote>
+<p><strong>考虑键值对优先级 (priority) 的以下二进制表示：00101001。其精度为 4 的 CAMP 舍入 (CAMP rounding) 结果是什么？</strong></p>
+<blockquote>
+<p>00101000<br><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/bg_bm_rounding.png" alt="img"></p>
+</blockquote>
+<p><strong>什么是惊群效应 (thundering herd)？IQ 框架如何防止它导致持久化数据存储成为瓶颈？</strong></p>
+<blockquote>
+<p><strong>惊群效应问题 (Thundering Herd Problem)</strong>:</p>
+<ul>
+<li>当一个键值对在键值存储 (KVS) 中<strong>未找到</strong>（发生 <strong>KVS 未命中 (KVS miss)</strong>）时，多个读取会话可能会<strong>同时</strong>查询关系数据库管理系统 (RDBMS) 以获取该值。</li>
+<li>这可能在<strong>高并发</strong>情况下使 RDBMS <strong>过载</strong>并导致性能下降。</li>
+</ul>
+<p><strong>IQ 框架的解决方案</strong>:</p>
+<ul>
+<li>当<strong>第一个</strong>读取会话遇到 KVS 未命中时，它会为该键请求一个 <strong>I 租约 (I lease)</strong>。</li>
+<li>一旦 I 租约被授予，KVS 会<strong>阻止</strong>其他读取会话为同一个键查询 RDBMS。</li>
+<li>所有其他读取会话必须 <strong>“回退 (back off)”</strong> 并等待持有 I 租约的会话将值更新到 KVS 中。</li>
+</ul>
+<blockquote>
+<p>(补充解释) 惊群效应发生在特定键经历<strong>大量读写活动</strong>时。</p>
+<ul>
+<li>写入操作<strong>重复地使缓存失效 (invalidate the cache)</strong>。</li>
+<li>所有读取操作都<strong>被迫查询数据库</strong>。</li>
+</ul>
+<p><strong>I 租约解决了这个问题</strong>：</p>
+<ul>
+<li>对特定键的<strong>第一次读取</strong>被授予 I 租约。</li>
+<li>所有其他读取观察到未命中并<strong>回退</strong>。</li>
+<li>持有 I 租约的读取查询 RDBMS，计算缺失的值，并将该值<strong>填充 (populate)</strong> 到缓存中。</li>
+<li>所有其他读取随后会<strong>观察到缓存命中 (cache hit)</strong>。</li>
+</ul>
+</blockquote>
+</blockquote>
+<p><strong>参考</strong>: <a target="_blank" rel="noopener" href="https://static.googleusercontent.com/media/research.google.com/zh-CN//archive/mapreduce-osdi04.pdf">https://static.googleusercontent.com/media/research.google.com/zh-CN//archive/mapreduce-osdi04.pdf</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/undefined/MySQL/2024/11/19/MySQL/%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6/" rel="prev" title="主从复制">
+      <i class="fa fa-chevron-left"></i> 主从复制
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/undefined/MySQL/2024/11/25/MySQL/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/" rel="next" title="分库分表">
+      分库分表 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B-Programming-Model"><span class="nav-number">1.</span> <span class="nav-text">编程模型 (Programming Model)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0-Implementation"><span class="nav-number">2.</span> <span class="nav-text">实现 (Implementation)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E8%8A%82%E7%82%B9%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-Master-Data-Structure"><span class="nav-number">2.1.</span> <span class="nav-text">主节点数据结构 (Master Data Structure)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%B9%E9%94%99%E6%9C%BA%E5%88%B6-Fault-Tolerance"><span class="nav-number">2.2.</span> <span class="nav-text">容错机制 (Fault Tolerance)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E6%9C%AC%E5%9C%B0%E5%8C%96-Locality"><span class="nav-number">2.3.</span> <span class="nav-text">数据本地化 (Locality)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%BB%E5%8A%A1%E7%B2%92%E5%BA%A6-Task-Granularity"><span class="nav-number">2.4.</span> <span class="nav-text">任务粒度 (Task Granularity)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%87%E4%BB%BD%E4%BB%BB%E5%8A%A1-Backup-Tasks"><span class="nav-number">2.5.</span> <span class="nav-text">备份任务 (Backup Tasks)</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BC%98%E5%8C%96%E4%B8%8E%E5%A2%9E%E5%BC%BA-Refinement"><span class="nav-number">3.</span> <span class="nav-text">优化与增强 (Refinement)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%97%AE%E9%A2%98-Questions"><span class="nav-number">4.</span> <span class="nav-text">问题 (Questions)</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Yihang Wei</p>
+  <div class="site-description" itemprop="description">聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">47</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="languages">
+    <label class="lang-select-label">
+      <i class="fa fa-language"></i>
+      <span>简体中文</span>
+      <i class="fa fa-angle-up" aria-hidden="true"></i>
+    </label>
+    <select class="lang-select" data-canonical="">
+      
+        <option value="zh-CN" data-href="/undefined/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/2024/11/21/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/MapReduce/" selected="">
+          简体中文
+        </option>
+      
+        <option value="en" data-href="/en/undefined/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/2024/11/21/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/MapReduce/" selected="">
+          English
+        </option>
+      
+    </select>
+  </div>
+
+        
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">京ICP备2025131880号-1 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yihang Wei</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '50%',
+  right: '32px',
+  left: 'unset',
+  time: '0.5s',
+  mixColor: '#fff',
+  backgroundColor: '#fff',
+  buttonColorDark: '#100f2c',
+  buttonColorLight: '#fff',
+  saveInCookies: true,
+  label: '明暗',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+</body>
+</html>

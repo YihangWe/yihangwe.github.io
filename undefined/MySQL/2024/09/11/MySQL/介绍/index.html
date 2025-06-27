@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-CN,en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yihangwe.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="背景数据库是数据存储的仓库，是文件的集合，是依照某种数据模型组织起来并存放于二级存储器中的数据集合。 数据库实例是程序，是位于用户和操作系统之间的一层数据管理软件，用户对数据库数据的任何操作都是在数据库实例下进行的。应用程序只有通过数据库实例才能和数据库打交道。 在 MySQL 中，实例和数据库的关系通常是一一对应的。但在集群下可能存在一个数据库被多个数据库实例使用的情况。 关系型数据库（结构数据">
+<meta property="og:type" content="article">
+<meta property="og:title" content="介绍">
+<meta property="og:url" content="https://yihangwe.github.io/undefined/MySQL/2024/09/11/MySQL/%E4%BB%8B%E7%BB%8D/index.html">
+<meta property="og:site_name" content="EthanWeee 的个人日志">
+<meta property="og:description" content="背景数据库是数据存储的仓库，是文件的集合，是依照某种数据模型组织起来并存放于二级存储器中的数据集合。 数据库实例是程序，是位于用户和操作系统之间的一层数据管理软件，用户对数据库数据的任何操作都是在数据库实例下进行的。应用程序只有通过数据库实例才能和数据库打交道。 在 MySQL 中，实例和数据库的关系通常是一一对应的。但在集群下可能存在一个数据库被多个数据库实例使用的情况。 关系型数据库（结构数据">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-09-11T16:00:00.000Z">
+<meta property="article:modified_time" content="2025-06-01T06:26:26.937Z">
+<meta property="article:author" content="Yihang Wei">
+<meta property="article:tag" content="数据库, 分布式, OLTP, OLAP">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://yihangwe.github.io/undefined/MySQL/2024/09/11/MySQL/%E4%BB%8B%E7%BB%8D/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>介绍 | EthanWeee 的个人日志</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<!-- hexo injector head_end start --><script>(function() {function calculateHeight(element) {let height = 0;const items = element.children;for (let i = 0; i < items.length; i++) {height += items[i].offsetHeight || 25;const child = items[i].querySelector(".nav-child");if (child && child.style.display !== "none") {height += calculateHeight(child);}}return height;}function generateToc(lang, container) {const content = document.getElementById(lang + "-content");if (!content) return;const headers = Array.from(content.querySelectorAll("h1, h2, h3, h4, h5, h6"));if (headers.length === 0) return;const ol = document.createElement("ol");ol.className = "nav";let currentLevel = 1;let currentOl = ol;let stack = [ol];let counters = [0, 0, 0, 0, 0, 0];headers.forEach((header, index) => {const level = parseInt(header.tagName[1]);counters[level - 1]++;for (let i = level; i < 6; i++) counters[i] = 0;const li = document.createElement("li");li.className = "nav-item nav-level-" + level;if (level === 1 && index === 0) {li.classList.add("active", "active-current");}const link = document.createElement("a");link.className = "nav-link";if (level === 1 && index === 0) link.classList.add("active");link.href = "#" + header.id;const numSpan = document.createElement("span");numSpan.className = "nav-number";numSpan.textContent = counters.slice(0, level).filter(n => n > 0).join(".");const textSpan = document.createElement("span");textSpan.className = "nav-text";textSpan.textContent = header.textContent;link.appendChild(numSpan);link.appendChild(document.createTextNode(" "));link.appendChild(textSpan);li.appendChild(link);if (level > currentLevel) {const newOl = document.createElement("ol");newOl.className = "nav-child";if (currentLevel === 1) {newOl.style.display = "block";stack[currentLevel - 1].lastElementChild.classList.add("active");}stack[currentLevel - 1].lastElementChild.appendChild(newOl);stack[level - 1] = newOl;currentOl = newOl;} else if (level < currentLevel) {currentOl = stack[level - 1];}currentOl.appendChild(li);currentLevel = level;});container.appendChild(ol);setTimeout(() => {const navHeight = calculateHeight(ol);ol.style.setProperty("--height", navHeight + "px");const navChilds = ol.getElementsByClassName("nav-child");Array.from(navChilds).forEach(child => {if (child.style.display === "block") {const childHeight = calculateHeight(child);child.style.setProperty("--height", childHeight + "px");}});}, 0);return ol;}function updateActiveHeading() {const activeLang = document.getElementById("en-content").style.display === "block" ? "en" : "zh";const content = document.getElementById(activeLang + "-content");const toc = document.getElementById(activeLang + "-toc");if (!content || !toc) return;const headers = Array.from(content.querySelectorAll("h1, h2, h3, h4, h5, h6"));const scrollPos = window.scrollY + window.innerHeight / 3;let activeHeader = null;for (let i = headers.length - 1; i >= 0; i--) {const header = headers[i];const headerTop = header.getBoundingClientRect().top + window.scrollY;if (headerTop <= scrollPos) {activeHeader = header;break;}}const links = toc.getElementsByClassName("nav-link");Array.from(links).forEach(link => {link.classList.remove("active");const parentLi = link.parentElement;if (parentLi) {parentLi.classList.remove("active", "active-current");}});if (activeHeader) {const activeLink = toc.querySelector(`a[href="#${activeHeader.id}"]`);if (activeLink) {activeLink.classList.add("active");let parent = activeLink.parentElement;while (parent && parent.classList) {if (parent.classList.contains("nav-item")) {parent.classList.add("active");if (parent.classList.contains("nav-level-1")) {parent.classList.add("active-current");}}parent = parent.parentElement;}}}}function initTippy() {document.querySelectorAll(".refplus-num").forEach((ref) => {if (ref._tippy) {ref._tippy.destroy();}let refid = ref.firstChild.href.replace(location.origin+location.pathname,"");let refel = document.querySelector(refid);if (!refel) return;let refnum = refel.dataset.num;let ref_content = refel.innerText.replace(`[${refnum}]`,"");tippy(ref, {content: ref_content,});});}function initToc() {const originalToc = document.querySelector(".post-toc-wrap");if (!originalToc || !document.getElementById("langToggle")) return;const tocContainer = document.createElement("div");tocContainer.className = "post-toc-wrap sidebar-panel sidebar-panel-active";const enToc = document.createElement("div");enToc.id = "en-toc";enToc.className = "post-toc motion-element";enToc.style.display = "block";const zhToc = document.createElement("div");zhToc.id = "zh-toc";zhToc.className = "post-toc motion-element";zhToc.style.display = "none";generateToc("en", enToc);generateToc("zh", zhToc);tocContainer.appendChild(enToc);tocContainer.appendChild(zhToc);originalToc.parentNode.replaceChild(tocContainer, originalToc);window.addEventListener("scroll", updateActiveHeading);setTimeout(updateActiveHeading, 0);}window.toggleLanguage = function() {const enContent = document.getElementById("en-content");const zhContent = document.getElementById("zh-content");const enToc = document.getElementById("en-toc");const zhToc = document.getElementById("zh-toc");const button = document.getElementById("langToggle");if (!enContent || !zhContent || !enToc || !zhToc || !button) return;const isEnglish = enContent.style.display === "block";enContent.style.display = isEnglish ? "none" : "block";zhContent.style.display = isEnglish ? "block" : "none";enToc.style.display = isEnglish ? "none" : "block";zhToc.style.display = isEnglish ? "block" : "none";button.querySelector(".button-text").textContent = isEnglish ? "Switch to English" : "切换中文";setTimeout(updateActiveHeading, 0);setTimeout(initTippy, 100);};document.addEventListener("DOMContentLoaded", function() {initToc();setTimeout(initTippy, 3000);});})();</script><style>.post-toc { transition: all 0.2s ease-in-out; }.post-toc .nav { padding-left: 0; }.post-toc .nav-child { padding-left: 1em; }.post-toc .nav-item { line-height: 1.8; }.post-toc .nav-link { color: #555; }.post-toc .nav-link:hover { color: #222; }.post-toc .nav-link.active { color: #fc6423; }.post-toc .active > .nav-link { color: #fc6423; }.post-toc .active-current > .nav-link { color: #fc6423; }</style><!-- hexo injector head_end end --><style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">EthanWeee 的个人日志</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/MySQL/2024/09/11/MySQL/%E4%BB%8B%E7%BB%8D/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee 的个人日志">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          介绍
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-09-12 00:00:00" itemprop="dateCreated datePublished" datetime="2024-09-12T00:00:00+08:00">2024-09-12</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-06-01 14:26:26" itemprop="dateModified" datetime="2025-06-01T14:26:26+08:00">2025-06-01</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>数据库是数据存储的仓库，是文件的集合，是依照某种数据模型组织起来并存放于二级存储器中的数据集合。</p>
+<p>数据库实例是程序，是位于用户和操作系统之间的一层数据管理软件，用户对数据库数据的任何操作都是在数据库实例下进行的。应用程序只有通过数据库实例才能和数据库打交道。</p>
+<p>在 MySQL 中，实例和数据库的关系通常是一一对应的。但在集群下可能存在一个数据库被多个数据库实例使用的情况。</p>
+<p>关系型数据库（结构数据模型，表）：建立在关系模型基础上，由多张相互连接的<strong>二维表</strong>组成的数据库。</p>
+<p>数据库管理系统（DBMS）：操纵和管理数据库的应用程序。</p>
+<p>SQL：操作关系型数据库的编程语言，也是一套标准。</p>
+<p>客户端&#x3D;&gt;数据库管理系统&#x3D;&gt;数据库&#x3D;&gt;数据表。</p>
+<h1 id="数据库三大范式"><a href="#数据库三大范式" class="headerlink" title="数据库三大范式"></a>数据库三大范式</h1><p>第一范式（1NF）：确保表的每一列都是<strong>不可分割</strong>的基本数据单元，比如说用户地址，应该拆分成省、市、区、详细信息等 4 个字段。</p>
+<p>第二范式（2NF）：在 1NF 的基础上，要求数据库表中的<strong>每一列都和主键直接相关</strong>，而不能只与主键的某一部分相关（主要针对联合主键）。</p>
+<p>第三范式（3NF）：在 2NF 的基础上，消除非主键列对主键的传递依赖，即<strong>非主键列只依赖于主键列</strong>，不依赖于其他非主键列。</p>
+<h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>MySQL 是一款开源的关系型数据库管理系统（RDBMS），最初由 MySQL AB 于 1995 年 5 月 23 日推出，现由 Oracle 维护和发布。MySQL 使用 SQL 来定义、操作和管理数据表，将数据组织为由行与列构成的表格，以实现数据之间的关联与查询。它原生支持完整的 ACID 事务特性和多版本并发控制（MVCC），在高并发环境下能够保持数据的一致性与隔离度；InnoDB 引擎通过回滚段存储旧版本数据，并结合两阶段锁定（Two-Phase Locking）和插入意向锁等机制，实现并发控制与死锁检测。MySQL 可跨 Windows、Linux、macOS、FreeBSD 等多个操作系统部署，凭借易用性、高性能与可靠性，长期被广泛应用于 Web 应用、电子商务平台和企业级系统。</p>
+<p>MySQL 采用可插拔的存储引擎架构，允许用户根据不同业务需求选择最合适的引擎。默认的 InnoDB 引擎提供事务处理、行级锁、外键约束、崩溃恢复（通过 redo log）和双写缓冲等功能，以确保数据安全与快速恢复。在 InnoDB 之前，MyISAM 曾为默认引擎，其采用表级锁设计、不支持事务与外键，适用于读密集型场景但无法满足高并发写入需求。此外，MySQL 还支持 Memory 引擎（将数据保存在内存中，适合临时表或高速缓存）和 NDB Cluster 引擎（面向分布式高可用集群，支持自动分片和多主复制），以满足不同场景下对性能与可用性的多样化需求。</p>
+<p>在服务器层面，MySQL 包括 SQL 解析器、查询优化器和执行器三大组件。解析器负责将客户端提交的 SQL 文本进行词法与语法分析，生成内部抽象语法树（AST）；优化器基于统计信息与索引代价估算，选择最优执行计划；执行器则通过存储引擎接口调用底层引擎完成实际的数据访问和操作，例如数据页读取、加锁、写入等。MySQL 采用磁盘导向的存储架构，InnoDB 使用页为单位将数据加载到缓冲池并通过分代 LRU 策略进行页面替换，以优化磁盘 I&#x2F;O 性能。在并发查询执行方面，MySQL 以元组级的迭代器模型处理查询，不支持内部并行化，但可借助索引和优化器策略减少 I&#x2F;O 次数，从而提升查询效率。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/undefined/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/05/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/Gamma/" rel="prev" title="Gamma">
+      <i class="fa fa-chevron-left"></i> Gamma
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/undefined/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/09/12/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/HRPS/" rel="next" title="HRPS">
+      HRPS <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%BA%93%E4%B8%89%E5%A4%A7%E8%8C%83%E5%BC%8F"><span class="nav-number">2.</span> <span class="nav-text">数据库三大范式</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%AE%80%E4%BB%8B"><span class="nav-number">3.</span> <span class="nav-text">简介</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Yihang Wei</p>
+  <div class="site-description" itemprop="description">聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">47</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="languages">
+    <label class="lang-select-label">
+      <i class="fa fa-language"></i>
+      <span>简体中文</span>
+      <i class="fa fa-angle-up" aria-hidden="true"></i>
+    </label>
+    <select class="lang-select" data-canonical="">
+      
+        <option value="zh-CN" data-href="/undefined/MySQL/2024/09/11/MySQL/%E4%BB%8B%E7%BB%8D/" selected="">
+          简体中文
+        </option>
+      
+        <option value="en" data-href="/en/undefined/MySQL/2024/09/11/MySQL/%E4%BB%8B%E7%BB%8D/" selected="">
+          English
+        </option>
+      
+    </select>
+  </div>
+
+        
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">京ICP备2025131880号-1 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yihang Wei</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '50%',
+  right: '32px',
+  left: 'unset',
+  time: '0.5s',
+  mixColor: '#fff',
+  backgroundColor: '#fff',
+  buttonColorDark: '#100f2c',
+  buttonColorLight: '#fff',
+  saveInCookies: true,
+  label: '明暗',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+</body>
+</html>

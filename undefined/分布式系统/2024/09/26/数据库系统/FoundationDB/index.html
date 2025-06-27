@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="zh-CN,en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yihangwe.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="IntroFoundationDB的研究意义在于，它成功地将NoSQL的灵活性与ACID事务的强大功能结合在一起，提供了一种模块化的架构，使得各个子系统可以独立配置和扩展。这种设计不仅提高了系统的可扩展性和可用性，还增强了故障容忍能力。此外，FoundationDB采用了严格的模拟测试框架，确保了系统的稳定性和高效性，使得开发者能够快速引入和发布新特性。FoundationDB的快速恢复机制显著提">
+<meta property="og:type" content="article">
+<meta property="og:title" content="FoundationDB">
+<meta property="og:url" content="https://yihangwe.github.io/undefined/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/2024/09/26/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/FoundationDB/index.html">
+<meta property="og:site_name" content="EthanWeee 的个人日志">
+<meta property="og:description" content="IntroFoundationDB的研究意义在于，它成功地将NoSQL的灵活性与ACID事务的强大功能结合在一起，提供了一种模块化的架构，使得各个子系统可以独立配置和扩展。这种设计不仅提高了系统的可扩展性和可用性，还增强了故障容忍能力。此外，FoundationDB采用了严格的模拟测试框架，确保了系统的稳定性和高效性，使得开发者能够快速引入和发布新特性。FoundationDB的快速恢复机制显著提">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yihangwe.github.io/images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/FDB_arch.png">
+<meta property="article:published_time" content="2024-09-26T16:00:00.000Z">
+<meta property="article:modified_time" content="2025-06-27T23:19:10.711Z">
+<meta property="article:author" content="Yihang Wei">
+<meta property="article:tag" content="数据库, 分布式, OLTP, OLAP">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yihangwe.github.io/images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/FDB_arch.png">
+
+<link rel="canonical" href="https://yihangwe.github.io/undefined/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/2024/09/26/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/FoundationDB/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>FoundationDB | EthanWeee 的个人日志</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<!-- hexo injector head_end start --><script>(function() {function calculateHeight(element) {let height = 0;const items = element.children;for (let i = 0; i < items.length; i++) {height += items[i].offsetHeight || 25;const child = items[i].querySelector(".nav-child");if (child && child.style.display !== "none") {height += calculateHeight(child);}}return height;}function generateToc(lang, container) {const content = document.getElementById(lang + "-content");if (!content) return;const headers = Array.from(content.querySelectorAll("h1, h2, h3, h4, h5, h6"));if (headers.length === 0) return;const ol = document.createElement("ol");ol.className = "nav";let currentLevel = 1;let currentOl = ol;let stack = [ol];let counters = [0, 0, 0, 0, 0, 0];headers.forEach((header, index) => {const level = parseInt(header.tagName[1]);counters[level - 1]++;for (let i = level; i < 6; i++) counters[i] = 0;const li = document.createElement("li");li.className = "nav-item nav-level-" + level;if (level === 1 && index === 0) {li.classList.add("active", "active-current");}const link = document.createElement("a");link.className = "nav-link";if (level === 1 && index === 0) link.classList.add("active");link.href = "#" + header.id;const numSpan = document.createElement("span");numSpan.className = "nav-number";numSpan.textContent = counters.slice(0, level).filter(n => n > 0).join(".");const textSpan = document.createElement("span");textSpan.className = "nav-text";textSpan.textContent = header.textContent;link.appendChild(numSpan);link.appendChild(document.createTextNode(" "));link.appendChild(textSpan);li.appendChild(link);if (level > currentLevel) {const newOl = document.createElement("ol");newOl.className = "nav-child";if (currentLevel === 1) {newOl.style.display = "block";stack[currentLevel - 1].lastElementChild.classList.add("active");}stack[currentLevel - 1].lastElementChild.appendChild(newOl);stack[level - 1] = newOl;currentOl = newOl;} else if (level < currentLevel) {currentOl = stack[level - 1];}currentOl.appendChild(li);currentLevel = level;});container.appendChild(ol);setTimeout(() => {const navHeight = calculateHeight(ol);ol.style.setProperty("--height", navHeight + "px");const navChilds = ol.getElementsByClassName("nav-child");Array.from(navChilds).forEach(child => {if (child.style.display === "block") {const childHeight = calculateHeight(child);child.style.setProperty("--height", childHeight + "px");}});}, 0);return ol;}function updateActiveHeading() {const activeLang = document.getElementById("en-content").style.display === "block" ? "en" : "zh";const content = document.getElementById(activeLang + "-content");const toc = document.getElementById(activeLang + "-toc");if (!content || !toc) return;const headers = Array.from(content.querySelectorAll("h1, h2, h3, h4, h5, h6"));const scrollPos = window.scrollY + window.innerHeight / 3;let activeHeader = null;for (let i = headers.length - 1; i >= 0; i--) {const header = headers[i];const headerTop = header.getBoundingClientRect().top + window.scrollY;if (headerTop <= scrollPos) {activeHeader = header;break;}}const links = toc.getElementsByClassName("nav-link");Array.from(links).forEach(link => {link.classList.remove("active");const parentLi = link.parentElement;if (parentLi) {parentLi.classList.remove("active", "active-current");}});if (activeHeader) {const activeLink = toc.querySelector(`a[href="#${activeHeader.id}"]`);if (activeLink) {activeLink.classList.add("active");let parent = activeLink.parentElement;while (parent && parent.classList) {if (parent.classList.contains("nav-item")) {parent.classList.add("active");if (parent.classList.contains("nav-level-1")) {parent.classList.add("active-current");}}parent = parent.parentElement;}}}}function initTippy() {document.querySelectorAll(".refplus-num").forEach((ref) => {if (ref._tippy) {ref._tippy.destroy();}let refid = ref.firstChild.href.replace(location.origin+location.pathname,"");let refel = document.querySelector(refid);if (!refel) return;let refnum = refel.dataset.num;let ref_content = refel.innerText.replace(`[${refnum}]`,"");tippy(ref, {content: ref_content,});});}function initToc() {const originalToc = document.querySelector(".post-toc-wrap");if (!originalToc || !document.getElementById("langToggle")) return;const tocContainer = document.createElement("div");tocContainer.className = "post-toc-wrap sidebar-panel sidebar-panel-active";const enToc = document.createElement("div");enToc.id = "en-toc";enToc.className = "post-toc motion-element";enToc.style.display = "block";const zhToc = document.createElement("div");zhToc.id = "zh-toc";zhToc.className = "post-toc motion-element";zhToc.style.display = "none";generateToc("en", enToc);generateToc("zh", zhToc);tocContainer.appendChild(enToc);tocContainer.appendChild(zhToc);originalToc.parentNode.replaceChild(tocContainer, originalToc);window.addEventListener("scroll", updateActiveHeading);setTimeout(updateActiveHeading, 0);}window.toggleLanguage = function() {const enContent = document.getElementById("en-content");const zhContent = document.getElementById("zh-content");const enToc = document.getElementById("en-toc");const zhToc = document.getElementById("zh-toc");const button = document.getElementById("langToggle");if (!enContent || !zhContent || !enToc || !zhToc || !button) return;const isEnglish = enContent.style.display === "block";enContent.style.display = isEnglish ? "none" : "block";zhContent.style.display = isEnglish ? "block" : "none";enToc.style.display = isEnglish ? "none" : "block";zhToc.style.display = isEnglish ? "block" : "none";button.querySelector(".button-text").textContent = isEnglish ? "Switch to English" : "切换中文";setTimeout(updateActiveHeading, 0);setTimeout(initTippy, 100);};document.addEventListener("DOMContentLoaded", function() {initToc();setTimeout(initTippy, 3000);});})();</script><style>.post-toc { transition: all 0.2s ease-in-out; }.post-toc .nav { padding-left: 0; }.post-toc .nav-child { padding-left: 1em; }.post-toc .nav-item { line-height: 1.8; }.post-toc .nav-link { color: #555; }.post-toc .nav-link:hover { color: #222; }.post-toc .nav-link.active { color: #fc6423; }.post-toc .active > .nav-link { color: #fc6423; }.post-toc .active-current > .nav-link { color: #fc6423; }</style><!-- hexo injector head_end end --><style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">EthanWeee 的个人日志</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/2024/09/26/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/FoundationDB/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee 的个人日志">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          FoundationDB
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-09-27 00:00:00" itemprop="dateCreated datePublished" datetime="2024-09-27T00:00:00+08:00">2024-09-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-06-28 07:19:10" itemprop="dateModified" datetime="2025-06-28T07:19:10+08:00">2025-06-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">数据库系统</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">分布式系统</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><h1 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h1><p>FoundationDB的研究意义在于，它成功地将NoSQL的灵活性与ACID事务的强大功能结合在一起，提供了一种模块化的架构，使得各个子系统可以独立配置和扩展。这种设计不仅提高了系统的可扩展性和可用性，还增强了故障容忍能力。此外，FoundationDB采用了严格的模拟测试框架，确保了系统的稳定性和高效性，使得开发者能够快速引入和发布新特性。FoundationDB的快速恢复机制显著提高了系统的可用性，简化了软件升级和配置变更的过程，通常在几秒钟内完成。</p>
+<p>The main design principles are:</p>
+<ol>
+<li>Divide-and-Conquer (or separation of concerns). FDB decouples the transaction management system (write path) from the distributed storage (read path) and scales them independently. Within the transaction management system, processes are assigned various roles representing different aspects of transaction management. Furthermore, cluster-wide orchestrating tasks, such as overload control and load balancing are also divided and serviced by additional heterogeneous roles.</li>
+<li>Make failure a common case. For distributed systems, failure is a norm rather than an exception. To cope with failures in the transaction management system of FDB, we handle all failures through the recovery path: the transaction system proactively shuts down when it detects a failure. Thus, all failure handling is reduced to a single recovery operation, which becomes a common and well-tested code path. To improve availability, FDB strives to minimize Mean-Time-To-Recovery (MTTR). In our production clusters, the total time is usually less than five seconds.</li>
+<li>Simulation testing. FDB relies on a randomized, deterministic simulation framework for testing the correctness of its distributed database. Simulation tests not only expose deep bugs, but also boost developer productivity and the code quality of FDB.</li>
+</ol>
+<h1 id="Architecture"><a href="#Architecture" class="headerlink" title="Architecture"></a>Architecture</h1><p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/FDB_arch.png" alt="img"></p>
+<ul>
+<li><p>The control plane is responsible for persisting critical system metadata, that is, the configuration of transaction systems, on Coordinators.</p>
+<ul>
+<li><p>These <strong>Coordinators</strong> form a Paxos group and elect a ClusterController.</p>
+</li>
+<li><p>The <strong>ClusterController</strong> monitors all servers in the cluster and recruits three processes, Sequencer, DataDistributor, and Ratekeeper, which are re-recruited if they fail or crash.</p>
+</li>
+<li><p>The <strong>DataDistributor</strong> is responsible for monitoring failures and balancing data among StorageServers.</p>
+</li>
+<li><p><strong>Ratekeeper</strong> provides overload protection for the cluster.</p>
+</li>
+</ul>
+</li>
+<li><p>The data plane is responsible for transaction processing and data storage. FDB chooses an unbundled architecture:</p>
+<ul>
+<li><p>A distributed transaction management system (TS) consists of a Sequencer, Proxies, and Resolvers, all of which are stateless processes.</p>
+<ul>
+<li><p>The Sequencer assigns a read and a commit version to each transaction.</p>
+</li>
+<li><p>Proxies offer MVCC read versions to clients and orchestrate transaction commits.</p>
+</li>
+<li><p>Resolvers check for conflicts among transactions.</p>
+</li>
+</ul>
+</li>
+<li><p>A log system (LS) stores Write-Ahead-Log (WAL) for TS, and a separate distributed storage system (SS) is used for storing data and servicing reads. The LS contains a set of LogServers and the SS has a number of StorageServers. LogServers act as replicated, sharded, distributed persistent queues, each queue storing WAL data for a StorageServer.</p>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>Clients read from sharded StorageServers, so reads scale linearly with the number of StorageServers.</strong></p>
+<p><strong>Writes are scaled by adding more Proxies, Resolvers, and LogServers.</strong></p>
+<p>The control plane’s singleton processes (e.g., ClusterController and Sequencer) and Coordinators are not performance bottlenecks; they only perform limited metadata operations. 因为元数据操作少且简单，且与两者无关的数据读写是并行扩展的（如上面两行加粗字体所述）。</p>
+<h1 id="Bootstrapping"><a href="#Bootstrapping" class="headerlink" title="Bootstrapping"></a>Bootstrapping</h1><p>FDB has no dependency on external coordination services. All user data and most system metadata (keys that start with 0xFF prefix) are stored in StorageServers. The metadata about StorageServers is persisted in LogServers, and the LogServers configuration data is stored in all Coordinators.</p>
+<ol>
+<li>The Coordinators are a disk Paxos group; servers attempt to become the ClusterController if one does not exist.</li>
+<li>A newly elected ClusterController reads the old LS configuration from the Coordinators and spawns a new TS and LS.</li>
+<li>Proxies recover system metadata from the old LS, including information about all StorageServers.</li>
+<li>The Sequencer waits until the new TS finishes recovery, then writes the new LS configuration to all Coordinators. The new transaction system is then ready to accept client transactions.</li>
+</ol>
+<h1 id="Reconfiguration"><a href="#Reconfiguration" class="headerlink" title="Reconfiguration"></a>Reconfiguration</h1><p>The Sequencer process monitors the health of Proxies, Resolvers, and LogServers. Whenever there is a failure in the TS or LS, or the database configuration changes, the Sequencer terminates. The ClusterController detects the Sequencer failure, then recruits and bootstraps a new TS and LS. In this way, transaction processing is divided into epochs, where each epoch represents a generation of the transaction management system with its own Sequencer.</p>
+<h1 id="End-to-end-transaction-processing"><a href="#End-to-end-transaction-processing" class="headerlink" title="End-to-end transaction processing"></a>End-to-end transaction processing</h1><ol>
+<li><p><strong>Transaction Start and Read Operations:</strong></p>
+<ul>
+<li><p>A client starts a transaction by contacting a <strong>Proxy</strong> to obtain a read version (timestamp).</p>
+</li>
+<li><p>The <strong>Proxy</strong> requests a read version from the <strong>Sequencer</strong> that is greater than all previously issued commit versions and sends it to the client.</p>
+</li>
+<li><p>The client then reads from <strong>StorageServers</strong> at this specific read version.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Buffered Write Operations</strong>:</p>
+<ul>
+<li><p>Client writes are buffered locally and not sent to the cluster immediately.</p>
+</li>
+<li><p>Read-your-write semantics are preserved by combining the database lookups with the client’s uncommitted writes.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Transaction Commit</strong>:</p>
+<ul>
+<li><p>When the client commits, it sends the transaction data (read and write sets) to a <strong>Proxy</strong>, waiting for either a commit or abort response.</p>
+</li>
+<li><p>The <strong>Proxy</strong> commits a transaction in three steps:</p>
+<ol>
+<li><p><strong>Obtain Commit Version</strong>: The Proxy requests a commit version from the <strong>Sequencer</strong> that is larger than all current read or commit versions.</p>
+</li>
+<li><p><strong>Conflict Check</strong>: The Proxy sends transaction data to the partitioned <strong>Resolvers</strong>, which check for read-write conflicts. If no conflicts are found, the transaction proceeds; otherwise, it is aborted.</p>
+</li>
+<li><p><strong>Persist to Log Servers</strong>: The transaction is sent to <strong>LogServers</strong> for persistence, and after all LogServers acknowledge, the transaction is considered committed. The Proxy then reports the committed version to the <strong>Sequencer</strong> and sends the response back to the client.</p>
+</li>
+</ol>
+</li>
+</ul>
+</li>
+<li><p><strong>Applying Writes</strong>:</p>
+<ul>
+<li><strong>StorageServers</strong> continuously pull mutation logs from <strong>LogServers</strong> and apply the committed changes to disk.</li>
+</ul>
+</li>
+<li><p><strong>Read-Only Transactions and Snapshot Reads</strong>:</p>
+<ul>
+<li><p>Read-only transactions are <strong>serializable</strong> (at the read version) and <strong>high-performance</strong> (thanks to MVCC), allowing the client to commit locally without contacting the database, which is particularly important since most transactions are read-only.</p>
+</li>
+<li><p><strong>Snapshot reads</strong> relax the isolation property of a transaction, reducing conflicts by allowing concurrent writes without conflicting with snapshot reads.</p>
+</li>
+</ul>
+</li>
+</ol>
+<p><strong>FoundationDB (FDB) using Serializable Snapshot Isolation (SSI) by combining Optimistic Concurrency Control (OCC) with Multi-Version Concurrency Control (MVCC).</strong></p>
+<h2 id="Transaction-Versions"><a href="#Transaction-Versions" class="headerlink" title="Transaction Versions"></a>Transaction Versions</h2><ul>
+<li>Each transaction receives a <strong>read version</strong> and a <strong>commit version</strong> from the <strong>Sequencer</strong>.</li>
+<li>The read version ensures that the transaction observes the results of all previously committed transactions, and the commit version is greater than all current read or commit versions, establishing a serial order for transactions.</li>
+</ul>
+<h2 id="Log-Sequence-Number-LSN"><a href="#Log-Sequence-Number-LSN" class="headerlink" title="Log Sequence Number (LSN)"></a>Log Sequence Number (LSN)</h2><ul>
+<li>The <strong>commit version</strong> serves as the <strong>LSN</strong>, defining a serial history of transactions.</li>
+<li>To ensure no gaps between LSNs, the Sequencer also returns the previous LSN with each commit. Both the LSN and previous LSN are sent to <strong>Resolvers</strong> and <strong>LogServers</strong> to enforce serial processing of transactions.</li>
+</ul>
+<h2 id="Conflict-Detection"><a href="#Conflict-Detection" class="headerlink" title="Conflict Detection"></a>Conflict Detection</h2><ul>
+<li>FDB uses a lock-free conflict detection algorithm similar to <strong>write-snapshot isolation</strong>, but the commit version is chosen before conflict detection, enabling efficient batch processing of version assignments and conflict detection.</li>
+<li>The key space is divided among multiple <strong>Resolvers</strong>, allowing conflict detection to be parallelized. A transaction can commit only if all Resolvers confirm no conflicts.</li>
+</ul>
+<h2 id="Handling-Aborted-Transactions"><a href="#Handling-Aborted-Transactions" class="headerlink" title="Handling Aborted Transactions"></a>Handling Aborted Transactions</h2><ul>
+<li>If a transaction is aborted, some Resolvers may have already updated their history, leading to possible “false positive” conflicts for other transactions. However, this is rare because most transactions’ key ranges fall within one Resolver, and the effects of false positives are limited to a short MVCC window (5 seconds).</li>
+</ul>
+<h2 id="Efficiency-of-OCC"><a href="#Efficiency-of-OCC" class="headerlink" title="Efficiency of OCC"></a>Efficiency of OCC</h2><ul>
+<li>The OCC design avoids the complexity of acquiring and releasing locks, simplifying interactions between the <strong>Transaction System (TS)</strong> and <strong>Storage Servers (SS)</strong>.</li>
+<li>While OCC may result in some wasted work due to aborted transactions, FDB’s conflict rate in production is low (less than 1%), and clients can simply restart aborted transactions.</li>
+</ul>
+<h1 id="Logging-protocol"><a href="#Logging-protocol" class="headerlink" title="Logging protocol"></a>Logging protocol</h1><p>Commit Logging:</p>
+<ul>
+<li>Once a <strong>Proxy</strong> decides to commit a transaction, it sends the transaction’s changes (mutations) to the <strong>LogServers</strong> responsible for the modified key ranges. Other LogServers receive an empty message.</li>
+<li>The log message includes the current and previous <strong>Log Sequence Number (LSN)</strong> from the <strong>Sequencer</strong> and the largest known committed version (KCV) of the Proxy.</li>
+<li>The <strong>LogServers</strong> reply to the Proxy once the log data is durably stored. The Proxy updates its KCV if all replica LogServers acknowledge and the LSN is larger than the current KCV.</li>
+</ul>
+<p>Shipping Redo Logs:</p>
+<ul>
+<li>Shipping the redo log from LogServers to <strong>StorageServers</strong> happens in the background and is not part of the commit path, improving performance.</li>
+</ul>
+<p>Applying Redo Logs:</p>
+<ul>
+<li><strong>StorageServers</strong> apply non-durable redo logs from LogServers to an in-memory index. In most cases, this happens before any client reads are processed, ensuring low-latency multi-version reads.</li>
+<li>If the requested data is not yet available on a StorageServer, the client either waits or retries at another replica. If both reads time out, the client can restart the transaction.</li>
+</ul>
+<p>I&#x2F;O Efficiency:</p>
+<ul>
+<li>Since log data is already durable on LogServers, StorageServers can buffer updates in memory and write batches to disk periodically, improving input&#x2F;output (I&#x2F;O) efficiency.</li>
+</ul>
+<p><strong>What if a StorageServer is lagging behind on applying the redo logs and a client requests a version of a key pair it does not have?</strong></p>
+<ol>
+<li>Wait for a threshold for when known-committed-version is greater than or equal to the read version</li>
+<li>If timeout, the client asks another StorageServer that stores the key</li>
+<li>Return error “request for a future version” (FDB error code 1009)</li>
+</ol>
+<p><strong>What if there is no further transaction logs to redo?</strong></p>
+<ul>
+<li>Without new transactions issued from the client, proxies still generate empty transactions to advance the known-committed-version</li>
+<li>Known-committed-version and LSN of each transaction are sent to all LogServers (limit scalability on writes)</li>
+</ul>
+<h1 id="Transaction-system-recovery"><a href="#Transaction-system-recovery" class="headerlink" title="Transaction system recovery"></a>Transaction system recovery</h1><h2 id="Simplified-Recovery"><a href="#Simplified-Recovery" class="headerlink" title="Simplified Recovery"></a>Simplified Recovery</h2><ul>
+<li>Unlike traditional databases that require <strong>undo log processing</strong>, FoundationDB avoids this step by making the <strong>redo log processing</strong> the same as the normal log forward path. StorageServers pull logs from LogServers and apply them in the background.</li>
+</ul>
+<h2 id="Failure-Detection-and-New-Transaction-System-TS"><a href="#Failure-Detection-and-New-Transaction-System-TS" class="headerlink" title="Failure Detection and New Transaction System (TS)"></a>Failure Detection and New Transaction System (TS)</h2><ul>
+<li>Upon detecting a failure, a new TS is recruited. The new TS can start accepting transactions even before all old logs are fully processed. Recovery focuses on finding the end of the redo log, allowing StorageServers to asynchronously replay the logs from that point.</li>
+</ul>
+<h2 id="Epoch-based-Recovery"><a href="#Epoch-based-Recovery" class="headerlink" title="Epoch-based Recovery"></a>Epoch-based Recovery</h2><ul>
+<li>The recovery process is handled per <strong>epoch</strong>. The <strong>ClusterController</strong> locks the old TS configuration, stops old LogServers from accepting new transactions, recruits a new set of transaction components (Sequencer, Proxies, Resolvers, and LogServers), and writes the new TS configuration to the <strong>Coordinators</strong>.</li>
+<li>Stateless components like Proxies and Resolvers don’t require special recovery, but LogServers, which store committed transaction logs, must ensure all data is durable and retrievable by StorageServers.</li>
+</ul>
+<h2 id="Recovery-Version-RV"><a href="#Recovery-Version-RV" class="headerlink" title="Recovery Version (RV)"></a>Recovery Version (RV)</h2><ul>
+<li>The recovery focuses on determining the <strong>Recovery Version (RV)</strong>, which is essentially the end of the redo log. The <strong>Sequencer</strong> collects data from the old LogServers, specifically the <strong>Durable Version (DV)</strong> (maximum LSN persisted) and <strong>KCV</strong> (maximum committed version) from each.</li>
+<li>Once enough LogServers have responded, the <strong>Previous Epoch Version (PEV)</strong> is established (the maximum of all KCVs). The start version of the new epoch is <code>PEV + 1</code>, and the minimum DV becomes the <strong>RV</strong>.</li>
+</ul>
+<h2 id="Log-Copying-and-Healing"><a href="#Log-Copying-and-Healing" class="headerlink" title="Log Copying and Healing"></a>Log Copying and Healing</h2><ul>
+<li>Logs between <code>PEV + 1</code> and RV are copied from old LogServers to the new ones to restore replication in case of LogServer failures. This copying process is lightweight since it only covers a few seconds of logs.</li>
+</ul>
+<h2 id="Rollback-and-Transaction-Processing"><a href="#Rollback-and-Transaction-Processing" class="headerlink" title="Rollback and Transaction Processing"></a>Rollback and Transaction Processing</h2><ul>
+<li>The first transaction after recovery is a special <strong>recovery transaction</strong> that informs StorageServers of the RV, so they can discard in-memory multi-versioned data beyond the RV. StorageServers then pull data larger than the PEV from the new LogServers.</li>
+<li>The rollback process simply discards in-memory multi-versioned data, as persistent data is only written to disk once it leaves the MVCC window.</li>
+</ul>
+<h1 id="Replication"><a href="#Replication" class="headerlink" title="Replication"></a>Replication</h1><ol>
+<li><p><strong>Metadata Replication</strong>:</p>
+<ul>
+<li><strong>System metadata</strong> related to the control plane is stored on <strong>Coordinators</strong> using the <strong>Active Disk Paxos</strong> protocol. As long as a majority (quorum) of Coordinators are operational, the metadata can be recovered in case of failure.</li>
+</ul>
+</li>
+<li><p><strong>Log Replication</strong>:</p>
+<ul>
+<li>When a <strong>Proxy</strong> writes logs to <strong>LogServers</strong>, each log record is replicated synchronously across <strong>k &#x3D; f + 1</strong> LogServers (where <strong>f</strong> is the number of allowed failures). The Proxy only sends a commit response to the client after all <strong>k</strong> LogServers have successfully persisted the log. If a LogServer fails, a transaction system recovery is triggered.</li>
+</ul>
+</li>
+<li><p><strong>Storage Replication</strong>:</p>
+<ul>
+<li>Each <strong>key range (shard)</strong> is asynchronously replicated across <strong>k &#x3D; f + 1 StorageServers</strong>. These StorageServers form a <strong>team</strong>. A StorageServer typically hosts multiple shards, distributing its data across several teams. If a StorageServer fails, the <strong>DataDistributor</strong> moves the data from teams with the failed server to other healthy teams.</li>
+</ul>
+</li>
+</ol>
+<p>To prevent data loss in case of simultaneous failures, FoundationDB ensures that no more than one process in a replica group is placed within the same fault domain (e.g., a host, rack, or availability zone). As long as one process in each team is operational, no data is lost, provided at least one fault domain remains available.</p>
+<h1 id="Simulation-testing"><a href="#Simulation-testing" class="headerlink" title="Simulation testing"></a>Simulation testing</h1><ol>
+<li><p><strong>Deterministic Simulation</strong>:</p>
+<ul>
+<li><p>FoundationDB uses <strong>deterministic discrete-event simulation</strong> to test its distributed system. This simulation runs real database code along with <strong>randomized synthetic workloads</strong> and <strong>fault injection</strong> to uncover bugs.</p>
+</li>
+<li><p>Determinism ensures that bugs are reproducible and can be investigated thoroughly.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Fault Injection</strong>:</p>
+<ul>
+<li><p>The simulation tests system resilience by injecting various faults, such as <strong>machine, rack, or data center failures</strong>, network issues, disk corruption, and delays.</p>
+</li>
+<li><p>Randomization of these faults increases the diversity of tested states, allowing for a wide range of potential issues to be examined.</p>
+</li>
+<li><p><strong>“Buggification”</strong> is a technique used to deliberately introduce rare or unusual behaviors (e.g., unnecessary delays, errors) in the system to stress-test its handling of non-standard conditions.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Swarm Testing</strong>:</p>
+<ul>
+<li><p><strong>Swarm testing</strong> increases simulation diversity by using random cluster sizes, configurations, workloads, and fault injection parameters.</p>
+</li>
+<li><p>This ensures that a broad range of scenarios is covered in testing, allowing for the discovery of rare bugs.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Test Oracles</strong>:</p>
+<ul>
+<li><p><strong>Test oracles</strong> are built into the system to verify key properties like <strong>transaction atomicity</strong>, <strong>isolation</strong>, and <strong>recoverability</strong>. Assertions check these properties to detect failures during simulation.</p>
+</li>
+<li><p>They help confirm that the system’s expected behaviors are maintained, even under stressful conditions.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Bug Detection Efficiency</strong>:</p>
+<ul>
+<li><p>The simulation runs faster than real-time, allowing FoundationDB to quickly discover and trace bugs. The <strong>parallel</strong> nature of testing accelerates the process of finding bugs, particularly before major releases.</p>
+</li>
+<li><p>This approach uncovers bugs that may not appear during real-time testing, especially for issues that require long-running operations.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Limitations</strong>:</p>
+<ul>
+<li><p>Simulation cannot reliably detect <strong>performance issues</strong> (like imperfect load balancing).</p>
+</li>
+<li><p>It cannot test <strong>third-party libraries</strong> or <strong>external dependencies</strong>, focusing mainly on FoundationDB’s internal code and behaviors.</p>
+</li>
+</ul>
+</li>
+</ol>
+<h1 id="Lessons-learned"><a href="#Lessons-learned" class="headerlink" title="Lessons learned"></a>Lessons learned</h1><ol>
+<li><p><strong>Architecture Design</strong></p>
+<ul>
+<li><p><strong>Divide-and-Conquer Principle</strong>: Separating the transaction system from the storage layer allows for independent scaling and deployment of resources, enhancing both flexibility and performance.</p>
+</li>
+<li><p><strong>LogServers as Witness Replicas</strong>: In multi-region deployments, LogServers reduce the need for full StorageServer replicas while maintaining high availability.</p>
+</li>
+<li><p><strong>Role Specialization</strong>: The design enables the creation of specialized roles, like separating DataDistributor and Ratekeeper from the Sequencer, and separating Proxies into Get-Read-Version and Commit Proxies, which improves performance and makes the system extensible.</p>
+</li>
+<li><p><strong>Decoupling Enhances Extensibility</strong>: This design pattern allows features like replacing SQLite with RocksDB and adding new roles or functions without overhauling the entire system.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Simulation Testing</strong></p>
+<ul>
+<li><p><strong>High Productivity</strong>: FDB’s deterministic simulation testing enables bugs to be found and reproduced quickly. This approach has improved developer productivity and system reliability by reducing debugging time and improving test coverage.</p>
+</li>
+<li><p><strong>Reliability</strong>: FDB has operated without any data corruption over several years of deployment (e.g., CloudKit), thanks to rigorous simulation testing. Simulation has allowed ambitious rewrites and improvements to be made safely.</p>
+</li>
+<li><p><strong>Eliminating Dependencies</strong>: Simulation testing helped find bugs in external dependencies, leading to FDB replacing Apache Zookeeper with its own Paxos implementation. This change resulted in no further production bugs.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Fast Recovery</strong></p>
+<ul>
+<li><p><strong>Simplifies Upgrades</strong>: FDB allows fast recovery by restarting all processes simultaneously, typically within seconds, simplifying software upgrades and configuration changes. This method has been extensively tested and used in Apple’s production clusters.</p>
+</li>
+<li><p><strong>Bug Healing</strong>: Fast recovery can automatically resolve certain latent bugs, similar to software rejuvenation, by resetting system states.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>5-Second MVCC Window</strong></p>
+<ul>
+<li><p><strong>Memory Efficiency</strong>: FDB uses a 5-second MVCC (Multi-Version Concurrency Control) window to limit memory usage in transaction systems and storage servers. This time window is long enough for most OLTP workloads, exposing inefficiencies if the transaction exceeds 5 seconds.</p>
+</li>
+<li><p><strong>TaskBucket Abstraction</strong>: Long-running processes, like backups, are broken into smaller transactions that fit within the 5-second window. FDB implements this through an abstraction called TaskBucket, which simplifies splitting large transactions into manageable jobs.</p>
+</li>
+</ul>
+</li>
+</ol>
+<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>With FDB, what operations does a transaction commit perform when the transaction only reads the value of data items?</strong></p>
+<ul>
+<li><strong>Read Version Retrieval</strong>: The client requests a read version from a <strong>Proxy</strong> via the <strong>Sequencer</strong>, which guarantees the read version is greater than or equal to any committed version.</li>
+<li><strong>Read Operation</strong>: The client reads the requested data at this specific read version from the <strong>StorageServers</strong>. The reads are served by the StorageServers, which are guaranteed to provide data consistent with the requested version.</li>
+<li><strong>No Writes or Conflicts</strong>: Since the transaction is read-only, there is no write set or conflicts to check. The transaction simply ends, and no data is written or modified, meaning it does not interact with LogServers or commit any changes.</li>
+<li><strong>Commit</strong>: Even though no actual commit occurs (because there’s no data change), the transaction is marked as successfully completed after the reads are done.</li>
+</ul>
+<p><strong>With FDB, is it possible for multiple resolvers to participate in the decision whether to commit or abort a write transaction?</strong> </p>
+<p>Yes, multiple Resolvers can participate in the decision to commit or abort a write transaction in FDB. Here’s how it works:</p>
+<ul>
+<li><strong>Conflict Detection</strong>: When a transaction writes data, the write set (the keys it wants to write) is sent to a set of <strong>Resolvers</strong>. Each Resolver is responsible for a specific portion of the key space. Multiple Resolvers can be involved in checking the transaction’s read and write sets to detect <strong>conflicts</strong> (read-write conflicts or write-write conflicts).</li>
+<li><strong>Parallel Conflict Checking</strong>: Since the key space is partitioned, different Resolvers check different key ranges in parallel. A transaction can only commit if <strong>all</strong> Resolvers agree that there are no conflicts.</li>
+</ul>
+<p><strong>With FDB, what if a StorageServer is lagging behind on applying the redo logs and a client requests a version of a key pair it does not have?</strong></p>
+<ul>
+<li><strong>Client Waits</strong>: The client can choose to wait for the StorageServer to catch up by applying the redo logs. Once the StorageServer finishes replaying the logs and reaches the required version, it can serve the requested data.</li>
+<li><strong>Retry at Another Replica</strong>: If the StorageServer does not have the requested version yet, the client can try to read from another <strong>replica</strong> of the key. FDB typically stores multiple replicas of data across different StorageServers, so the client can retry the request from a replica that is up to date.</li>
+<li><strong>Transaction Restart</strong>: If neither replica has the requested version or the delay is too long, the client may restart the transaction. Since FoundationDB uses <strong>MVCC (Multi-Version Concurrency Control)</strong>, restarting the transaction allows it to obtain a fresh version of the key from an up-to-date StorageServer.</li>
+</ul>
+<p><strong>Consider a database for students enrolling in courses and professors teaching those courses. Provide a SDM model of this database?</strong></p>
+<p>Students: base concrete object class.</p>
+<p>member property: student_id, name, age, email, department_id.</p>
+<p>identifier: student_id.</p>
+<p>Professors: base concrete object class.</p>
+<p>member property: professor_id, name, age, email, department_id.</p>
+<p>identifier: professor_id.</p>
+<p>Courses: base concrete object class</p>
+<p>member property: course_id, name, location, start_time, end_time, department_id.</p>
+<p>derived member property: professor as Professors.professor_id.</p>
+<p>identifier: course_id.</p>
+<p>Enrollment: base duration event class.</p>
+<p>member property: enrollment_id, date_of_enrollment.</p>
+<p>member participant: student in Students, course in Courses.</p>
+<p>identifier: enrollment_id.</p>
+<p>Departments: abstract Students and Professors on common value of department_id.</p>
+<p>derived member property: department_id as distinct value of (Students.department_id union Professors.department_id).</p>
+<p><strong>What is the difference between a monolithic database management system and a disaggregated database management system?</strong> </p>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Monolithic DBMS</th>
+<th>Disaggregated DBMS</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Architecture</td>
+<td>All components tightly integrated into a single system</td>
+<td>Components like storage, computation, and query processing are separated</td>
+</tr>
+<tr>
+<td>Scalability</td>
+<td>Scales through vertical scaling (adding resources to the single server)</td>
+<td>Scales through horizontal scaling (independent scaling of storage and compute)</td>
+</tr>
+<tr>
+<td>Performance Bottlenecks</td>
+<td>May face bottlenecks as the system grows</td>
+<td>Components are independently optimized, reducing bottlenecks</td>
+</tr>
+<tr>
+<td>Resource Management</td>
+<td>Storage and compute resources are tightly coupled, hard to manage separately</td>
+<td>Storage and compute resources can be managed independently, offering flexibility</td>
+</tr>
+<tr>
+<td>Complexity</td>
+<td>Easier to deploy and manage initially, but complexity increases with scale</td>
+<td>More complex to manage and coordinate different components</td>
+</tr>
+<tr>
+<td>Cost</td>
+<td>Pay for all resources, even if they are not fully utilized</td>
+<td>Can optimize resource usage and costs by scaling components independently</td>
+</tr>
+<tr>
+<td>Consistency</td>
+<td>Strong data consistency due to tight integration</td>
+<td>Requires additional mechanisms to ensure consistency across components</td>
+</tr>
+</tbody></table>
+<p><strong>With Gamma and its data flow execution paradigm, how does the system know when the execution of a parallel query involving multiple operators is complete?</strong></p>
+<p>Data Dependency Graph: The query execution is modeled as a directed acyclic graph (DAG), where each node represents an operator (e.g., selection, join). Data flows between operators, and the system tracks the completion of each operator based on this graph.</p>
+<p>Completion Signals: Each parallel operator sends a “done” signal once it finishes processing its data partition. The system monitors these signals to determine when all operators have finished.</p>
+<p>Coordinator: A central coordinator tracks the progress of parallel tasks. When all tasks report completion, the system declares the query execution as complete.</p>
+<p>Reference: <a target="_blank" rel="noopener" href="https://sigmodrecord.org/publications/sigmodRecord/2203/pdfs/08_fdb-zhou.pdf">https://sigmodrecord.org/publications/sigmodRecord/2203/pdfs/08_fdb-zhou.pdf</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/undefined/MySQL/2024/09/22/MySQL/%E5%A4%9A%E8%A1%A8%E6%9F%A5%E8%AF%A2/" rel="prev" title="多表查询">
+      <i class="fa fa-chevron-left"></i> 多表查询
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/undefined/MySQL/2024/09/27/MySQL/%E4%BA%8B%E5%8A%A1/" rel="next" title="事务">
+      事务 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Intro"><span class="nav-number">1.</span> <span class="nav-text">Intro</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Architecture"><span class="nav-number">2.</span> <span class="nav-text">Architecture</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Bootstrapping"><span class="nav-number">3.</span> <span class="nav-text">Bootstrapping</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Reconfiguration"><span class="nav-number">4.</span> <span class="nav-text">Reconfiguration</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#End-to-end-transaction-processing"><span class="nav-number">5.</span> <span class="nav-text">End-to-end transaction processing</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Transaction-Versions"><span class="nav-number">5.1.</span> <span class="nav-text">Transaction Versions</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Log-Sequence-Number-LSN"><span class="nav-number">5.2.</span> <span class="nav-text">Log Sequence Number (LSN)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Conflict-Detection"><span class="nav-number">5.3.</span> <span class="nav-text">Conflict Detection</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Handling-Aborted-Transactions"><span class="nav-number">5.4.</span> <span class="nav-text">Handling Aborted Transactions</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Efficiency-of-OCC"><span class="nav-number">5.5.</span> <span class="nav-text">Efficiency of OCC</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Logging-protocol"><span class="nav-number">6.</span> <span class="nav-text">Logging protocol</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Transaction-system-recovery"><span class="nav-number">7.</span> <span class="nav-text">Transaction system recovery</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Simplified-Recovery"><span class="nav-number">7.1.</span> <span class="nav-text">Simplified Recovery</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Failure-Detection-and-New-Transaction-System-TS"><span class="nav-number">7.2.</span> <span class="nav-text">Failure Detection and New Transaction System (TS)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Epoch-based-Recovery"><span class="nav-number">7.3.</span> <span class="nav-text">Epoch-based Recovery</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Recovery-Version-RV"><span class="nav-number">7.4.</span> <span class="nav-text">Recovery Version (RV)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Log-Copying-and-Healing"><span class="nav-number">7.5.</span> <span class="nav-text">Log Copying and Healing</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Rollback-and-Transaction-Processing"><span class="nav-number">7.6.</span> <span class="nav-text">Rollback and Transaction Processing</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Replication"><span class="nav-number">8.</span> <span class="nav-text">Replication</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Simulation-testing"><span class="nav-number">9.</span> <span class="nav-text">Simulation testing</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Lessons-learned"><span class="nav-number">10.</span> <span class="nav-text">Lessons learned</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Questions"><span class="nav-number">11.</span> <span class="nav-text">Questions</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Yihang Wei</p>
+  <div class="site-description" itemprop="description">聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">47</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="languages">
+    <label class="lang-select-label">
+      <i class="fa fa-language"></i>
+      <span>简体中文</span>
+      <i class="fa fa-angle-up" aria-hidden="true"></i>
+    </label>
+    <select class="lang-select" data-canonical="">
+      
+        <option value="zh-CN" data-href="/undefined/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/2024/09/26/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/FoundationDB/" selected="">
+          简体中文
+        </option>
+      
+        <option value="en" data-href="/en/undefined/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/2024/09/26/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/FoundationDB/" selected="">
+          English
+        </option>
+      
+    </select>
+  </div>
+
+        
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">京ICP备2025131880号-1 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yihang Wei</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '50%',
+  right: '32px',
+  left: 'unset',
+  time: '0.5s',
+  mixColor: '#fff',
+  backgroundColor: '#fff',
+  buttonColorDark: '#100f2c',
+  buttonColorLight: '#fff',
+  saveInCookies: true,
+  label: '明暗',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+</body>
+</html>

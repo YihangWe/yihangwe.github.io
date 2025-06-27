@@ -23,12 +23,13 @@
 
   <meta name="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
 <meta property="og:type" content="website">
-<meta property="og:title" content="EthanWeee">
+<meta property="og:title" content="EthanWeee 的个人日志">
 <meta property="og:url" content="https://yihangwe.github.io/page/3/index.html">
-<meta property="og:site_name" content="EthanWeee">
+<meta property="og:site_name" content="EthanWeee 的个人日志">
 <meta property="og:description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:author" content="Yihang Wei">
+<meta property="article:tag" content="数据库, 分布式, OLTP, OLAP">
 <meta name="twitter:card" content="summary">
 
 <link rel="canonical" href="https://yihangwe.github.io/page/3/">
@@ -44,7 +45,7 @@
   };
 </script>
 
-  <title>EthanWeee</title>
+  <title>EthanWeee 的个人日志</title>
   
 
 
@@ -95,7 +96,7 @@
 
     <a href="/" class="brand" rel="start">
       <span class="logo-line-before"><i></i></span>
-      <h1 class="site-title">EthanWeee</h1>
+      <h1 class="site-title">EthanWeee 的个人日志</h1>
       <span class="logo-line-after"><i></i></span>
     </a>
   </div>
@@ -182,7 +183,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/MySQL/2024/12/05/MySQL/%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98/">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/12/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E5%B8%83%E5%B1%80/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -191,12 +192,12 @@
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="EthanWeee">
+      <meta itemprop="name" content="EthanWeee 的个人日志">
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/undefined/MySQL/2024/12/05/MySQL/%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98/" class="post-title-link" itemprop="url">性能调优</a>
+            <a href="/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/12/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E5%B8%83%E5%B1%80/" class="post-title-link" itemprop="url">数据存储布局</a>
         </h2>
 
         <div class="post-meta">
@@ -206,14 +207,239 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2024-12-05 00:00:00" itemprop="dateCreated datePublished" datetime="2024-12-05T00:00:00-08:00">2024-12-05</time>
+              <time title="创建时间：2025-01-13 00:00:00" itemprop="dateCreated datePublished" datetime="2025-01-13T00:00:00+08:00">2025-01-13</time>
             </span>
               <span class="post-meta-item">
                 <span class="post-meta-item-icon">
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-06-23 14:47:57" itemprop="dateModified" datetime="2025-06-23T14:47:57-07:00">2025-06-23</time>
+                <time title="修改时间：2025-06-03 12:23:35" itemprop="dateModified" datetime="2025-06-03T12:23:35+08:00">2025-06-03</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/" itemprop="url" rel="index"><span itemprop="name">高级数据存储</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><p>数据存储格式决定了数据如何在物理介质上组织与编码，这直接影响了系统的读写性能与资源使用效率。在大数据环境下，不同的格式会带来显著的 I&#x2F;O 差异，从而影响查询响应时间和吞吐量  。此外，恰当的存储格式有助于提高压缩比，实现更高的数据密度，降低存储成本，并减少网络传输开销 。对于需要长期保留的数据，选择稳定且可持续的格式至关重要，否则会面临文件格式过时与不可读的风险。最后，不同应用场景（如 OLTP 与 OLAP）对读写模式有不同要求，合适的存储格式既能满足高并发事务访问，也能兼顾批量分析查询，实现系统的整体优化。</p>
+<p>当前常用的数据存储格式有以下三种：</p>
+<ol>
+<li><strong>行式存储（Row-oriented Layout）</strong></li>
+<li><strong>列式存储（Column-oriented Layout）</strong></li>
+<li><strong>混合式存储（Hybrid Layout）</strong></li>
+</ol>
+<h1 id="行式存储"><a href="#行式存储" class="headerlink" title="行式存储"></a>行式存储</h1><p>行式存储将同一行的所有字段值连续存储在物理介质上，因而非常适合事务型（OLTP）操作，能够快速插入、更新和检索整行数据，同时在点查询时性能较优，因为一次查询往往需要访问同一行数据的多个字段值。</p>
+<p>行式存储下，数据库通常需要小页面。因为：</p>
+<ol>
+<li>磁盘是按照页来读取数据的，无论实际需要一页中的多少数据（哪怕只需要一行数据），都会加载整个页面。这种情况下如果页面较大，数据库就会反复加载无关数据，从而浪费磁盘和内存带宽。</li>
+<li>数据库在执行事务的时候会锁住索引中被操作的叶子节点（数据页）来保持一致性，因此如果页面越大，那么被锁住的无关数据也就会越多，从而加剧了锁竞争。</li>
+</ol>
+<p>比如，我们有一个表 <code>user</code>，内容如下：</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Age</th>
+<th>Address</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Sam</td>
+<td>18</td>
+<td>Los Angeles</td>
+</tr>
+<tr>
+<td>John</td>
+<td>16</td>
+<td>London</td>
+</tr>
+<tr>
+<td>Alice</td>
+<td>16</td>
+<td>New York</td>
+</tr>
+</tbody></table>
+<p>那么行式存储格式如下：</p>
+<p><img src="/../../images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_row_layout.drawio.png" alt="img"></p>
+<p>因此在上图中，我们可以通过页号 + slot 号来确定一个页的位置。</p>
+<p>思考：</p>
+<ol>
+<li><p>上图中为什么 Slots Array 和具体的数据要放在一个页的两端并且从两端向中间增加数据，而不是放在一起呢？</p>
+<p>因为系统在插入时并不知道一页能容纳多少条可变长度的记录。把真实数据区从页面尾部往中间分配，就能在新增槽条目（在页面头部扩展）和写数据（在页面尾部收缩）之间形成一个松紧自适应的自由空间。如果数据紧跟在槽数组后面，那么插入时槽数组增长会挤占数据区，就必须把数据整体往后搬移，造成大量的内存（或磁盘页）移动开销。将数据放到页尾之后，每次插入都只在两端各做一小步，不会触及中间已存数据，从而极大降低了插入时的成本。</p>
+<p>此外，系统只需要比较槽数组末尾指针和数据区末尾指针是否交错，即可判断该页是否还有足够余量插入新行。</p>
+</li>
+<li><p>频繁的指针访问（Pointer Access）在这里会引发什么问题？</p>
+<ol>
+<li><p>Cache Misses（缓存未命中）</p>
+<p>指针场景下的实际数据往往在内存中彼此不连续放置，CPU 需要不断跳转到新的地址才能访问下一个数据，这种非顺序的内存访问会导致缓存行频繁未命中。</p>
+</li>
+<li><p>Memory Indirection（内存间接访问）</p>
+<p>当程序想读取一个字段值时，通常先要读取槽数组里保存的偏移量（offset），然后去跳转到真正的物理地址。对于可变长度属性，元组头里还可能保存了再一层次的 pointer（比如 varchars 可能存放在页外溢出页），导致额外一跳。这会触发二次甚至多次的内存访问。</p>
+<p>如果该偏移地址对应的缓存行当前不在 L1&#x2F;L2&#x2F;L3 缓存中，就必须从主存加载数据，导致高昂的内存访问延迟（几十到上百纳秒），远高于高速缓存访问延迟（几纳秒）。</p>
+</li>
+<li><p>Branch Prediction and Speculation Issues（分支预测与推测执行）</p>
+<p>如果访问逻辑里要做大量的指针非空检查或可变长度判断，会引入很多条件分支。当 CPU 的分支预测器频繁猜错，就会导致流水线冲刷和重新预测，进一步影响性能。</p>
+</li>
+<li><p>TLB Misses（TLB 未命中）</p>
+<p>大页、小页切换、可变长度数据放在页外时，程序要根据虚拟地址到物理地址多次查表。如果 TLB 不命中，CPU 就要走更慢的页表遍历，也会严重拖慢访问速度。</p>
+</li>
+</ol>
+</li>
+</ol>
+<p><strong>优点</strong>：</p>
+<ul>
+<li><p>适合需要访问整条记录（整个元组）的查询。</p>
+</li>
+<li><p>适合插入、更新和删除操作（OLTP 工作负载）。</p>
+</li>
+</ul>
+<p><strong>缺点</strong>：</p>
+<ul>
+<li><p>不适合需要访问整列数据（整个列）的查询。</p>
+<p>例如，在行式布局下，如果执行</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">SELECT <span class="title function_">SUM</span><span class="params">(colA)</span>, AVG(colC)</span><br><span class="line">  FROM xxx</span><br><span class="line">  WHERE colA &gt; <span class="number">1000</span>;</span><br></pre></td></tr></table></figure>
+
+<p>每一行会被遍历两遍，也就是说要为每条记录分别读取 colA 和 colC，重复读取同一条数据，无法做到顺序访问。</p>
+</li>
+<li><p>不适合大规模扫描和读取（OLAP 工作负载）。</p>
+<p>因为数据是散落在每行里的，无法连续读取（非 sequential access），会产生大量指针跳转，开销很高。</p>
+</li>
+<li><p>不利于压缩节省。</p>
+<p>不同列的数据往往混杂在一起，数据类型不一致，压缩效率会下降。</p>
+</li>
+</ul>
+<h1 id="列式存储"><a href="#列式存储" class="headerlink" title="列式存储"></a>列式存储</h1><p>列式存储则将同一列的所有数值放在一起，便于对单列或少量列进行聚合及分析查询，尤其在数据仓库和在线分析处理（OLAP）场景下能够显著减少 I&#x2F;O 开销和提升查询效率。</p>
+<p>该布局使得聚合操作变成了顺序读，因此 CPU 会进行预取操作，降低了缓存未命中的情况。并且列式存储布局更适合大页面，因为 OLAP 查询通常会一次性处理整个列的数据，大页面可以将更多的列数据存储在一个连续区域中，从而减少磁盘 I&#x2F;O 次数。同时，列式存储中的数据类型通常是同质化的（比如 Name 列都是 Char 类型的），这使得压缩算法在列式存储中的效果更好。</p>
+<p><code>user</code> 表在列式存储下的结构为：</p>
+<p><img src="/../../images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_col_layout.drawio.png" alt="img"></p>
+<p>在列式布局中，不再需要页号 + 槽号来唯一标识一条记录。相应地，我们只要给每列分配一个简单的偏移索引（即行号，从 0 开始到 N−1），就能唯一定位到该列对应行的值。</p>
+<p>实际业务中往往会有可变长度字段（如 VARCHAR、TEXT、BLOB）。这时常见的做法是：往往会把这一列中的每一行真正的值存放在一个连续的数据区，而在该列文件中同时保留一个偏移量数组。偏移量数组里的第 i 项记录了第 i 行的数据在数据区里的起始位置和长度。</p>
+<p>上图中，紧接在 Header 后面，会放一个 Null Bitmap，并且假设当前列有 M 行（行号从 0 到 M−1），则 Bitmap 通常是 M 位（二进制位），第 i 位为 1 表示第 i 行对应列值为 NULL，为 0 表示不为 NULL。</p>
+<p>思考：</p>
+<p>这里采用 Null Bitmap 的好处是什么？</p>
+<ol>
+<li>空值稀疏时，可以节省存储空间，不必给每个空值都分配实际存储字节。</li>
+<li>在做向量化扫描时，可以直接跳过 NULL 行，提升 CPU 缓存命中率。</li>
+</ol>
+<blockquote>
+<p>[!NOTE]</p>
+<p>对于变长数据，我们还能怎么处理？</p>
+<ol>
+<li>在实际内容后面追加特殊字符，让每条记录占用的存储空间都达到一个统一的固定大小。但是当全表有成千上万行，其中大部分都比最大长度要短得多时，累积起来的无用填充就会非常庞大，导致磁盘空间和内存的浪费，还会降低 I&#x2F;O 和缓存利用率。</li>
+<li>把本来可变字段都映射到某个定长标识上，那么存储时就无需再让每条记录都占用不同的字节数。比如有一个国家名称列，实际内容只有中国&#x2F;美国&#x2F;英国&#x2F;法国&#x2F;德国……这几十个明确的枚举值，那么我们可以先构建一个字典，给每个国家分配一个固定长度的编码（比如 2 字节、4 字节的整数）。在真实数据页里，只存整数编码（定长字段），而把对应的国家名称及其编码关系放在一个独立的字典里（通常在内存或元数据结构中）。如此一来，表里的国家列就变成了一个定长的整数列，检索时再通过字典查回实际名称。</li>
+</ol>
+</blockquote>
+<p><strong>优点</strong>：</p>
+<ul>
+<li>适合需要访问整列数据的查询（例如聚合查询）。</li>
+<li>适合大规模扫描与读取（OLAP 工作负载）。</li>
+<li>能实现更紧凑的存储：与各种数据压缩技术天然契合，可显著减少磁盘与内存占用。</li>
+<li>更好的局部性与缓存重用：单列数据连续存放，CPU 预取与缓存命中率更高，加快查询处理速度。</li>
+</ul>
+<p><strong>缺点</strong>：</p>
+<ul>
+<li>不适合需要访问整条记录的查询：若一次要读回多列，就必须在多个列文件之间来回跳转并重组整个元组，开销较大。</li>
+<li>不适合插入、更新和删除操作（OLTP 工作负载）：单条写入会涉及多个列文件的维护与重组，随机 I&#x2F;O 开销较高。</li>
+</ul>
+<h1 id="混合式存储"><a href="#混合式存储" class="headerlink" title="混合式存储"></a>混合式存储</h1><blockquote>
+<p>理论上，纯列式布局对“只扫描一两列”非常高效；但实际 OLAP 查询往往不仅仅要过滤某列，还需要把过滤后的结果组装为“完整行”，甚至会用到其他列或多列联合过滤。</p>
+<p>如果直接把所有列彻底拆开，各列之间又没有任何物理地域上的联系，就会让行重建的开销变得十分巨大。</p>
+<p><strong>因此，需要一种折中布局：既要保证列连续以获得压缩和大规模顺序扫描的优势，又要让同一行的各列值彼此在磁盘&#x2F;内存中相对接近，好在需要时快速组装回完整元组。</strong></p>
+</blockquote>
+<p>混合式存储（PAX）融合了行式与列式两者的优点，通过在写入时同时维护行与列两种视图来兼顾高并发点查和批量分析，但会带来额外的存储开销与维护成本，需要根据业务场景权衡选择。</p>
+<p>混合存储的核心思想是：水平分区 + 垂直分区。</p>
+<p>首先，将整个表的所有行（Row #0、Row #1、…、Row #5）按照一定的行数分成多个行组（Row Group）。在每个行组内部，再进一步将行组里的各列分开存放。也就是说，组内的所有行先把同一列的值放一起，然后再放下一列的值。</p>
+<p><img src="/../../images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_hybrid_layout.drawio.png" alt="img"></p>
+<p>因此混合存储通过这种方式，就在一个页或一个文件片段（segment）内部，既保留了局部行按顺序聚集的信息，也保留了同一列值连续存放的好处。</p>
+<h1 id="水平分区"><a href="#水平分区" class="headerlink" title="水平分区"></a>水平分区</h1><p>将原本集中存储在单一服务器或单个存储介质上的数据，按照某种策略拆分成多份，分别放到不同的物理节点或不同的磁盘上。</p>
+<p><strong>为什么要这样做？</strong></p>
+<ol>
+<li><strong>扩展性能</strong>：当数据量或并发请求量超过单台机器的承载能力时，把数据拆分到多台机器能够并行处理，提升吞吐量。</li>
+<li><strong>扩展存储容量</strong>：单个磁盘或服务器空间有限，把数据分散到多台机器才能存下更多数据。</li>
+<li><strong>可用性&#x2F;容错</strong>：如果某台机器或某个磁盘出现故障，只会影响部分分片的数据，整体系统仍可继续对其它分片提供服务（可结合副本机制进一步提高容灾）。</li>
+</ol>
+<p>两种分区模式：</p>
+<ol>
+<li><p>逻辑分区（Logically, Shared Storage）</p>
+<p>多个分区虽然在逻辑上被看作是分散的，但底层共用同一个存储介质。换句话说，数据切分为多个逻辑分区，但这些分区的数据仍然落在同一套磁盘或存储系统上。</p>
+<p><img src="/../../images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_shared_storage.drawio.png" alt="img"></p>
+<p>优点：部署相对简单，无需管理多台物理机器；数据仍然集中在一起，备份和维护方便。</p>
+<p>缺点：底层物理存储是共享的 I&#x2F;O 总线，如果并发量很大，仍然会遇到单个存储后端的带宽瓶颈；并不能真正摆脱单点故障。</p>
+</li>
+<li><p>物理分区（Physically, Shared Nothing）</p>
+<p>每个分区都完全独占自己的计算与存储资源，真正做到各自为政、不共享存储，也就是典型的 Shared‐Nothing 架构。</p>
+<p><img src="/../../images/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/adv_db_shared_nothing.drawio.png" alt="img"></p>
+<p>优点：可线性扩展，新增机器即可增加吞吐和存储；不同分区之间互不干扰，故障隔离更好，一个节点挂掉只影响该分区，其他节点仍可正常提供服务。</p>
+<p>缺点：架构更复杂，需要维护多台机器，多副本同步、路由与协调也更困难；跨分区的事务和 JOIN 查询会额外复杂且性能成本更高。</p>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/MySQL/2024/12/04/MySQL/%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee 的个人日志">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/undefined/MySQL/2024/12/04/MySQL/%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98/" class="post-title-link" itemprop="url">性能调优</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-12-05 00:00:00" itemprop="dateCreated datePublished" datetime="2024-12-05T00:00:00+08:00">2024-12-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-06-24 05:47:57" itemprop="dateModified" datetime="2025-06-24T05:47:57+08:00">2025-06-24</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -395,7 +621,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/MySQL/2024/11/30/MySQL/%E5%A4%87%E4%BB%BD%E4%B8%8E%E6%81%A2%E5%A4%8D/">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/MySQL/2024/11/29/MySQL/%E5%A4%87%E4%BB%BD%E4%B8%8E%E6%81%A2%E5%A4%8D/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -404,12 +630,12 @@
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="EthanWeee">
+      <meta itemprop="name" content="EthanWeee 的个人日志">
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/undefined/MySQL/2024/11/30/MySQL/%E5%A4%87%E4%BB%BD%E4%B8%8E%E6%81%A2%E5%A4%8D/" class="post-title-link" itemprop="url">备份与恢复</a>
+            <a href="/undefined/MySQL/2024/11/29/MySQL/%E5%A4%87%E4%BB%BD%E4%B8%8E%E6%81%A2%E5%A4%8D/" class="post-title-link" itemprop="url">备份与恢复</a>
         </h2>
 
         <div class="post-meta">
@@ -419,14 +645,14 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2024-11-30 00:00:00" itemprop="dateCreated datePublished" datetime="2024-11-30T00:00:00-08:00">2024-11-30</time>
+              <time title="创建时间：2024-11-30 00:00:00" itemprop="dateCreated datePublished" datetime="2024-11-30T00:00:00+08:00">2024-11-30</time>
             </span>
               <span class="post-meta-item">
                 <span class="post-meta-item-icon">
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-06-23 14:18:57" itemprop="dateModified" datetime="2025-06-23T14:18:57-07:00">2025-06-23</time>
+                <time title="修改时间：2025-06-24 05:18:57" itemprop="dateModified" datetime="2025-06-24T05:18:57+08:00">2025-06-24</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -689,7 +915,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/MySQL/2024/11/26/MySQL/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/MySQL/2024/11/25/MySQL/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -698,12 +924,12 @@
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="EthanWeee">
+      <meta itemprop="name" content="EthanWeee 的个人日志">
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/undefined/MySQL/2024/11/26/MySQL/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/" class="post-title-link" itemprop="url">分库分表</a>
+            <a href="/undefined/MySQL/2024/11/25/MySQL/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/" class="post-title-link" itemprop="url">分库分表</a>
         </h2>
 
         <div class="post-meta">
@@ -713,14 +939,14 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2024-11-26 00:00:00" itemprop="dateCreated datePublished" datetime="2024-11-26T00:00:00-08:00">2024-11-26</time>
+              <time title="创建时间：2024-11-26 00:00:00" itemprop="dateCreated datePublished" datetime="2024-11-26T00:00:00+08:00">2024-11-26</time>
             </span>
               <span class="post-meta-item">
                 <span class="post-meta-item-icon">
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-06-22 15:58:26" itemprop="dateModified" datetime="2025-06-22T15:58:26-07:00">2025-06-22</time>
+                <time title="修改时间：2025-06-23 06:58:26" itemprop="dateModified" datetime="2025-06-23T06:58:26+08:00">2025-06-23</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -798,7 +1024,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/22/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/MapReduce/">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/2024/11/21/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/MapReduce/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -807,12 +1033,12 @@
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="EthanWeee">
+      <meta itemprop="name" content="EthanWeee 的个人日志">
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/undefined/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/22/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/MapReduce/" class="post-title-link" itemprop="url">MapReduce</a>
+            <a href="/undefined/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/2024/11/21/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/MapReduce/" class="post-title-link" itemprop="url">MapReduce</a>
         </h2>
 
         <div class="post-meta">
@@ -822,14 +1048,14 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2024-11-22 00:00:00" itemprop="dateCreated datePublished" datetime="2024-11-22T00:00:00-08:00">2024-11-22</time>
+              <time title="创建时间：2024-11-22 00:00:00" itemprop="dateCreated datePublished" datetime="2024-11-22T00:00:00+08:00">2024-11-22</time>
             </span>
               <span class="post-meta-item">
                 <span class="post-meta-item-icon">
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-06-20 17:10:24" itemprop="dateModified" datetime="2025-06-20T17:10:24-07:00">2025-06-20</time>
+                <time title="修改时间：2025-06-28 07:19:55" itemprop="dateModified" datetime="2025-06-28T07:19:55+08:00">2025-06-28</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -838,6 +1064,10 @@
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
                   <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">数据库系统</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">分布式系统</span></a>
                 </span>
             </span>
 
@@ -1336,116 +1566,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN,en">
-    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/MySQL/2024/11/20/MySQL/%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Yihang Wei">
-      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="EthanWeee">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/undefined/MySQL/2024/11/20/MySQL/%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6/" class="post-title-link" itemprop="url">主从复制</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-11-20 00:00:00" itemprop="dateCreated datePublished" datetime="2024-11-20T00:00:00-08:00">2024-11-20</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-06-22 14:31:01" itemprop="dateModified" datetime="2025-06-22T14:31:01-07:00">2025-06-22</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><p>在基于 Binlog 的异步复制模式中，主库将所有 DDL 与 DML 操作写入二进制日志，并在本地完成事务提交后立即返回，无需等待从库确认，从而实现松散耦合的复制流程。随后，从库的 <strong>IO 线程</strong>会与主库保持长连接，不断读取新生成的 binlog 事件并将它们写入本地的 <strong>Relay Log</strong>。接着，从库的 <strong>SQL 线程</strong>会顺序读取 Relay Log 中的事件，并在从库上重做这些 DDL 与 DML，以达到数据同步的目的。</p>
-<p><img src="/../../images/MySQL/mysql_replic_ms.drawio.png" alt="img"></p>
-<p>MySQL 支持一主多从复制拓扑，且从库本身也可以配置为其他从库的源库，实现链式复制。这种异步复制模式允许在主库出现故障时，通过提升任一从库为新的主库来快速切换并恢复服务，极大增强了系统的高可用性。同时，通过将写操作集中到主库、将读操作分散到从库，也减轻了主库的负载，并可在从库上执行备份任务，避免对主库性能产生影响。由于主库无需等待从库完成写入，可获得更高的写入吞吐量，但也可能引入复制延迟问题，需要结合监控指标加以管理。为进一步降低从库的应用延迟，可使用并行复制功能，让 SQL 线程并发地执行多个复制通道中的事件。总体而言，基于 Binlog 的异步复制以其配置简单、可扩展性强和高可用性好等特点，成为 MySQL 最常用的主从复制方案。</p>
-<p>在主从复制中，<strong>Relay Log</strong> 起到四大关键作用：</p>
-<p>首先，它充当从库的缓冲区——IO 线程不断地将主库的二进制日志拉取并写入本地的 Relay Log，即使 SQL 线程处理变更较慢，也不会影响向主库的读取，从而有效降低延迟；</p>
-<p>其次，Relay Log 支持异步处理——IO 线程与 SQL 线程分离，前者专注拉取日志，后者专注重放语句，两者互不阻塞，大幅提升同步的并发能力；</p>
-<p>第三，它增强了数据可靠性——日志落盘后即便网络波动或从库重启，SQL 线程也能从已持久化的 Relay Log 继续执行，无需重新拉取；</p>
-<p>最后，在链式复制场景中，从库的 Relay Log 同样可以对下游从库提供日志源，成为二进制日志传递链上的一环。这样，Relay Log 不仅保证了数据的连续、高效复制，还提升了系统的容错与可扩展性。</p>
-<h2 id="同步延迟的原因"><a href="#同步延迟的原因" class="headerlink" title="同步延迟的原因"></a>同步延迟的原因</h2><p>主从同步延迟通常是因为从库的复制流程存在瓶颈：主库可以同时接收大量并发写请求，但从库只有一个 IO 线程负责拉取 binlog、一个 SQL 线程负责执行，如果某条 SQL 在从库上执行耗时较长或因锁等待而阻塞，就会造成 binlog 在从库端堆积，进而引起读写不一致。为缓解这一问题，一方面可以在写操作后立即把紧接着的读操作路由到主库，以确保及时读取最新数据；另一方面也可在读从库失败时自动再去主库重试二次读取，这种方式改动最小，但会增加主库的读负载；此外，还可以将关键业务（如注册、登录）的所有读写都定向主库处理，而对一致性要求较低的查询（如用户资料展示）继续采用读写分离，从而在保证关键路径数据正确性的同时，将大部分查询压力分散到从库。</p>
-<h2 id="同步模式"><a href="#同步模式" class="headerlink" title="同步模式"></a>同步模式</h2><h3 id="异步复制"><a href="#异步复制" class="headerlink" title="异步复制"></a>异步复制</h3><p>异步复制（Asynchronous Replication）是 MySQL 最基础也是最常用的复制方式，其中主库在本地提交事务并写入二进制日志后即可立即返回客户端，从库的 IO 线程随后异步地拉取这些 binlog 并将其写入 Relay Log，最后由 SQL 线程在从库上执行重放，从而完成数据同步。由于主库无需等待从库确认即完成提交，异步复制能够获得最高的写入吞吐量，但会产生一定的复制延迟，若主库故障，尚未同步的事务可能丢失。</p>
-<h3 id="半同步复制"><a href="#半同步复制" class="headerlink" title="半同步复制"></a>半同步复制</h3><p>半同步复制（Semisynchronous Replication）介于异步与全同步之间，当主库提交一个事务时，会阻塞等待至少一个从库的确认（即从库已将该事务事件接收并写入 Relay Log，但不必执行完毕）后才向客户端返回，从而保证提交成功的事务至少存在于主库和一个从库上。相比纯异步复制，半同步复制在保证可用性的同时，显著提升了数据安全性；但因需等待确认，写延迟会略高于异步模式，尤其在网络或从库性能较差时更为明显。</p>
-<h3 id="全同步复制（组复制）"><a href="#全同步复制（组复制）" class="headerlink" title="全同步复制（组复制）"></a>全同步复制（组复制）</h3><p>全同步复制通常由 MySQL Group Replication 或 NDB Cluster 实现，要求主库在提交时，所有或一定多数的副本必须完成提交确认后才继续执行，从而实现真正的强同步。该模式在保证各节点数据实时一致性方面最强，但也带来最高的写延迟和最复杂的部署需求，通常用于对一致性和故障切换要求极高的场景。</p>
-<p><strong>百万千万级大表如何添加字段？</strong></p>
-<p>在面对上千万行的大表时，直接执行 <code>ALTER TABLE … ADD COLUMN</code> 往往会长时间锁表，影响线上业务；常见的无停机扩容方案包括：</p>
-<p>一是在新库&#x2F;新表中先创建完整的表结构并添加字段，然后通过分批次或全量迁移程序将旧表数据复制过去，最后再原子化地用新表替换旧表（此法简洁但需要额外迁移逻辑）；</p>
-<p>二是借助 Percona 的 pt-online-schema-change 或 GitHub 的 gh-ost 等在线变更工具，它们会在后台创建影子表、实时捕获并同步写入，通过触发器或 binlog 流将增量写入合并到新表，待数据迁移完成后再用重命名操作切换，无需停机且复制过程中表仍可读写；</p>
-<p>三是针对极高并发的热表，可先在从库执行字段添加操作，待从库完成同步并切换读写角色后，再依次在其他节点上部署新字段，最大程度上降低主库负载和用户感知的停机风险。</p>
-<p><strong>当 MySQL 表的数据量增长过快，导致查询性能下降时，你会采取哪些措施来优化表的设计或查询？</strong></p>
-<p>当表数据量激增导致单表查询与写入性能下降时，可采取以下优化措施：</p>
-<p>首先，通过水平分表将数据按用户 ID 或时间等分片键拆分到多张子表或多库中，以减少单表大小、降低锁竞争并分散 I&#x2F;O 压力；</p>
-<p>其次，合理设计索引，包括对经常用于过滤的单个字段创建单列索引、对多字段组合查询创建复合索引，以及使用覆盖索引来避免回表，但切忌在索引字段上使用函数或表达式以免导致索引失效；</p>
-<p>其三，可在应用层或独立缓存层（如 Redis）缓存热点数据或热点查询结果，显著减少数据库访问次数并缓解压力；</p>
-<p>第四，定期将历史或冷数据归档到独立的存档表、数据仓库或专用归档系统中，保持主表的数据量在可控范围内，从而提升主表的查询效率；</p>
-<p>最后，当单机 MySQL 无法再满足性能与扩展需求时，可考虑迁移到分布式数据库（如 TiDB、PolarDB），利用其水平可扩展架构和分布式事务能力，实现更大规模的数据存储与高并发访问。</p>
-<h2 id="读写分离"><a href="#读写分离" class="headerlink" title="读写分离"></a>读写分离</h2><p>在主从复制架构中，可以将数据库服务器组织成一主一从或一主多从的集群模式：所有写操作（INSERT、UPDATE、DELETE 等）都集中发送到主库，以保证强一致性；主库会将数据变更实时同步到一个或多个从库，而从库则专注于处理只读查询，提供最终一致性的读服务。业务服务器根据操作类型，将写请求路由到主库，将读请求路由到从库，从而在不影响写入性能和一致性的前提下，大幅提升整体系统的读扩展能力和稳定性。</p>
-<p>这样做有几个好处：</p>
-<p>第一，写入流量只作用于主库，从库则专注于处理查询请求，可显著减轻单台数据库的压力；</p>
-<p>第二，通过增加从库数量，可以水平扩展读能力，提升整体系统的并发查询性能；</p>
-<p>第三，即使在从库进行备份或维护时，也能保证主库持续提供写入服务，增强了系统的可用性和抗故障能力。</p>
-<p>需要注意的是，从库与主库之间存在微小的复制延迟，因此对于对实时性要求极高的查询，应优先访问主库或使用读写路由策略进行合理调度；同时，还要考虑事务隔离和一致性需求，确保读写分离不会引入数据不一致风险。通过合理配置负载均衡和故障切换机制，读写分离能够在保证数据安全与一致性的前提下，大幅提升数据库集群的性能和稳定性。</p>
-<p><img src="/../../images/MySQL/mysql_replic_re_decoup.drawio.png" alt="img"></p>
-<p>在程序层面，实现读写分离通常有两种方式：</p>
-<p>一种是在业务代码中抽象出一个数据访问层（或“中间层”），由这一层统一管理主从库的连接和路由逻辑，业务逻辑只需调用该层提供的接口即可完成读写分离，如下图；</p>
-<p><img src="/../../images/MySQL/mysql_replic_mid.drawio.png" alt="img"></p>
-<p>另一种是通过独立部署的中间件系统来承担这项工作，它对外提供与数据库协议兼容的接口，自动将写请求路由到主库、读请求分发到从库，业务服务器无需关心具体的分库路由和连接管理。这样既能保持程序的清晰简洁，又能在中间件层面灵活扩展和运维读写分离的能力。具体结构如下图：</p>
-<p><img src="/../../images/MySQL/mysql_replic_mycat.drawio.png" alt="img"></p>
-<p>如果要是用 MyCat 作为中间件的话，可参考：<a target="_blank" rel="noopener" href="https://bbs.huaweicloud.com/blogs/343277">https://bbs.huaweicloud.com/blogs/343277</a></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1515,14 +1635,14 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">46</span>
+          <span class="site-state-item-count">47</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-count">4</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
   </nav>

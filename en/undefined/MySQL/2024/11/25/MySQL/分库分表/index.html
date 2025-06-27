@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh-CN,en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yihangwe.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="分库分表主要是为了解决单库单表在海量数据和高并发场景下的性能瓶颈：当数据量达到千万级甚至亿级时，单表查询效率和索引更新速度都会明显下降，备份恢复也变得极其缓慢；而在高并发写入时，单实例的 CPU、内存、I&#x2F;O 资源易成为瓶颈，锁竞争也会导致事务阻塞。通过将大表拆成多张子表、或将数据分散到多个数据库实例，不仅能降低单表、单库的数据规模，提升读写性能，还能分散并发压力、减少锁冲突，从而显著提">
+<meta property="og:type" content="article">
+<meta property="og:title" content="分库分表">
+<meta property="og:url" content="https://yihangwe.github.io/en/undefined/MySQL/2024/11/25/MySQL/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/index.html">
+<meta property="og:site_name" content="EthanWeee 的个人日志">
+<meta property="og:description" content="分库分表主要是为了解决单库单表在海量数据和高并发场景下的性能瓶颈：当数据量达到千万级甚至亿级时，单表查询效率和索引更新速度都会明显下降，备份恢复也变得极其缓慢；而在高并发写入时，单实例的 CPU、内存、I&#x2F;O 资源易成为瓶颈，锁竞争也会导致事务阻塞。通过将大表拆成多张子表、或将数据分散到多个数据库实例，不仅能降低单表、单库的数据规模，提升读写性能，还能分散并发压力、减少锁冲突，从而显著提">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://yihangwe.github.io/images/MySQL/mysql_partition_v.drawio.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/MySQL/mysql_partition_h.drawio.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/MySQL/mysql_partition_range.drawio.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/MySQL/mysql_partition_hash.drawio.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/MySQL/mysql_partition_route.drawio.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/MySQL/mysql_partition_scale1.drawio.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/MySQL/mysql_partition_scale2.drawio.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/MySQL/mysql_partition_scale3.drawio.png">
+<meta property="article:published_time" content="2024-11-25T16:00:00.000Z">
+<meta property="article:modified_time" content="2025-06-22T22:58:26.372Z">
+<meta property="article:author" content="Yihang Wei">
+<meta property="article:tag" content="数据库, 分布式, OLTP, OLAP">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yihangwe.github.io/images/MySQL/mysql_partition_v.drawio.png">
+
+<link rel="canonical" href="https://yihangwe.github.io/en/undefined/MySQL/2024/11/25/MySQL/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>分库分表 | EthanWeee 的个人日志</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<!-- hexo injector head_end start --><script>(function() {function calculateHeight(element) {let height = 0;const items = element.children;for (let i = 0; i < items.length; i++) {height += items[i].offsetHeight || 25;const child = items[i].querySelector(".nav-child");if (child && child.style.display !== "none") {height += calculateHeight(child);}}return height;}function generateToc(lang, container) {const content = document.getElementById(lang + "-content");if (!content) return;const headers = Array.from(content.querySelectorAll("h1, h2, h3, h4, h5, h6"));if (headers.length === 0) return;const ol = document.createElement("ol");ol.className = "nav";let currentLevel = 1;let currentOl = ol;let stack = [ol];let counters = [0, 0, 0, 0, 0, 0];headers.forEach((header, index) => {const level = parseInt(header.tagName[1]);counters[level - 1]++;for (let i = level; i < 6; i++) counters[i] = 0;const li = document.createElement("li");li.className = "nav-item nav-level-" + level;if (level === 1 && index === 0) {li.classList.add("active", "active-current");}const link = document.createElement("a");link.className = "nav-link";if (level === 1 && index === 0) link.classList.add("active");link.href = "#" + header.id;const numSpan = document.createElement("span");numSpan.className = "nav-number";numSpan.textContent = counters.slice(0, level).filter(n => n > 0).join(".");const textSpan = document.createElement("span");textSpan.className = "nav-text";textSpan.textContent = header.textContent;link.appendChild(numSpan);link.appendChild(document.createTextNode(" "));link.appendChild(textSpan);li.appendChild(link);if (level > currentLevel) {const newOl = document.createElement("ol");newOl.className = "nav-child";if (currentLevel === 1) {newOl.style.display = "block";stack[currentLevel - 1].lastElementChild.classList.add("active");}stack[currentLevel - 1].lastElementChild.appendChild(newOl);stack[level - 1] = newOl;currentOl = newOl;} else if (level < currentLevel) {currentOl = stack[level - 1];}currentOl.appendChild(li);currentLevel = level;});container.appendChild(ol);setTimeout(() => {const navHeight = calculateHeight(ol);ol.style.setProperty("--height", navHeight + "px");const navChilds = ol.getElementsByClassName("nav-child");Array.from(navChilds).forEach(child => {if (child.style.display === "block") {const childHeight = calculateHeight(child);child.style.setProperty("--height", childHeight + "px");}});}, 0);return ol;}function updateActiveHeading() {const activeLang = document.getElementById("en-content").style.display === "block" ? "en" : "zh";const content = document.getElementById(activeLang + "-content");const toc = document.getElementById(activeLang + "-toc");if (!content || !toc) return;const headers = Array.from(content.querySelectorAll("h1, h2, h3, h4, h5, h6"));const scrollPos = window.scrollY + window.innerHeight / 3;let activeHeader = null;for (let i = headers.length - 1; i >= 0; i--) {const header = headers[i];const headerTop = header.getBoundingClientRect().top + window.scrollY;if (headerTop <= scrollPos) {activeHeader = header;break;}}const links = toc.getElementsByClassName("nav-link");Array.from(links).forEach(link => {link.classList.remove("active");const parentLi = link.parentElement;if (parentLi) {parentLi.classList.remove("active", "active-current");}});if (activeHeader) {const activeLink = toc.querySelector(`a[href="#${activeHeader.id}"]`);if (activeLink) {activeLink.classList.add("active");let parent = activeLink.parentElement;while (parent && parent.classList) {if (parent.classList.contains("nav-item")) {parent.classList.add("active");if (parent.classList.contains("nav-level-1")) {parent.classList.add("active-current");}}parent = parent.parentElement;}}}}function initTippy() {document.querySelectorAll(".refplus-num").forEach((ref) => {if (ref._tippy) {ref._tippy.destroy();}let refid = ref.firstChild.href.replace(location.origin+location.pathname,"");let refel = document.querySelector(refid);if (!refel) return;let refnum = refel.dataset.num;let ref_content = refel.innerText.replace(`[${refnum}]`,"");tippy(ref, {content: ref_content,});});}function initToc() {const originalToc = document.querySelector(".post-toc-wrap");if (!originalToc || !document.getElementById("langToggle")) return;const tocContainer = document.createElement("div");tocContainer.className = "post-toc-wrap sidebar-panel sidebar-panel-active";const enToc = document.createElement("div");enToc.id = "en-toc";enToc.className = "post-toc motion-element";enToc.style.display = "block";const zhToc = document.createElement("div");zhToc.id = "zh-toc";zhToc.className = "post-toc motion-element";zhToc.style.display = "none";generateToc("en", enToc);generateToc("zh", zhToc);tocContainer.appendChild(enToc);tocContainer.appendChild(zhToc);originalToc.parentNode.replaceChild(tocContainer, originalToc);window.addEventListener("scroll", updateActiveHeading);setTimeout(updateActiveHeading, 0);}window.toggleLanguage = function() {const enContent = document.getElementById("en-content");const zhContent = document.getElementById("zh-content");const enToc = document.getElementById("en-toc");const zhToc = document.getElementById("zh-toc");const button = document.getElementById("langToggle");if (!enContent || !zhContent || !enToc || !zhToc || !button) return;const isEnglish = enContent.style.display === "block";enContent.style.display = isEnglish ? "none" : "block";zhContent.style.display = isEnglish ? "block" : "none";enToc.style.display = isEnglish ? "none" : "block";zhToc.style.display = isEnglish ? "block" : "none";button.querySelector(".button-text").textContent = isEnglish ? "Switch to English" : "切换中文";setTimeout(updateActiveHeading, 0);setTimeout(initTippy, 100);};document.addEventListener("DOMContentLoaded", function() {initToc();setTimeout(initTippy, 3000);});})();</script><style>.post-toc { transition: all 0.2s ease-in-out; }.post-toc .nav { padding-left: 0; }.post-toc .nav-child { padding-left: 1em; }.post-toc .nav-item { line-height: 1.8; }.post-toc .nav-link { color: #555; }.post-toc .nav-link:hover { color: #222; }.post-toc .nav-link.active { color: #fc6423; }.post-toc .active > .nav-link { color: #fc6423; }.post-toc .active-current > .nav-link { color: #fc6423; }</style><!-- hexo injector head_end end --><style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">EthanWeee 的个人日志</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/MySQL/2024/11/25/MySQL/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee 的个人日志">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          分库分表
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2024-11-26 00:00:00" itemprop="dateCreated datePublished" datetime="2024-11-26T00:00:00+08:00">2024-11-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-06-23 06:58:26" itemprop="dateModified" datetime="2025-06-23T06:58:26+08:00">2025-06-23</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><p>分库分表主要是为了解决单库单表在海量数据和高并发场景下的性能瓶颈：当数据量达到千万级甚至亿级时，单表查询效率和索引更新速度都会明显下降，备份恢复也变得极其缓慢；而在高并发写入时，单实例的 CPU、内存、I&#x2F;O 资源易成为瓶颈，锁竞争也会导致事务阻塞。通过将大表拆成多张子表、或将数据分散到多个数据库实例，不仅能降低单表、单库的数据规模，提升读写性能，还能分散并发压力、减少锁冲突，从而显著提高系统的可用性和扩展能力。</p>
+<p>垂直分库通过将不同业务模块或功能独立到各自的数据库，既降低了数据之间的耦合度，又提升了整体可用性；水平分库则将同一业务的数据按一定策略分散到多台实例，分担了单库的 CPU、I&#x2F;O 和网络压力；垂直分表是把表中不同类型的数据拆分到多张表中，进一步削弱耦合；水平分表则把一张大表按范围或哈希划分成多张子表，从而减少索引深度并加快查询。</p>
+<p>若仍使用单库单表模式，会因热点数据频繁访问导致缓冲区不足、磁盘 I&#x2F;O 激增，又因大量请求而引发网络带宽瓶颈，此外 SQL 处理也会占用过多 CPU 资源，最终形成性能瓶颈。分库分表的核心思想就是通过分散存储，将单一数据库或表的数据规模控制在可承载范围内，进而显著缓解 I&#x2F;O、CPU 和网络方面的压力。</p>
+<h2 id="拆分策略"><a href="#拆分策略" class="headerlink" title="拆分策略"></a>拆分策略</h2><h3 id="垂直拆分"><a href="#垂直拆分" class="headerlink" title="垂直拆分"></a>垂直拆分</h3><p>垂直拆分主要包括两种形式：<strong>垂直分库</strong>和<strong>垂直分表</strong>。其中，垂直分库是以表为单位、根据业务模块将不同的表拆分到各自独立的数据库实例中，使得每个库只包含某一类业务的表，从而降低数据耦合度并提升可用性；而垂直分表则是以字段为依据，将同一张宽表中访问频次不同或性质相异的字段拆分到多张子表，通过主键—外键关联保持数据完整性，以减小单表宽度、优化查询性能。在实践中，垂直分库常用于按业务边界隔离数据，而垂直分表则侧重于对单表内部结构的精细化拆分，两者结合能够更好地满足系统的可扩展性与维护性需求。</p>
+<p><img src="/../../images/MySQL/mysql_partition_v.drawio.png" alt="img"></p>
+<h3 id="水平拆分"><a href="#水平拆分" class="headerlink" title="水平拆分"></a>水平拆分</h3><p>水平拆分是一种以<strong>行</strong>为单位对数据进行切割的策略：水平分库是将同一表的若干行数据按照某种分片键（如用户ID范围或哈希）分散到多个数据库实例，每个实例存储一部分数据，从而分担 CPU、I&#x2F;O 和网络负载；而水平分表则是在同一数据库实例内部将表数据行按相同策略分布到多张结构相同的子表中，以减少单表的索引层数，提升查询性能和并发处理能力。无论是分库还是分表，都可通过范围切片、哈希切片或列表切片等算法来保证数据的均衡分布，进一步降低锁竞争与热点访问问题。</p>
+<p>在业界，这种做法通常也被称为分片（sharding），每个分片可以是独立的数据存储节点。此外，在云服务环境下，水平分区是实现水平扩展（scale-out）的核心方式，通过动态增加分片或实例来处理更大规模的请求和数据量；它还能与读写分离、缓存策略等机制结合，共同构建高可用、高性能的数据库架构。</p>
+<p><img src="/../../images/MySQL/mysql_partition_h.drawio.png" alt="img"></p>
+<h3 id="水平分表的路由方式"><a href="#水平分表的路由方式" class="headerlink" title="水平分表的路由方式"></a>水平分表的路由方式</h3><p>要实现水平分表，必须设计一个路由策略，根据<strong>分片键</strong>（Sharding Key）决定每条记录应写入哪张子表。理想的分片键应该具备以下特征：</p>
+<p>一是<strong>高区分度</strong>，使数据均匀分布，避免某些表过热或过载；</p>
+<p>二是<strong>查询频率高</strong>，优先选取常在 WHERE 条件中出现的字段，以确保绝大多数查询能直接定位到目标表，提升查询效率；</p>
+<p>三是<strong>写入频率高</strong>，将频繁更新或插入的字段作为分片键，有助于将写负载均衡地分散到各个子表，从而减少单表写入瓶颈。</p>
+<p>范围路由、哈希路由和配置路由是水平分表中最常用的三种策略。</p>
+<p>范围路由通过将分片键按值的连续区间映射到不同的表，例如按时间戳或订单号切分，优势在于实现简单且可以平滑扩容，但容易出现部分分片数据过多的倾斜问题。</p>
+<p><img src="/../../images/MySQL/mysql_partition_range.drawio.png" alt="img"></p>
+<p>哈希路由则对分片键取哈希值并取模分表，可以较均匀地分散数据，避免单表热点，但执行范围查询时需要访问多个分片，查询性能有所下降。</p>
+<p><img src="/../../images/MySQL/mysql_partition_hash.drawio.png" alt="img"></p>
+<p>配置路由则通过维护一张映射表，显式指定每个分片键对应的目标表，灵活性最高，能够应对分片键分布不均或规则多变的场景，但需要额外的配置表来管理路由映射，运维成本和复杂度也相对更高。</p>
+<p><img src="/../../images/MySQL/mysql_partition_route.drawio.png" alt="img"></p>
+<p>以上的路由方式可以根据场景的不同组合使用，比如：首先根据业务维度（如订单月份）将数据划分到不同的<strong>分组</strong>，每个分组再映射到若干<strong>物理节点</strong>，形成按月分组的“范围切分”策略。然后在每个分组内部，对分片键（如 orderId）计算哈希并取模，将其均匀分配到该组的各节点上，兼顾了哈希路由的负载均衡效果。</p>
+<h3 id="不停机扩容"><a href="#不停机扩容" class="headerlink" title="不停机扩容"></a>不停机扩容</h3><p>不停机扩容通常分为三个阶段，以确保旧库和新库在业务不中断的情况下平滑过渡。</p>
+<p>第一阶段是<strong>在线双写、老库查询</strong>：在此阶段，先在新环境中建立与旧库完全相同的库表结构，然后将所有新增写操作同时写入旧库和新库，业务查询仍然走旧库；接着，通过专用迁移程序对旧库中的历史数据进行全量迁移，并通过定时校验任务对比新旧库的数据一致性，实时补齐任何差异。</p>
+<p><img src="/../../images/MySQL/mysql_partition_scale1.drawio.png" alt="img"></p>
+<p>第二阶段是<strong>完成同步并切换读流量</strong>：当确认历史数据已经成功迁移且新库中的写入与旧库始终保持一致后，就可以将所有读操作从旧库切换到新库，从而开始验证新库的查询性能和稳定性。</p>
+<p><img src="/../../images/MySQL/mysql_partition_scale2.drawio.png" alt="img"></p>
+<p>第三阶段是<strong>停止旧库写入并下线</strong>：在确认旧库不再接收任何新写后，需要等待一段时间以清空剩余连接与缓冲，然后可以安全地关闭或拆除旧库，实现真正的无缝下线。通过这种三阶段流程，在整个扩容过程中既保证了业务的连续性，也维持了数据的一致性和可用性。</p>
+<p><img src="/../../images/MySQL/mysql_partition_scale3.drawio.png" alt="img"></p>
+<p>尽管在线双写与写时复制在延迟复制、零停机思想上有交集，但它们在层级、触发条件、技术依赖和一致性模型上都有本质区别。在线双写更适合数据库扩容与数据迁移场景；写时复制则是操作系统与存储层面优化内存和文件复制的通用技术。两者均为提升可用性和性能的重要手段，但并非同一机制。</p>
+<h2 id="分库分表的问题"><a href="#分库分表的问题" class="headerlink" title="分库分表的问题"></a>分库分表的问题</h2><p>在分库后，单机事务的强一致性优势不再适用，必须引入分布式事务（如两阶段提交或 TCC）来保证跨库的事务完整性；同时，由于数据库实例被拆分，原生的跨库 JOIN 无法直接执行，只能在业务代码中先查询一个库的数据再查询另一个库并进行合并，或通过冗余字段将常用关联信息（如名称）复制到当前表，减少关联请求；另一种思路是利用 binlog 同步等机制将需要跨库关联的数据异构到 Elasticsearch 等专用存储，再由 ES 实现联合查询。</p>
+<p>在分表场景下，跨分片的聚合计算（如 COUNT、ORDER BY、GROUP BY）只能通过业务端或中间件对各分表结果进行汇总、排序与分页才能实现；同时，需要在切分前对数据迁移、容量规划及未来扩容的可行性进行充分评估，以避免二次拆分带来的复杂度和风险。更重要的是，表被水平切分后已不能再依赖数据库自身的自增主键机制来保证全局唯一性，常见的替代方案包括：设置不同的自增步长与初始值（例如三张表分别以步长 3、初始值 1、2、3 生成 ID），从而避免冲突；使用 UUID 生成全局唯一主键，但要警惕随机主键可能导致 B-Tree 页分裂、写放大和性能下降；或者采用分布式 ID 生成算法（如 Twitter Snowflake），通过时间戳、节点 ID 及序列号的组合方式高效生成可排序的全局唯一 ID，兼顾性能与一致性。</p>
+<p>更多内容可参考：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/1232122">基因法与倒排索引在MySQL分库分表的应用</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/1627841">百亿级分片，如何设计基因算法？</a></li>
+<li><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/xGYM0pXAHfaLMpTxBJvLBg">百亿级存储，怎么设计？只是分库分表？</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/undefined/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/2024/11/21/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/MapReduce/" rel="prev" title="MapReduce">
+      <i class="fa fa-chevron-left"></i> MapReduce
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/undefined/MySQL/2024/11/29/MySQL/%E5%A4%87%E4%BB%BD%E4%B8%8E%E6%81%A2%E5%A4%8D/" rel="next" title="备份与恢复">
+      备份与恢复 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8B%86%E5%88%86%E7%AD%96%E7%95%A5"><span class="nav-number">1.</span> <span class="nav-text">拆分策略</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9E%82%E7%9B%B4%E6%8B%86%E5%88%86"><span class="nav-number">1.1.</span> <span class="nav-text">垂直拆分</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B0%B4%E5%B9%B3%E6%8B%86%E5%88%86"><span class="nav-number">1.2.</span> <span class="nav-text">水平拆分</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B0%B4%E5%B9%B3%E5%88%86%E8%A1%A8%E7%9A%84%E8%B7%AF%E7%94%B1%E6%96%B9%E5%BC%8F"><span class="nav-number">1.3.</span> <span class="nav-text">水平分表的路由方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8D%E5%81%9C%E6%9C%BA%E6%89%A9%E5%AE%B9"><span class="nav-number">1.4.</span> <span class="nav-text">不停机扩容</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">2.</span> <span class="nav-text">分库分表的问题</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Yihang Wei</p>
+  <div class="site-description" itemprop="description">聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">47</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="languages">
+    <label class="lang-select-label">
+      <i class="fa fa-language"></i>
+      <span>English</span>
+      <i class="fa fa-angle-up" aria-hidden="true"></i>
+    </label>
+    <select class="lang-select" data-canonical="">
+      
+        <option value="zh-CN" data-href="/undefined/MySQL/2024/11/25/MySQL/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/" selected="">
+          简体中文
+        </option>
+      
+        <option value="en" data-href="/en/undefined/MySQL/2024/11/25/MySQL/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/" selected="">
+          English
+        </option>
+      
+    </select>
+  </div>
+
+        
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">京ICP备2025131880号-1 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yihang Wei</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '50%',
+  right: '32px',
+  left: 'unset',
+  time: '0.5s',
+  mixColor: '#fff',
+  backgroundColor: '#fff',
+  buttonColorDark: '#100f2c',
+  buttonColorLight: '#fff',
+  saveInCookies: true,
+  label: '明暗',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+</body>
+</html>

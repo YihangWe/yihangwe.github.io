@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="zh-CN,en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yihangwe.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="What is the IQ Framework?The IQ framework is a solution designed for Cache-Augmented SQL (CASQL) systems, which combine relational databases (RDBMS) and key-value stores (KVS) to boost performance by">
+<meta property="og:type" content="article">
+<meta property="og:title" content="IQ">
+<meta property="og:url" content="https://yihangwe.github.io/en/undefined/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/07/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/IQ/index.html">
+<meta property="og:site_name" content="EthanWeee 的个人日志">
+<meta property="og:description" content="What is the IQ Framework?The IQ framework is a solution designed for Cache-Augmented SQL (CASQL) systems, which combine relational databases (RDBMS) and key-value stores (KVS) to boost performance by">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://yihangwe.github.io/images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/RDBMS_KVS_OPER.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/invalidate_tbl.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/refresh_tbl.png">
+<meta property="article:published_time" content="2024-11-07T16:00:00.000Z">
+<meta property="article:modified_time" content="2025-06-01T04:00:45.930Z">
+<meta property="article:author" content="Yihang Wei">
+<meta property="article:tag" content="数据库, 分布式, OLTP, OLAP">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yihangwe.github.io/images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/RDBMS_KVS_OPER.png">
+
+<link rel="canonical" href="https://yihangwe.github.io/en/undefined/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/07/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/IQ/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>IQ | EthanWeee 的个人日志</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<!-- hexo injector head_end start --><script>(function() {function calculateHeight(element) {let height = 0;const items = element.children;for (let i = 0; i < items.length; i++) {height += items[i].offsetHeight || 25;const child = items[i].querySelector(".nav-child");if (child && child.style.display !== "none") {height += calculateHeight(child);}}return height;}function generateToc(lang, container) {const content = document.getElementById(lang + "-content");if (!content) return;const headers = Array.from(content.querySelectorAll("h1, h2, h3, h4, h5, h6"));if (headers.length === 0) return;const ol = document.createElement("ol");ol.className = "nav";let currentLevel = 1;let currentOl = ol;let stack = [ol];let counters = [0, 0, 0, 0, 0, 0];headers.forEach((header, index) => {const level = parseInt(header.tagName[1]);counters[level - 1]++;for (let i = level; i < 6; i++) counters[i] = 0;const li = document.createElement("li");li.className = "nav-item nav-level-" + level;if (level === 1 && index === 0) {li.classList.add("active", "active-current");}const link = document.createElement("a");link.className = "nav-link";if (level === 1 && index === 0) link.classList.add("active");link.href = "#" + header.id;const numSpan = document.createElement("span");numSpan.className = "nav-number";numSpan.textContent = counters.slice(0, level).filter(n => n > 0).join(".");const textSpan = document.createElement("span");textSpan.className = "nav-text";textSpan.textContent = header.textContent;link.appendChild(numSpan);link.appendChild(document.createTextNode(" "));link.appendChild(textSpan);li.appendChild(link);if (level > currentLevel) {const newOl = document.createElement("ol");newOl.className = "nav-child";if (currentLevel === 1) {newOl.style.display = "block";stack[currentLevel - 1].lastElementChild.classList.add("active");}stack[currentLevel - 1].lastElementChild.appendChild(newOl);stack[level - 1] = newOl;currentOl = newOl;} else if (level < currentLevel) {currentOl = stack[level - 1];}currentOl.appendChild(li);currentLevel = level;});container.appendChild(ol);setTimeout(() => {const navHeight = calculateHeight(ol);ol.style.setProperty("--height", navHeight + "px");const navChilds = ol.getElementsByClassName("nav-child");Array.from(navChilds).forEach(child => {if (child.style.display === "block") {const childHeight = calculateHeight(child);child.style.setProperty("--height", childHeight + "px");}});}, 0);return ol;}function updateActiveHeading() {const activeLang = document.getElementById("en-content").style.display === "block" ? "en" : "zh";const content = document.getElementById(activeLang + "-content");const toc = document.getElementById(activeLang + "-toc");if (!content || !toc) return;const headers = Array.from(content.querySelectorAll("h1, h2, h3, h4, h5, h6"));const scrollPos = window.scrollY + window.innerHeight / 3;let activeHeader = null;for (let i = headers.length - 1; i >= 0; i--) {const header = headers[i];const headerTop = header.getBoundingClientRect().top + window.scrollY;if (headerTop <= scrollPos) {activeHeader = header;break;}}const links = toc.getElementsByClassName("nav-link");Array.from(links).forEach(link => {link.classList.remove("active");const parentLi = link.parentElement;if (parentLi) {parentLi.classList.remove("active", "active-current");}});if (activeHeader) {const activeLink = toc.querySelector(`a[href="#${activeHeader.id}"]`);if (activeLink) {activeLink.classList.add("active");let parent = activeLink.parentElement;while (parent && parent.classList) {if (parent.classList.contains("nav-item")) {parent.classList.add("active");if (parent.classList.contains("nav-level-1")) {parent.classList.add("active-current");}}parent = parent.parentElement;}}}}function initTippy() {document.querySelectorAll(".refplus-num").forEach((ref) => {if (ref._tippy) {ref._tippy.destroy();}let refid = ref.firstChild.href.replace(location.origin+location.pathname,"");let refel = document.querySelector(refid);if (!refel) return;let refnum = refel.dataset.num;let ref_content = refel.innerText.replace(`[${refnum}]`,"");tippy(ref, {content: ref_content,});});}function initToc() {const originalToc = document.querySelector(".post-toc-wrap");if (!originalToc || !document.getElementById("langToggle")) return;const tocContainer = document.createElement("div");tocContainer.className = "post-toc-wrap sidebar-panel sidebar-panel-active";const enToc = document.createElement("div");enToc.id = "en-toc";enToc.className = "post-toc motion-element";enToc.style.display = "block";const zhToc = document.createElement("div");zhToc.id = "zh-toc";zhToc.className = "post-toc motion-element";zhToc.style.display = "none";generateToc("en", enToc);generateToc("zh", zhToc);tocContainer.appendChild(enToc);tocContainer.appendChild(zhToc);originalToc.parentNode.replaceChild(tocContainer, originalToc);window.addEventListener("scroll", updateActiveHeading);setTimeout(updateActiveHeading, 0);}window.toggleLanguage = function() {const enContent = document.getElementById("en-content");const zhContent = document.getElementById("zh-content");const enToc = document.getElementById("en-toc");const zhToc = document.getElementById("zh-toc");const button = document.getElementById("langToggle");if (!enContent || !zhContent || !enToc || !zhToc || !button) return;const isEnglish = enContent.style.display === "block";enContent.style.display = isEnglish ? "none" : "block";zhContent.style.display = isEnglish ? "block" : "none";enToc.style.display = isEnglish ? "none" : "block";zhToc.style.display = isEnglish ? "block" : "none";button.querySelector(".button-text").textContent = isEnglish ? "Switch to English" : "切换中文";setTimeout(updateActiveHeading, 0);setTimeout(initTippy, 100);};document.addEventListener("DOMContentLoaded", function() {initToc();setTimeout(initTippy, 3000);});})();</script><style>.post-toc { transition: all 0.2s ease-in-out; }.post-toc .nav { padding-left: 0; }.post-toc .nav-child { padding-left: 1em; }.post-toc .nav-item { line-height: 1.8; }.post-toc .nav-link { color: #555; }.post-toc .nav-link:hover { color: #222; }.post-toc .nav-link.active { color: #fc6423; }.post-toc .active > .nav-link { color: #fc6423; }.post-toc .active-current > .nav-link { color: #fc6423; }</style><!-- hexo injector head_end end --><style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">EthanWeee 的个人日志</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/07/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/IQ/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee 的个人日志">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          IQ
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2024-11-08 00:00:00" itemprop="dateCreated datePublished" datetime="2024-11-08T00:00:00+08:00">2024-11-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-06-01 12:00:45" itemprop="dateModified" datetime="2025-06-01T12:00:45+08:00">2025-06-01</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">数据库系统</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><h1 id="What-is-the-IQ-Framework"><a href="#What-is-the-IQ-Framework" class="headerlink" title="What is the IQ Framework?"></a>What is the IQ Framework?</h1><p>The IQ framework is a solution designed for Cache-Augmented SQL (CASQL) systems, which combine relational databases (RDBMS) and key-value stores (KVS) to boost performance by caching database query results. However, CASQL systems often face challenges related to stale data and race conditions. The IQ framework ensures strong consistency while maintaining high performance.</p>
+<h1 id="Challenges-in-CASQL-Systems"><a href="#Challenges-in-CASQL-Systems" class="headerlink" title="Challenges in CASQL Systems"></a>Challenges in CASQL Systems</h1><ol>
+<li><p><strong>Stale Data in Cache</strong>:</p>
+<ul>
+<li><p>Cached data in the KVS can become outdated if updates to the RDBMS are not properly synchronized.</p>
+</li>
+<li><p>For example, if a record in the database is modified, but the corresponding cache entry isn’t updated, subsequent reads might return incorrect values.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Concurrency Issues</strong>:</p>
+<ul>
+<li><p>Multiple sessions accessing and modifying the same key in KVS concurrently can lead to inconsistent results.</p>
+</li>
+<li><p>Example:</p>
+<ul>
+<li>One session updates a value while another session modifies it based on outdated data.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>RDBMS and Cache Coordination</strong>:</p>
+<ul>
+<li>While RDBMS ensures transactional consistency, KVS often lacks this capability, making it difficult to synchronize their states.</li>
+</ul>
+</li>
+</ol>
+<h1 id="Key-Features-of-the-IQ-Framework"><a href="#Key-Features-of-the-IQ-Framework" class="headerlink" title="Key Features of the IQ Framework"></a>Key Features of the IQ Framework</h1><ol>
+<li><strong>Lease Mechanism: Inhibit (I) and Quarantine (Q)</strong>:<ol>
+<li><strong>I Lease</strong> (for reads):<ol>
+<li>Ensures that only one session can query the RDBMS for a cache miss and update the KVS.</li>
+<li>Other sessions attempting to read the same key must “back off” and wait.</li>
+</ol>
+</li>
+<li><strong>Q Lease</strong> (for writes):<ol>
+<li>Required for modifying, deleting, or incrementally updating keys in the KVS.</li>
+<li>If an I lease exists, the Q lease invalidates it to ensure the write operation’s integrity.</li>
+<li>The KVS ignores I’s write operation because this I lease is no longer valid.</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><strong>Lease Expiry</strong>:<ol>
+<li>A lease for a key has a fixed life time and is granted to one KVS connection (thread) at a time.</li>
+<li>Expired leases are automatically released, ensuring system availability.</li>
+<li>The finite life time enables the KVS to release the lease and continue processing operations in the presence of node failures hosting the application.</li>
+</ol>
+</li>
+<li><strong>Session-based Model</strong>:<ol>
+<li>The framework operates through sessions, similar to the <strong>two-phase locking protocol</strong>.</li>
+<li>Leases can be acquired either before or during an RDBMS transaction, providing flexibility.</li>
+</ol>
+</li>
+</ol>
+<h2 id="Implementing-ACID-Properties"><a href="#Implementing-ACID-Properties" class="headerlink" title="Implementing ACID Properties"></a>Implementing ACID Properties</h2><p>原子性 (Atomicity)： IQ 框架确保事务的操作同时在数据库 (RDBMS) 和缓存 (KVS) 中执行。也就是说，操作不会只在数据库中完成而没有更新缓存。这种设计假设 KVS 中的数据是 RDBMS 数据的一部分，因此如果遇到问题，可以直接删除 KVS 中的数据来保持一致。</p>
+<p>一致性 (Consistency)： IQ 框架保证事务在数据库和缓存中的数据状态从一个有效状态变为另一个有效状态。如果数据库的事务回滚 (abort)，那么缓存中的操作也不会被应用，确保不会留下无效的缓存数据。</p>
+<p>隔离性 (Isolation)： 即使有多个会话 (session) 同时执行，IQ 框架也让每个会话看起来像是独立执行的，避免了并发问题。例如，即使两个用户同时读写相同的数据，他们看到的结果也是正确且一致的。</p>
+<p>持久性 (Durability)： 持久性是由数据库 (RDBMS) 提供的，而缓存 (KVS) 则作为数据库的一部分镜像。KVS 存储的数据是在内存中的副本，但一旦数据库中的事务提交，数据就会被持久保存。</p>
+<blockquote>
+<p>CAS 操作只能保证单一操作的原子性，但无法在多个并发会话中保证强一致性。 由于数据库和缓存系统中的操作顺序可能不一致，会导致数据不同步。</p>
+<p>在并发场景下：CAS 无法感知其他会话在其读取后对数据的更改。 多个会话同时执行 CAS 操作时，可能导致更新丢失或顺序混乱，如本例中 S2 的更新被 S1 覆盖。</p>
+<p>Q 租约用于写操作，确保某一时刻只有一个会话能够修改目标键值。如果某个键值已有 Q 租约，其他会话（如 S1）会被要求退避（back off）或中止操作。</p>
+</blockquote>
+<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/RDBMS_KVS_OPER.png" alt="img"></p>
+<h1 id="Invalidate"><a href="#Invalidate" class="headerlink" title="Invalidate"></a>Invalidate</h1><h2 id="What-is-Snapshot-Isolation"><a href="#What-is-Snapshot-Isolation" class="headerlink" title="What is Snapshot Isolation?"></a>What is Snapshot Isolation?</h2><p>Snapshot isolation is a multi-version concurrency control mechanism commonly used in RDBMS to allow concurrent transactions to execute efficiently. It guarantees:</p>
+<ol>
+<li><strong>Consistent Snapshot</strong>: All reads in a transaction observe the same consistent state of the database, as it existed at the transaction’s start.</li>
+<li><strong>Conflict Detection</strong>: A transaction can only commit if its updates do not conflict with updates made by other transactions since its snapshot was taken.</li>
+</ol>
+<h3 id="The-Problem"><a href="#The-Problem" class="headerlink" title="The Problem"></a>The Problem</h3><p>Snapshot isolation can cause a race condition between a write session (S1) and a read session (S2) when KVS is involved. The issue unfolds as follows:</p>
+<ol>
+<li><p><strong>Write Session (S1)</strong>:</p>
+<ul>
+<li><p>S1 modifies the RDBMS and triggers a delete operation in the KVS to invalidate outdated key-value pairs.</p>
+</li>
+<li><p>S1 commits the transaction after completing its changes in the RDBMS.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Read Session (S2)</strong>:</p>
+<ul>
+<li><p>S2 starts after S1’s delete operation in the KVS. It observes a <strong>KVS miss</strong> for a key-value pair because S1 has invalidated it.</p>
+</li>
+<li><p>S2 queries the RDBMS to recompute the key-value pair. However, because snapshot isolation allows S2 to read an <strong>older snapshot of the database</strong>, it retrieves outdated (stale) data.</p>
+</li>
+<li><p>S2 inserts this <strong>stale data</strong> back into the KVS before S1 commits its changes to the RDBMS.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Inconsistency</strong>:</p>
+<ul>
+<li>After both sessions complete, the KVS contains a stale key-value pair inconsistent with the RDBMS, leading to incorrect results for future reads.</li>
+</ul>
+</li>
+</ol>
+<h3 id="Solution"><a href="#Solution" class="headerlink" title="Solution"></a>Solution</h3><p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/invalidate_tbl.png" alt="img"></p>
+<p>I Lease (Inhibit Lease):</p>
+<ul>
+<li>Used by <strong>read sessions</strong> (e.g., S2).</li>
+<li>When a read session observes a <strong>KVS miss</strong>, it requests an I lease for the key (<code>k_j</code>) from the KVS server.</li>
+<li>The I lease allows the read session to query the RDBMS, compute a value, and insert the computed key-value pair into the KVS.</li>
+<li>If a Q lease is already in place, the I lease is denied, and the read session is told to <strong>back off</strong> and retry later.</li>
+</ul>
+<p>Q Lease (Quarantine Lease):</p>
+<ul>
+<li>Used by <strong>write sessions</strong> (e.g., S1).</li>
+<li>When a write session plans to invalidate a key in the KVS, it requests a Q lease for the key (<code>k_j</code>).</li>
+<li>The Q lease prevents other sessions (including those holding I leases) from modifying or inserting the key in the KVS.</li>
+<li>Multiple Q leases can be granted for the same key since deleting a key is idempotent (doesn’t create conflicts).</li>
+</ul>
+<h1 id="Optimization"><a href="#Optimization" class="headerlink" title="Optimization"></a>Optimization</h1><h2 id="The-Problem-1"><a href="#The-Problem-1" class="headerlink" title="The Problem"></a>The Problem</h2><ul>
+<li>In the original scenario, <strong>write sessions (e.g., S1)</strong> immediately delete key-value pairs in the KVS as soon as they acquire a Q lease (e.g., Step 1.3 in Figure 3).</li>
+<li>This can cause <strong>read sessions (e.g., S2)</strong> to encounter KVS misses, triggering redundant operations like querying the RDBMS, recalculating values, and reinserting them into the KVS.</li>
+</ul>
+<h2 id="The-Proposed-Optimization"><a href="#The-Proposed-Optimization" class="headerlink" title="The Proposed Optimization"></a>The Proposed Optimization</h2><p><strong>Deferring Key Deletion Until Write Commit</strong></p>
+<ol>
+<li><p><strong>Key Changes</strong>:</p>
+<ul>
+<li><p>Instead of deleting the key immediately in Step 1.3, the write session (S1) holds the Q lease and <strong>defers the deletion</strong> until the write session commits (Step 1.5).</p>
+</li>
+<li><p>While S1 is mid-flight, the invalidated key-value pair remains in the KVS for other read sessions (S2) to observe.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Handling KVS Hits</strong>:</p>
+<ul>
+<li><p>Read sessions like S2 that encounter a <strong>KVS hit</strong> consume the “stale” key-value pair, treating it as valid.</p>
+</li>
+<li><p>This is acceptable because S2’s actions can be <strong>serialized to occur before</strong> S1, which is still in progress and has not yet committed its RDBMS changes.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Handling Write Aborts</strong>:</p>
+<ul>
+<li><p>If a write session (S1) encounters an exception and aborts, the Q lease is released without deleting the key.</p>
+</li>
+<li><p>The current key-value pair in the KVS remains valid and accessible to other sessions.</p>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="Implementation-Details"><a href="#Implementation-Details" class="headerlink" title="Implementation Details"></a>Implementation Details</h2><ol>
+<li><p><strong>Versioning Concept</strong>:</p>
+<ul>
+<li><p>The optimization can be conceptualized as maintaining a <strong>temporary version</strong> of the key-value pair for use by all sessions except the one currently invalidating it (S1).</p>
+</li>
+<li><p>Once S1 commits, the temporary version is removed.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Abort Command</strong>:</p>
+<ul>
+<li><p>If a write session (S1) aborts due to constraints or exceptions, an <strong>abort command</strong> releases all Q leases held by S1 without deleting the key-value pair.</p>
+</li>
+<li><p>Without this command, Q leases would expire naturally after a timeout, during which no other session could modify or access the key.</p>
+</li>
+</ul>
+</li>
+</ol>
+<p><strong>Re-Arrangement Window</strong>:</p>
+<ul>
+<li>With this optimization, S2 and S1 can be <strong>re-arranged</strong> in a serializable schedule where S2 logically occurs before S1.</li>
+<li>Without the optimization, the re-arrangement window shrinks to zero because S2 would have already queried the RDBMS for stale data, violating consistency.</li>
+</ul>
+<h1 id="Refresh-and-Incremental-Update"><a href="#Refresh-and-Incremental-Update" class="headerlink" title="Refresh and Incremental Update"></a>Refresh and Incremental Update</h1><h2 id="Key-Issues-with-Compare-and-Swap-CAS"><a href="#Key-Issues-with-Compare-and-Swap-CAS" class="headerlink" title="Key Issues with Compare-and-Swap (CAS)"></a>Key Issues with Compare-and-Swap (CAS)</h2><ul>
+<li><p><strong>CAS Limitation</strong>:</p>
+<ul>
+<li>CAS alone cannot ensure strong consistency. It provides atomic updates to a single key-value pair but does not coordinate these updates with RDBMS transactions.</li>
+</ul>
+</li>
+<li><p><strong>Example (Figure 2)</strong>:</p>
+<ul>
+<li><p>KVS writes can occur either:</p>
+<ol>
+<li><p><strong>Prior to</strong> the RDBMS transaction, or</p>
+</li>
+<li><p><strong>As part of</strong> the RDBMS transaction.</p>
+</li>
+</ol>
+</li>
+<li><p><strong>Problem</strong>: If the RDBMS transaction aborts, the KVS will retain the modified key-value pair, potentially exposing <strong>dirty reads</strong> to other sessions.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Figure 6 (Dirty Read Problem)</strong>:</p>
+<ul>
+<li>Write session S1 modifies a key-value pair in KVS.</li>
+<li>S1’s transaction later aborts, but the intermediate KVS value is consumed by a read session S2 before the rollback, leading to inconsistencies.</li>
+</ul>
+</li>
+<li><p><strong>Developer Responsibility</strong>:</p>
+<ul>
+<li>Without additional mechanisms, developers must implement complex logic to restore KVS key-value pairs to their original values when RDBMS transactions abort.</li>
+</ul>
+</li>
+</ul>
+<h2 id="Race-Conditions-with-Incremental-Updates-δ-Operations"><a href="#Race-Conditions-with-Incremental-Updates-δ-Operations" class="headerlink" title="Race Conditions with Incremental Updates (δ Operations)"></a>Race Conditions with Incremental Updates (δ Operations)</h2><ul>
+<li><p><strong>Figure 7 (Snapshot Isolation with δ Operations)</strong>:</p>
+</li>
+<li><ul>
+<li>Write session S1 updates the RDBMS and KVS using an incremental update (e.g., appending to a value).</li>
+<li>Concurrently, read session S2 queries the RDBMS and overwrites the key-value pair in the KVS.</li>
+<li><strong>Result</strong>: The KVS reflects inconsistent state, as S2’s overwrite may invalidate S1’s incremental change.</li>
+</ul>
+</li>
+<li><p><strong>Figure 8 (Reordering KVS Operations)</strong>:</p>
+</li>
+<li><ul>
+<li>Delaying KVS updates until after the RDBMS transaction doesn’t solve the problem.</li>
+</ul>
+</li>
+<li><p><strong>Example in Figure 8</strong>:</p>
+</li>
+<li><ul>
+<li>S1 appends a change to a value based on its RDBMS view.</li>
+<li>S2 modifies the RDBMS during S1’s execution, which S1 unknowingly incorporates into its KVS update.</li>
+<li><strong>Problem</strong>: S2’s modifications are reflected twice in the KVS, introducing inconsistencies.</li>
+</ul>
+</li>
+</ul>
+<h2 id="Solution-1"><a href="#Solution-1" class="headerlink" title="Solution"></a>Solution</h2><p><strong>Key Concepts in the Solution</strong></p>
+<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/refresh_tbl.png" alt="img"></p>
+<ol>
+<li><p><strong>Q Leases for Write Sessions</strong>:</p>
+<ul>
+<li><p>A <strong>Q lease</strong> must be obtained for each key-value pair that a session intends to update.</p>
+</li>
+<li><p>This prevents race conditions by locking the key-value pair until the session completes its operations.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Steps for Write Sessions</strong>:</p>
+<ul>
+<li><p><strong>Step 1</strong>: Obtain Q leases for the keys to be updated before committing the RDBMS transaction. This can happen:</p>
+<ul>
+<li><p>Before starting the RDBMS transaction.</p>
+</li>
+<li><p>As part of the RDBMS transaction.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Step 2</strong>: Write the updated key-value pairs to the KVS after committing the RDBMS transaction.</p>
+</li>
+<li><p><strong>Step 3</strong>: Release the Q leases once the KVS is updated.</p>
+</li>
+<li><p><strong>Automatic Cleanup</strong>: If a Q lease expires, the KVS deletes the associated key-value pair to avoid stale data.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Command Design for Write Operations</strong>:</p>
+<ul>
+<li><p><strong>QaRead (Quarantine-and-Read)</strong>:</p>
+<ul>
+<li><p>Acquires a Q lease on the referenced key and reads its value from the KVS.</p>
+</li>
+<li><p>If a Q lease for the same key is already held by another session, the requesting session receives an <strong>abort message</strong>, must roll back its RDBMS transaction, release all leases, back off, and retry later.</p>
+</li>
+<li><p>If no value exists in the KVS (a <strong>KVS miss</strong>), the application can:</p>
+<ul>
+<li>Skip updating the key, or</li>
+<li>Query the RDBMS, compute a new value, and insert it using <strong>SaR</strong> (below).</li>
+</ul>
+</li>
+<li><p>If a <strong>QaRead lease</strong> encounters an <strong>I lease</strong> held by a read session, it invalidates the I lease to prevent race conditions.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>SaR (Swap-and-Release)</strong>:</p>
+<ul>
+<li>Updates the value of a key in the KVS with the new value and releases the Q lease.</li>
+<li>If the new value is <code>null</code>, the Q lease is simply released without updating the KVS.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="Handling-Race-Conditions"><a href="#Handling-Race-Conditions" class="headerlink" title="Handling Race Conditions"></a>Handling Race Conditions</h2><ol>
+<li><p><strong>Q Leases for Concurrent Write Sessions</strong>:</p>
+<ul>
+<li><p>If two write sessions request Q leases for the same key, the KVS resolves the conflict by:</p>
+<ul>
+<li>Aborting one session.</li>
+<li>Ensuring the aborted session retries later, serializing its updates after the session holding the Q lease.</li>
+</ul>
+</li>
+<li><p>This guarantees a valid serial schedule in the RDBMS and KVS.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Read Sessions and I Leases</strong>:</p>
+<ul>
+<li><p>Read sessions use <strong>I leases</strong> to avoid race conditions when querying the KVS.</p>
+</li>
+<li><p>If a write session issues a <strong>QaRead</strong> that encounters an existing <strong>I lease</strong>, the <strong>I lease</strong> is invalidated to ensure the KVS reflects the latest updates from the RDBMS.</p>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="Integration-with-Two-Phase-Locking"><a href="#Integration-with-Two-Phase-Locking" class="headerlink" title="Integration with Two-Phase Locking"></a>Integration with Two-Phase Locking</h2><ul>
+<li><p>The Q lease mechanism resembles <strong>two-phase locking</strong>:</p>
+<ol>
+<li><p><strong>Growing Phase</strong>: The session acquires all necessary Q leases using <strong>QaRead</strong> before committing its RDBMS transaction.</p>
+</li>
+<li><p><strong>Shrinking Phase</strong>: The session releases all Q leases using <strong>SaR</strong> after committing its RDBMS transaction.</p>
+</li>
+</ol>
+</li>
+<li><p>Flexibility:</p>
+<ul>
+<li>A session can issue <strong>QaRead</strong> commands either before starting the RDBMS transaction or as part of the transaction.</li>
+</ul>
+</li>
+</ul>
+<h2 id="Key-Concepts-of-Incremental-Updates"><a href="#Key-Concepts-of-Incremental-Updates" class="headerlink" title="Key Concepts of Incremental Updates"></a>Key Concepts of Incremental Updates</h2><ol>
+<li><p><strong>Incremental Update Command: IQ-δ</strong>:</p>
+<ul>
+<li><p><strong>Purpose</strong>: Allows a write session to perform an incremental update, such as appending data to an existing key-value pair.</p>
+</li>
+<li><p><strong>Syntax</strong>: <code>IQ-δ(ki, δi)</code></p>
+<ul>
+<li><code>ki</code>: The key to be updated.</li>
+<li><code>δi</code>: The incremental change to apply (e.g., the value to append).</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>Similarities to QaRead</strong>:</p>
+<ul>
+<li><p><strong>Q Lease Requirement</strong>: Before issuing the <code>IQ-δ</code> command, the session must obtain a <strong>Q lease</strong> for the key <code>ki</code> to ensure exclusive access.</p>
+</li>
+<li><p><strong>Abort on Conflict</strong>:</p>
+<ul>
+<li><p>If another session already holds a Q lease on the same key (<code>ki</code>), the <strong>KVS returns an abort message</strong>.</p>
+</li>
+<li><p>The write session must:</p>
+<ol>
+<li><p>Release all its leases.</p>
+</li>
+<li><p>Abort its ongoing RDBMS transaction (if any).</p>
+</li>
+<li><p>Retry the operation later.</p>
+</li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h1 id="优化关键点总结"><a href="#优化关键点总结" class="headerlink" title="优化关键点总结"></a>优化关键点总结</h1><ol>
+<li><p><strong>保留旧版本（Older Version）</strong>：</p>
+<ul>
+<li><p>当写会话（S1）更新某键值对 (<code>ki-vi</code>) 时，KVS 暂时保留该键值对的旧版本 (<code>ki-vi_old</code>)，直到 S1 提交。</p>
+</li>
+<li><p>这避免了读会话在写会话更新期间遇到 <strong>KVS miss</strong>。</p>
+</li>
+</ul>
+</li>
+<li><p>写会话的更新视图：</p>
+<ul>
+<li><p>写会话（S1）在更新期间必须能够看到自己的修改结果（<code>ki-vi_new</code>）。</p>
+</li>
+<li><p>KVS 确保为 S1 提供其最新的更新视图。</p>
+</li>
+</ul>
+</li>
+</ol>
+<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>Why is it acceptable for invalidate to delete cache entries?</strong></p>
+<p>Consistency Assurance: The cache entry being invalidated represents stale data that is no longer consistent with the current state of the RDBMS. Deleting it prevents read sessions from accessing outdated information.</p>
+<p><strong>How is a lease different than a lock?</strong> </p>
+<ul>
+<li><strong>Lease</strong>: Has a fixed lifetime and expires automatically after a certain duration. This makes leases useful in distributed systems where failures or delays could otherwise cause indefinite blocking.</li>
+<li><strong>Lock</strong>: Typically remains active until explicitly released, which can lead to deadlocks or indefinite resource contention if not managed properly.</li>
+</ul>
+<p><strong>True or False: IQ leases require changes to the RDBMS software.</strong></p>
+<p>False:</p>
+<p>IQ leases do not require changes to the RDBMS software.</p>
+<p>Instead, they extend the functionality of the Key-Value Store (KVS) by introducing new lease-based commands (e.g., <code>QaRead</code> and <code>SaR</code>) to coordinate operations between the KVS and the RDBMS. This design leverages existing RDBMS features without altering its underlying implementation.</p>
+<p><strong>What factors does CAMP consider when selecting a victim?</strong></p>
+<p>H(p) &#x3D; L + size(p) &#x2F; cost(p)</p>
+<p><strong>What is the definition of cost? Provide an example.</strong></p>
+<ul>
+<li><strong>Computation Time</strong>: The time required to regenerate or recompute the data if it is evicted from memory.</li>
+<li><strong>Access Latency</strong>: The time it would take to fetch the data from disk or another slower storage tier.</li>
+<li><strong>Importance</strong>: The priority or weight assigned to the data based on how frequently or critically it is used.</li>
+</ul>
+<p><strong>How does CAMP insert a key-value pair in memory?</strong></p>
+<p>When a new key-value pair p needs to be inserted into memory, CAMP performs the following steps:</p>
+<p><strong>1. Check Cache Capacity</strong></p>
+<ul>
+<li>If there is <strong>enough memory</strong> to store the new key-value pair:</li>
+<li><ul>
+<li>The pair is inserted directly into the appropriate <strong>priority group</strong> based on its cost-to-size ratio.</li>
+<li>L is not updated.</li>
+</ul>
+</li>
+<li>If the cache is <strong>full</strong>:</li>
+<li><ul>
+<li>CAMP selects one or more key-value pairs to <strong>evict</strong> based on their H(p) values.</li>
+<li>It removes the pair(s) with the <strong>lowest H(p)</strong> values until there is sufficient space for the new pair.</li>
+</ul>
+</li>
+</ul>
+<p><strong>2. Insert the New Pair</strong></p>
+<ul>
+<li>The new key-value pair p is added to the cache, and its H(p) value is computed and recorded.</li>
+<li>The pair is placed in the appropriate priority queue based on its cost-to-size ratio.</li>
+</ul>
+<p><strong>With BG, what is the definition of Service Level Agreement, SLA?</strong></p>
+<p>SLA, e.g., 95% of requests to observe a response time equal to or faster than 100 msec with at most 0.1% of requests observing unpredictable data for 10 minutes.</p>
+<p><strong>Name one reason why a system may produce unpredictable data?</strong></p>
+<p>Eventual consistency. Or multiple threads are updating the same data item.</p>
+<p>Reference: <a target="_blank" rel="noopener" href="https://dl.acm.org/doi/abs/10.1145/2663165.2663318">https://dl.acm.org/doi/abs/10.1145/2663165.2663318</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/undefined/MySQL/2024/11/02/MySQL/%E8%A1%A8/" rel="prev" title="表">
+      <i class="fa fa-chevron-left"></i> 表
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/undefined/MySQL/2024/11/08/MySQL/%E9%94%81/" rel="next" title="锁">
+      锁 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#What-is-the-IQ-Framework"><span class="nav-number">1.</span> <span class="nav-text">What is the IQ Framework?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Challenges-in-CASQL-Systems"><span class="nav-number">2.</span> <span class="nav-text">Challenges in CASQL Systems</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Key-Features-of-the-IQ-Framework"><span class="nav-number">3.</span> <span class="nav-text">Key Features of the IQ Framework</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Implementing-ACID-Properties"><span class="nav-number">3.1.</span> <span class="nav-text">Implementing ACID Properties</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Invalidate"><span class="nav-number">4.</span> <span class="nav-text">Invalidate</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#What-is-Snapshot-Isolation"><span class="nav-number">4.1.</span> <span class="nav-text">What is Snapshot Isolation?</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The-Problem"><span class="nav-number">4.1.1.</span> <span class="nav-text">The Problem</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Solution"><span class="nav-number">4.1.2.</span> <span class="nav-text">Solution</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Optimization"><span class="nav-number">5.</span> <span class="nav-text">Optimization</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#The-Problem-1"><span class="nav-number">5.1.</span> <span class="nav-text">The Problem</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-Proposed-Optimization"><span class="nav-number">5.2.</span> <span class="nav-text">The Proposed Optimization</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Implementation-Details"><span class="nav-number">5.3.</span> <span class="nav-text">Implementation Details</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Refresh-and-Incremental-Update"><span class="nav-number">6.</span> <span class="nav-text">Refresh and Incremental Update</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Key-Issues-with-Compare-and-Swap-CAS"><span class="nav-number">6.1.</span> <span class="nav-text">Key Issues with Compare-and-Swap (CAS)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Race-Conditions-with-Incremental-Updates-%CE%B4-Operations"><span class="nav-number">6.2.</span> <span class="nav-text">Race Conditions with Incremental Updates (δ Operations)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Solution-1"><span class="nav-number">6.3.</span> <span class="nav-text">Solution</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Handling-Race-Conditions"><span class="nav-number">6.4.</span> <span class="nav-text">Handling Race Conditions</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Integration-with-Two-Phase-Locking"><span class="nav-number">6.5.</span> <span class="nav-text">Integration with Two-Phase Locking</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Key-Concepts-of-Incremental-Updates"><span class="nav-number">6.6.</span> <span class="nav-text">Key Concepts of Incremental Updates</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BC%98%E5%8C%96%E5%85%B3%E9%94%AE%E7%82%B9%E6%80%BB%E7%BB%93"><span class="nav-number">7.</span> <span class="nav-text">优化关键点总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Questions"><span class="nav-number">8.</span> <span class="nav-text">Questions</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Yihang Wei</p>
+  <div class="site-description" itemprop="description">聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">47</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="languages">
+    <label class="lang-select-label">
+      <i class="fa fa-language"></i>
+      <span>English</span>
+      <i class="fa fa-angle-up" aria-hidden="true"></i>
+    </label>
+    <select class="lang-select" data-canonical="">
+      
+        <option value="zh-CN" data-href="/undefined/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/07/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/IQ/" selected="">
+          简体中文
+        </option>
+      
+        <option value="en" data-href="/en/undefined/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/2024/11/07/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/IQ/" selected="">
+          English
+        </option>
+      
+    </select>
+  </div>
+
+        
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">京ICP备2025131880号-1 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yihang Wei</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '50%',
+  right: '32px',
+  left: 'unset',
+  time: '0.5s',
+  mixColor: '#fff',
+  backgroundColor: '#fff',
+  buttonColorDark: '#100f2c',
+  buttonColorLight: '#fff',
+  saveInCookies: true,
+  label: '明暗',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+</body>
+</html>

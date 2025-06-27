@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="zh-CN,en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yihangwe.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="摘要该论文解决了两个问题：  如何将记录迁移到冷存储以及从冷存储迁出。 如何以事务一致的方式读取和更新冷存储中的记录。  论文提出了三个新颖的想法，并详细阐述了每个想法的实现方法：  统一的接口，向高层隐藏记录的物理位置：通过冷存储、访问过滤器、私有缓存和更新备忘录之间的协作实现。 最小化访问二级存储带来的开销：每个事务拥有自己的私有缓存。 热存储与冷存储之间的无缝迁移：系统在事务中使用插入和删除">
+<meta property="og:type" content="article">
+<meta property="og:title" content="内存优化数据库中的冷数据管理">
+<meta property="og:url" content="https://yihangwe.github.io/en/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/04/05/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Managing%20Cold%20Data%20in%20a%20Memory-Optimized%20Database/index.html">
+<meta property="og:site_name" content="EthanWeee 的个人日志">
+<meta property="og:description" content="摘要该论文解决了两个问题：  如何将记录迁移到冷存储以及从冷存储迁出。 如何以事务一致的方式读取和更新冷存储中的记录。  论文提出了三个新颖的想法，并详细阐述了每个想法的实现方法：  统一的接口，向高层隐藏记录的物理位置：通过冷存储、访问过滤器、私有缓存和更新备忘录之间的协作实现。 最小化访问二级存储带来的开销：每个事务拥有自己的私有缓存。 热存储与冷存储之间的无缝迁移：系统在事务中使用插入和删除">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2025-04-05T16:00:00.000Z">
+<meta property="article:modified_time" content="2025-06-20T23:50:57.835Z">
+<meta property="article:author" content="Yihang Wei">
+<meta property="article:tag" content="数据库, 分布式, OLTP, OLAP">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://yihangwe.github.io/en/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/04/05/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Managing%20Cold%20Data%20in%20a%20Memory-Optimized%20Database/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>内存优化数据库中的冷数据管理 | EthanWeee 的个人日志</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<!-- hexo injector head_end start --><script>(function() {function calculateHeight(element) {let height = 0;const items = element.children;for (let i = 0; i < items.length; i++) {height += items[i].offsetHeight || 25;const child = items[i].querySelector(".nav-child");if (child && child.style.display !== "none") {height += calculateHeight(child);}}return height;}function generateToc(lang, container) {const content = document.getElementById(lang + "-content");if (!content) return;const headers = Array.from(content.querySelectorAll("h1, h2, h3, h4, h5, h6"));if (headers.length === 0) return;const ol = document.createElement("ol");ol.className = "nav";let currentLevel = 1;let currentOl = ol;let stack = [ol];let counters = [0, 0, 0, 0, 0, 0];headers.forEach((header, index) => {const level = parseInt(header.tagName[1]);counters[level - 1]++;for (let i = level; i < 6; i++) counters[i] = 0;const li = document.createElement("li");li.className = "nav-item nav-level-" + level;if (level === 1 && index === 0) {li.classList.add("active", "active-current");}const link = document.createElement("a");link.className = "nav-link";if (level === 1 && index === 0) link.classList.add("active");link.href = "#" + header.id;const numSpan = document.createElement("span");numSpan.className = "nav-number";numSpan.textContent = counters.slice(0, level).filter(n => n > 0).join(".");const textSpan = document.createElement("span");textSpan.className = "nav-text";textSpan.textContent = header.textContent;link.appendChild(numSpan);link.appendChild(document.createTextNode(" "));link.appendChild(textSpan);li.appendChild(link);if (level > currentLevel) {const newOl = document.createElement("ol");newOl.className = "nav-child";if (currentLevel === 1) {newOl.style.display = "block";stack[currentLevel - 1].lastElementChild.classList.add("active");}stack[currentLevel - 1].lastElementChild.appendChild(newOl);stack[level - 1] = newOl;currentOl = newOl;} else if (level < currentLevel) {currentOl = stack[level - 1];}currentOl.appendChild(li);currentLevel = level;});container.appendChild(ol);setTimeout(() => {const navHeight = calculateHeight(ol);ol.style.setProperty("--height", navHeight + "px");const navChilds = ol.getElementsByClassName("nav-child");Array.from(navChilds).forEach(child => {if (child.style.display === "block") {const childHeight = calculateHeight(child);child.style.setProperty("--height", childHeight + "px");}});}, 0);return ol;}function updateActiveHeading() {const activeLang = document.getElementById("en-content").style.display === "block" ? "en" : "zh";const content = document.getElementById(activeLang + "-content");const toc = document.getElementById(activeLang + "-toc");if (!content || !toc) return;const headers = Array.from(content.querySelectorAll("h1, h2, h3, h4, h5, h6"));const scrollPos = window.scrollY + window.innerHeight / 3;let activeHeader = null;for (let i = headers.length - 1; i >= 0; i--) {const header = headers[i];const headerTop = header.getBoundingClientRect().top + window.scrollY;if (headerTop <= scrollPos) {activeHeader = header;break;}}const links = toc.getElementsByClassName("nav-link");Array.from(links).forEach(link => {link.classList.remove("active");const parentLi = link.parentElement;if (parentLi) {parentLi.classList.remove("active", "active-current");}});if (activeHeader) {const activeLink = toc.querySelector(`a[href="#${activeHeader.id}"]`);if (activeLink) {activeLink.classList.add("active");let parent = activeLink.parentElement;while (parent && parent.classList) {if (parent.classList.contains("nav-item")) {parent.classList.add("active");if (parent.classList.contains("nav-level-1")) {parent.classList.add("active-current");}}parent = parent.parentElement;}}}}function initTippy() {document.querySelectorAll(".refplus-num").forEach((ref) => {if (ref._tippy) {ref._tippy.destroy();}let refid = ref.firstChild.href.replace(location.origin+location.pathname,"");let refel = document.querySelector(refid);if (!refel) return;let refnum = refel.dataset.num;let ref_content = refel.innerText.replace(`[${refnum}]`,"");tippy(ref, {content: ref_content,});});}function initToc() {const originalToc = document.querySelector(".post-toc-wrap");if (!originalToc || !document.getElementById("langToggle")) return;const tocContainer = document.createElement("div");tocContainer.className = "post-toc-wrap sidebar-panel sidebar-panel-active";const enToc = document.createElement("div");enToc.id = "en-toc";enToc.className = "post-toc motion-element";enToc.style.display = "block";const zhToc = document.createElement("div");zhToc.id = "zh-toc";zhToc.className = "post-toc motion-element";zhToc.style.display = "none";generateToc("en", enToc);generateToc("zh", zhToc);tocContainer.appendChild(enToc);tocContainer.appendChild(zhToc);originalToc.parentNode.replaceChild(tocContainer, originalToc);window.addEventListener("scroll", updateActiveHeading);setTimeout(updateActiveHeading, 0);}window.toggleLanguage = function() {const enContent = document.getElementById("en-content");const zhContent = document.getElementById("zh-content");const enToc = document.getElementById("en-toc");const zhToc = document.getElementById("zh-toc");const button = document.getElementById("langToggle");if (!enContent || !zhContent || !enToc || !zhToc || !button) return;const isEnglish = enContent.style.display === "block";enContent.style.display = isEnglish ? "none" : "block";zhContent.style.display = isEnglish ? "block" : "none";enToc.style.display = isEnglish ? "none" : "block";zhToc.style.display = isEnglish ? "block" : "none";button.querySelector(".button-text").textContent = isEnglish ? "Switch to English" : "切换中文";setTimeout(updateActiveHeading, 0);setTimeout(initTippy, 100);};document.addEventListener("DOMContentLoaded", function() {initToc();setTimeout(initTippy, 3000);});})();</script><style>.post-toc { transition: all 0.2s ease-in-out; }.post-toc .nav { padding-left: 0; }.post-toc .nav-child { padding-left: 1em; }.post-toc .nav-item { line-height: 1.8; }.post-toc .nav-link { color: #555; }.post-toc .nav-link:hover { color: #222; }.post-toc .nav-link.active { color: #fc6423; }.post-toc .active > .nav-link { color: #fc6423; }.post-toc .active-current > .nav-link { color: #fc6423; }</style><!-- hexo injector head_end end --><style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">EthanWeee 的个人日志</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/04/05/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Managing%20Cold%20Data%20in%20a%20Memory-Optimized%20Database/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee 的个人日志">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          内存优化数据库中的冷数据管理
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2025-04-06 00:00:00" itemprop="dateCreated datePublished" datetime="2025-04-06T00:00:00+08:00">2025-04-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-06-21 07:50:57" itemprop="dateModified" datetime="2025-06-21T07:50:57+08:00">2025-06-21</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/" itemprop="url" rel="index"><span itemprop="name">高级数据存储</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><h1 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h1><p>该论文解决了两个问题：</p>
+<ol>
+<li>如何将记录迁移到冷存储以及从冷存储迁出。</li>
+<li>如何以事务一致的方式读取和更新冷存储中的记录。</li>
+</ol>
+<p>论文提出了三个新颖的想法，并详细阐述了每个想法的实现方法：</p>
+<ol>
+<li><strong>统一的接口，向高层隐藏记录的物理位置</strong>：通过冷存储、访问过滤器、私有缓存和更新备忘录之间的协作实现。</li>
+<li><strong>最小化访问二级存储带来的开销</strong>：每个事务拥有自己的私有缓存。</li>
+<li><strong>热存储与冷存储之间的无缝迁移</strong>：系统在事务中使用插入和删除操作执行迁移。</li>
+</ol>
+<p>分析与实验结果：论文在 YCSB 基准测试和多步骤读&#x2F;更新工作负载上评估了 Siberia 的性能，得出以下结论。在现实的客户端延迟下，吞吐量损失仅为 3%。即使在极高的冷数据访问率下，内存中的 Siberia 机制也仅带来较低的性能损失。当实时迁移激活时，系统性能保持稳定。访问备忘录的开销较大，这意味着备忘录清理对于提高性能很重要。在冷数据访问率为 5% 和 10% 的现实场景下，只读事务的性能损失分别为 7% 和 14%，这是可接受的。对于纯更新事务，5% 的冷数据更新导致 8% 的吞吐量损失，10% 的冷数据更新率导致 13% 的吞吐量损失，同样可接受。在 YCSB 工作负载下，随着访问偏斜度降低以及内存与数据库大小比例增加，性能会下降；与写密集型工作负载相比，读密集型工作负载在更高的偏斜率下表现出更低的事务中止率。</p>
+<h1 id="论文优势"><a href="#论文优势" class="headerlink" title="论文优势"></a>论文优势</h1><ul>
+<li><strong>论文提供了全面的文献综述</strong>。在 HEKATON 存储与索引 部分，论文简要概述了 HEKATON 的索引和数据存储结构及其基于 MVCC（多版本并发控制）的读写操作。在 RELATED WORK 部分，论文分析了现有数据库系统如何处理冷数据，解释了 Hyper 使用虚拟页管理冷数据，Stoica 等人提出将热冷数据分离到不同的内存位置。最后，论文描述了反缓存（anti-caching）的工作原理，并指出了其两个缺点：节省空间有限和重复执行。</li>
+<li><strong>论文详细描述了将 SIBERIA 集成到 HEKATON 后的工作原理</strong>。它展示了数据迁移到冷存储期间使用的两种事务的工作流程。插入和更新操作确保数据被放入热存储，以避免检查冷存储的开销。删除和读取操作利用更新备忘录中的通知执行并发控制和冲突检测。冷存储清理也由更新备忘录驱动，这使得可以及时从冷存储中移除对任何活跃事务都不可见的记录。此外，验证阶段也利用更新备忘录中的通知，并计算 <code>TsBoundSer</code> 以确保可串行化事务的正确性，从而增强了幻读检测。</li>
+<li><strong>论文呈现了相对全面的实验</strong>。实验基于 YCSB 基准测试和多步骤读&#x2F;更新工作负载，这可以测试 Siberia 在不同工作负载下的性能。此外，论文评估了 Siberia 的纯内存开销、运行实时迁移的开销以及访问冷记录路径上更新备忘录的开销。并且，在 YCSB 工作负载下，展示了工作负载偏斜度、内存与数据库大小比率与工作负载性能之间的关系。</li>
+</ul>
+<h1 id="论文不足"><a href="#论文不足" class="headerlink" title="论文不足"></a>论文不足</h1><ul>
+<li><strong>论文未在代码层面描述 Siberia 集成到 HEKATON 的过程</strong>，仅提到了在数据处理和存储机制层面进行集成。它详细描述了冷数据迁移过程，并解释了插入、删除、读取和更新操作中的更新备忘录通知如何与 HEKATON 的版本控制和并发控制协作。然而，论文未涉及 Siberia 如何在代码层面（如识别核心函数、代码段及相应修改）集成到 HEKATON。这一缺失使得读者难以轻松复现 Siberia。因此，论文至少应提供代码修改的概要说明。</li>
+<li><strong>在 Synthetic End-to-End Workload 部分，论文未讨论中等至高冷数据访问率下的吞吐量损失</strong>。论文仅展示了在 5% 和 10% 冷数据访问率下的吞吐量损失，并声称这些是现实的冷数据访问率。首先，在 Read-Only Transactions 部分，论文未能说明是哪个报告或文献支持 5% 和 10% 是“真实的冷数据访问率”。其次，即使假设上述数据是准确的，论文也未描述当冷数据访问率超过 10% 时，吞吐量损失如何变化。这一缺失使读者无法全面了解 Siberia 处理工作负载的性能。因此，论文应解释“现实的冷数据访问率”是如何确定的，并描述在中等至高冷数据访问率下吞吐量损失的变化情况。</li>
+<li><strong>论文未讨论 Siberia 的性能限制或其性能可能下降的条件</strong>，尽管实验部分展示了令人印象深刻的性能。这种优异的性能可能是以高硬件利用率（如高 CPU 使用率）为代价获得的。或者，将 Siberia 集成到 HEKATON 中虽然增强了热冷数据处理能力，但可能损害了 HEKATON 原有的某些特性。因此，论文应阐明 Siberia 性能可能下降的情形。</li>
+</ul>
+<p>参考文献: <a target="_blank" rel="noopener" href="https://www.vldb.org/pvldb/vol7/p931-eldawy.pdf">https://www.vldb.org/pvldb/vol7/p931-eldawy.pdf</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/03/17/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20TicToc/" rel="prev" title="TicToc">
+      <i class="fa fa-chevron-left"></i> TicToc
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-number">1.</span> <span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AE%BA%E6%96%87%E4%BC%98%E5%8A%BF"><span class="nav-number">2.</span> <span class="nav-text">论文优势</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AE%BA%E6%96%87%E4%B8%8D%E8%B6%B3"><span class="nav-number">3.</span> <span class="nav-text">论文不足</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Yihang Wei</p>
+  <div class="site-description" itemprop="description">聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">47</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="languages">
+    <label class="lang-select-label">
+      <i class="fa fa-language"></i>
+      <span>English</span>
+      <i class="fa fa-angle-up" aria-hidden="true"></i>
+    </label>
+    <select class="lang-select" data-canonical="">
+      
+        <option value="zh-CN" data-href="/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/04/05/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Managing%20Cold%20Data%20in%20a%20Memory-Optimized%20Database/" selected="">
+          简体中文
+        </option>
+      
+        <option value="en" data-href="/en/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/04/05/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20Managing%20Cold%20Data%20in%20a%20Memory-Optimized%20Database/" selected="">
+          English
+        </option>
+      
+    </select>
+  </div>
+
+        
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">京ICP备2025131880号-1 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yihang Wei</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '50%',
+  right: '32px',
+  left: 'unset',
+  time: '0.5s',
+  mixColor: '#fff',
+  backgroundColor: '#fff',
+  buttonColorDark: '#100f2c',
+  buttonColorLight: '#fff',
+  saveInCookies: true,
+  label: '明暗',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+</body>
+</html>

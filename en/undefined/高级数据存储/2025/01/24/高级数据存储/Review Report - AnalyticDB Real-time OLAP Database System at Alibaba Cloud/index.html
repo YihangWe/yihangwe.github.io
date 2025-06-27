@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="zh-CN,en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yihangwe.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="摘要该论文解决了三个问题：  如何以低延迟处理用户更复杂多样的查询； 如何设计一种友好且统一的数据布局，使其兼容列式存储和行式存储，能够处理复杂数据类型，并保持低延迟； 如何以低延迟处理每秒海量请求。  该论文提出了 5 个创新性想法，并详细阐述了每个想法的实现方法：  读写分离： 工作节点专用于处理读操作或写操作，确保读操作不会干扰写操作。在实时读模式下，引入版本验证机制（最新版本 &#x3D; max(">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AnalyticDB - 阿里云的实时 OLAP 数据库系统">
+<meta property="og:url" content="https://yihangwe.github.io/en/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/24/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20AnalyticDB%20Real-time%20OLAP%20Database%20System%20at%20Alibaba%20Cloud/index.html">
+<meta property="og:site_name" content="EthanWeee 的个人日志">
+<meta property="og:description" content="摘要该论文解决了三个问题：  如何以低延迟处理用户更复杂多样的查询； 如何设计一种友好且统一的数据布局，使其兼容列式存储和行式存储，能够处理复杂数据类型，并保持低延迟； 如何以低延迟处理每秒海量请求。  该论文提出了 5 个创新性想法，并详细阐述了每个想法的实现方法：  读写分离： 工作节点专用于处理读操作或写操作，确保读操作不会干扰写操作。在实时读模式下，引入版本验证机制（最新版本 &#x3D; max(">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2025-01-24T16:00:00.000Z">
+<meta property="article:modified_time" content="2025-06-20T23:52:00.588Z">
+<meta property="article:author" content="Yihang Wei">
+<meta property="article:tag" content="数据库, 分布式, OLTP, OLAP">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://yihangwe.github.io/en/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/24/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20AnalyticDB%20Real-time%20OLAP%20Database%20System%20at%20Alibaba%20Cloud/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>AnalyticDB - 阿里云的实时 OLAP 数据库系统 | EthanWeee 的个人日志</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<!-- hexo injector head_end start --><script>(function() {function calculateHeight(element) {let height = 0;const items = element.children;for (let i = 0; i < items.length; i++) {height += items[i].offsetHeight || 25;const child = items[i].querySelector(".nav-child");if (child && child.style.display !== "none") {height += calculateHeight(child);}}return height;}function generateToc(lang, container) {const content = document.getElementById(lang + "-content");if (!content) return;const headers = Array.from(content.querySelectorAll("h1, h2, h3, h4, h5, h6"));if (headers.length === 0) return;const ol = document.createElement("ol");ol.className = "nav";let currentLevel = 1;let currentOl = ol;let stack = [ol];let counters = [0, 0, 0, 0, 0, 0];headers.forEach((header, index) => {const level = parseInt(header.tagName[1]);counters[level - 1]++;for (let i = level; i < 6; i++) counters[i] = 0;const li = document.createElement("li");li.className = "nav-item nav-level-" + level;if (level === 1 && index === 0) {li.classList.add("active", "active-current");}const link = document.createElement("a");link.className = "nav-link";if (level === 1 && index === 0) link.classList.add("active");link.href = "#" + header.id;const numSpan = document.createElement("span");numSpan.className = "nav-number";numSpan.textContent = counters.slice(0, level).filter(n => n > 0).join(".");const textSpan = document.createElement("span");textSpan.className = "nav-text";textSpan.textContent = header.textContent;link.appendChild(numSpan);link.appendChild(document.createTextNode(" "));link.appendChild(textSpan);li.appendChild(link);if (level > currentLevel) {const newOl = document.createElement("ol");newOl.className = "nav-child";if (currentLevel === 1) {newOl.style.display = "block";stack[currentLevel - 1].lastElementChild.classList.add("active");}stack[currentLevel - 1].lastElementChild.appendChild(newOl);stack[level - 1] = newOl;currentOl = newOl;} else if (level < currentLevel) {currentOl = stack[level - 1];}currentOl.appendChild(li);currentLevel = level;});container.appendChild(ol);setTimeout(() => {const navHeight = calculateHeight(ol);ol.style.setProperty("--height", navHeight + "px");const navChilds = ol.getElementsByClassName("nav-child");Array.from(navChilds).forEach(child => {if (child.style.display === "block") {const childHeight = calculateHeight(child);child.style.setProperty("--height", childHeight + "px");}});}, 0);return ol;}function updateActiveHeading() {const activeLang = document.getElementById("en-content").style.display === "block" ? "en" : "zh";const content = document.getElementById(activeLang + "-content");const toc = document.getElementById(activeLang + "-toc");if (!content || !toc) return;const headers = Array.from(content.querySelectorAll("h1, h2, h3, h4, h5, h6"));const scrollPos = window.scrollY + window.innerHeight / 3;let activeHeader = null;for (let i = headers.length - 1; i >= 0; i--) {const header = headers[i];const headerTop = header.getBoundingClientRect().top + window.scrollY;if (headerTop <= scrollPos) {activeHeader = header;break;}}const links = toc.getElementsByClassName("nav-link");Array.from(links).forEach(link => {link.classList.remove("active");const parentLi = link.parentElement;if (parentLi) {parentLi.classList.remove("active", "active-current");}});if (activeHeader) {const activeLink = toc.querySelector(`a[href="#${activeHeader.id}"]`);if (activeLink) {activeLink.classList.add("active");let parent = activeLink.parentElement;while (parent && parent.classList) {if (parent.classList.contains("nav-item")) {parent.classList.add("active");if (parent.classList.contains("nav-level-1")) {parent.classList.add("active-current");}}parent = parent.parentElement;}}}}function initTippy() {document.querySelectorAll(".refplus-num").forEach((ref) => {if (ref._tippy) {ref._tippy.destroy();}let refid = ref.firstChild.href.replace(location.origin+location.pathname,"");let refel = document.querySelector(refid);if (!refel) return;let refnum = refel.dataset.num;let ref_content = refel.innerText.replace(`[${refnum}]`,"");tippy(ref, {content: ref_content,});});}function initToc() {const originalToc = document.querySelector(".post-toc-wrap");if (!originalToc || !document.getElementById("langToggle")) return;const tocContainer = document.createElement("div");tocContainer.className = "post-toc-wrap sidebar-panel sidebar-panel-active";const enToc = document.createElement("div");enToc.id = "en-toc";enToc.className = "post-toc motion-element";enToc.style.display = "block";const zhToc = document.createElement("div");zhToc.id = "zh-toc";zhToc.className = "post-toc motion-element";zhToc.style.display = "none";generateToc("en", enToc);generateToc("zh", zhToc);tocContainer.appendChild(enToc);tocContainer.appendChild(zhToc);originalToc.parentNode.replaceChild(tocContainer, originalToc);window.addEventListener("scroll", updateActiveHeading);setTimeout(updateActiveHeading, 0);}window.toggleLanguage = function() {const enContent = document.getElementById("en-content");const zhContent = document.getElementById("zh-content");const enToc = document.getElementById("en-toc");const zhToc = document.getElementById("zh-toc");const button = document.getElementById("langToggle");if (!enContent || !zhContent || !enToc || !zhToc || !button) return;const isEnglish = enContent.style.display === "block";enContent.style.display = isEnglish ? "none" : "block";zhContent.style.display = isEnglish ? "block" : "none";enToc.style.display = isEnglish ? "none" : "block";zhToc.style.display = isEnglish ? "block" : "none";button.querySelector(".button-text").textContent = isEnglish ? "Switch to English" : "切换中文";setTimeout(updateActiveHeading, 0);setTimeout(initTippy, 100);};document.addEventListener("DOMContentLoaded", function() {initToc();setTimeout(initTippy, 3000);});})();</script><style>.post-toc { transition: all 0.2s ease-in-out; }.post-toc .nav { padding-left: 0; }.post-toc .nav-child { padding-left: 1em; }.post-toc .nav-item { line-height: 1.8; }.post-toc .nav-link { color: #555; }.post-toc .nav-link:hover { color: #222; }.post-toc .nav-link.active { color: #fc6423; }.post-toc .active > .nav-link { color: #fc6423; }.post-toc .active-current > .nav-link { color: #fc6423; }</style><!-- hexo injector head_end end --><style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">EthanWeee 的个人日志</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://yihangwe.github.io/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/24/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20AnalyticDB%20Real-time%20OLAP%20Database%20System%20at%20Alibaba%20Cloud/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yihang Wei">
+      <meta itemprop="description" content="聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="EthanWeee 的个人日志">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          AnalyticDB - 阿里云的实时 OLAP 数据库系统
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2025-01-25 00:00:00" itemprop="dateCreated datePublished" datetime="2025-01-25T00:00:00+08:00">2025-01-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-06-21 07:52:00" itemprop="dateModified" datetime="2025-06-21T07:52:00+08:00">2025-06-21</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/" itemprop="url" rel="index"><span itemprop="name">高级数据存储</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <link rel="stylesheet" type="text&#x2F;css" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"><h1 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h1><p>该论文解决了三个问题：</p>
+<ol>
+<li>如何以低延迟处理用户更复杂多样的查询；</li>
+<li>如何设计一种友好且统一的数据布局，使其兼容列式存储和行式存储，能够处理复杂数据类型，并保持低延迟；</li>
+<li>如何以低延迟处理每秒海量请求。</li>
+</ol>
+<p>该论文提出了 5 个创新性想法，并详细阐述了每个想法的实现方法：</p>
+<ol>
+<li><strong>读写分离：</strong> 工作节点专用于处理读操作或写操作，确保读操作不会干扰写操作。在实时读模式下，引入版本验证机制（<code>最新版本 = max(V₁, V₂)</code>）以保证每次查询都能检索到最新数据。此外，每次写操作完成后，写节点会主动将最新版本拉取到相应的读节点，以避免后续读操作出现高延迟。</li>
+<li><strong>混合行列存储：</strong> 用于存储复杂类型数据。一个明细文件 (detail file) 由 <code>n</code> 个行组 (row group) 组成；一个行组由 <code>k</code> 个数据块组成；一个数据块由 <code>p</code> 个 FBlock 组成；一个 FBlock 存储一个或多个行的部分行中某一列的 <code>x</code> 个值。</li>
+<li><strong>高效索引管理：</strong> 包括对基线数据和增量数据的索引构建与维护。对于基线数据，AnalyticDB 构建倒排索引并引入过滤比 (filter ratio) 来优化读操作。对于增量数据，AnalyticDB 在读节点上构建轻量级的排序索引，以加速在完成该类型数据的倒排索引异步构建之前的读操作。</li>
+<li><strong>优化器：</strong> AnalyticDB 引入了 STARs 框架来同时评估存储能力和关系代数能力，并采用动态规划技术，以实现高效的谓词下推 (predicate push-down)。该数据库最小化了联接下推 (join push-down) 所需的表重排 (shuffling) 成本。对于基于索引的联接和聚合，它采用左深树 (LeftDeepTree) 来高效利用全列索引 (index-on-all-columns)，同时下推谓词和聚合操作。此外，优化器和执行引擎采用基于采样的基数估计 (cardinality estimation)，辅以缓存先前采样结果、优化的采样算法和改进的派生基数 (derived cardinality)。</li>
+<li><strong>执行引擎：</strong> 能够直接在序列化的二进制数据上操作，而非 Java 对象，从而消除了在大数据重排过程中序列化和反序列化的高昂开销。</li>
+</ol>
+<p><strong>分析与实验结果：</strong> 在 1TB 数据集上，AnalyticDB 的性能优于 PrestoDB、Druid、Spark SQL 和 Greenplum，并且在扩展到 10TB 数据集时，其性能未受到显著影响。随着写节点数量的增加，AnalyticDB 的写入吞吐量呈现稳定增长。在 TPC-H 基准测试中，AnalyticDB 在 22 个查询中的 20 个上，其完成时间仅为次快数据库所需时间的一半。然而，对于查询 2，由于选择了不同的联接顺序，AnalyticDB 的速度慢于 PrestoDB 和 Greenplum。</p>
+<h1 id="论文优势"><a href="#论文优势" class="headerlink" title="论文优势"></a>论文优势</h1><ul>
+<li>论文中概述的 3 项挑战精准地指向了 OLAP 系统在实现实时高效响应时所面临的关键障碍。解决这些挑战不仅能显著提升数据库对多样化查询和复杂数据类型的兼容性，还能改善其在生产环境中的响应能力，突显了其高度的研究价值。读写分离与版本验证的结合确保了读写操作的隔离性，同时始终为读查询提供最新数据。混合数据布局和索引的设计融入了对 JSON、全文和向量数据等复杂数据类型的支持，为多样化的数据操作提供了统一的访问接口。这极大地拓宽了 AnalyticDB 在更广泛用例中的适用性。此外，执行引擎将基于采样的基数估计与缓存、优化的采样算法等技术相结合，以低开销和最小延迟实现了高精度的估计。总而言之，AnalyticDB 引入的改进和优化方案代表了在增强 OLAP 系统数据多样性和实时响应能力方面迈出的重要一步，其综合性解决方案将在高并发电商场景中充分展现其能力。</li>
+<li>论文提供了全面的文献综述。第 2 节 Related Work 讨论了不同数据库的不足。例如，OLTP 数据库中昂贵的索引更新会降低吞吐量并增加延迟；而 OLAP 数据库（如 TeradataDB 和 Greenplum）中的列式存储会导致点查 (point-lookup) 查询产生高昂的随机 I&#x2F;O 成本。上述问题在 AnalyticDB 中得到了有效解决。此外，论文还概述了 AnalyticDB 相较于 Amazon Redshift 的改进，以及与 Google BigQuery 在查询和聚合方面的差异。</li>
+<li>论文详细描述了 AnalyticDB 中各项功能的过程，包括：<ol>
+<li>从读和写两个角度对读写分离过程进行了透彻的解释，并附有流程图专门说明更复杂的读操作。</li>
+<li>查询执行 (Query Execution) 涉及的 3 个算法的关键指令的伪代码和注释。</li>
+<li>将基线数据与增量数据合并过程分解为 3 个阶段的示意图。</li>
+</ol>
+</li>
+</ul>
+<h1 id="论文不足"><a href="#论文不足" class="headerlink" title="论文不足"></a>论文不足</h1><ul>
+<li>论文中对某些功能的描述不够完整。在论文第 3.4 节 Read&#x2F;Write Decoupling 中，仅提到了实时读 (real-time read)，而遗漏了有限延迟读 (bounded-staleness read)。对于 OLAP 而言，读取过时数据是可以接受的，有限延迟读允许读节点在写操作完成后的特定延迟之后才访问写节点上的最新数据，因此它在一定程度上确保了 AnalyticDB 的快速响应。然而，论文中并未解释这种读取模式。</li>
+<li>论文对某些新引入概念的描述不够清晰。在第 5.1.1 节中，关于谓词下推的讨论仅对 STARs 框架做了简要概述，没有解释它如何应用关系代数、如何进行成本计算，以及优化器如何使用动态规划来封装关系代数运算符。这些遗漏可能会让读者感到困惑。</li>
+<li>论文中的性能评估实验相对简单。首先，仅测试了 3 条 SQL 语句，覆盖的查询类型范围狭窄，且仅针对特定的表分区策略、特定的表和字段以及特定的数据类型。测试并未涉及如 JSON 等复杂数据类型。其次，实验仅测试了 1TB 和 10TB 的数据集。然而，在生产环境中，每日新增数据量可达数十甚至数百 PB。在双 11 或 618 等高峰促销日，每日数据处理量可达数百甚至数千 PB。例如，在 2022 年双 11 期间，淘宝和天猫的订单支付峰值达到每秒 583,000 笔。因此，实验所用的数据集远远不足以反映真实场景的规模。第三，基于 TPC-H 基准的测试仅评估了 22 个查询，不足以全面反映这 5 个数据库的真实性能。因此，建议纳入生产环境中涉及的所有数据和查询，例如 MySQL binlog、ElasticSearch 索引日志和 Kafka 日志等，并在这 5 个数据库上开展为期一周或更长时间的稳定性测试，以提供更真实的评估。</li>
+</ul>
+<p>参考文献：<a target="_blank" rel="noopener" href="https://www.vldb.org/pvldb/vol12/p2059-zhan.pdf">https://www.vldb.org/pvldb/vol12/p2059-zhan.pdf</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/19/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/OLAP%20%E7%B4%A2%E5%BC%95/" rel="prev" title="OLAP 索引">
+      <i class="fa fa-chevron-left"></i> OLAP 索引
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/24/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/OLTP%20%E7%B4%A2%E5%BC%95/" rel="next" title="OLTP 索引">
+      OLTP 索引 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-number">1.</span> <span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AE%BA%E6%96%87%E4%BC%98%E5%8A%BF"><span class="nav-number">2.</span> <span class="nav-text">论文优势</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AE%BA%E6%96%87%E4%B8%8D%E8%B6%B3"><span class="nav-number">3.</span> <span class="nav-text">论文不足</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Yihang Wei</p>
+  <div class="site-description" itemprop="description">聚焦于个人的学习与成长历程，旨在系统记录在后端开发、数据库等领域的探索与实践。</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">47</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="languages">
+    <label class="lang-select-label">
+      <i class="fa fa-language"></i>
+      <span>English</span>
+      <i class="fa fa-angle-up" aria-hidden="true"></i>
+    </label>
+    <select class="lang-select" data-canonical="">
+      
+        <option value="zh-CN" data-href="/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/24/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20AnalyticDB%20Real-time%20OLAP%20Database%20System%20at%20Alibaba%20Cloud/" selected="">
+          简体中文
+        </option>
+      
+        <option value="en" data-href="/en/undefined/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/2025/01/24/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/Review%20Report%20-%20AnalyticDB%20Real-time%20OLAP%20Database%20System%20at%20Alibaba%20Cloud/" selected="">
+          English
+        </option>
+      
+    </select>
+  </div>
+
+        
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">京ICP备2025131880号-1 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yihang Wei</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '50%',
+  right: '32px',
+  left: 'unset',
+  time: '0.5s',
+  mixColor: '#fff',
+  backgroundColor: '#fff',
+  buttonColorDark: '#100f2c',
+  buttonColorLight: '#fff',
+  saveInCookies: true,
+  label: '明暗',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+</body>
+</html>
