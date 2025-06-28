@@ -1096,7 +1096,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-06-28 07:28:50" itemprop="dateModified" datetime="2025-06-28T07:28:50+08:00">2025-06-28</time>
+                <time title="修改时间：2025-06-29 07:22:18" itemprop="dateModified" datetime="2025-06-29T07:22:18+08:00">2025-06-29</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1146,130 +1146,40 @@
 <p>之前提到过，DynamoDB 表被拆分为多个分区，以满足表的吞吐量和存储需求。每个分区承载表键值范围中不重叠的一个连续区段，并在不同可用区分布多个副本，以实现高可用性和持久性。这些副本组成一个复制组，采用 Multi-Paxos 协议进行领导者选举与一致性达成。任一副本都可以发起选举，成为领导者后需定期续租，唯有领导者副本可处理写请求和强一致性读取。领导者在接收到写请求时，会生成预写日志并分发给其他副本，当多数副本将日志持久化后，才向客户端确认写入成功。DynamoDB 支持强一致性和最终一致性读取，其中任何副本都能提供最终一致性读取。若领导者被检测为失败或下线，其它副本可再次发起选举，新领导者在前领导者租约到期前不会处理写入或强一致性读取。复制组包含预写日志和以 B 树形式存储键值数据的存储副本。同时为了进一步提升可用性与持久性，复制组中还可包含仅持久化最近预写日志的日志副本，它们类似 Paxos 中的接受者，但不存储键值数据。也就是说，DynamoDB 的复制组中包含多个数据副本和多个日志副本。</p>
 <p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/DynamoDB_s_replica.png" alt="img"></p>
 <p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/DynamoDB_l_replica.png" alt="img"></p>
-<p>DynamoDB 是由数十个微服务组成的，其中一些核心服务包括元数据服务、请求路由服务、存储节点和自动管理服务。元数据服务存储有关表、索引以及给定表或索引的分区复制组的路由信息。请求路由服务负责对每个请求进行授权、身份验证，并将其路由到相应的服务器。</p>
+<p>DynamoDB 是由数十个微服务组成的，其中一些核心服务包括元数据服务、请求路由器服务、存储节点和自动管理服务。元数据服务存储有关表、索引以及给定表或索引的分区复制组的路由信息。请求路由器服务负责对每个请求进行授权、身份验证，并将其路由到相应的服务器。</p>
 <p>所有的读取和更新请求都会被路由到承载客户数据的存储节点。请求路由器会从元数据服务中查询路由信息。所有资源创建、更新和数据定义请求则会被路由到自动管理服务。存储服务负责在一组存储节点上保存客户数据，每个存储节点会承载多个不同分区的副本。</p>
 <p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/dynamodb_arch.png" alt="img"></p>
-<p>在上图中，请求首先通过网络到达请求路由（Request Router）服务，该服务依次调用认证系统进行 IAM 权限校验、查询分区元数据系统获取路由信息，并与全局准入控制（GAC）系统协作对表级吞吐进行限流，最后将请求转发至目标存储节点（Storage Node）进行数据读写操作。存储节点分布在多个可用区（AZ），采用 SSD 存储并在三个副本间使用 Paxos 算法选举主节点以提供写入一致性和读扩展能力，同时依靠副本复制实现高可用与耐久。认证系统通过 AWS IAM 服务简化身份验证与授权管理，分区元数据系统维护分区与存储节点的映射关系，而 GAC 则作为分布式令牌桶机制确保吞吐的可预测性与表级隔离。</p>
+<p>在上图中，请求首先通过网络到达请求路由器（Request Router）服务，该服务依次调用认证系统进行 IAM 权限校验、查询分区元数据系统获取路由信息，并与全局准入控制（GAC）系统协作对表级吞吐进行限流，最后将请求转发至目标存储节点（Storage Node）进行数据读写操作。存储节点分布在多个可用区（AZ），采用 SSD 存储并在三个副本间使用 Paxos 算法选举主节点以提供写入一致性和读扩展能力，同时依靠副本复制实现高可用与耐久。认证系统通过 AWS IAM 服务简化身份验证与授权管理，分区元数据系统维护分区与存储节点的映射关系，而 GAC 则作为分布式令牌桶机制确保吞吐的可预测性与表级隔离。</p>
 <p>这里需要强调的是，自动管理服务被构建为 DynamoDB 的中枢神经系统，它负责集群健康、分区健康、表的弹性扩缩以及所有控制平面请求的执行。该服务会持续监控所有分区的状态，并替换任何被判定为不健康（响应缓慢、无响应或运行在故障硬件上）的副本。它还会对 DynamoDB 的所有核心组件进行健康检查，并替换任何正在出现故障或已故障的硬件。例如，如果自动管理服务检测到某个存储节点不健康，它会启动恢复流程，把此前托管在该节点上的数据副本迁移或重建到其他健康的节点，以确保整个系统的复制组能够再次达到预期的副本数和健康状态。</p>
 <blockquote>
 <p>[!NOTE]</p>
 <p>普遍意义上，控制平面是系统或网络中的大脑或指挥中心，负责管理、配置和决策，决定资源如何被创建、更新、删除以及如何路由请求；而实际的数据转发、存储和处理则由数据平面执行。控制平面通过一系列管理 API 与底层组件通信，实现对系统状态的监控、调度和恢复，从而保证整体的可用性、一致性和可扩展性。</p>
 <p>因此，在 DynamoDB 中，控制平面并不仅仅指自动管理服务，而是由多种后台管理组件和它们所提供的管理 API 共同构成的一套系统。</p>
 </blockquote>
-<h1 id="Journey-from-provisioned-to-on-demand"><a href="#Journey-from-provisioned-to-on-demand" class="headerlink" title="Journey from provisioned to on-demand"></a>Journey from provisioned to on-demand</h1><ul>
-<li><p><strong>Bursting:</strong> To address the issue of uneven workload distribution across partitions, DynamoDB introduced the concept of <strong>bursting</strong>. Bursting allows an application to utilize unused capacity at the partition level when its provisioned throughput is exhausted, helping to <strong>handle short-term spikes</strong> in workload. DynamoDB retains unused capacity in a partition for <strong>up to 300 seconds</strong>, which can be tapped into when the consumed capacity exceeds the provisioned capacity. This reserved capacity is referred to as <strong>burst capacity</strong>.</p>
-<p><strong>How It Works</strong>: DynamoDB manages throughput using multiple <strong>token buckets</strong>:</p>
-<ul>
-<li><p><strong>Each partition has two token buckets</strong>: one for allocated capacity and another for burst capacity. <strong>Each storage node has a token bucket</strong> that controls the overall load across partitions hosted on that node.</p>
-</li>
-<li><p>When a read or write request arrives at a storage node, the system first checks the partition’s token bucket. If the allocated capacity has been exhausted, burst capacity can be used, but only if there are available tokens at both the burst token level and the node level.</p>
-</li>
-<li><p><strong>Additional Check for Write Requests</strong>: When using burst capacity for write requests, an additional check is performed to ensure that other replica nodes for the partition also have sufficient capacity. This ensures that the write operation can be completed safely and consistently across all replicas. The leader replica periodically gathers information about the node-level capacity of other members in the replication group to facilitate this process.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Adaptive (deprecated):</strong> DynamoDB launched adaptive capacity to better absorb <strong>longlived</strong> spikes that cannot be absorbed by the burst capacity. Adaptive capacity allowed DynamoDB to better absorb workloads that had heavily skewed access patterns across partitions. Adaptive capacity actively monitored the provisioned and consumed capacity of all the tables.</p>
-<ul>
-<li><p>If a table experienced throttling and the table level throughput was not exceeded, then it would automatically increase (boost) the allocated throughput of the partitions of the table using a proportional control algorithm.</p>
-</li>
-<li><p>If the table was consuming more than its provisioned capacity then capacity of the partitions which received the boost would be decreased. The autoadmin system ensured that partitions receiving boost were relocated to an appropriate node that had the capacity to serve the increased throughput.</p>
-</li>
-</ul>
-</li>
-<li><p>GAC, how does it work:</p>
-<ul>
-<li><p><strong>Global Throughput Tracking and Management</strong></p>
-<ul>
-<li><p><strong>Global Token Management</strong>: GAC uses a <strong>token bucket system</strong> to manage the overall throughput (RCUs and WCUs) of a DynamoDB table.</p>
-</li>
-<li><p><strong>Token Buckets</strong>: Each request router maintains a <strong>local token bucket</strong> to handle requests. When tokens are depleted locally, the router requests more tokens from GAC, which manages the global distribution of these tokens across partitions.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Dynamic Token Allocation</strong></p>
-<ul>
-<li><p><strong>Periodic Replenishment</strong>: GAC regularly communicates with the request routers every few seconds to replenish their token buckets. The amount of tokens allocated is based on the overall resource consumption of the table, particularly when certain partitions are experiencing high traffic.</p>
-</li>
-<li><p><strong>Handling Hot Partitions</strong>: When specific partitions become hot, GAC dynamically allocates additional tokens to those partitions.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Capacity Limits and Isolation</strong></p>
-<ul>
-<li><p><strong>Global Throughput Limits</strong>: GAC ensures that the total number of tokens allocated to partitions does not exceed the <strong>provisioned capacity</strong> for the entire table.</p>
-</li>
-<li><p><strong>Node-Level Limits</strong>: Although GAC allocates tokens globally, each partition is subject to the <strong>maximum throughput capacity of its storage node</strong>. This ensures that no single partition can consume more than its node’s allowable resources.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Stateless and Distributed Design</strong></p>
-<ul>
-<li><p><strong>Stateless Operation</strong>: GAC operates in a <strong>stateless manner</strong>, meaning it calculates token allocations in real-time based on incoming client requests. It doesn’t rely on long-term stored states, so GAC servers can be restarted or stopped without affecting the system’s overall operation.</p>
-</li>
-<li><p><strong>Distributed Architecture</strong>: GAC uses a distributed architecture, where multiple GAC instances coordinate using a <strong>hash ring</strong>. This allows GAC to scale horizontally and handle requests from multiple routers efficiently.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Defense-in-Depth with Partition-Level Token Buckets</strong></p>
-<ul>
-<li><p><strong>Partition-Level Control</strong>: Even though GAC manages tokens globally, DynamoDB still retains <strong>partition-level token buckets</strong> for additional protection. These buckets ensure that no single partition consumes excessive resources, offering a secondary layer of isolation and control.</p>
-</li>
-<li><p><strong>Resource Isolation</strong>: Partition-level token buckets prevent any single application or partition from monopolizing the resources of the storage node.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Token Consumption and Replenishment Process</strong></p>
-<ul>
-<li><p>When a request is made, the request router checks its local token bucket for available tokens. If enough tokens are present, the request is processed.</p>
-</li>
-<li><p>If the local tokens are depleted, the request router asks GAC for more tokens.</p>
-</li>
-<li><p>GAC calculates the global consumption of tokens for the table and allocates more tokens to the router based on overall resource usage.</p>
-</li>
-<li><p>Once tokens are used up or expire, the process repeats, with the router requesting new tokens from GAC.</p>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p>Proactive load balancing mechanism</p>
-<ul>
-<li><p>Independent Monitoring: Each storage node independently monitors the total throughput (read&#x2F;write requests) and data size of all the partition replicas it hosts.</p>
-</li>
-<li><p>Threshold Detection: When the throughput or data size of a partition replica approaches or exceeds a predefined threshold of the node’s capacity, that partition replica is flagged as a candidate for migration.</p>
-</li>
-<li><p>Reporting to Autoadmin Service: The storage node reports the list of over-utilized partition replicas to the Autoadmin service, which manages the load balancing process.</p>
-</li>
-<li><p>Automatic Migration: The Autoadmin service finds a new storage node, usually located in a different Availability Zone, that can accommodate the migrating partition replica. This new node must have enough spare capacity to handle the increased load.</p>
-</li>
-<li><p>GAC 和 bursting 都擅长处理 短期或临时的高负载，但如果某个分区长期处于高负载状态（例如一个分区持续有热点键），这些机制可能无法完全消除该分区对特定节点的影响。在这种情况下，自动迁移分区副本是更长期有效的解决方案。</p>
-</li>
-</ul>
-</li>
-<li><p>Even with GAC and partition bursting capacity, DynamoDB tables may still experience throttling if traffic is heavily concentrated on a specific set of items. When the throughput for a partition exceeds a certain threshold, the system splits the partition according to the observed key distribution, rather than simply splitting the key range in the middle. These smaller partitions are typically distributed to different storage nodes. However, some workloads may not benefit from this mechanism, such as:</p>
-<ul>
-<li><p>A partition where traffic is concentrated on a single item.</p>
-</li>
-<li><p>A partition where the key range is accessed sequentially.</p>
-</li>
-</ul>
-</li>
-<li><p>DynamoDB’s <strong>on-demand tables</strong> eliminate the need for customers to manually set throughput. The system automatically adjusts resources based on actual read and write requests, enabling it to quickly adapt to sudden traffic increases. Specifically:</p>
-<ul>
-<li><p>DynamoDB automatically scales up to <strong>twice the previous peak traffic</strong> to handle more requests instantly.</p>
-</li>
-<li><p>If traffic continues to increase, DynamoDB further allocates more resources to prevent throttling and maintain performance.</p>
-</li>
-</ul>
-<p>The scaling mechanism for on-demand tables is achieved through <strong>partition splitting</strong>, where partitions are split based on traffic patterns to ensure each partition has sufficient resources. At the same time, <strong>GAC (Global Admission Control)</strong> monitors the system to prevent any single application from consuming too many resources, maintaining overall system stability.</p>
-</li>
-</ul>
-<p><strong>机制之间的关联总结：</strong></p>
-<ul>
-<li><strong>On-demand tables</strong> 依赖 <strong>GAC</strong> 和 <strong>bursting</strong> 来动态扩展资源，处理流量波动。</li>
-<li><strong>GAC</strong> 管理整个系统的全局资源分配，确保突发和按需扩展时不影响其他应用，同时在必要时与 <strong>proactive load balancing</strong> 机制配合，进行分区迁移。</li>
-<li><strong>Bursting</strong> 提供短期解决方案，而当负载持续增加时，系统会通过 <strong>主动负载平衡</strong> 来长期调整资源分配，防止系统瓶颈。</li>
-</ul>
+<h2 id="从预配置到弹性伸缩"><a href="#从预配置到弹性伸缩" class="headerlink" title="从预配置到弹性伸缩"></a>从预配置到弹性伸缩</h2><p>在最初的 DynamoDB 版本中，开发者引入了分区的概念，以便能够动态地扩展表的容量和性能。系统最开始会将一张表切分为多个分区，使其内容能够分布到多台存储节点上，并且与这些节点的可用空间和性能相映射。当表的规模增大或访问负载上升时，系统可以进一步拆分分区并将其迁移，以实现弹性扩展。分区这一抽象证明了其极高的价值，并一直是 DynamoDB 设计的核心。</p>
+<p>用户需要以读取吞吐量单位（RCU）和写入吞吐量单位（WCU）的形式，显式地指定一个表所需的吞吐量（预配置吞吐量）。对于不超过 4 KB 的条目，1 个 RCU 可每秒执行 1 次强一致性读取请求；对于不超过 1 KB 的条目，1 个 WCU 可每秒执行 1 次标准写入请求。</p>
+<p>显然，早期版本将容量与性能的分配紧密耦合到各个分区，导致了若干挑战。DynamoDB 使用准入控制来确保存储节点不会过载，避免同机房中不同表的分区相互干扰，并强制执行客户所请求的吞吐量限制。</p>
+<p>最初，一个表的所有存储节点共同承担准入控制的责任。每个存储节点会根据其本地所存放的分区的分配情况，独立地执行准入控制。由于一个节点通常会承载多个表的分区，系统便利用各分区的分配吞吐量来隔离不同表的工作负载。DynamoDB 会对单个分区可分配的最大吞吐量进行上限限制，同时确保某节点上所有分区的总吞吐量不超过由其存储介质物理特性所决定的该节点最大允许吞吐量。当表的整体吞吐量发生变化或分区被拆分时，系统会相应地调整各分区的分配吞吐量。若因表容量增长而拆分分区，子分区会从父分区继承并平均分配吞吐量；若因吞吐量需求增长而拆分分区，则新分区会按照表的预配置吞吐量进行分配。例如，假设某分区最大可承载 1000 WCU。创建一个具有 3200 WCU 的表时，DynamoDB 会生成 4 个分区，每个分区分配到 800 WCU；若将表的吞吐量提升至 3600 WCU，则每个分区可用吞吐量自动增至 900 WCU；若进一步提升至 6000 WCU，系统会拆分出 8 个子分区，每个分区分配到 750 WCU；若将吞吐量下调至 5000 WCU，则每个分区的吞吐量相应降至 675 WCU。</p>
+<p>以上这种对各分区进行均匀吞吐量分配的做法基于如下假设：应用会均匀地访问表中各个键，且按容量拆分分区也会等比地拆分性能。但开发者发现，应用在不同时间和键范围上的访问模式常常并不均匀。当表内请求速率分布不均匀时，将分区拆分并按比例分配吞吐量，往往会导致热点区域拆分后可用性能反而低于拆分前的水平。由于吞吐量在分区层面上被静态分配和强制执行，这类非均匀工作负载偶尔会引发应用的读写请求被拒绝（即“限流”），即使整表的预配置吞吐量充足，也无法满足集中在少数键的高并发访问。</p>
+<p><img src="/Users/yihangwei/blog/source/images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/DynamoDB_unbalanced_requests.drawio.png" alt="img"></p>
+<p><img src="/Users/yihangwei/blog/source/images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/DynamoDB_throttling.drawio.png" alt="img"></p>
+<p>在这种配置下，最常遇到的两个挑战是：<strong>热点分区</strong>（hot partitions）和<strong>吞吐量稀释</strong>（throughput dilution）。热点分区指的是访问始终集中在某些表项上的场景，这些热点可能稳定地落在某几个分区内，也可能随着时间在不同分区间跳动。吞吐量稀释则常出现在因扩容而按大小拆分分区的场景：拆分后，父分区的吞吐量被平均分配到新分区，使得每个分区的可用吞吐量降低。</p>
+<p>从用户角度看，这两种情况都会导致资源被限流，使其应用在某些时段出现不可用。遭遇限流的用户往往会通过人为过度提升表的预配置吞吐量来规避问题，但这导致资源浪费、成本上升，并且难以准确估算所需性能。</p>
+<p>因此，DynamoDB 在发布后不久就推出了两项改进，即突发容量和自适应容量，以解决这些问题。</p>
+<h3 id="突发容量"><a href="#突发容量" class="headerlink" title="突发容量"></a>突发容量</h3><p>当开发者注意到各分区的访问模式并不均匀后，又发现并非所有分区在同一时刻都会耗尽为其分配的吞吐量。因此，为了在分区层面应对短时的工作负载高峰，DynamoDB 引入了突发（bursting）机制，其核心思想是在分区级别让应用可以按尽最大努力使用未被实时消耗的容量，以吸收短暂的访问激增。DynamoDB 会保留每个分区多达 300 秒的未使用容量，用于后续的突发性吞吐需求，这部分未用容量即称为突发容量（burst capacity）。</p>
+<p><img src="/Users/yihangwei/blog/source/images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/DynamoDB_token_bucket.drawio.png" alt="img"></p>
+<p>此外，为了仍然保证工作负载的隔离性，DynamoDB 要求分区只有在所在节点整体存在未用吞吐量时才能突发。系统在存储节点层面通过多组令牌桶来管理容量：每个分区对应两组桶（一个分配桶 allocated、一个突发桶 burst），整个节点还有一组节点桶 node。它们共同构成了准入控制的机制。</p>
+<p>每当读或写请求到达存储节点时，系统首先检查对应分区的“分配桶”是否有剩余令牌。若有，则请求被接纳，并同时从该分区与节点级令牌桶中各扣减相应令牌。当分区分配桶中的令牌耗尽后，系统仅在<strong>分区突发桶</strong>和<strong>节点级桶</strong>均有可用令牌时，才允许继续处理（突发）请求。</p>
+<p>而且，完全依据本地（本节点）令牌桶完成校验，无需跨副本通信。写请求除了检查本地突发桶和节点桶外，还需额外验证该分区其他副本所在节点的节点级令牌桶是否有余量，以保证跨副本一致性与可用性。为支持写请求的额外校验，分区的主副本会定期从各成员副本节点收集节点级令牌余量信息，并据此决定是否允许写请求突发。</p>
+<h3 id="自适应容量"><a href="#自适应容量" class="headerlink" title="自适应容量"></a>自适应容量</h3><p>DynamoDB 推出了自适应容量（Adaptive Capacity）机制，专门用来应对那些持续时间比较长、突发容量救急不了的高峰期。自适应容量会持续监控所有表的预配置吞吐量和实际消耗情况；当表级别发生节流但整张表的吞吐量仍在预配置范围内时，系统会自动按比例控制算法动态提升该表中热点分区的分配吞吐量。如果表的总消耗超过预配置容量，则会相应地降低刚刚那些已接受提升的分区容量，以避免资源过度使用。自动管理服务等控制平面确保获得加速的分区被迁移到具备足够剩余能力的合适节点上，以保证性能提升能够得到支撑。与突发机制一样，自适应容量也是尽力而为的，但它能消除因访问倾斜导致的 99.99% 以上因为某几个热键访问量太高而被限流的尴尬，从而让应用跑得更稳，也更省钱。</p>
+<h3 id="全局准入控制"><a href="#全局准入控制" class="headerlink" title="全局准入控制"></a>全局准入控制</h3><p>虽然 DynamoDB 通过突发和自适应容量在很大程度上缓解了非均匀访问带来的吞吐量问题，但这两种方案各有局限。突发机制仅能应对短时的流量峰值，并且依赖于节点本身还有剩余容量；自适应容量则属于被动响应，仅在检测到限流发生后才会启动，这意味着应用在此之前已经经历了短暂的不可用。两者的关键问题是：我们将分区级的容量管理紧密地和准入控制耦合起来了，而准入控制是分散在各个分区中执行的。换句话说，当用户往某个分区发请求时，这个分区自己就决定放行还是拒绝该请求。这种分区粒度的准入控制无法处理非均匀访问模式导致的热点，往往在整体容量闲置的情况下依然出现局部节流，因为每个分区的准入控制只能感知自身的吞吐量和资源使用情况。因此如果能够将准入控制从分区中剥离出来，让分区始终保持可 burst，同时又能保证不同工作负载之间的隔离，将更为高效。</p>
+<p>为此，DynamoDB 用全局准入控制（Global Admission Control，GAC）取代了原有的自适应容量。GAC 依然基于令牌桶思想运行：一个中央服务持续监控全表范围内的令牌消耗情况，每个请求路由器在本地维护一个令牌桶；当应用请求到达时，先尝试从本地令牌桶中扣除令牌；当本地令牌不足时，再向 GAC 请求新的令牌。GAC 根据各路由器提交的消耗信息，动态计算并分发下一时间窗口内可用的全局令牌份额，确保即便流量集中在表中某些键上，也不会超过单个分区的最大处理能力。</p>
+<p>与此同时，为了多层防护，DynamoDB 保留了分区级的令牌桶，并对其容量进行了上限限制，以防某个应用独占节点资源或过度消耗其存储节点上的吞吐量。这样，GAC 实现了跨分区的全局流量调度，而分区级令牌桶则继续在最底层保障多租户隔离。</p>
+<h3 id="平衡消耗的容量"><a href="#平衡消耗的容量" class="headerlink" title="平衡消耗的容量"></a>平衡消耗的容量</h3><p>让分区始终保持突发（bursting）能力，就需要 DynamoDB 对突发容量进行有效管理。DynamoDB 在多种硬件实例类型上运行，这些实例在吞吐量和存储能力上各不相同。最新一代的存储节点上往往承载着数千个分区副本，这些分区可能完全无关联，属于不同表，甚至不同客户，而各表的访问模式也千差万别。要将这些副本安全地部署在同一节点上，又能保证可用性、稳定的性能、安全性和弹性，就必须设计出合理的分配方案。</p>
+<p>如果只用预配置吞吐量，那很好办：分区数固定，按容量找机器，根本不用担心某个分区会多吃流量。但有了突发和自适应后，分区可能随时超出预设容量使用突发资源，这就意味着某些节点在短时内可能会超载，导致把多个数据分区放到同一台机器上变得棘手。</p>
+<p>因此，为了在不牺牲可用性的前提下，提高节点利用率，DynamoDB 实现了一套主动均衡系统：每个存储节点独立监控其上所有分区副本的吞吐量和数据大小，一旦发现总吞吐量超过节点最大容量的阈值，就会向自动管理服务报告一批候选迁移分区。自动管理服务再为这些分区寻找新的存储节点（可在同可用区或跨可用区），确保新节点上尚未存在该分区的副本，从而将它们安全地搬迁出去，降低过度紧凑部署带来的可用性风险。</p>
+<h3 id="拆分消费"><a href="#拆分消费" class="headerlink" title="拆分消费"></a>拆分消费</h3><p>DynamoDB 在引入全局准入控制和始终可突发能力后，发现当流量高度集中在某些键上时，仍可能出现节流。为此，它会根据分区的实际吞吐量自动扩展：当某个分区的消耗超过阈值时，系统会根据该分区的访问分布（而不是简单地把键范围对半拆分）选择最佳拆分点，将其分成两个子分区。这样可以更精准地将热点区域隔离出来，不过对于只针对单个键或按顺序访问整个键范围的场景，此方法并无优势；对此，DynamoDB 会自动识别并避免执行拆分操作。</p>
+<h3 id="按需配置"><a href="#按需配置" class="headerlink" title="按需配置"></a>按需配置</h3><p>DynamoDB 还推出了按需表（On-Demand Tables）模式，帮助之前在本地或自建数据库上运行、需要手动配置服务器的应用解放运维负担，是一种无需用户预先规划吞吐量即可弹性扩缩的无服务器模式。按需表通过读写容量单位（RCU&#x2F;WCU）来自动弹性扩缩，系统会实时监控实际的读写请求量，并能瞬间承载到达表上的流量峰值的两倍。如果后续流量超过此前最大峰值的两倍，DynamoDB 会不断新增分区并按流量情况拆分，以保证应用不会因超出配额而被限流。全局准入控制则负责从整体上监控并保护系统，防止单个应用抢占所有资源；加上基于消耗量的智能分区调度，按需表能够高效利用节点资源，避免触及节点级别的容量上限，让应用在任何突发流量下都能平稳运行。</p>
 <h1 id="Durability-and-correctness"><a href="#Durability-and-correctness" class="headerlink" title="Durability and correctness"></a>Durability and correctness</h1><h2 id="Hardware-failures"><a href="#Hardware-failures" class="headerlink" title="Hardware failures"></a>Hardware failures</h2><p>The write-ahead logs in DynamoDB are crucial for ensuring data durability and crash recovery. Each partition has three replicas that store the write-ahead logs. To enhance durability, the logs are periodically archived to Amazon S3. The unarchived logs typically amount to a few hundred megabytes.</p>
 <p>In large-scale systems, hardware failures such as memory or disk failures are common. When a node fails, all replication groups hosted on that node are reduced to two copies. The process of repairing a storage replica can take several minutes, as it involves copying both the B-tree and the write-ahead logs.</p>
 <p>When the system detects an unhealthy replica, the leader of the replication group adds a log replica to ensure data durability is not compromised. Since only the recent write-ahead logs need to be copied without the B-tree, adding the log replica takes just a few seconds. This quick addition helps restore the affected replication group, ensuring that the most recent writes remain highly durable.</p>
