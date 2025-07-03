@@ -1096,7 +1096,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-07-02 05:13:41" itemprop="dateModified" datetime="2025-07-02T05:13:41+08:00">2025-07-02</time>
+                <time title="修改时间：2025-07-04 07:23:54" itemprop="dateModified" datetime="2025-07-04T07:23:54+08:00">2025-07-04</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1240,6 +1240,19 @@
 <p>如果完成上图的第五步之后，Region A 的数据存储宕机，那么 DynamoDB 基于全局表的故障回复和切换如下：</p>
 <p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/DynamoDB_failover.drawio.png" alt="img"></p>
 <p>通过 DNS 或客户端配置，将写流量切换到 Region B。切换后，App B 向 Region B 写入新数据，Region B 本地确认写入成功。当 Region A 恢复后，全局表会将 Region B 的变更异步推回 Region A。</p>
+<h3 id="复制"><a href="#复制" class="headerlink" title="复制"></a>复制</h3><h4 id="Region-内复制"><a href="#Region-内复制" class="headerlink" title="Region 内复制"></a>Region 内复制</h4><p>多个可用区（AZ1、AZ2、AZ3）通过高速专有网络互联，数据同步延迟通常在毫秒级。每个 AZ 内都有一份完整数据副本，读写请求可路由至任一 AZ，以提升性能和可用性。</p>
+<p>在同一区域内部署的分布式存储通常通过同步复制协议（如 Paxos、Raft）保证写操作在所有 AZ 同步完成后再返回成功，从而确保读写顺序严格一致。</p>
+<p>单个 AZ 故障时，流量可自动切换到其他 AZ，减少服务中断，满足 99.99% 甚至 99.999% 的 SLA 要求。每份数据至少存储在三个物理位置，具备抗硬件损坏和局部灾难的能力，典型耐久性可达 11 个 9（99.999999999%）。</p>
+<h4 id="跨-Region-复制"><a href="#跨-Region-复制" class="headerlink" title="跨 Region 复制"></a>跨 Region 复制</h4><p>数据从主区域（Region A）异步复制到一个或多个目标区域（Region B、Region C）。跨区域复制常用于灾备、合规和全球用户读写场景。</p>
+<p><strong>主要关注点</strong></p>
+<ul>
+<li>写入性能：跨区域的往返时延通常在数十至数百毫秒之间，远高于区域内几十毫秒的延迟，影响写操作的吞吐量和响应时间。为了避免同步复制带来的高延迟，多数场景采取异步复制，但这会牺牲一致性和可能造成数据丢失。</li>
+<li>故障爆炸半径：一旦主区域出现故障，异步复制可能无法及时到达目标区域，导致大量未复制的数据面临丢失风险，同时故障影响范围横跨多个地理区域。因此需设计分片或多活策略，将流量和数据分散，以尽量缩小单点故障影响范围。</li>
+<li>算法超时：跨区域通信更易遭遇丢包和波动，可能导致复制协议中同步或心跳消息超时。需要在复制算法中引入指数退避、幂等操作和批量确认等机制，以避免超时重试带来的性能降级。</li>
+</ul>
+<p>DynamoDB Streams 是 DynamoDB 提供的变更数据捕获机制，它记录表中每次写操作的顺序日志并保留 24 小时，供下游应用实时消费。</p>
+<p>跨区域的复制流程具体如下：源区域（Region A）通过 DynamoDB Streams 将写操作的变更记录捕获到一个持久化日志中（Stream），然后由一组可横向扩展的 RepOut 进程并行地消费这些变更，打包成包含主键、属性和时间戳的写入请求（Put(k, v, ts)），并异步发送到目标区域（Region B）。目标区域由一组 RepIn 进程并行接收这些请求，并在写入本地表前，基于附带的时间戳与本地存储的版本进行比较，仅当本地版本更旧时才执行写入，以实现幂等性和冲突解决。通过在 RepOut&#x2F;RepIn 层面使用多进程或无服务器函数（如 Lambda）对不同 Stream 分片或写请求进行分片处理，并结合批量提交与并发控制，就能在线性扩展吞吐的同时保证同分区写入的顺序性和最终一致性。</p>
+<p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/DynamoDB_streams_replica.drawio.png" alt="img"></p>
 <h1 id="Programming-Interface"><a href="#Programming-Interface" class="headerlink" title="Programming Interface"></a>Programming Interface</h1><ol>
 <li><p><strong>Key-Value Store</strong></p>
 <p>DynamoDB allows users to create tables that can grow almost indefinitely. Each table is a collection of items, and each item is a collection of attributes. Each item is uniquely identified by a primary key, ensuring uniqueness within the table. DynamoDB provides a simple interface to store or retrieve items from a table or an index.</p>
