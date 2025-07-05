@@ -46,8 +46,9 @@
 <meta property="og:image" content="https://yihangwe.github.io/images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/DynamoDB_failover.drawio.png">
 <meta property="og:image" content="https://yihangwe.github.io/images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/DynamoDB_streams_replica.drawio.png">
 <meta property="og:image" content="https://yihangwe.github.io/images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/dynamodb_txn.png">
+<meta property="og:image" content="https://yihangwe.github.io/images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/DynamoDB_2PC.png">
 <meta property="article:published_time" content="2024-10-03T16:00:00.000Z">
-<meta property="article:modified_time" content="2025-07-03T23:23:54.144Z">
+<meta property="article:modified_time" content="2025-07-05T21:53:56.620Z">
 <meta property="article:author" content="Yihang Wei">
 <meta property="article:tag" content="数据库, 分布式, OLTP, OLAP">
 <meta name="twitter:card" content="summary">
@@ -235,7 +236,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-07-04 07:23:54" itemprop="dateModified" datetime="2025-07-04T07:23:54+08:00">2025-07-04</time>
+                <time title="Modified: 2025-07-06 05:53:56" itemprop="dateModified" datetime="2025-07-06T05:53:56+08:00">2025-07-06</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -392,194 +393,106 @@
 <p>DynamoDB Streams 是 DynamoDB 提供的变更数据捕获机制，它记录表中每次写操作的顺序日志并保留 24 小时，供下游应用实时消费。</p>
 <p>跨区域的复制流程具体如下：源区域（Region A）通过 DynamoDB Streams 将写操作的变更记录捕获到一个持久化日志中（Stream），然后由一组可横向扩展的 RepOut 进程并行地消费这些变更，打包成包含主键、属性和时间戳的写入请求（Put(k, v, ts)），并异步发送到目标区域（Region B）。目标区域由一组 RepIn 进程并行接收这些请求，并在写入本地表前，基于附带的时间戳与本地存储的版本进行比较，仅当本地版本更旧时才执行写入，以实现幂等性和冲突解决。通过在 RepOut&#x2F;RepIn 层面使用多进程或无服务器函数（如 Lambda）对不同 Stream 分片或写请求进行分片处理，并结合批量提交与并发控制，就能在线性扩展吞吐的同时保证同分区写入的顺序性和最终一致性。</p>
 <p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/DynamoDB_streams_replica.drawio.png" alt="img"></p>
-<h1 id="Programming-Interface"><a href="#Programming-Interface" class="headerlink" title="Programming Interface"></a>Programming Interface</h1><ol>
-<li><p><strong>Key-Value Store</strong></p>
-<p>DynamoDB allows users to create tables that can grow almost indefinitely. Each table is a collection of items, and each item is a collection of attributes. Each item is uniquely identified by a primary key, ensuring uniqueness within the table. DynamoDB provides a simple interface to store or retrieve items from a table or an index.</p>
-</li>
-<li><p><strong>Read and Write Operations</strong></p>
-<p>DynamoDB operates as a key-value store, and the most common operations used by applications involve reading and writing data. These operations include:</p>
-<ul>
-<li><p><strong>GetItem</strong>: Retrieves an item with a given primary key.</p>
-</li>
-<li><p><strong>PutItem</strong>: Inserts a new item or replaces an existing one.</p>
-</li>
-<li><p><strong>UpdateItem</strong>: Updates an existing item, or adds it if it doesn’t exist.</p>
-</li>
-<li><p><strong>DeleteItem</strong>: Deletes an item from the table based on the primary key.</p>
-</li>
-</ul>
-<p>These last three operations (PutItem, UpdateItem, and DeleteItem) are collectively referred to as writes. A write operation can optionally include conditions that must be satisfied for the operation to be executed successfully. For instance, you could specify that a PutItem operation should only succeed if the item doesn’t already exist.</p>
-</li>
-<li><p><strong>Transactional Operations</strong></p>
-<p>DynamoDB supports transactions through two key operations:</p>
-<ul>
-<li><p><strong>TransactGetItems</strong>: Used for reading multiple items atomically. It retrieves the latest versions of items from one or more tables at a single point in time, ensuring consistency. If any conflicting operation is modifying an item that’s being read, the transaction will be rejected.</p>
-</li>
-<li><p><strong>TransactWriteItems</strong>: This is used for performing atomic writes across multiple items and tables. It allows you to create, update, or delete multiple items in one or more tables within a single atomic transaction. This ensures that either all changes happen, or none do. The operation is synchronous and idempotent (meaning it can be retried without causing duplicate effects). TransactWriteItems can include conditions on the current values of the items, and the operation is rejected if these conditions aren’t met.</p>
-</li>
-</ul>
-</li>
+<p>Recovery Point Objective（RPO）是灾难恢复和业务连续性规划中的关键指标，定义了在发生故障或灾难时，允许丢失数据的最长时间窗口。它决定了需要多频繁地进行备份或数据复制，以保证在灾难发生后仍能接受的数据损失范围。</p>
+<p>若主站在此窗口内发生故障，流式日志中未传输的更新就会丢失，造成 “<strong>Lost Updates</strong>” 问题。具体流程如下：</p>
+<ol>
+<li>应用在区域 A 执行 <code>Put(k, v1)</code>，本地存储和流式层记录 <code>k, v1, ts1</code>，立即返回成功。</li>
+<li>在 RepOut 将 <code>k, v1, ts1</code> 发送到区域 B 前，区域 A 突发故障（网络中断或宕机），流式层中尚未传输的 <code>v1</code> 列入 RPO 窗口，随故障一起丢失。</li>
+<li>故障切换后，应用在区域 B 执行 <code>Get(k)</code> 得到旧值 <code>v0</code>，再执行 <code>Put(k, v2 = v0 + 1)</code>。</li>
+<li>新写入 <code>v2</code> 覆盖了原本应该是 <code>v1</code> 的内容，导致先前区域 A 的更新完全丢失，即 “Lost Update”。</li>
 </ol>
-<h1 id="Transactions"><a href="#Transactions" class="headerlink" title="Transactions"></a>Transactions</h1><p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/dynamodb_txn.png" alt="img"></p>
-<p><strong>Request Router (RR)</strong>:</p>
+<p>为有效防范 “Lost Updates” 在故障切换时的发生，首先应尽量缩短 RPO 窗口，即将异步复制升级为半同步或全同步复制，确保主库在确认写入时也等待至少一个备库的持久化 ACK，从而将未复制数据丢失的概率降至最低；与此同时，可为敏感或高价值的写操作采用混合复制策略，仅对关键数据启用同步复制，其余业务继续使用异步复制以兼顾性能与成本。其次，优化网络与资源配置，提升 RepOut&#x2F;RepIn 通道的带宽和优先级，减少复制积压，并结合近连续数据保护或实时流式复制技术，将数据写入与传输延迟控制在秒级以内，以实现接近零 RPO。最后，强化应用层幂等与冲突检测，通过在写操作中引入版本号、幂等键或乐观并发控制策略，在 RepIn 应用更新时比对版本号而非仅凭时间戳判断新旧，或采用 CRDT 等机制进行多副本冲突合并，以保证即便出现复制延迟也不会因时间戳“后写胜出”而丢掉任何有效更新。</p>
+<h2 id="编程接口"><a href="#编程接口" class="headerlink" title="编程接口"></a>编程接口</h2><h3 id="读写操作"><a href="#读写操作" class="headerlink" title="读写操作"></a>读写操作</h3><p>由于 DynamoDB 是一个键值存储，应用程序最常用的操作包括：</p>
 <ul>
-<li>The <strong>Request Router</strong> is the first major component that handles incoming requests after they pass through the network.</li>
-<li><strong>Authentication and Authorization</strong>: RR typically interacts with an <strong>Authentication System</strong> to ensure that the request is valid and the user has the proper permissions to access or modify the data.</li>
-<li><strong>Routing Requests</strong>: Once a request is authenticated, the RR determines which <strong>Storage Nodes</strong> the request should be forwarded to. It uses the <strong>Metadata System</strong> to map the key(s) involved in the request to the correct storage nodes, as the data is distributed across many nodes.</li>
-<li><strong>Forwarding Requests</strong>: Depending on whether the operation is a simple read&#x2F;write or part of a larger transaction, the RR may route the request directly to storage nodes or to the Transaction Coordinator.</li>
+<li><strong>读取项（GetItem）</strong></li>
+<li><strong>插入项（PutItem）</strong></li>
+<li><strong>更新项（UpdateItem）</strong></li>
+<li><strong>删除项（DeleteItem）</strong></li>
 </ul>
-<p><strong>Transaction Coordinator (TC)</strong>:</p>
+<p>这其中，插入、更新和删除操作统称为<strong>写操作（writes）</strong>。写操作可以<strong>可选地指定一个条件</strong>，只有当该条件得到满足时，操作才会成功执行。</p>
+<h3 id="事务操作"><a href="#事务操作" class="headerlink" title="事务操作"></a>事务操作</h3><p>DynamoDB 提供了两种事务操作：</p>
 <ul>
-<li>The <strong>Transaction Coordinator</strong> plays a central role in handling transactions that span multiple items or storage nodes.</li>
-<li><strong>Transaction Management</strong>: For requests that involve multiple storage nodes or require consistency (e.g., multi-item writes in a transaction), the RR forwards the request to the TC. The TC is responsible for breaking down the transaction into individual operations and coordinating these operations across the necessary storage nodes.</li>
-<li><strong>Distributed Transaction Execution</strong>: The TC ensures that the operations follow the appropriate protocol (e.g., two-phase commit) to guarantee atomicity and consistency, ensuring that all parts of the transaction are either completed successfully or rolled back.</li>
-<li><strong>Timestamp Assignment and Conflict Resolution</strong>: In a timestamp-based system like DynamoDB, the TC may assign timestamps to ensure the correct ordering of operations and manage any potential conflicts between concurrent transactions.</li>
+<li><strong>TransactGetItems（读取事务）</strong></li>
+<li><strong>TransactWriteItems（写入事务）</strong></li>
 </ul>
-<p>In summary:</p>
+<p>这些操作是以单次请求提交的，要么全部成功，要么立即失败，不会阻塞。<code>TransactGetItems</code> 和 <code>TransactWriteItems</code> 相对于其他 DynamoDB 操作按可串行化顺序执行。</p>
+<p><strong>TransactGetItems</strong> 会从一个或多个表中检索最新版本的项，并在同一时间点读取它们，返回的是一致快照。如果有其他冲突操作正在修改任一读取项，请求将被拒绝。</p>
+<p><strong>TransactWriteItems</strong> 是同步且幂等的写入事务操作，可原子性地在一个或多个表中执行多个项的创建、更新或删除操作。它使用客户端请求令牌来保证幂等性，并可附带对当前项值的预先条件校验。只要任一个预条件不成立，请求即被拒绝。</p>
+<p>假设我们有一个在线市场应用，涉及客户（Customers）、产品（Products）和订单（Orders）三张表：</p>
 <ul>
-<li><strong>Request Router (RR)</strong> handles initial authentication and routing of requests to the appropriate storage nodes or transaction coordinator.</li>
-<li><strong>Transaction Coordinator (TC)</strong> manages distributed transactions, ensuring data consistency and handling multi-node operations.</li>
+<li><code>Customers</code> 表以客户 ID 为主键，存储客户信息及地址；</li>
+<li><code>Products</code> 表以产品 ID 为主键，存储产品价格和库存状态；</li>
+<li><code>Orders</code> 表以订单 ID 为主键，存储完整订单记录。</li>
 </ul>
-<h1 id="Transaction-execution"><a href="#Transaction-execution" class="headerlink" title="Transaction execution"></a>Transaction execution</h1><ol>
-<li><p><strong>Transaction Routing</strong></p>
-<p>All operation requests first reach a set of frontend hosts known as request routers. These routers are responsible for authenticating the requests and routing them to the appropriate storage nodes. Storage nodes are mapped based on key ranges. For transaction management, the routers forward transaction operations to transaction coordinators.</p>
-<p>Transaction coordinators break down the transaction into multiple operations targeting different items and coordinate the execution of these operations across the storage nodes using a distributed protocol.</p>
-</li>
-<li><p><strong>Timestamp Ordering</strong></p>
-<p>Each transaction is assigned a timestamp that defines its logical execution order. Multiple transaction coordinators operate in parallel, and different coordinators assign timestamps to different transactions. As long as transactions execute in the assigned order, serializability is maintained.</p>
-<p>The storage nodes are responsible for ensuring that the operations on the items they manage are executed in the correct order and rejecting transactions that cannot be properly ordered.</p>
-</li>
-<li><p><strong>Write Transaction Protocol</strong></p>
-<p>DynamoDB uses a two-phase commit protocol to ensure that the write operations within a transaction are atomic and executed in the correct order. In the prepare phase, the coordinator prepares all the write operations. If all storage nodes accept the operations, the transaction is committed; otherwise, it is canceled.</p>
-<p>The storage nodes record the timestamp and metadata of each item involved in the transaction to ensure the transaction is handled correctly.</p>
-</li>
-<li><p><strong>Read Transaction Protocol</strong></p>
-<p>Read transactions also use a two-phase protocol, but it differs from the write transaction protocol. DynamoDB designed a two-phase read protocol without write operations to avoid adding latency and costs to reads.</p>
-<p>In the first phase, the coordinator reads all the items involved in the transaction, along with their Log Sequence Numbers (LSN). In the second phase, if the LSN has not changed, the read is successful; otherwise, the read is rejected.</p>
-</li>
-<li><p><strong>Recovery and Fault Tolerance</strong></p>
-<p>If a storage node fails, the leadership role transfers to another storage node within the same replication group, with transaction metadata persistently stored and replicated across the nodes.</p>
-<p>Transaction coordinator failures are more complex. Coordinators maintain a persistent record of each transaction to ensure atomicity and completeness. Recovery managers periodically scan these transaction records, looking for incomplete transactions, and reassign them to new coordinators to resume execution.</p>
-</li>
+<p>在处理一次订单时，需要确保：</p>
+<ol>
+<li>客户账户已通过验证；</li>
+<li>产品处于可用状态并更新为已售出；</li>
+<li>订单条目已创建。</li>
 </ol>
-<h1 id="Two-phase-commit-2PC"><a href="#Two-phase-commit-2PC" class="headerlink" title="Two-phase commit (2PC)"></a>Two-phase commit (2PC)</h1><ol>
-<li><p><strong>Prepare Phase</strong></p>
-<p>In the prepare phase, the transaction coordinator (TC) is responsible for sending the transaction’s write operations to all the participating storage nodes. The coordinator breaks down the transaction into individual operations targeting specific data items and sends a prepare message to each storage node involved. This message includes:</p>
+<p>这些操作应当作为一个事务执行，否则可能造成数据不一致。</p>
+<p>例如，在购买一本书的事务中：</p>
 <ul>
-<li><p>The transaction’s timestamp.</p>
-</li>
-<li><p>The transaction’s unique identifier (ID).</p>
-</li>
-<li><p>The specific operation to be performed on the data item (such as insert, update, or delete).</p>
-</li>
+<li>使用 <strong>ConditionCheck</strong>：在 <code>Customers</code> 表验证客户存在，但不修改任何数据；</li>
+<li>使用 <strong>UpdateItem</strong>：在 <code>Products</code> 表确认书籍库存并将其标记为已售；</li>
+<li>使用 <strong>PutItem</strong>：在 <code>Orders</code> 表创建订单记录。</li>
 </ul>
-<p>Upon receiving the prepare message, each storage node evaluates whether it can accept the transaction. The storage node will accept the transaction’s write operation if all of the following conditions are met:</p>
-<ul>
-<li><p><strong>Preconditions</strong> are satisfied (e.g., a condition might be that the item must exist, or that it has a certain value).</p>
-</li>
-<li><p>The write operation does not violate any <strong>system restrictions</strong> (e.g., exceeding the maximum item size).</p>
-</li>
-<li><p>The transaction’s timestamp is <strong>greater than</strong> the item’s last write timestamp, indicating that this operation is the most recent.</p>
-</li>
-<li><p>There are no <strong>ongoing transactions</strong> attempting to write to the same item.</p>
-</li>
-</ul>
-<p>If all participating storage nodes accept the transaction during the prepare phase, the coordinator moves to the commit phase. If any node rejects the transaction (e.g., due to a failed precondition or timestamp conflict), the transaction is canceled.</p>
-</li>
-<li><p><strong>Commit Phase</strong></p>
-<p>Once the transaction has been accepted by all storage nodes during the prepare phase, the coordinator enters the commit phase. During this phase, the coordinator sends a commit message to all the storage nodes, instructing them to apply the write operations. Each storage node then:</p>
-<ul>
-<li><p>Applies the prepared write operations to the local items.</p>
-</li>
-<li><p>Updates the <strong>timestamp</strong> of the item to reflect the transaction’s timestamp.</p>
-</li>
-<li><p>Updates the timestamps of any items where preconditions were checked, even if no write operation was performed.</p>
-</li>
-</ul>
-<p>If any node rejects the transaction during the prepare phase, the coordinator sends a cancel message to all storage nodes, instructing them to discard any prepared changes. No writes are applied, ensuring atomicity.</p>
-</li>
+<p>整个过程在一个 <code>TransactWriteItems</code> 请求中完成，确保步骤要么全部成功，要么全部失败，保持数据一致。</p>
+<p>该事务写入的具体代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Check if customer exists</span></span><br><span class="line"><span class="type">Check</span> <span class="variable">checkItem</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Check</span>()</span><br><span class="line">  .withTableName(<span class="string">&quot;Customers&quot;</span>)</span><br><span class="line">  .withKey(Collections.singletonMap(<span class="string">&quot;CustomerId&quot;</span>, <span class="keyword">new</span> <span class="title class_">AttributeValue</span>(<span class="string">&quot;CustomerUniqueId&quot;</span>)))</span><br><span class="line">  .withConditionExpression(<span class="string">&quot;attribute_exists(CustomerId)&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// Update status of the item in Products</span></span><br><span class="line"><span class="type">Update</span> <span class="variable">updateItem</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Update</span>()</span><br><span class="line">  .withTableName(<span class="string">&quot;Products&quot;</span>)</span><br><span class="line">  .withKey(Collections.singletonMap(<span class="string">&quot;ProductId&quot;</span>, <span class="keyword">new</span> <span class="title class_">AttributeValue</span>(<span class="string">&quot;BookUniqueId&quot;</span>)))</span><br><span class="line">  .withConditionExpression(<span class="string">&quot;expected_status = :expected&quot;</span>)</span><br><span class="line">  .withUpdateExpression(<span class="string">&quot;SET ProductStatus = :newStatus&quot;</span>)</span><br><span class="line">  .withExpressionAttributeValues(Map.of(</span><br><span class="line">    <span class="string">&quot;:expected&quot;</span>, <span class="keyword">new</span> <span class="title class_">AttributeValue</span>(<span class="string">&quot;IN_STOCK&quot;</span>),</span><br><span class="line">    <span class="string">&quot;:newStatus&quot;</span>, <span class="keyword">new</span> <span class="title class_">AttributeValue</span>(<span class="string">&quot;SOLD&quot;</span>)</span><br><span class="line">  ));</span><br><span class="line"></span><br><span class="line"><span class="comment">// Insert the order item in the Orders table</span></span><br><span class="line"><span class="type">Put</span> <span class="variable">putItem</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Put</span>()</span><br><span class="line">  .withTableName(<span class="string">&quot;Orders&quot;</span>)</span><br><span class="line">  .withItem(Map.of(</span><br><span class="line">    <span class="string">&quot;OrderId&quot;</span>, <span class="keyword">new</span> <span class="title class_">AttributeValue</span>(<span class="string">&quot;OrderUniqueId&quot;</span>),</span><br><span class="line">    <span class="string">&quot;ProductId&quot;</span>, <span class="keyword">new</span> <span class="title class_">AttributeValue</span>(<span class="string">&quot;BookUniqueId&quot;</span>),</span><br><span class="line">    <span class="string">&quot;CustomerId&quot;</span>, <span class="keyword">new</span> <span class="title class_">AttributeValue</span>(<span class="string">&quot;CustomerUniqueId&quot;</span>),</span><br><span class="line">    <span class="string">&quot;OrderStatus&quot;</span>, <span class="keyword">new</span> <span class="title class_">AttributeValue</span>(<span class="string">&quot;CONFIRMED&quot;</span>),</span><br><span class="line">    <span class="string">&quot;OrderCost&quot;</span>, <span class="keyword">new</span> <span class="title class_">AttributeValue</span>().withN(<span class="string">&quot;100&quot;</span>)</span><br><span class="line">  ))</span><br><span class="line">  .withConditionExpression(<span class="string">&quot;attribute_not_exists(OrderId)&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// Assemble the transaction request</span></span><br><span class="line"><span class="type">TransactWriteItemsRequest</span> <span class="variable">twiReq</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">TransactWriteItemsRequest</span>()</span><br><span class="line">  .withTransactItems(</span><br><span class="line">  <span class="keyword">new</span> <span class="title class_">TransactWriteItem</span>().withCheck(checkItem),</span><br><span class="line">  <span class="keyword">new</span> <span class="title class_">TransactWriteItem</span>().withUpdate(updateItem),</span><br><span class="line">  <span class="keyword">new</span> <span class="title class_">TransactWriteItem</span>().withPut(putItem)</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">// Single transaction call to DynamoDB</span></span><br><span class="line"><span class="type">AmazonDynamoDB</span> <span class="variable">client</span> <span class="operator">=</span> AmazonDynamoDBClientBuilder.defaultClient();</span><br><span class="line">client.transactWriteItems(twiReq);</span><br></pre></td></tr></table></figure>
+
+<h2 id="事务执行"><a href="#事务执行" class="headerlink" title="事务执行"></a>事务执行</h2><p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/dynamodb_txn.png" alt="img"></p>
+<h3 id="事务路由"><a href="#事务路由" class="headerlink" title="事务路由"></a>事务路由</h3><p>所有发送到 DynamoDB 的操作都会先到达一组称为请求路由器的前端主机。请求路由器负责对每个请求进行认证并根据访问的键，将请求路由到相应的存储节点。键范围（key‑range）与存储节点的映射关系由元数据子系统管理。</p>
+<p>与非事务请求类似，每个事务操作也首先由请求路由器接收。路由器会进行必要的请求身份验证和权限授权，然后将请求转发给一组事务协调器。事务协调器集群中的任意一个实例都可以接管任意事务。</p>
+<p>事务协调器将事务分解为针对各个条目的子操作，并启动一套分布式协议，由这些数据项所在的存储节点参与执行。上图展示了执行一笔事务时，所涉及的各组件的高层架构图。</p>
+<h3 id="时间戳顺序"><a href="#时间戳顺序" class="headerlink" title="时间戳顺序"></a>时间戳顺序</h3><p>DynamoDB 使用时间戳排序（Timestamp Ordering）机制来定义事务的逻辑执行顺序。当收到事务请求后，事务协调器会使用其当前时钟的值为该事务分配一个时间戳。</p>
+<p>为了应对大规模的事务负载，系统中运行着大量并行工作的事务协调器，不同的协调器会为不同的事务分配时间戳。只要事务的执行顺序与其分配的时间戳一致，就可以确保可串行性。</p>
+<p>一旦时间戳分配完成并通过了预检查，参与该事务的存储节点就可以独立执行各自负责的操作，无需进一步协调。每个存储节点各自负责保证涉及其数据项的请求按正确顺序执行，并拒绝那些无法正确排序的冲突事务。</p>
+<p>即便事务协调器之间的时钟未严格同步，只要维持事务在时间戳上的一致性，也可以保证可串行性。但若协调器的时钟越精确，成功事务的比例就越高，而且得到的事务序列越贴近真实时间顺序。</p>
+<p>DynamoDB 的事务协调器从 AWS 提供的时间同步服务（AWS Time Sync Service）获取时间，因此多个协调器之间的时钟能维持在微秒级别的同步。</p>
+<p>然而，即使所有时钟完全同步，事务在传输过程中仍可能因为网络延迟、事务协调器的故障与恢复等问题，导致事务在存储节点上的到达顺序不一致。为了解决这一问题，存储节点会使用存储的时间戳信息来处理任意顺序到达的事务请求。</p>
+<p>每个事务在进入存储节点前，都会带上事务协调器分配的<strong>时间戳 T</strong>。存储节点为每个条目维护了一个记录该项最后执行事务的<strong>最大时间戳</strong>（<code>lastCommittedTimestamp</code>）。当节点收到一个事务请求时，它会：</p>
+<ol>
+<li><strong>检查 T 是否 ≥ lastCommittedTimestamp</strong>；</li>
+<li>如果满足，则执行这个事务，并将 <code>lastCommittedTimestamp</code> 更新为 T；</li>
+<li>否则（即 T 比已有时间戳小），说明该事务时间在线谱中落在历史里，<strong>节点会拒绝该请求</strong>，避免生成不符合时间戳顺序的写入。</li>
 </ol>
-<h1 id="Adapting-timestamp-ordering-for-key-value-operations"><a href="#Adapting-timestamp-ordering-for-key-value-operations" class="headerlink" title="Adapting timestamp ordering for key-value operations"></a>Adapting timestamp ordering for key-value operations</h1><ol>
-<li><p><strong>Individual Item Read Operations</strong></p>
-<p>In DynamoDB, even if there is a prepared transaction attempting to read to a particular data item, the system still allows read operations on that item. Specifically:</p>
+<h3 id="写事务的二阶段提交协议"><a href="#写事务的二阶段提交协议" class="headerlink" title="写事务的二阶段提交协议"></a>写事务的二阶段提交协议</h3><p><img src="/../../images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/DynamoDB_2PC.png" alt="img"></p>
+<p>两阶段协议确保事务中的所有写入操作都能<strong>原子性</strong>执行并保持<strong>正确顺序</strong>。为实现原子性，事务协调器首先在第一阶段对所有待写入项执行准备（prepare）。如果所有存储节点都接受该事务，则第二阶段协调器发出提交（commit）指令以执行写操作；若有任一节点无法接受，则协调器会取消该事务。以下代码展示了 <code>TransactWriteItem</code> 协议的伪代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">TransactWriteItem</span>(<span class="params">transact_write_items</span>):</span><br><span class="line">    <span class="comment"># Prepare all items</span></span><br><span class="line">    TransactionState = <span class="string">&quot;PREPARING&quot;</span></span><br><span class="line">    <span class="keyword">for</span> operation <span class="keyword">in</span> transact_write_items:</span><br><span class="line">        sendPrepareAsyncToSN(operation)</span><br><span class="line">    </span><br><span class="line">    waitForAllPreparesToComplete()</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Evaluate whether to commit or cancel the transaction</span></span><br><span class="line">    <span class="keyword">if</span> all_prepares_succeeded():</span><br><span class="line">        TransactionState = <span class="string">&quot;COMMITTING&quot;</span></span><br><span class="line">        <span class="keyword">for</span> operation <span class="keyword">in</span> transact_write_items:</span><br><span class="line">            sendCommitAsyncToSN(operation)</span><br><span class="line">        waitForAllCommitsToComplete()</span><br><span class="line">        TransactionState = <span class="string">&quot;COMPLETED&quot;</span></span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;SUCCESS&quot;</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        TransactionState = <span class="string">&quot;CANCELLING&quot;</span></span><br><span class="line">        <span class="keyword">for</span> operation <span class="keyword">in</span> transact_write_items:</span><br><span class="line">            sendCancellationAsyncToSN(operation)</span><br><span class="line">        waitForAllCancellationsToComplete()</span><br><span class="line">        TransactionState = <span class="string">&quot;COMPLETED&quot;</span></span><br><span class="line">        <span class="keyword">return</span> getReasonForCancellation()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>为了实现写事务的时间戳排序机制，DynamoDB 在每次写操作（无论是单项写入还是事务写入）后都会将该事务的时间戳记录在对应项上。此外，存储节点还会为每个正在进行的事务持久化事务元数据，包括事务 ID 和时间戳。这些元数据附带在事务涉及的项上，并在分区重分裂等事件中随项迁移，从而确保事务执行不被结构变更干扰，可并行进行。一旦事务结束，这些元数据即被清除。</p>
+<p>在协议的准备阶段，事务协调器向每个主存储节点发送一条 <code>prepare</code> 消息，其中包含时间戳、事务 ID 和针对该项的拟执行操作。存储节点仅当以下所有条件都满足时，才接受该事务中的该项写入请求：</p>
 <ul>
-<li><p><strong>Bypassing the transaction coordinator</strong>: Non-transactional <code>GetItem</code> operations are routed directly to the storage node responsible for the item, bypassing the transaction coordinator. This avoids potential transaction locks or delays.</p>
-</li>
-<li><p><strong>Returning the latest data immediately</strong>: The storage node immediately returns the latest committed value of the item, regardless of whether a prepared transaction may later update it.</p>
-</li>
-<li><p><strong>Timestamp assignment</strong>: This read operation is assigned a timestamp that is after the last write operation’s timestamp but before the prepared transaction’s commit timestamp. This ensures the read operation is serializable, meaning it is placed between the last completed write and the pending write.</p>
-</li>
+<li>该项满足所有预条件；</li>
+<li>该写操作未违反系统限制（如条目大小上限）；</li>
+<li>事务的时间戳大于该项上次写入时记录的时间戳；</li>
+<li>当前没有其他已接受但尚未提交的事务尝试写入同一项。</li>
 </ul>
-</li>
-<li><p><strong>Individual Item Write Operations</strong></p>
-<p>In most cases, DynamoDB allows individual item write operations to be executed immediately, often before prepared transactions:</p>
-<ul>
-<li><p><strong>Directly routed to the storage node</strong>: Non-transactional <code>PutItem</code> and other modification operations are routed directly to the storage node, bypassing the transaction coordinator.</p>
-</li>
-<li><p><strong>Timestamp ordering</strong>: The storage node assigns a timestamp to the write operation that is typically earlier than any prepared transactions (since those have not yet written).</p>
-</li>
-<li><p><strong>Exceptions</strong>: If a prepared transaction includes a condition check on the item (e.g., checking a bank account balance), the system will not allow a new write to bypass the prepared transaction. For example, if a transaction is checking that there are enough funds to withdraw $100, a new transaction cannot make a withdrawal or delete the item during that check.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Delayed Execution of Write Operations</strong></p>
-<p>In certain scenarios, the system can delay write operations instead of rejecting them:</p>
-<ul>
-<li><p><strong>Buffering writes</strong>: If a new write operation conflicts with a prepared transaction’s conditions (e.g., by modifying the item’s state), the storage node can buffer the write operation in a queue until the prepared transaction is complete. This prevents the need to reject the write and require the client to resubmit it.</p>
-</li>
-<li><p><strong>Processing buffered writes after the transaction completes</strong>: Once the prepared transaction completes (committed or canceled), the buffered write can be assigned a new timestamp and executed. Typically, the delay caused by waiting for the transaction to complete is short, so this strategy doesn’t significantly increase latency.</p>
-</li>
-<li><p><strong>Unconditional writes</strong>: If the storage node receives a <code>PutItem</code> or <code>DeleteItem</code> operation without any preconditions, these operations can be executed immediately. They are assigned a timestamp later than any prepared transactions, ensuring the correctness of transactions. If a previously prepared transaction is committed with an earlier timestamp, its write operations will be ignored.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Write Transactions with Older Timestamps</strong></p>
-<p>DynamoDB supports accepting write transactions with older timestamps:</p>
-<ul>
-<li><p><strong>Handling after already committed writes</strong>: If a write transaction with an older timestamp arrives at a storage node where a later write has already been processed, the node can still accept the older transaction and mark it as prepared. If the transaction is eventually committed, its write will be ignored, as the earlier write has already been overwritten by the newer one.</p>
-</li>
-<li><p><strong>Exceptions for partial updates</strong>: This rule applies to full overwrites of data items (like <code>PutItem</code>), but not to partial updates (like <code>UpdateItem</code>). If the last write was a partial update, the operations must be executed in strict timestamp order to ensure correctness.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Multiple Transactions Writing to the Same Item</strong></p>
-<p>DynamoDB allows multiple transactions to simultaneously prepare to write the same data item:</p>
-<ul>
-<li><p><strong>Simultaneous transaction preparation</strong>: For a given item, a series of transactions can enter the prepared state simultaneously, without waiting for the previous transaction to commit. This increases concurrency and allows multiple transactions to proceed in parallel.</p>
-</li>
-<li><p><strong>Order of transaction commits</strong>: If the write operations are full item overwrites (like <code>PutItem</code> or <code>DeleteItem</code>), the transactions can be committed in any order, as long as the last <code>PutItem</code> or <code>DeleteItem</code> operation (with the latest timestamp) is the final one executed.</p>
-</li>
-<li><p><strong>Restrictions for partial updates</strong>: For transactions performing partial updates (like <code>UpdateItem</code>), the transactions must be executed in timestamp order, as the final state of the item depends on the sequence of updates.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Optimized Single-Phase Read Transactions</strong></p>
-<p>DynamoDB introduces optimizations for read transactions, allowing certain read transactions to be completed in a single phase without requiring a two-phase commit protocol:</p>
-<ul>
-<li><p><strong><code>GetItemWithTimestamp</code></strong>: Assuming storage nodes support the <code>GetItemWithTimestamp</code> operation, it allows a read timestamp to be passed as a parameter. This operation returns the latest value of the item, provided its last write timestamp is earlier than the given read timestamp and any prepared transactions have timestamps later than the read timestamp; otherwise, the request is rejected.</p>
-</li>
-<li><p><strong>Single-phase completion of read transactions</strong>: When a read transaction involves multiple items, the transaction coordinator issues <code>GetItemWithTimestamp</code> requests for each item and buffers the returned values. If all storage nodes accept the requests without conflict, the coordinator can return the buffered values to the client, completing the transaction. If any node rejects the request, the read transaction fails.</p>
-</li>
-<li><p><strong>Serialization issues</strong>: This optimization is optimistic but can lead to potential serialization issues. If a storage node later accepts a write with a timestamp earlier than a previously executed read transaction, it may cause the transaction to be non-serializable. To avoid this, storage nodes need to track both the last read and write timestamps for each item. Future write transactions must ensure that their timestamps are later than the last read&#x2F;write timestamps of all the items they modify.</p>
-</li>
-</ul>
-</li>
-<li><p><strong>Optimizations for Single-Partition Write Transactions</strong></p>
-<p>DynamoDB further optimizes write transactions that involve multiple items within a single partition, allowing them to be completed in a single phase without a two-phase commit protocol:</p>
-<ul>
-<li><p><strong>Single-partition transaction processing</strong>: If all the items being written in a transaction reside within the same partition (and thus are stored on the same storage node), there is no need for separate prepare and commit phases. The storage node can perform all the necessary precondition checks and immediately execute the write operations.</p>
-</li>
-<li><p><strong>Reduced communication overhead</strong>: This approach significantly reduces the communication overhead between the transaction coordinator and storage nodes, especially in highly concurrent environments, improving system performance.</p>
-</li>
-</ul>
-</li>
-</ol>
-<h1 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h1><p><strong>Why does DynmoDB not use the two-phase locking protocol?</strong> </p>
-<p>While two-phase locking is used traditionally to prevent concurrent transactions from reading and writing the same data items, it has drawbacks. Locking <strong>restricts concurrency</strong> and can lead to <strong>deadlocks</strong>. Moreover, it requires <strong>a recovery mechanism</strong> to release locks when an application fails after acquiring locks as part of a transaction but before that transaction commits. To simplify the design and take advantage of low-contention workloads, DynamoDB uses an optimistic concurrency control scheme that avoids locking altogether.</p>
+<p>以下代码展示了这一阶段的伪代码。需要指出的是，上述最后两个条件虽然正确，但较为严格，后续内容会讨论它们的松弛方式。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">processPrepare</span>(<span class="params"><span class="built_in">input</span>: PrepareInput</span>):</span><br><span class="line">    item = readItem(<span class="built_in">input</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> item <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">        <span class="keyword">if</span> (</span><br><span class="line">            evaluateConditionsOnItem(item, <span class="built_in">input</span>.conditions) <span class="keyword">and</span></span><br><span class="line">            evaluateSystemRestrictions(item, <span class="built_in">input</span>) <span class="keyword">and</span></span><br><span class="line">            item.timestamp &lt; <span class="built_in">input</span>.timestamp <span class="keyword">and</span></span><br><span class="line">            item.ongoingTransactions <span class="keyword">is</span> <span class="literal">None</span></span><br><span class="line">        ):</span><br><span class="line">            item.ongoingTransaction = <span class="built_in">input</span>.transactionId</span><br><span class="line">            <span class="keyword">return</span> <span class="string">&quot;SUCCESS&quot;</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">return</span> <span class="string">&quot;FAILED&quot;</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="comment"># item does not exist</span></span><br><span class="line">        item = Item(<span class="built_in">input</span>.item)</span><br><span class="line">        <span class="keyword">if</span> (</span><br><span class="line">            evaluateConditionsOnItem(<span class="built_in">input</span>.item, <span class="built_in">input</span>.conditions) <span class="keyword">and</span></span><br><span class="line">            evaluateSystemRestrictions(<span class="built_in">input</span>) <span class="keyword">and</span></span><br><span class="line">            partition.maxDeleteTimestamp &lt; <span class="built_in">input</span>.timestamp</span><br><span class="line">        ):</span><br><span class="line">            item.ongoingTransaction = <span class="built_in">input</span>.transactionId</span><br><span class="line">            <span class="keyword">return</span> <span class="string">&quot;SUCCESS&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;FAILED&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>若所有参与存储节点都接受，则事务协调器进入提交阶段；若任一节点拒绝，则协调器发出事务取消指令。提交&#x2F;取消过程的伪代码如下。在提交阶段，参与节点执行本地项的写入，并将项的最后写入时间戳更新为该事务的时间戳；对于只带预条件检查但未修改的项，其时间戳也同步更新。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">processCommit</span>(<span class="params"><span class="built_in">input</span>: CommitInput</span>):</span><br><span class="line">    item = readItem(<span class="built_in">input</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> item <span class="keyword">is</span> <span class="literal">None</span> <span class="keyword">or</span> item.ongoingTransaction != <span class="built_in">input</span>.transactionId:</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;COMMIT_FAILED&quot;</span></span><br><span class="line"></span><br><span class="line">    applyChangeForCommit(item, <span class="built_in">input</span>.writeOperation)</span><br><span class="line">    item.ongoingTransaction = <span class="literal">None</span></span><br><span class="line">    item.timestamp = <span class="built_in">input</span>.timestamp</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;SUCCESS&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">processCancel</span>(<span class="params"><span class="built_in">input</span>: CancellationInput</span>):</span><br><span class="line">    item = readItem(<span class="built_in">input</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> item <span class="keyword">is</span> <span class="literal">None</span> <span class="keyword">or</span> item.ongoingTransaction != <span class="built_in">input</span>.transactionId:</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;CANCELLATION_FAILED&quot;</span></span><br><span class="line"></span><br><span class="line">    item.ongoingTransaction = <span class="literal">None</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># item was only created as part of this transaction</span></span><br><span class="line">    <span class="keyword">if</span> item.wasCreatedDuringPrepare:</span><br><span class="line">        deleteItem(item)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;SUCCESS&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>当所有参与节点完成提交或取消操作后，事务协调器向请求路由器发送“事务完成”响应，指明事务是否成功提交。请求路由器再将结果返回给客户端。</p>
+<p>对于已删除的项，由于无法继续维护最后写入时间戳，因此 DynamoDB 不使用 tombstone（永久删除标记），以避免高额存储成本及垃圾回收开销。取而代之的是，每个分区维护一个最大删除时间戳。当事务删除某项时，如果其时间戳高于当前分区的最大删除时间戳，就更新该时间戳。后续若准备写入一个在当前分区中不存在的项，存储节点会将新事务的时间戳与此分区的最大删除时间戳进行比较，以决定是否接受该事务。这种按分区划分的时间戳设计既正确又高效。</p>
+<p>在当前机制下，部分事务可能因其时间戳低于分区最大删除时间戳而被取消，而如果采用 tombstone 机制，这类事务本可提交。但实践中，此类取消事务占比极低，不会影响系统性能与一致性。</p>
+<h3 id="读事务协议"><a href="#读事务协议" class="headerlink" title="读事务协议"></a>读事务协议</h3><p>DynamoDB 采用了一种两阶段无写入协议来处理只读事务，与写事务及其他系统有显著不同。为了避免在每次读操作中维护持久化且复制的数据的读取时间戳，引入了额外的延迟和成本，DynamoDB 发明了这种高效方案来执行读取事务。</p>
+<p><strong>协议的第一阶段</strong>：事务协调器会读取事务读取集合（read‑set）中的所有项。如果有任一项正被其他写事务处理，读取事务立即失败；否则进入第二阶段。存储节点在返回每个项的值时，还会附带该项的当前已提交的日志序列号（LSN），它代表该存储节点上最后一次写操作的序列编号，且是单调递增的。</p>
+<p><strong>协议的第二阶段</strong>：重新读取这些项，并对比第一阶段返回的 LSN。如果所有项的 LSN 均未改变，说明在两次读取期间未被修改，读取事务成功返回所读值；如果有任一项的 LSN 已变，则读取事务失败 。</p>
+<p>无论事务成功或失败，存储节点都会返回 LSN，这让事务协调器能够在出现冲突时，仅针对变化的项重新执行读取，而无需回到事务开始阶段，从而避免完全重启。如果某项正处于写事务的准备阶段，存储节点会直接拒绝该读取请求。</p>
+<h3 id="回复与容错"><a href="#回复与容错" class="headerlink" title="回复与容错"></a>回复与容错</h3><p>DynamoDB 支持自动从存储节点故障中恢复，因此存储节点故障并不会影响事务协议的执行。如果负责某个数据项的主存储节点发生故障，该分区会自动将主节点角色切换到复制组中的其他存储节点。以前主节点已接受的事务元数据被持久化并在复制组内同步，因此新主节点可以继续处理这些事务而不会丢失信息。事务协调器也不需要感知主节点发生了变更。</p>
+<p>然而，事务协调器失败的问题更为关键。协调器会因硬件或软件故障而崩溃，为了确保事务的原子性和最终能够完成，协调器将每笔事务及其当前状态记录在一个事务账本（ledger）中 。系统中运行有多个恢复管理器，它们会定期扫描账本，查找已接收但在合理时间内未完成的事务，并将这些事务重新分配给新的事务协调器继续执行协议。如果协调器被误判为失败而启动了操作的重复执行，并不会带来问题，因为存储节点对重复提交的写操作会进行幂等处理，识别出已执行操作并忽略它们。</p>
+<p>事务完成后，协调器会向账本中写入“已完成”记录，表明该事务不再需要处理。相关信息可在日志中保留，用于监控与调试，也可以在后续清理。账本一般设计为 DynamoDB 表，使用事务 ID 作为主键。此外，恢复管理器会并行地扫描账本，从随机起始键开始，处理上千条未完成事务。</p>
+<p>存储节点自身也可触发恢复流程：当某项被挂起一段时间（如长期处于 prepare 状态），其他请求读写该项时，节点会向恢复管理器发送提示，包括事务 ID 与项键，后者再依据账本状态决定是否继续处理该事务。</p>
+<p>如果账本中显示该事务尚未完成，恢复管理器会重新分配事务给协调器，继续执行事务的后续阶段（commit 或 cancel）。</p>
+<p>事务账本中已标记完成或不在账本中，表示该事务可能已经成功提交或被取消。此时恢复管理器不会触发新的执行流程，存储节点也因此可以安全清理该事务的挂起状态。</p>
+<h2 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h2><p><strong>Why does DynmoDB not use the two-phase locking protocol?</strong> </p>
+<p>While two-phase locking is used traditionally to prevent concurrent transactions from reading and writing the same data items, it has drawbacks. Locking restricts concurrency and can lead to deadlocks. Moreover, it requires a recovery mechanism to release locks when an application fails after acquiring locks as part of a transaction but before that transaction commits. To simplify the design and take advantage of low-contention workloads, DynamoDB uses an optimistic concurrency control scheme that avoids locking altogether.</p>
 <p><strong>With DynamoDB, what is the role of a transaction coordinator?</strong></p>
 <ul>
-<li>The <strong>Transaction Coordinator</strong> plays a central role in handling transactions that span multiple items or storage nodes. The TC is responsible for</li>
-<li><ul>
+<li>The Transaction Coordinator plays a central role in handling transactions that span multiple items or storage nodes. The TC is responsible for:<ul>
 <li>breaking down the transaction into individual operations and coordinating these operations across the necessary storage nodes.</li>
 <li>ensuring that the operations follow two-phase commit and all parts of the transaction are either completed successfully or rolled back.</li>
 <li>assigning timestamps to ensure the correct ordering of operations and managing any potential conflicts between concurrent transactions.</li>
@@ -587,13 +500,13 @@
 </li>
 </ul>
 <p><strong>Is DynamoDB a relational database management system?</strong></p>
-<p>No, DynamoDB is not a relational database management system (RDBMS). It is a NoSQL database, specifically a key-value and document store. Here’s how it differs from an RDBMS:</p>
+<p>No, DynamoDB is not a relational database management system. It is a NoSQL database, specifically a key-value and document store. Here’s how it differs from an RDBMS:</p>
 <ol>
-<li><strong>Data Model</strong>: DynamoDB does not use tables with fixed schemas like relational databases. Instead, it stores data as key-value pairs or documents (JSON-like structure). Each item can have different attributes, and there’s no need for predefined schemas.</li>
-<li><strong>Relationships</strong>: Relational databases focus on managing relationships between data (using joins, foreign keys, etc.), while DynamoDB is optimized for storing large amounts of data without complex relationships between the data items.</li>
-<li><strong>Querying</strong>: RDBMSs typically use <strong>SQL</strong> for querying data, which allows for complex joins and aggregations. DynamoDB uses its own API for querying and does not support SQL natively. While it allows querying by primary key and secondary indexes, it doesn’t support joins.</li>
-<li><strong>Consistency and Transactions</strong>: DynamoDB supports <strong>eventual consistency</strong> or <strong>strong consistency</strong> for reads, while traditional relational databases typically ensure strong consistency through ACID transactions. DynamoDB has introduced <strong>transactions</strong>, but they work differently compared to those in relational databases.</li>
-<li><strong>Scalability</strong>: DynamoDB is designed for horizontal scalability across distributed systems, allowing it to handle very large amounts of traffic and data by automatically partitioning data. In contrast, RDBMSs are typically vertically scaled and are not as naturally distributed.</li>
+<li>Data Model: DynamoDB does not use tables with fixed schemas like relational databases. Instead, it stores data as key-value pairs or documents (JSON-like structure). Each item can have different attributes, and there’s no need for predefined schemas.</li>
+<li>Relationships: Relational databases focus on managing relationships between data (using joins, foreign keys, etc.), while DynamoDB is optimized for storing large amounts of data without complex relationships between the data items.</li>
+<li>Querying: RDBMSs typically use SQL for querying data, which allows for complex joins and aggregations. DynamoDB uses its own API for querying and does not support SQL natively. While it allows querying by primary key and secondary indexes, it doesn’t support joins.</li>
+<li>Consistency and Transactions: DynamoDB supports eventual consistency or strong consistency for reads, while traditional relational databases typically ensure strong consistency through ACID transactions. DynamoDB has introduced transactions, but they work differently compared to those in relational databases.</li>
+<li>Scalability: DynamoDB is designed for horizontal scalability across distributed systems, allowing it to handle very large amounts of traffic and data by automatically partitioning data. In contrast, RDBMSs are typically vertically scaled and are not as naturally distributed.</li>
 </ol>
 <p><strong>How is DynamoDB’s transaction coordinator different than Gamma’s scheduler?</strong> </p>
 <ul>
@@ -607,15 +520,15 @@
 <p>FoundationDB uses a range-based partitioning strategy to distribute key-value pairs across its StorageServers.</p>
 <p>Here’s how it works:</p>
 <ol>
-<li><strong>Key Ranges</strong>: FoundationDB partitions the key-value pairs by dividing the key space into <strong>contiguous ranges</strong>. Each range of keys is assigned to a specific <strong>StorageServer</strong>.</li>
-<li><strong>Dynamic Splitting</strong>: The key ranges are <strong>dynamically split</strong> and adjusted based on data distribution and load. If a particular range grows too large or becomes a hotspot due to frequent access, FoundationDB will automatically split that range into smaller sub-ranges and distribute them across multiple <strong>StorageServers</strong> to balance the load.</li>
-<li><strong>Data Movement</strong>: When a key range is split or needs to be rebalanced, the corresponding data is migrated from one <strong>StorageServer</strong> to another without manual intervention, ensuring even distribution of data and load across the system.</li>
+<li>Key Ranges: FoundationDB partitions the key-value pairs by dividing the key space into contiguous ranges. Each range of keys is assigned to a specific StorageServer.</li>
+<li>Dynamic Splitting: The key ranges are dynamically split and adjusted based on data distribution and load. If a particular range grows too large or becomes a hotspot due to frequent access, FoundationDB will automatically split that range into smaller sub-ranges and distribute them across multiple StorageServers to balance the load.</li>
+<li>Data Movement: When a key range is split or needs to be rebalanced, the corresponding data is migrated from one StorageServer to another without manual intervention, ensuring even distribution of data and load across the system.</li>
 </ol>
 <p><strong>Why do systems such as Nova-LSM separate storage of data from its processing?</strong> </p>
 <ul>
-<li><strong>Independent Scaling</strong>: Storage and processing resources can scale independently to meet varying load demands.</li>
-<li><strong>Resource Optimization</strong>: Storage nodes focus on data persistence and I&#x2F;O performance, while processing nodes handle computation, improving overall resource efficiency.</li>
-<li><strong>Fault Tolerance</strong>: Data remains safe in storage even if processing nodes fail, ensuring high availability.</li>
+<li>Independent Scaling: Storage and processing resources can scale independently to meet varying load demands.</li>
+<li>Resource Optimization: Storage nodes focus on data persistence and I&#x2F;O performance, while processing nodes handle computation, improving overall resource efficiency.</li>
+<li>Fault Tolerance: Data remains safe in storage even if processing nodes fail, ensuring high availability.</li>
 </ul>
 <p>Reference: </p>
 <ul>
@@ -702,7 +615,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9E%B6%E6%9E%84"><span class="nav-number">1.</span> <span class="nav-text">架构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%8E%E9%A2%84%E9%85%8D%E7%BD%AE%E5%88%B0%E5%BC%B9%E6%80%A7%E4%BC%B8%E7%BC%A9"><span class="nav-number">2.</span> <span class="nav-text">从预配置到弹性伸缩</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AA%81%E5%8F%91%E5%AE%B9%E9%87%8F"><span class="nav-number">2.1.</span> <span class="nav-text">突发容量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%87%AA%E9%80%82%E5%BA%94%E5%AE%B9%E9%87%8F"><span class="nav-number">2.2.</span> <span class="nav-text">自适应容量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%A8%E5%B1%80%E5%87%86%E5%85%A5%E6%8E%A7%E5%88%B6"><span class="nav-number">2.3.</span> <span class="nav-text">全局准入控制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B9%B3%E8%A1%A1%E6%B6%88%E8%80%97%E7%9A%84%E5%AE%B9%E9%87%8F"><span class="nav-number">2.4.</span> <span class="nav-text">平衡消耗的容量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8B%86%E5%88%86%E6%B6%88%E8%B4%B9"><span class="nav-number">2.5.</span> <span class="nav-text">拆分消费</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8C%89%E9%9C%80%E9%85%8D%E7%BD%AE"><span class="nav-number">2.6.</span> <span class="nav-text">按需配置</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8C%81%E4%B9%85%E6%80%A7%E5%92%8C%E6%AD%A3%E7%A1%AE%E6%80%A7"><span class="nav-number">3.</span> <span class="nav-text">持久性和正确性</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A1%AC%E4%BB%B6%E5%A4%B1%E8%B4%A5"><span class="nav-number">3.1.</span> <span class="nav-text">硬件失败</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9D%99%E9%BB%98%E6%95%B0%E6%8D%AE%E9%94%99%E8%AF%AF"><span class="nav-number">3.2.</span> <span class="nav-text">静默数据错误</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%9E%E7%BB%AD%E6%80%A7%E6%A0%A1%E9%AA%8C"><span class="nav-number">3.3.</span> <span class="nav-text">连续性校验</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%87%E4%BB%BD%E5%92%8C%E6%81%A2%E5%A4%8D"><span class="nav-number">3.4.</span> <span class="nav-text">备份和恢复</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%AB%98%E5%8F%AF%E7%94%A8%E6%80%A7"><span class="nav-number">4.</span> <span class="nav-text">高可用性</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%99%E5%92%8C%E4%B8%80%E8%87%B4%E6%80%A7%E8%AF%BB%E7%9A%84%E5%8F%AF%E7%94%A8%E6%80%A7"><span class="nav-number">4.1.</span> <span class="nav-text">写和一致性读的可用性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%B1%E8%B4%A5%E6%A3%80%E6%B5%8B"><span class="nav-number">4.2.</span> <span class="nav-text">失败检测</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%8B%E9%87%8F%E5%8F%AF%E7%94%A8%E6%80%A7"><span class="nav-number">4.3.</span> <span class="nav-text">测量可用性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%83%A8%E7%BD%B2"><span class="nav-number">4.4.</span> <span class="nav-text">部署</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%9D%E8%B5%96%E5%A4%96%E9%83%A8%E6%9C%8D%E5%8A%A1"><span class="nav-number">4.5.</span> <span class="nav-text">依赖外部服务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%83%E6%95%B0%E6%8D%AE%E5%8F%AF%E7%94%A8%E6%80%A7"><span class="nav-number">4.6.</span> <span class="nav-text">元数据可用性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9C%B0%E7%90%86%E5%8C%BA%E5%9F%9F%E5%A4%B1%E8%B4%A5"><span class="nav-number">4.7.</span> <span class="nav-text">地理区域失败</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%8D%E5%88%B6"><span class="nav-number">4.8.</span> <span class="nav-text">复制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Region-%E5%86%85%E5%A4%8D%E5%88%B6"><span class="nav-number">4.8.1.</span> <span class="nav-text">Region 内复制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%B7%A8-Region-%E5%A4%8D%E5%88%B6"><span class="nav-number">4.8.2.</span> <span class="nav-text">跨 Region 复制</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Programming-Interface"><span class="nav-number"></span> <span class="nav-text">Programming Interface</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Transactions"><span class="nav-number"></span> <span class="nav-text">Transactions</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Transaction-execution"><span class="nav-number"></span> <span class="nav-text">Transaction execution</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Two-phase-commit-2PC"><span class="nav-number"></span> <span class="nav-text">Two-phase commit (2PC)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Adapting-timestamp-ordering-for-key-value-operations"><span class="nav-number"></span> <span class="nav-text">Adapting timestamp ordering for key-value operations</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Questions"><span class="nav-number"></span> <span class="nav-text">Questions</span></a></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9E%B6%E6%9E%84"><span class="nav-number">1.</span> <span class="nav-text">架构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%8E%E9%A2%84%E9%85%8D%E7%BD%AE%E5%88%B0%E5%BC%B9%E6%80%A7%E4%BC%B8%E7%BC%A9"><span class="nav-number">2.</span> <span class="nav-text">从预配置到弹性伸缩</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AA%81%E5%8F%91%E5%AE%B9%E9%87%8F"><span class="nav-number">2.1.</span> <span class="nav-text">突发容量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%87%AA%E9%80%82%E5%BA%94%E5%AE%B9%E9%87%8F"><span class="nav-number">2.2.</span> <span class="nav-text">自适应容量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%A8%E5%B1%80%E5%87%86%E5%85%A5%E6%8E%A7%E5%88%B6"><span class="nav-number">2.3.</span> <span class="nav-text">全局准入控制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B9%B3%E8%A1%A1%E6%B6%88%E8%80%97%E7%9A%84%E5%AE%B9%E9%87%8F"><span class="nav-number">2.4.</span> <span class="nav-text">平衡消耗的容量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8B%86%E5%88%86%E6%B6%88%E8%B4%B9"><span class="nav-number">2.5.</span> <span class="nav-text">拆分消费</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8C%89%E9%9C%80%E9%85%8D%E7%BD%AE"><span class="nav-number">2.6.</span> <span class="nav-text">按需配置</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8C%81%E4%B9%85%E6%80%A7%E5%92%8C%E6%AD%A3%E7%A1%AE%E6%80%A7"><span class="nav-number">3.</span> <span class="nav-text">持久性和正确性</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A1%AC%E4%BB%B6%E5%A4%B1%E8%B4%A5"><span class="nav-number">3.1.</span> <span class="nav-text">硬件失败</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9D%99%E9%BB%98%E6%95%B0%E6%8D%AE%E9%94%99%E8%AF%AF"><span class="nav-number">3.2.</span> <span class="nav-text">静默数据错误</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%9E%E7%BB%AD%E6%80%A7%E6%A0%A1%E9%AA%8C"><span class="nav-number">3.3.</span> <span class="nav-text">连续性校验</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%87%E4%BB%BD%E5%92%8C%E6%81%A2%E5%A4%8D"><span class="nav-number">3.4.</span> <span class="nav-text">备份和恢复</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%AB%98%E5%8F%AF%E7%94%A8%E6%80%A7"><span class="nav-number">4.</span> <span class="nav-text">高可用性</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%99%E5%92%8C%E4%B8%80%E8%87%B4%E6%80%A7%E8%AF%BB%E7%9A%84%E5%8F%AF%E7%94%A8%E6%80%A7"><span class="nav-number">4.1.</span> <span class="nav-text">写和一致性读的可用性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%B1%E8%B4%A5%E6%A3%80%E6%B5%8B"><span class="nav-number">4.2.</span> <span class="nav-text">失败检测</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%8B%E9%87%8F%E5%8F%AF%E7%94%A8%E6%80%A7"><span class="nav-number">4.3.</span> <span class="nav-text">测量可用性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%83%A8%E7%BD%B2"><span class="nav-number">4.4.</span> <span class="nav-text">部署</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%9D%E8%B5%96%E5%A4%96%E9%83%A8%E6%9C%8D%E5%8A%A1"><span class="nav-number">4.5.</span> <span class="nav-text">依赖外部服务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%83%E6%95%B0%E6%8D%AE%E5%8F%AF%E7%94%A8%E6%80%A7"><span class="nav-number">4.6.</span> <span class="nav-text">元数据可用性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9C%B0%E7%90%86%E5%8C%BA%E5%9F%9F%E5%A4%B1%E8%B4%A5"><span class="nav-number">4.7.</span> <span class="nav-text">地理区域失败</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%8D%E5%88%B6"><span class="nav-number">4.8.</span> <span class="nav-text">复制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Region-%E5%86%85%E5%A4%8D%E5%88%B6"><span class="nav-number">4.8.1.</span> <span class="nav-text">Region 内复制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%B7%A8-Region-%E5%A4%8D%E5%88%B6"><span class="nav-number">4.8.2.</span> <span class="nav-text">跨 Region 复制</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BC%96%E7%A8%8B%E6%8E%A5%E5%8F%A3"><span class="nav-number">5.</span> <span class="nav-text">编程接口</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%BB%E5%86%99%E6%93%8D%E4%BD%9C"><span class="nav-number">5.1.</span> <span class="nav-text">读写操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E6%93%8D%E4%BD%9C"><span class="nav-number">5.2.</span> <span class="nav-text">事务操作</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E6%89%A7%E8%A1%8C"><span class="nav-number">6.</span> <span class="nav-text">事务执行</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E8%B7%AF%E7%94%B1"><span class="nav-number">6.1.</span> <span class="nav-text">事务路由</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%B6%E9%97%B4%E6%88%B3%E9%A1%BA%E5%BA%8F"><span class="nav-number">6.2.</span> <span class="nav-text">时间戳顺序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%99%E4%BA%8B%E5%8A%A1%E7%9A%84%E4%BA%8C%E9%98%B6%E6%AE%B5%E6%8F%90%E4%BA%A4%E5%8D%8F%E8%AE%AE"><span class="nav-number">6.3.</span> <span class="nav-text">写事务的二阶段提交协议</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%BB%E4%BA%8B%E5%8A%A1%E5%8D%8F%E8%AE%AE"><span class="nav-number">6.4.</span> <span class="nav-text">读事务协议</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%9E%E5%A4%8D%E4%B8%8E%E5%AE%B9%E9%94%99"><span class="nav-number">6.5.</span> <span class="nav-text">回复与容错</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Questions"><span class="nav-number">7.</span> <span class="nav-text">Questions</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
