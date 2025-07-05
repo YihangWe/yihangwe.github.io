@@ -48,7 +48,7 @@
 <meta property="og:image" content="https://yihangwe.github.io/images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/dynamodb_txn.png">
 <meta property="og:image" content="https://yihangwe.github.io/images/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/DynamoDB_2PC.png">
 <meta property="article:published_time" content="2024-10-03T16:00:00.000Z">
-<meta property="article:modified_time" content="2025-07-05T21:53:56.620Z">
+<meta property="article:modified_time" content="2025-07-05T21:58:27.904Z">
 <meta property="article:author" content="Yihang Wei">
 <meta property="article:tag" content="数据库, 分布式, OLTP, OLAP">
 <meta name="twitter:card" content="summary">
@@ -236,7 +236,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-07-06 05:53:56" itemprop="dateModified" datetime="2025-07-06T05:53:56+08:00">2025-07-06</time>
+                <time title="Modified: 2025-07-06 05:58:27" itemprop="dateModified" datetime="2025-07-06T05:58:27+08:00">2025-07-06</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -491,13 +491,11 @@
 <h2 id="Questions"><a href="#Questions" class="headerlink" title="Questions"></a>Questions</h2><p><strong>Why does DynmoDB not use the two-phase locking protocol?</strong> </p>
 <p>While two-phase locking is used traditionally to prevent concurrent transactions from reading and writing the same data items, it has drawbacks. Locking restricts concurrency and can lead to deadlocks. Moreover, it requires a recovery mechanism to release locks when an application fails after acquiring locks as part of a transaction but before that transaction commits. To simplify the design and take advantage of low-contention workloads, DynamoDB uses an optimistic concurrency control scheme that avoids locking altogether.</p>
 <p><strong>With DynamoDB, what is the role of a transaction coordinator?</strong></p>
+<p>The Transaction Coordinator plays a central role in handling transactions that span multiple items or storage nodes. The TC is responsible for:</p>
 <ul>
-<li>The Transaction Coordinator plays a central role in handling transactions that span multiple items or storage nodes. The TC is responsible for:<ul>
 <li>breaking down the transaction into individual operations and coordinating these operations across the necessary storage nodes.</li>
 <li>ensuring that the operations follow two-phase commit and all parts of the transaction are either completed successfully or rolled back.</li>
 <li>assigning timestamps to ensure the correct ordering of operations and managing any potential conflicts between concurrent transactions.</li>
-</ul>
-</li>
 </ul>
 <p><strong>Is DynamoDB a relational database management system?</strong></p>
 <p>No, DynamoDB is not a relational database management system. It is a NoSQL database, specifically a key-value and document store. Here’s how it differs from an RDBMS:</p>
